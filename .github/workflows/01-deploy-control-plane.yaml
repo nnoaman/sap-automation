@@ -40,7 +40,7 @@ jobs:
     environment: ${{ inputs.deployer }}
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/devanshjainms/sap-automation:githubworkflow
+      image: ghcr.io/devanshjainms/sap-automation:devanshjain-githubworkflow
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
     needs: setup_deployer
     runs-on: self-hosted
     container:
-      image: ghcr.io/devanshjainms/sap-automation:githubworkflow
+      image: ghcr.io/devanshjainms/sap-automation:devanshjain-githubworkflow
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
@@ -141,7 +141,7 @@ jobs:
     needs: deploy_controlplane
     runs-on: self-hosted
     container:
-      image: ghcr.io/devanshjainms/sap-automation:githubworkflow
+      image: ghcr.io/devanshjainms/sap-automation:devanshjain-githubworkflow
     steps:
       - name: Azure Login
         uses: Azure/Login@v2
