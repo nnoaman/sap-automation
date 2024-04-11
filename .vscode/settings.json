@@ -1,4 +1,5 @@
 {
   "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "ansible.python.interpreterPath": "/home/devanshjain/sap-automation/.venv/bin/python"
 }
