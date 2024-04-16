@@ -44,7 +44,7 @@ jobs:
     environment: ${{ inputs.deployer }}
     runs-on: self-hosted
     container:
-      image: ghcr.io/devanshjainms/azure-sap-automation:github-workflow
+      image: ghcr.io/devanshjainms/azure-sap-automation:experimentalga
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
@@ -86,3 +86,4 @@ jobs:
           inherit: ${{ inputs.inherit_settings }}
           workload_zone_folder: ${{ inputs.workload_zone }}
           workload_zone_configuration_file: ${{ inputs.workload_zone }}.tfvars
+          APP_CONFIGURATION_NAME: ${{ vars.APP_CONFIGURATION_NAME }}
