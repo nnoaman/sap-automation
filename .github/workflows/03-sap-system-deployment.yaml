@@ -36,7 +36,7 @@ jobs:
     environment: ${{ inputs.sap_system }}
     runs-on: self-hosted
     container:
-      image: ghcr.io/devanshjainms/sap-automation:devanshjain-githubworkflow
+      image: ghcr.io/devanshjainms/sap-automation:experimentalga
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4

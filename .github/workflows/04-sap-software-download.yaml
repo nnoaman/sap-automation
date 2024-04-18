@@ -4,8 +4,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: SAP Software Download
-run-name: SAP Software Download by @${{ github.actor }}
+name: Download SAP software
+run-name: Download SAP software @${{ github.actor }}
 
 on:
   workflow_dispatch:
@@ -15,57 +15,18 @@ on:
         required: true
         type: choice
         options:
-            - S4HANA_2022_FP02_v0001ms
-            - S4HANA_2021_ISS_v0001ms
-            - S4HANA_2021_ISS_v0002ms
-            - S4HANA_2021_FP01_v0001ms
-            - S4HANA_2021_FP01_v0002ms
-            - S42022SPS00_v0001ms
-            - S42020SPS04_v0001ms
-            - S42020SPS04_v0002ms
-            - S41909SPS03_v0011ms
-            - S41909SPS03_v0012ms
-            - HCMT_v0002ms
-            - BW4HANA2021SPS01_v0003ms
-            - HANA_2_00_055_v0006ms
-            - HANA_2_00_059_v0004ms
-            - HANA_2_00_066_v0001ms
-            - HANA_2_00_067_v0004ms
-            - HANA_2_00_071_v0001ms
-            - NW750_HANA_v0004ms
-            - NW752SPS09_v0001ms
-            - NW750SPS20_DB2_v0001ms
-            - NW750_ORACLE_19_v0001ms
-            - NW750_MSSQL_v0001ms
-            - NW752_MSSQL_v0001ms
-            - NW750SPS20_SYBASE_v0001ms
-            - NW750_ORACLE_19_ASM_v0001ms
-            - NW750SPS25_JAVA_v0001ms
-            - ORACLE_19_00_v0003ms
-            - ORACLE_19_00_ASM_v0001ms
-            - NW750SPS20_DB2_v0001ms
-            - DB2_UDB_11_5_v0001ms
-            - ORACLE_19_00_ORA_MSID_v0002ms
-            - ERP6_EHP8_WIN_MSS2019_v0001ms
-            - ERP6_EHP8_WIN_MSS2016_v0001ms
-            - ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
-      environment:
-        description: "Control Plane Environment (CTRL, MGMT)"
+          - NW750_HANA_v0004ms
+      deployer:
+        description: "Control Plane Environment"
         required: true
-        type: string
-        default: "CTRL"
+        type: environment
       region:
-        description: "Control Plane (SAP Library) location code"
+        description: "Control Plane Region"
         required: true
         type: string
-        default: "EAUS"
-      extra_params:
-        description: "Extra Parameters"
-        type: string
-        default: " "
+        default: westurope
       re_download:
-        description: "Re-download the software"
-        required: true
+        description: "Re-download"
         type: boolean
         default: false
 
@@ -75,12 +36,12 @@ permissions:
   issues: write
 
 jobs:
-  download_sap_software:
-    name: SAP software download
-    environment: ${{ inputs.environment }}
+  prepare_download:
+    name: Prepare Download
+    environment: ${{ inputs.deployer }}
     runs-on: self-hosted
     container:
-      image: ghcr.io/devanshjainms/sap-automation:devanshjain-githubworkflow
+      image: ghcr.io/devanshjainms/sap-automation:experimentalga
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
@@ -93,21 +54,29 @@ jobs:
         with:
           application_id: ${{ secrets.APPLICATION_ID }}
           application_private_key: ${{ secrets.APPLICATION_PRIVATE_KEY }}
-          organization: ${{ github.repository_owner }}
+          #organization: ${{ github.repository_owner }}
 
       - name: Azure Login
         uses: Azure/Login@v2
         with:
           creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
 
-      - name: Download SAP Software
+      - name: Prepare SAP software download
         run: |
           cd ${SAP_AUTOMATION_REPO_PATH}
-          deploy/automation/04-sap-software-download/01-sap-software-download.sh
+          deploy/automation/04-sap-software-download/01-prepare-software-download.sh
         env:
-          environment: ${{ inputs.environment }}
-          sap_automation_repo_path: ${SAP_AUTOMATION_REPO_PATH}
+          APP_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
           bom_base_name: ${{ inputs.bom_base_name }}
           region: ${{ inputs.region }}
+          environment: ${{ inputs.deployer }}
           re_download: ${{ inputs.re_download }}
-          ExtraParams: ${{ inputs.extra_params }}
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          SUsername: ${{ secrets.S_USERNAME }}
+          SPassword: ${{ secrets.S_PASSWORD }}
+          USE_MSI: false
+          deployerconfig: ${{ inputs.deployer }}.tfvars
+          deployerfolder: ${{ inputs.deployer }}
