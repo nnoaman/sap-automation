@@ -67,7 +67,7 @@ deployer_location=$(echo ${deployerfolder} | awk -F'-' '{print $2}' | xargs)
 
 start_group "Details of Key Vault"
 echo Deployer Location: ${deployer_location}
-kv_name=$(cat .sap_deployment_automation/ ${deployer_environment}${deployer_location} | grep keyvault |awk -F'=' '{print $2}'); echo "Key Vault="$kv_name
+kv_name=$(cat ${CONFIG_REPO_PATH}/.sap_deployment_automation/ ${deployer_environment}${deployer_location} | grep keyvault |awk -F'=' '{print $2}'); echo "Key Vault="$kv_name
 
 export SUsernamefromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Username')] | [0]"  -o tsv)
 
