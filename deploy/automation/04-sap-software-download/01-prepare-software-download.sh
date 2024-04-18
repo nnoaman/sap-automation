@@ -88,3 +88,5 @@ else
     az keyvault secret set --name "S-Password" --vault-name $kv_name --value "${SPassword}" --subscription "${ARM_SUBSCRIPTION_ID}" --output none
     echo "${SPassword}"
 fi
+
+exit $return_code
