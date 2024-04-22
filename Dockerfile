@@ -58,6 +58,9 @@ RUN git clone https://github.com/Azure/SAP-automation-samples.git
 
 COPY . /source
 
+RUN echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
+    echo "export LANG=en_US.UTF-8" >> /root/.bashrc
+
 ENV SAP_AUTOMATION_REPO_PATH=/source
 
 ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
