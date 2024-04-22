@@ -41,11 +41,11 @@ RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/y
   rm -rf yq_linux_amd64.tar.gz yq_linux_amd64 install-man-page.sh yq.1
 
 RUN locale-gen.sh
-RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment \
-  echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
-  echo "LANG=en_US.UTF-8" > /etc/locale.conf \
-  apt-get clean && apt-get update -y \
-  apt-get install locales -y \
+RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment &&
+  echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen &&
+  echo "LANG=en_US.UTF-8" > /etc/locale.conf &&
+  apt-get clean && apt-get update -y &&
+  apt-get install locales -y &&
   locale-gen en_US.UTF-8
 
 RUN pip3 install --upgrade \
