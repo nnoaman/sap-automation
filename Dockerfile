@@ -41,11 +41,13 @@ RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/y
   rm -rf yq_linux_amd64.tar.gz yq_linux_amd64 install-man-page.sh yq.1
 
 RUN locale-gen.sh
-RUN echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
-    echo "export LANG=en_US.UTF-8" >> /root/.bashrc
+RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment \
+  echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
+  echo "LANG=en_US.UTF-8" > /etc/locale.conf \
+  apt-get clean && apt-get update -y \
+  apt-get install locales -y \
+  locale-gen en_US.UTF-8
 
-RUN sudo nano /etc/default/locale
-RUN LANG="en_US.UTF-8" | LC_CTYPE="en.US.UTF-8" | sudo update-locale LANG=en_US.UTF-8 LC_CTYPE=en_US.UTF-8
 RUN pip3 install --upgrade \
     ansible-core \
     argcomplete \
