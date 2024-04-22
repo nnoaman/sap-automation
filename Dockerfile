@@ -44,6 +44,8 @@ RUN locale-gen.sh
 RUN echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
     echo "export LANG=en_US.UTF-8" >> /root/.bashrc
 
+RUN sudo nano /etc/default/locale
+RUN LANG="en_US.UTF-8" | LC_CTYPE="en.US.UTF-8" | sudo update-locale LANG=en_US.UTF-8 LC_CTYPE=en_US.UTF-8
 RUN pip3 install --upgrade \
     ansible-core \
     argcomplete \
