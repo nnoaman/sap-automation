@@ -43,7 +43,8 @@ RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/y
 RUN locale-gen.sh
 RUN echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
     echo "export LANG=en_US.UTF-8" >> /root/.bashrc
-RUN locale-gen en_US en_US.UTF-8 && dpkg-reconfigure locales
+RUN locale-gen en_US en_US.UTF-8
+RUN dpkg-reconfigure locales
 
 RUN pip3 install --upgrade \
     ansible-core \
