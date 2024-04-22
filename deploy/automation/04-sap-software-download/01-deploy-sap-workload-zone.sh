@@ -13,6 +13,8 @@ function check_deploy_inputs() {
         "deployerfolder"
         "SUsername"
         "SPassword"
+        "bom_base_name"
+        "re_download"
     )
 
     case $(get_platform) in
@@ -88,5 +90,11 @@ else
     az keyvault secret set --name "S-Password" --vault-name $kv_name --value "${SPassword}" --subscription "${ARM_SUBSCRIPTION_ID}" --output none
     echo "${SPassword}"
 fi
+end_group
+
+start_group "Download SAP Workload Zone"
+sample_path=${SAMPLE_REPO_PATH}/SAP
+command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=${bom_base_name}" -e "deployer_kv_name=${kv_name}" -e "check_storage_account=$[not(${re_download})]" ' $ExtraParams ${SAP_AUTOMATION_REPO_PATH}/deploy/ansible/playbook_bom_downloader.yaml"
+end_group
 
 exit $return_code
