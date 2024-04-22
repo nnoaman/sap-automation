@@ -11,7 +11,6 @@
 - hosts:                                localhost
   name:                                 BOM Downloader Playbook
   gather_facts:                         true
-  connection:                           local
   environment:
     ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
   become:                               "{{ bom_processing_become }}"
