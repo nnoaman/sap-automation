@@ -53,7 +53,7 @@ RUN pip3 install --upgrade \
     pywinrm \
     setuptools \
     wheel
-RUN sudo apt-get install acl
+RUN apt-get install acl
 RUN git clone https://github.com/Azure/SAP-automation-samples.git
 
 COPY . /source
