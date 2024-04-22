@@ -57,6 +57,7 @@ RUN pip3 install --upgrade \
 RUN git clone https://github.com/Azure/SAP-automation-samples.git
 
 COPY . /source
+RUN sudo apt install acl
 
 RUN echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
     echo "export LANG=en_US.UTF-8" >> /root/.bashrc
