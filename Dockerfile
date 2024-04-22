@@ -56,12 +56,10 @@ RUN pip3 install --upgrade \
 
 RUN git clone https://github.com/Azure/SAP-automation-samples.git
 
-# COPY ./SAP-automation-samples /sap-automation-samples
-
-# ENV SAMPLE_REPO_PATH=/sap-automation-samples
-
 COPY . /source
 
 ENV SAP_AUTOMATION_REPO_PATH=/source
+
+ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
 WORKDIR /source
