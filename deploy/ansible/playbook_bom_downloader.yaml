@@ -7,25 +7,9 @@
 # Steps:
 #   01) Process BOM (Validate and Extract)
 #
-- hosts:                                localhost
-  name:                                 Instal packages
-  become:                               "{{ bom_processing_become }}"
-  become_user:                          "{{ orchestration_ansible_user }}"
-  environment:
-    ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
-  vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
-  tasks:
-    - name:                             "Install required packages"
-      ansible.builtin.yum:
-        name:                           "{{ item }}"
-        state:                          present
-      loop:
-        - acl
 
 - hosts:                                localhost
   name:                                 BOM Downloader Playbook
-  gather_facts:                         true
   environment:
     ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
   become:                               "{{ bom_processing_become }}"
