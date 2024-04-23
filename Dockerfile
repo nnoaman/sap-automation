@@ -56,6 +56,7 @@ RUN pip3 install --upgrade \
     wheel
 RUN git clone https://github.com/Azure/SAP-automation-samples.git
 
+RUN tdnf install -y acl
 COPY . /source
 
 ENV LC_ALL=en_US.UTF-8
