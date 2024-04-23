@@ -66,6 +66,7 @@
       vars:
         operation:                      "SoftwareAcquisition"
         allow_world_readable_tmpfiles:   true
+        pipelining:                      true
 # -------------------------------------+
 # 20230117 MKD (DynBOM) - BEGIN DELETE
       # tags:
