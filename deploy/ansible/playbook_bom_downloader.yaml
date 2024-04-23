@@ -59,6 +59,12 @@
     #     tier: preparation
 # 20230117 MKD (DynBOM) - END   DELETE
 # -------------------------------------+
+    - name:                             "Install required packages"
+      ansible.builtin.yum:
+        name:                           "{{ item }}"
+        state:                          present
+      loop:
+        - acl
 
     - name:                             "BOM Downloader: Run the bom-validator"
       ansible.builtin.include_role:
