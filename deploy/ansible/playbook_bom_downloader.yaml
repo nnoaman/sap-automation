@@ -10,10 +10,11 @@
 
 - hosts:                                localhost
   name:                                 BOM Downloader Playbook
+  gather_facts:                         true
   environment:
     ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
   become:                               "{{ bom_processing_become }}"
-  become_user:                          "runner"
+  become_user:                          "{{ bom_processing_become_user }}"
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
 
