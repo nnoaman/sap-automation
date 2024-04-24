@@ -71,7 +71,4 @@ RUN useradd -m -s /bin/bash azureadm
 RUN echo "azureadm:password" | chpasswd
 RUN usermod -aG sudo azureadm
 
-# Set the default user to admin
-USER azureadm
-
 WORKDIR /source
