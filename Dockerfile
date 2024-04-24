@@ -28,7 +28,9 @@ RUN tdnf install -y \
   tar \
   unzip \
   util-linux \
-  acl
+  acl \
+  chmod \
+  setfacl
 
 # Install Terraform
 RUN curl -fsSo terraform.zip \
