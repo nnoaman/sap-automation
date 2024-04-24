@@ -28,9 +28,7 @@ RUN tdnf install -y \
   tar \
   unzip \
   util-linux \
-  acl \
-  chmod \
-  setfacl
+  acl
 
 # Install Terraform
 RUN curl -fsSo terraform.zip \
@@ -55,7 +53,8 @@ RUN pip3 install --upgrade \
     pip \
     pywinrm \
     setuptools \
-    wheel
+    wheel \
+    chmod
 RUN git clone https://github.com/Azure/SAP-automation-samples.git
 
 RUN tdnf install -y acl
