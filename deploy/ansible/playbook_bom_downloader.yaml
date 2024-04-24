@@ -13,7 +13,7 @@
   environment:
     ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
   become:                               "{{ bom_processing_become }}"
-  become_user:                          "root"
+  become_user:                          "runner"
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
 
