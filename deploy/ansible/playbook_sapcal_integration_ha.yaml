@@ -23,6 +23,13 @@
           ansible.builtin.include_role:
             name:                          roles-os/1.5.3-disk-setup-sapcal
 
+        - name:                            "Initialize facts"
+          ansible.builtin.set_fact:
+            primary_db_instance:           "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
+            secondary_db_instance:         "{{ ansible_play_hosts_all[1] }}"        # Setting up Secondary Instance Name
+          when:
+            - "'hana' in supported_tiers"
+
         - name:                            "Retrieve Resource Group Name and ResourceID"
           ansible.builtin.uri:
             url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
@@ -52,17 +59,25 @@
             - scs_high_availability
 
 # todo, differentiate between primary and secondary
-        - name:                            "Set ResourceID for DB"
+        - name:                            "Set ResourceID for primary DB"
           ansible.builtin.set_fact:
             db_primary_resource_id:        "{{ azure_metadata.json.compute.resourceId }}"
-            db_secondary_resource_id:      "{{ azure_metadata.json.compute.resourceId }}"
             db_primary_physical_hostname:  "{{ ansible_hostname }}"
-            db_physical_hostname:          "{{ ansible_hostname }}"
             db_primary_virtual_hostname:   "{{ virtual_host }}"
-            db_secondary_virtual_hostname: "{{ virtual_host }}"
           when:
             - "'hana' in supported_tiers"
             - db_high_availability
+            - primary_db_instance
+
+        - name:                               "Set ResourceID for secondary DB"
+          ansible.builtin.set_fact:
+            db_secondary_resource_id:         "{{ azure_metadata.json.compute.resourceId }}"
+            db_secondary_physical_hostname:   "{{ ansible_hostname }}"
+            db_secondary_virtual_hostname:    "{{ virtual_host }}"
+          when:
+            - "'hana' in supported_tiers"
+            - db_high_availability
+            - secondary_db_instance
 
         - name:                            "Set ResourceID for PAS"
           ansible.builtin.set_fact:
