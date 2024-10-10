@@ -67,7 +67,7 @@
           when:
             - "'hana' in supported_tiers"
             - db_high_availability
-            - primary_db_instance
+            - inventory_hostname == primary_db_instance
 
         - name:                               "Set ResourceID for secondary DB"
           ansible.builtin.set_fact:
@@ -77,7 +77,7 @@
           when:
             - "'hana' in supported_tiers"
             - db_high_availability
-            - secondary_db_instance
+            - inventory_hostname == secondary_db_instance
 
         - name:                            "Set ResourceID for PAS"
           ansible.builtin.set_fact:
