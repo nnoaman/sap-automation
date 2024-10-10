@@ -133,31 +133,28 @@
 
         - name:                            "Set facts from other hosts"
           ansible.builtin.set_fact:
-            "{{ item.key }}": "{{ hostvars[groups[sap_sid | upper + '_' + item.value][0]][item.key] }}"
+            "{{ item.key }}": "{{ hostvars[groups[sap_sid | upper + '_' + item.value][item.index]][item.key] }}"
           loop:
-            - { key: 'subscription_id',                 value: 'SCS' }
-            - { key: 'resource_group_name',             value: 'SCS' }
-            - { key: 'scs_resource_id',                 value: 'SCS' }
-            - { key: 'scs_physical_hostname',           value: 'SCS' }
-            - { key: 'scs_virtual_hostname',            value: 'SCS' }
-            - { key: 'ers_resource_id',                 value: 'ERS' }
-            - { key: 'ers_physical_hostname',           value: 'ERS' }
-            - { key: 'ers_virtual_hostname',            value: 'ERS' }
-            - { key: 'db_primary_resource_id',          value: 'DB'  }
-            - { key: 'db_primary_physical_hostname',    value: 'DB'  }
-            - { key: 'db_primary_virtual_hostname',     value: 'DB'  }
-            - { key: 'db_secondary_resource_id',        value: 'DB'  }
-            - { key: 'db_secondary_physical_hostname',  value: 'DB'  }
-            - { key: 'db_secondary_virtual_hostname',   value: 'DB'  }
-            - { key: 'db_resource_id',                  value: 'DB'  }
-            - { key: 'db_physical_hostname',            value: 'DB'  }
-            - { key: 'db_virtual_hostname',             value: 'DB'  }
-            - { key: 'pas_resource_id',                 value: 'PAS' }
-            - { key: 'pas_physical_hostname',           value: 'PAS' }
-            - { key: 'pas_virtual_hostname',            value: 'PAS' }
-            - { key: 'app_resource_id',                 value: 'APP' }
-            - { key: 'app_physical_hostname',           value: 'APP' }
-            - { key: 'app_virtual_hostname',            value: 'APP' }
+            - { key: 'subscription_id',                 value: 'SCS',          index: 0 }
+            - { key: 'resource_group_name',             value: 'SCS',          index: 0 }
+            - { key: 'scs_resource_id',                 value: 'SCS',          index: 0 }
+            - { key: 'scs_physical_hostname',           value: 'SCS',          index: 0 }
+            - { key: 'scs_virtual_hostname',            value: 'SCS',          index: 0 }
+            - { key: 'ers_resource_id',                 value: 'ERS',          index: 0 }
+            - { key: 'ers_physical_hostname',           value: 'ERS',          index: 0 }
+            - { key: 'ers_virtual_hostname',            value: 'ERS',          index: 0 }
+            - { key: 'db_primary_resource_id',          value: 'DB' ,          index: 0 }
+            - { key: 'db_primary_physical_hostname',    value: 'DB' ,          index: 0 }
+            - { key: 'db_primary_virtual_hostname',     value: 'DB' ,          index: 0 }
+            - { key: 'db_secondary_resource_id',        value: 'DB' ,          index: 1 }
+            - { key: 'db_secondary_physical_hostname',  value: 'DB' ,          index: 1 }
+            - { key: 'db_secondary_virtual_hostname',   value: 'DB' ,          index: 1 }
+            - { key: 'pas_resource_id',                 value: 'PAS',          index: 0 }
+            - { key: 'pas_physical_hostname',           value: 'PAS',          index: 0 }
+            - { key: 'pas_virtual_hostname',            value: 'PAS',          index: 0 }
+            - { key: 'app_resource_id',                 value: 'APP',          index: 0 }
+            - { key: 'app_physical_hostname',           value: 'APP',          index: 0 }
+            - { key: 'app_virtual_hostname',            value: 'APP',          index: 0 }
 
     # - name:                                "6.0.0-sapcal-install - CALL SAP CAL API"
     #   when:                                enable_sap_cal is defined and enable_sap_cal
