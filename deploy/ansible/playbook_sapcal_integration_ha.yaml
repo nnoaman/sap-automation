@@ -45,6 +45,7 @@
             scs_resource_id:               "{{ azure_metadata.json.compute.resourceId }}"
             scs_physical_hostname:         "{{ ansible_hostname }}"
             scs_virtual_hostname:          "{{ virtual_host }}"
+            scs_lb_virtual_hostname:       "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
           when:
             - "'scs' in supported_tiers"
             - scs_high_availability
@@ -54,6 +55,7 @@
             ers_resource_id:               "{{ azure_metadata.json.compute.resourceId }}"
             ers_physical_hostname:         "{{ ansible_hostname }}"
             ers_virtual_hostname:          "{{ virtual_host }}"
+            ers_lb_virtual_hostname:       "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
           when:
             - "'ers' in supported_tiers"
             - scs_high_availability
@@ -64,6 +66,7 @@
             db_primary_resource_id:        "{{ azure_metadata.json.compute.resourceId }}"
             db_primary_physical_hostname:  "{{ ansible_hostname }}"
             db_primary_virtual_hostname:   "{{ virtual_host }}"
+            db_lb_virtual_hostname:        "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
           when:
             - "'hana' in supported_tiers"
             - db_high_availability
@@ -140,12 +143,15 @@
             - { key: 'scs_resource_id',                 value: 'SCS',          index: 0 }
             - { key: 'scs_physical_hostname',           value: 'SCS',          index: 0 }
             - { key: 'scs_virtual_hostname',            value: 'SCS',          index: 0 }
+            - { key: 'scs_lb_virtual_hostname',         value: 'SCS',          index: 0 }
             - { key: 'ers_resource_id',                 value: 'ERS',          index: 0 }
             - { key: 'ers_physical_hostname',           value: 'ERS',          index: 0 }
             - { key: 'ers_virtual_hostname',            value: 'ERS',          index: 0 }
+            - { key: 'ers_lb_virtual_hostname',         value: 'ERS',          index: 0 }
             - { key: 'db_primary_resource_id',          value: 'DB' ,          index: 0 }
             - { key: 'db_primary_physical_hostname',    value: 'DB' ,          index: 0 }
             - { key: 'db_primary_virtual_hostname',     value: 'DB' ,          index: 0 }
+            - { key: 'db_lb_virtual_hostname',          value: 'DB' ,          index: 0 }
             - { key: 'db_secondary_resource_id',        value: 'DB' ,          index: 1 }
             - { key: 'db_secondary_physical_hostname',  value: 'DB' ,          index: 1 }
             - { key: 'db_secondary_virtual_hostname',   value: 'DB' ,          index: 1 }
