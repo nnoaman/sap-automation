@@ -23,6 +23,7 @@ module "sap_deployer" {
   agent_pool                                    = var.agent_pool
   additional_network_id                         = var.additional_network_id
   ansible_core_version                          = var.ansible_core_version
+  app_config_service_name                       = module.sap_namegenerator.naming_new.appconfig_names.DEPLOYER
   app_registration_app_id                       = var.use_webapp ? var.app_registration_app_id : ""
   app_service                                   = local.app_service
   arm_client_id                                 = var.arm_client_id
