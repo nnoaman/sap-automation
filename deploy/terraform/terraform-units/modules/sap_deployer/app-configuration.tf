@@ -62,17 +62,21 @@ resource "azurerm_app_configuration_key" "deployer_app_configuration_keys" {
 locals {
 
   pipeline_parameters                  = {
-                                          format("%s_%s_StateFileName", var.infrastructure.environment, var.naming.DEPLOYER.location_short) = {
+                                          format("%s_StateFileName", var.state_filename_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
-                                            value = var.statefilename
+                                            value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
                                           }
-                                          format("%s_%s_Key_Vault", var.infrastructure.environment, var.naming.DEPLOYER.location_short) = {
+                                          format("%s_Key_Vault", var.state_filename_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
                                           }
-                                          format("%s_%s_ResourceGroup", var.infrastructure.environment, var.naming.DEPLOYER.location_short) = {
+                                          format("%s_ResourceGroup", state_filename_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = local.resourcegroup_name
+                                          }
+                                          format("%s_Subscription", state_filename_prefix) = {
+                                            label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
+                                            value = data.azurerm_subscription.current.subscription_id
                                           }
                                         }
 }
