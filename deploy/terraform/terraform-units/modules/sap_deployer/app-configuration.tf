@@ -70,13 +70,13 @@ locals {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
                                           }
-                                          format("%s_ResourceGroup", state_filename_prefix) = {
+                                          format("%s_ResourceGroup", var.state_filename_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = local.resourcegroup_name
                                           }
-                                          format("%s_Subscription", state_filename_prefix) = {
+                                          format("%s_Subscription", var.state_filename_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
-                                            value = data.azurerm_subscription.current.subscription_id
+                                            value = data.azurerm_subscription.primary.subscription_id
                                           }
                                         }
 }
