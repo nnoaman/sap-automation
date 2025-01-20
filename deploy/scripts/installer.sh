@@ -1309,6 +1309,8 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
 	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 
+  app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+
 	created_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 	echo ""
 	echo ""
@@ -1326,6 +1328,15 @@ if [ "${deployment_system}" == sap_deployer ]; then
 		--template-file "${script_directory}/templates/empty-deployment.json" --output none
 	return_value=0
 	if [ 1 == $called_from_ado ]; then
+
+		if [ -n "${app_config_id}" ]; then
+			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value")
+			if [ -z "${az_var}" ]; then
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${app_config_id}" --output none --only-show-errors
+			else
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${app_config_id}" --output none --only-show-errors
+			fi
+		fi
 
 		if [ -n "${deployer_random_id}" ]; then
 			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value")
