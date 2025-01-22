@@ -247,7 +247,7 @@ if [ -z "$key_vault" ]; then
 fi
 export key_vault
 
-key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_Key_VaultResourceId" "${CONTROL_PLANE_NAME}")
+key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 if [ -z "$key_vault_id" ]; then
 	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 	exit 2
