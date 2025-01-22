@@ -15,12 +15,13 @@ data  "azurerm_app_configuration" "app_config" {
 
 
 resource "azurerm_app_configuration_key" "workload_app_configuration_keys" {
-  for_each               = local.configuration_values
-  provider               = azurerm.deployer
-  configuration_store_id = data.azurerm_app_configuration.app_config.id
-  key                    = each.key
-  label                  = each.value.label
-  value                  = each.value.value
+  for_each                             = local.configuration_values
+  provider                             = azurerm.deployer
+  configuration_store_id               = data.azurerm_app_configuration.app_config.id
+  key                                  = each.key
+  label                                = each.value.label
+  value                                = each.value.value
+  content_type                         = each.value.content_type
 }
 
 locals {
@@ -30,25 +31,28 @@ locals {
   app_config_resource_group_name       = local.parsed_id["resource_group_name"]
   configuration_values                 = {
                                           format("%s_KeyVaultResourceId", var.naming.prefix.WORKLOAD_ZONE) = {
-                                            label = var.naming.prefix.WORKLOAD_ZONE
-                                            value = length(try(var.key_vault.keyvault_id_for_system_credentials, "")) > 0 ? (
-                                                                  try(data.azurerm_key_vault.kv_user[0].id, "")) : (
-                                                                  try(azurerm_key_vault.kv_user[0].id, "")
-                                                                )
+                                            label        = var.naming.prefix.WORKLOAD_ZONE
+                                            value        = length(try(var.key_vault.keyvault_id_for_system_credentials, "")) > 0 ? (
+                                                                         try(data.azurerm_key_vault.kv_user[0].id, "")) : (
+                                                                         try(azurerm_key_vault.kv_user[0].id, "")
+                                                                       )
+                                            content_type = "text/id"
                                          }
                                           format("%s_KeyVaultName", var.naming.prefix.WORKLOAD_ZONE) = {
-                                            label = var.naming.prefix.WORKLOAD_ZONE
-                                            value = length(try(var.key_vault.keyvault_id_for_system_credentials, "")) > 0 ? (
-                                                                  try(data.azurerm_key_vault.kv_user[0].name, "")) : (
-                                                                  try(azurerm_key_vault.kv_user[0].name, "")
-                                                                )
+                                            label        = var.naming.prefix.WORKLOAD_ZONE
+                                            value        = length(try(var.key_vault.keyvault_id_for_system_credentials, "")) > 0 ? (
+                                                                         try(data.azurerm_key_vault.kv_user[0].name, "")) : (
+                                                                         try(azurerm_key_vault.kv_user[0].name, "")
+                                                                       )
+                                            content_type = "text/plain"
                                          }
                                         format("%s_VirtualNetworkResourceId", var.naming.prefix.WORKLOAD_ZONE) = {
-                                            label = var.naming.prefix.WORKLOAD_ZONE
-                                            value = local.SAP_virtualnetwork_exists ? (
-                                                                  try(data.azurerm_virtual_network.vnet_sap[0].id, "")) : (
-                                                                  try(azurerm_virtual_network.vnet_sap[0].id, "")
-                                                                  )
+                                            label        = var.naming.prefix.WORKLOAD_ZONE
+                                            value        = local.SAP_virtualnetwork_exists ? (
+                                                                         try(data.azurerm_virtual_network.vnet_sap[0].id, "")) : (
+                                                                         try(azurerm_virtual_network.vnet_sap[0].id, "")
+                                                                         )
+                                            content_type = "text/id"
                                          }
                                          }
 }
