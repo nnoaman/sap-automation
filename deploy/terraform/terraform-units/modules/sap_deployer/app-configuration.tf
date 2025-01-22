@@ -64,19 +64,19 @@ locals {
   key_prefix                           = replace(var.state_filename_prefix, format("-%s", var.network_logical_name), "")
   pipeline_parameters                  = {
                                           format("%s_StateFileName", local.key_prefix) = {
-                                            label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
+                                            label = local.key_prefix
                                             value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
                                           }
                                           format("%s_Key_Vault", local.key_prefix) = {
-                                            label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
+                                            label = local.key_prefix
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
                                           }
                                           format("%s_ResourceGroup", local.key_prefix) = {
-                                            label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
+                                            label = local.key_prefix
                                             value = local.resourcegroup_name
                                           }
                                           format("%s_Subscription", local.key_prefix) = {
-                                            label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
+                                            label = local.key_prefix
                                             value = data.azurerm_subscription.primary.subscription_id
                                           }
                                         }

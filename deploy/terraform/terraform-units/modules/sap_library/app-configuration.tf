@@ -28,18 +28,18 @@ locals {
   key_prefix                           = replace(var.state_filename_prefix, format("-%s", var.deployer_tfstate.network_logical_name), "")
   configuration_values                 = {
                                           format("%s_LibraryStateFileName", local.key_prefix) = {
-                                            label = local.resource_group_exists ? ( data.azurerm_resource_group.library[0].name) : ( azurerm_resource_group.library[0].name )
+                                            label = local.key_prefix
                                             value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
                                           }
                                           format("%s_TerraformRemoteStateStorageAccountId", local.key_prefix) = {
-                                            label = local.resource_group_exists ? ( data.azurerm_resource_group.library[0].name) : ( azurerm_resource_group.library[0].name )
+                                            label = local.key_prefix
                                             value = local.sa_tfstate_exists ? (
                                                      data.azurerm_storage_account.storage_tfstate[0].id) : (
                                                      try(azurerm_storage_account.storage_tfstate[0].id, "")
                                                    )
                                           }
                                           format("%s_SAPLibraryStorageAccountId", local.key_prefix) = {
-                                            label = local.resource_group_exists ? ( data.azurerm_resource_group.library[0].name) : ( azurerm_resource_group.library[0].name )
+                                            label = local.key_prefix
                                             value = local.sa_sapbits_exists ? (
                                                      data.azurerm_storage_account.storage_sapbits[0].id) : (
                                                      try(azurerm_storage_account.storage_sapbits[0].id, "")
