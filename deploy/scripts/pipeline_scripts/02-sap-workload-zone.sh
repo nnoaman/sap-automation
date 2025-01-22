@@ -227,36 +227,34 @@ echo "$val                 $PARENT_VARIABLE_GROUP_ID"
 echo -e "$green--- Read parameter values ---$reset"
 
 dos2unix -q "${deployer_environment_file_name}"
-dos2unix -q "${workload_environment_file_name}"
 
 landscape_tfstate_key=$WORKLOAD_ZONE_FOLDERNAME.terraform.tfstate
 export landscape_tfstate_key
 
 application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
-application_configuration_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
 
-deployer_tfstate_key=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${CONTROL_PLANE_NAME}_StateFileName'].value | [0]" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+deployer_tfstate_key=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_StateFileName" "${CONTROL_PLANE_NAME}")
 if [ -z "$deployer_tfstate_key" ]; then
 	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_StateFileName' was not found in the application configuration ( '$application_configuration_name' )."
 	exit 2
 fi
 export deployer_tfstate_key
 
-key_vault=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${CONTROL_PLANE_NAME}_KeyVaultName'].value | [0]" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 if [ -z "$key_vault" ]; then
 	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultName' was not found in the application configuration ( '$application_configuration_name' )."
 	exit 2
 fi
 export key_vault
 
-key_vault_id=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${CONTROL_PLANE_NAME}_Key_VaultResourceId'].value | [0]" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_Key_VaultResourceId" "${CONTROL_PLANE_NAME}")
 if [ -z "$key_vault_id" ]; then
 	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 	exit 2
 fi
 export TF_VAR_spn_keyvault_id=${key_vault_id}
 
-tfstate_resource_id=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId'].value | [0]" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 if [ -z "$tfstate_resource_id" ]; then
 	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
 	exit 2
@@ -269,7 +267,8 @@ export REMOTE_STATE_SA
 export STATE_SUBSCRIPTION
 export tfstate_resource_id
 
-workload_key_vault=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${workload_zone_name}_KeyVaultName'].value | [0]" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+workload_key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${workload_zone_name}_KeyVaultName" "${workload_zone_name}")
+
 export workload_key_vault
 
 echo "Deployer state filename:             $deployer_tfstate_key"
@@ -399,7 +398,7 @@ if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --paramete
 	--deployer_environment "$CONTROL_PLANE_NAME" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
 	--deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
 	--state_subscription "${STATE_SUBSCRIPTION}" \
-	--application_config_id "${APPLICATION_CONFIGURATION_ID}" \
+	--application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 	--auto-approve --ado --msi; then
 	echo "##vso[task.logissue type=warning]Workload zone deployment completed successfully."
 else
