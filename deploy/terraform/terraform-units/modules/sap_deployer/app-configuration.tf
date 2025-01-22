@@ -70,6 +70,10 @@ locals {
                                             label = var.state_filename_prefix
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
                                           }
+                                          format("%s_Key_VaultResourceId", var.state_filename_prefix) = {
+                                            label = var.state_filename_prefix
+                                            value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+                                          }
                                           format("%s_ResourceGroup", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
                                             value = local.resourcegroup_name
