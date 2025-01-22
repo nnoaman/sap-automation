@@ -52,12 +52,6 @@ variables:
   - name:                              workload_zone_tfvars_filename
     value:                             ${{ parameters.workload_zone }}.tfvars
 
-  - name:                              deployer_environment
-    value:                             ${{ parameters.deployer_environment }}
-
-  - name:                              deployer_region
-    value:                             ${{ parameters.deployer_region }}
-
   - name:                              inherit
     value:                             $[lower(${{ parameters.inherit_settings }})]
 
