@@ -14,70 +14,15 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name:                              workload_environment
-    displayName:                       Workload Environment (DEV, QA, PRD, ...)
+  - name:                              workload_zone_name
+    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
-    default:                           DEV
+    default:                           DEV-WEEU-SAP01
 
-  - name:                              deployer_environment
-    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+  - name:                              control_plane_name
+    displayName:                       "Control plane name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
-    default:                           MGMT
-
-  - name:                              deployer_region
-    displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           WEEU
-    values:
-      - AUCE
-      - AUC2
-      - AUEA
-      - AUSE
-      - BRSO
-      - BRSE
-      - BRUS
-      - CACE
-      - CAEA
-      - CEIN
-      - CEUS
-      - CEUA
-      - EAAS
-      - EAUS
-      - EUSA
-      - EUS2
-      - FRCE
-      - FRSO
-      - GENO
-      - GEWC
-      - JAEA
-      - JAWE
-      - JINC
-      - JINW
-      - KOCE
-      - KOSO
-      - NCUS
-      - NOEU
-      - NOEA
-      - NOWE
-      - SANO
-      - SAWE
-      - SCUS
-      - SCUG
-      - SOEA
-      - SOIN
-      - SECE
-      - SWNO
-      - SWWE
-      - UACE
-      - UANO
-      - UKSO
-      - UKWE
-      - WCUS
-      - WEEU
-      - WEIN
-      - WEUS
-      - WUS2
-      - WUS3
+    default:                           CPLN-NOEU-DEP01
 
   - name:                              inherit_settings
     displayName:                       Inherit Terraform state file information from control plane
