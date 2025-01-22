@@ -235,7 +235,6 @@ if [ -z "${network_logical_name}" ]; then
 fi
 
 key=$(echo "${workload_file_parametername}" | cut -d. -f1)
-landscape_tfstate_key=${key}.terraform.tfstate
 
 if [ -f terraform.tfvars ]; then
 	extra_vars="-var-file=${param_dirname}/terraform.tfvars"
@@ -261,7 +260,6 @@ echo "Deployment region code:              $region_code"
 echo "Control Plane Name:                  $deployer_environment"
 echo "Deployer Keyvault:                   $keyvault"
 echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
-echo "Remote state storage account:        $REMOTE_STATE_SA"
 echo "Target Subscription:                 $subscription"
 
 if [[ -n $STATE_SUBSCRIPTION ]]; then
@@ -291,7 +289,7 @@ fi
 
 if [ -z "$REMOTE_STATE_SA" ]; then
 	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$application_configuration_id" "${deployer_environment}_TerraformRemoteStateStorageAccountId" "${deployer_environment}")
-	if [ -z "$storage_account_id" ]; then
+	if [ -z "$tfstate_resource_id" ]; then
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
 		echo "# The key: '${deployer_environment}_TerraformRemoteStateStorageAccountId'"
@@ -300,6 +298,7 @@ if [ -z "$REMOTE_STATE_SA" ]; then
 		echo "#########################################################################################"
 		exit 65
 	else
+		echo "Terraform Storage Account Id:        $tfstate_resource_id"
 		REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 		STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 	fi
@@ -334,12 +333,6 @@ if [ -n "$keyvault" ]; then
 	fi
 
 fi
-
-if [ -n "$tfstate_resource_id" ]; then
-	echo "Terraform Storage Account Id:        $tfstate_resource_id"
-fi
-echo ""
-init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
 
 param_dirname=$(pwd)
 var_file="${param_dirname}"/"${parameterfile}"
@@ -438,9 +431,6 @@ if [ 1 = "${deploy_using_msi_only:-}" ]; then
 
 else
 	echo "Setting the secrets"
-
-	save_config_var "client_id" "${workload_config_information}"
-	save_config_var "tenant_id" "${workload_config_information}"
 
 	if [ -n "$spn_secret" ]; then
 		fixed_allParameters=$(printf " --workload --environment %s --region %s --vault %s  --subscription %s --spn_secret ***** --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${ARM_SUBSCRIPTION_ID}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}")
@@ -587,77 +577,56 @@ fi
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 	check_output=1
 else
+	apply_needed=1
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                                  $cyan New deployment $reset_formatting                                     #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
 	check_output=0
 fi
 
 allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
 if [ 1 == $check_output ]; then
-	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                          $cyan Existing deployment was detected $reset_formatting                           #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
 
-		check_output=0
-		apply_needed=1
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                                  $cyan New deployment $reset_formatting                                     #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Existing deployment was detected $reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+	workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 
-		workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-
-		deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version)
-		if [ -z "${deployed_using_version}" ]; then
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#   $bold_red The environment was deployed using an older version of the Terrafrom templates $reset_formatting    #"
-			echo "#                                                                                       #"
-			echo "#                               !!! Risk for Data loss !!!                              #"
-			echo "#                                                                                       #"
-			echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			if [ 1 == $called_from_ado ]; then
-				unset TF_DATA_DIR
-				echo "The environment was deployed using an older version of the Terraform templates, Risk for data loss" >"${workload_config_information}".err
-
-				exit 1
-			fi
-
-			read -r -p "Do you want to continue Y/N? " ans
-			answer=${ans^^}
-			if [ "$answer" == 'Y' ]; then
-				apply_needed=1
-			else
-				unset TF_DATA_DIR
-				exit 1
-			fi
-		else
-			printf -v val %-.20s "$deployed_using_version"
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#             $cyan Deployed using the Terraform templates version: $val $reset_formatting               #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-			#Add version logic here
-		fi
-	fi
-fi
-
-
-if [ 1 == $check_output ]; then
 	deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version)
-	if [ -n "${deployed_using_version}" ]; then
+	if [ -z "${deployed_using_version}" ]; then
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#   $bold_red The environment was deployed using an older version of the Terrafrom templates $reset_formatting    #"
+		echo "#                                                                                       #"
+		echo "#                               !!! Risk for Data loss !!!                              #"
+		echo "#                                                                                       #"
+		echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		if [ 1 == $called_from_ado ]; then
+			unset TF_DATA_DIR
+			echo "The environment was deployed using an older version of the Terraform templates, Risk for data loss" >"${workload_config_information}".err
+
+			exit 1
+		fi
+
+		read -r -p "Do you want to continue Y/N? " ans
+		answer=${ans^^}
+		if [ "$answer" == 'Y' ]; then
+			apply_needed=1
+		else
+			unset TF_DATA_DIR
+			exit 1
+		fi
+	else
 		printf -v val %-.20s "$deployed_using_version"
 		echo ""
 		echo "#########################################################################################"
@@ -767,13 +736,6 @@ else
 	echo ""
 	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
 	echo ""
-fi
-
-if [ $check_output == 0 ]; then
-	if [ -f plan_output.log ]; then
-		rm plan_output.log
-	fi
-	return_code=2
 fi
 
 echo "Terraform Plan return code:          $return_value"
