@@ -156,8 +156,7 @@ echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
 echo "Location(filename):                  $LOCATION_IN_FILENAME"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
 
-echo "Deployer Environment                 $DEPLOYER_ENVIRONMENT"
-echo "Deployer Region                      $DEPLOYER_REGION"
+echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo "Workload TFvars                      $WORKLOAD_ZONE_TFVARS_FILENAME"
 echo ""
 
