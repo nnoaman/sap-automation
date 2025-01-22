@@ -183,11 +183,11 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$DEPLOYER_REGION"
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 echo "Deployer Environment File:           $deployer_environment_file_name"
 if [ ! -f "${deployer_environment_file_name}" ]; then
-	echo -e "$bold_red--- $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found ---$reset"
-	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found."
+	echo -e "$bold_red--- $CONTROL_PLANE_NAME was not found ---$reset"
+	echo "##vso[task.logissue type=error]Control plane configuration file $CONTROL_PLANE_NAME was not found."
 	exit 2
 fi
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
