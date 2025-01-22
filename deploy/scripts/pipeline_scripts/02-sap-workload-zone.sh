@@ -190,9 +190,8 @@ if [ ! -f "${deployer_environment_file_name}" ]; then
 	echo "##vso[task.logissue type=error]Control plane configuration file $CONTROL_PLANE_NAME was not found."
 	exit 2
 fi
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
-echo "Workload Zone Environment File:      $workload_environment_file_name"
-touch "$workload_environment_file_name"
+workload_zone_name="${ENVIRONMENT}-${LOCATION_CODE_IN_FILENAME}-${NETWORK}"
+echo "Workload Zone Name:                  $workload_zone_name"
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --output none
@@ -236,24 +235,44 @@ export landscape_tfstate_key
 application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
 application_configuration_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
 
-deployer_tfstate_key=$(az appconfig kv show -n "$application_configuration_name" --subscription "$application_configuration_subscription" --key "${CONTROL_PLANE_NAME}_StateFileName" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+deployer_tfstate_key=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${CONTROL_PLANE_NAME}_StateFileName'].value | [0]" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+if [ -z "$deployer_tfstate_key" ]; then
+	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_StateFileName' was not found in the application configuration ( '$application_configuration_name' )."
+	exit 2
+fi
 export deployer_tfstate_key
 
-key_vault=$(az appconfig kv show -n "$application_configuration_name" --subscription "$application_configuration_subscription" --key "${CONTROL_PLANE_NAME}_Key_Vault" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+key_vault=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${CONTROL_PLANE_NAME}_KeyVaultName'].value | [0]" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+if [ -z "$key_vault" ]; then
+	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultName' was not found in the application configuration ( '$application_configuration_name' )."
+	exit 2
+fi
 export key_vault
 
-storage_account_id=$(az appconfig kv show -n "$application_configuration_name" --subscription "$application_configuration_subscription" --key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
-REMOTE_STATE_SA=$(echo "$storage_account_id" | cut -d '/' -f 9)
-STATE_SUBSCRIPTION=$(echo "$storage_account_id" | cut -d '/' -f 3)
+key_vault_id=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${CONTROL_PLANE_NAME}_Key_VaultResourceId'].value | [0]" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+if [ -z "$key_vault_id" ]; then
+	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+	exit 2
+fi
+export TF_VAR_spn_keyvault_id=${key_vault_id}
+
+tfstate_resource_id=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId'].value | [0]" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+if [ -z "$tfstate_resource_id" ]; then
+	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+	exit 2
+fi
+
+REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
 export REMOTE_STATE_SA
 export STATE_SUBSCRIPTION
+export tfstate_resource_id
 
-workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Workload_Key_Vault" "${workload_environment_file_name}" "workloadkeyvault")
+workload_key_vault=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${workload_zone_name}_KeyVaultName'].value | [0]" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
 export workload_key_vault
 
-echo "Deployer statefile:                  $deployer_tfstate_key"
-echo "Workload Key vault:                  ${workload_key_vault}"
+echo "Deployer state filename:             $deployer_tfstate_key"
 echo "Target subscription                  $WL_ARM_SUBSCRIPTION_ID"
 
 echo "Terraform state file subscription:   $STATE_SUBSCRIPTION"
@@ -261,11 +280,14 @@ echo "Terraform state file storage account:$REMOTE_STATE_SA"
 
 if [ -n "$key_vault" ]; then
 	echo "Deployer Key Vault:                  ${key_vault}"
-	key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$STATE_SUBSCRIPTION" --output tsv)
-
-	export TF_VAR_spn_keyvault_id=${key_vault_id}
 else
 	echo "Deployer Key Vault:                  undefined"
+fi
+
+if [ -n "$workload_key_vault" ]; then
+	echo "Workload Key vault:                  ${workload_key_vault}"
+else
+	echo "Workload Key vault:                  undefined"
 fi
 
 secrets_set=1
@@ -283,8 +305,6 @@ fi
 secrets_set=$?
 echo "Set Secrets returned: $secrets_set"
 
-tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-export tfstate_resource_id
 
 echo -e "$green--- Set Permissions ---$reset"
 
@@ -378,7 +398,9 @@ az account set --subscription "$ARM_SUBSCRIPTION_ID"
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
 	--deployer_environment "$CONTROL_PLANE_NAME" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
 	--deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
-	--state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi; then
+	--state_subscription "${STATE_SUBSCRIPTION}" \
+	--application_config_id "${APPLICATION_CONFIGURATION_ID}" \
+	--auto-approve --ado --msi; then
 	echo "##vso[task.logissue type=warning]Workload zone deployment completed successfully."
 else
 	return_code=$?
@@ -389,74 +411,8 @@ fi
 echo "Return code from deployment:         ${return_code}"
 cd "$CONFIG_REPO_PATH" || exit
 
-workload_environment_file_name=".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
-
-if [ -f "${workload_environment_file_name}" ]; then
-	workload_key_vault=$(grep "workloadkeyvault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	export workload_key_vault
-	echo "Workload zone key vault:             ${workload_key_vault}"
-
-	workload_prefix=$(grep "workload_zone_prefix=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	export workload_prefix
-	echo "Workload zone prefix:                ${workload_prefix}"
-
-fi
-
 prefix="${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 
-echo -e "$green--- Adding variables to the variable group" "$VARIABLE_GROUP" "---$reset"
-if [ -n "${VARIABLE_GROUP_ID}" ]; then
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${REMOTE_STATE_SA}"; then
-		echo "Variable Terraform_Remote_Storage_Account_Name was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Account_Name was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Terraform_Remote_Storage_Account_Name was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${STATE_SUBSCRIPTION}"; then
-		echo "Variable Terraform_Remote_Storage_Subscription was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Subscription was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Terraform_Remote_Storage_Subscription was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_tfstate_key}"; then
-		echo "Variable Deployer_State_FileName was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${key_vault}"; then
-		echo "Variable Deployer_Key_Vault was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${workload_key_vault}"; then
-		echo "Variable ${prefix}Workload_Key_Vault was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable ${prefix}Workload_Key_Vault was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable ${prefix}Workload_Key_Vault was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${ENVIRONMENT}-${LOCATION_CODE_IN_FILENAME}-${NETWORK}"; then
-		echo "Variable ${prefix}Workload_Secret_Prefix was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable ${prefix}Workload_Secret_Prefix was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable ${prefix}Workload_Secret_Prefix was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${landscape_tfstate_key}" ; then
-		echo "Variable ${prefix}Workload_Zone_State_FileName was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable ${prefix}Workload_Zone_State_FileName was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable ${prefix}Workload_Zone_State_FileName was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-fi
 
 az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "FENCING_SPN_ID.value")
 if [ -z "${az_var}" ]; then
