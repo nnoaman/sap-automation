@@ -233,10 +233,14 @@ dos2unix -q "${workload_environment_file_name}"
 landscape_tfstate_key=$WORKLOAD_ZONE_FOLDERNAME.terraform.tfstate
 export landscape_tfstate_key
 
-deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
+application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
+application_configuration_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
+cplnnoeuapc748
+
+deployer_tfstate_key=$(az appconfig kv show -n "$application_configuration_name" --subscription "$application_configuration_subscription" --key "${CONTROL_PLANE_NAME}_StateFileName" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
 export deployer_tfstate_key
 
-key_vault=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
+key_vault=$(az appconfig kv show -n "$application_configuration_name" --subscription "$application_configuration_subscription" --key "${CONTROL_PLANE_NAME}_Key_Vault" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
 export key_vault
 
 REMOTE_STATE_SA=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
