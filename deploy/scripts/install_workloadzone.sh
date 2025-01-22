@@ -228,9 +228,9 @@ if [ "$deployer_environment" != "$environment" ]; then
 	fi
 fi
 
-workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+workload_config_information="${automation_config_directory}/${environment}-${region_code}-${network_logical_name}"
 touch "${workload_config_information}"
-deployer_config_information="${automation_config_directory}/${deployer_environment}${region_code}"
+deployer_config_information="${automation_config_directory}/${deployer_environment}"
 save_config_vars "${workload_config_information}" \
 	STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
 
