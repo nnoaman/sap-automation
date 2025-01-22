@@ -14,7 +14,8 @@ locals {
                                            tags = try(coalesce(var.resourcegroup_tags, var.tags, {}), {})
                                          }
   deployer                             = {
-                                           use = var.use_deployer
+                                           use                          = var.use_deployer
+                                           application_configuration_id = var.application_configuration_id
                                          }
   key_vault                            = {
                                            kv_spn_id = coalesce(var.spn_keyvault_id, local.spn_key_vault_arm_id)

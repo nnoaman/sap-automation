@@ -23,7 +23,7 @@ module "sap_library" {
   place_delete_lock_on_resources    = var.place_delete_lock_on_resources
   service_principal                 = var.use_deployer ? local.service_principal : local.account
   short_named_endpoints_nics        = var.short_named_endpoints_nics
-  state_filename_prefix             = module.sap_namegenerator.naming.prefix.DEPLOYER
+  state_filename_prefix             = coalesce(var.deployer_prefix, try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id,""))
   storage_account_sapbits           = local.storage_account_sapbits
   storage_account_tfstate           = local.storage_account_tfstate
   use_custom_dns_a_registration     = var.use_custom_dns_a_registration
