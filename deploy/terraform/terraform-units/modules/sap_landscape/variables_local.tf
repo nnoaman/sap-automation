@@ -121,7 +121,7 @@ locals {
   // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of creating new key vaults
 
-  user_key_vault_id                               = try(var.key_vault.kv_user_id, "")
+  user_key_vault_id                               = try(var.key_vault.keyvault_id_for_system_credentials, "")
   user_keyvault_exist                             = length(local.user_key_vault_id) > 0
 
   create_workloadzone_keyvault                    = !local.user_keyvault_exist

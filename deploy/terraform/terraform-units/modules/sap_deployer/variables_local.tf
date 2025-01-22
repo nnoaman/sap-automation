@@ -246,8 +246,8 @@ locals {
                                          )
 
   // Extract information from the specified key vault arm ids
-  user_keyvault_name                   = var.key_vault.kv_exists ? split("/", var.key_vault.kv_user_id)[8] : local.keyvault_names.user_access
-  # user_keyvault_resourcegroup_name     = var.key_vault.kv_exists ? split("/", var.key_vault.kv_user_id)[4] : ""
+  user_keyvault_name                   = var.key_vault.kv_exists ? split("/", var.key_vault.keyvault_id_for_system_credentials)[8] : local.keyvault_names.user_access
+  # user_keyvault_resourcegroup_name     = var.key_vault.kv_exists ? split("/", var.key_vault.keyvault_id_for_system_credentials)[4] : ""
 
   automation_keyvault_name             = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[8] : local.keyvault_names.private_access
   # automation_keyvault_resourcegroup_name = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[4] : ""
