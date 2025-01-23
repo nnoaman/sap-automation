@@ -89,7 +89,7 @@ function missing {
 
 force=0
 
-INPUT_ARGUMENTS=$(getopt -n installer -o p:t:o:d:l:s:ahif --longoptions type:,parameterfile:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,ado,auto-approve,force,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n installer -o p:t:o:d:l:s:g:ahif --longoptions type:,parameterfile:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_id:,ado,auto-approve,force,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -100,36 +100,40 @@ called_from_ado=0
 eval set -- "$INPUT_ARGUMENTS"
 while :; do
 	case "$1" in
-	-t | --type)
-		deployment_system="$2"
-		shift 2
-		;;
-	-p | --parameterfile)
-		parameterfile="$2"
-		shift 2
-		;;
-	-o | --storageaccountname)
-		REMOTE_STATE_SA="$2"
-		shift 2
-		;;
-	-s | --state_subscription)
-		STATE_SUBSCRIPTION="$2"
-		shift 2
-		;;
-	-d | --deployer_tfstate_key)
-		deployer_tfstate_key="$2"
-		shift 2
-		;;
-	-l | --landscape_tfstate_key)
-		landscape_tfstate_key="$2"
-		shift 2
-		;;
 	-a | --ado)
 		called_from_ado=1
 		approve="--auto-approve"
 		TF_IN_AUTOMATION=true
 		export TF_IN_AUTOMATION
 		shift
+		;;
+	-d | --deployer_tfstate_key)
+		deployer_tfstate_key="$2"
+		shift 2
+		;;
+	-g | --application_configuration_id)
+		APPLICATION_CONFIGURATION_ID="$2"
+		shift 2
+		;;
+	-l | --landscape_tfstate_key)
+		landscape_tfstate_key="$2"
+		shift 2
+		;;
+	-o | --storageaccountname)
+		REMOTE_STATE_SA="$2"
+		shift 2
+		;;
+	-p | --parameterfile)
+		parameterfile="$2"
+		shift 2
+		;;
+	-s | --state_subscription)
+		STATE_SUBSCRIPTION="$2"
+		shift 2
+		;;
+	-t | --type)
+		deployment_system="$2"
+		shift 2
 		;;
 	-f | --force)
 		force=1

@@ -261,9 +261,11 @@ if [ -z "$tfstate_resource_id" ]; then
 fi
 
 REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
 export REMOTE_STATE_SA
+export REMOTE_STATE_RG
 export STATE_SUBSCRIPTION
 export tfstate_resource_id
 

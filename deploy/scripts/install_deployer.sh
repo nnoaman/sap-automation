@@ -448,29 +448,22 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 			echo "#########################################################################################"
 			echo ""
 
-			save_config_var "keyvault" "${deployer_config_information}"
 			return_value=0
 		else
 			return_value=2
 		fi
 	fi
 
-		sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
-		if [ -n "${sshsecret}" ]; then
-			save_config_var "sshsecret" "${deployer_config_information}"
-		fi
+	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
+	fi
 
-		deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
-		if [ -n "${deployer_public_ip_address}" ]; then
-			save_config_var "deployer_public_ip_address" "${deployer_config_information}"
-		fi
-
-		deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-		if [ -n "${deployer_random_id}" ]; then
-			save_config_var "deployer_random_id" "${deployer_config_information}"
-			custom_random_id="${deployer_random_id:0:3}"
-			sed -i -e /"custom_random_id"/d "${var_file}"
-			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${deployer_random_id}" ]; then
+		custom_random_id="${deployer_random_id:0:3}"
+		sed -i -e /"custom_random_id"/d "${var_file}"
+		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
 fi

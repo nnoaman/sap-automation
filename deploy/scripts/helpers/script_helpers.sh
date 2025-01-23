@@ -437,6 +437,12 @@ function validate_key_parameters {
 		return 64 #script usage wrong
 	fi
 
+	load_config_vars "$1" "management_network_logical_name"
+	export management_network_logical_name
+
+	load_config_vars "$1" "network_logical_name"
+	export network_logical_name
+
 	return 0
 }
 

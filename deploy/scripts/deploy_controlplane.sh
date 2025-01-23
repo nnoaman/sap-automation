@@ -194,9 +194,11 @@ get_region_code "$region"
 
 echo "Region code:                         ${region_code}"
 
+CONTROL_PLANE_NAME="${environment}-${management_network_logical_name}-${region_code}"
+
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
-deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
+deployer_config_information="${automation_config_directory}/${CONTROL_PLANE_NAME}"
 
 if [ $force == 1 ]; then
 	if [ -f "${deployer_config_information}" ]; then
@@ -206,11 +208,7 @@ fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-save_config_var "deployer_tfstate_key" "${deployer_config_information}"
-
-if [ -z "${keyvault}" ]; then
-	load_config_vars "${deployer_config_information}" "keyvault"
-fi
+load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
 
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
@@ -302,7 +300,6 @@ if [ -n "${subscription}" ]; then
 
 	if [ $recover == 1 ]; then
 		if [ -n "$REMOTE_STATE_SA" ]; then
-			save_config_var "REMOTE_STATE_SA" "${deployer_config_information}"
 			getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${deployer_config_information}"
 			#Support running deploy_controlplane on new host when the resources are already deployed
 			step=3
@@ -312,19 +309,8 @@ if [ -n "${subscription}" ]; then
 
 	#Persist the parameters
 	if [ -n "$subscription" ]; then
-		save_config_var "subscription" "${deployer_config_information}"
 		export STATE_SUBSCRIPTION=$subscription
-		save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
 		export ARM_SUBSCRIPTION_ID=$subscription
-		save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
-	fi
-
-	if [ -n "$client_id" ]; then
-		save_config_var "client_id" "${deployer_config_information}"
-	fi
-
-	if [ -n "$tenant_id" ]; then
-		save_config_var "tenant_id" "${deployer_config_information}"
 	fi
 
 	current_directory=$(pwd)
@@ -391,7 +377,7 @@ if [ -n "${subscription}" ]; then
 			fi
 		fi
 
-		load_config_vars "${deployer_config_information}" "keyvault"
+		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
 		echo "Key vault:             ${keyvault}"
 
 		if [ -z "$keyvault" ]; then
