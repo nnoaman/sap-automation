@@ -225,3 +225,16 @@ output "Agent_IP"                                {
                                                     description = "The IP address of the agent"
                                                     value       = var.Agent_IP
                                                   }
+
+
+###############################################################################
+#                                                                             #
+#                                App Config                                   #
+#                                                                             #
+###############################################################################
+
+
+output "deployer_app_config_name"                {
+                                                    description = "Application Configuration Name"
+                                                    value       = module.sap_deployer.deployer_app_config_name
+                                                 }
