@@ -36,7 +36,7 @@ force=0
 called_from_ado=0
 deploy_using_msi_only=0
 
-INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:aifhm --longoptions parameterfile:,deployer_tfstate_key:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,ado,auto-approve,force,help,msi -- "$@")
+INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:g:aifhm --longoptions parameterfile:,deployer_tfstate_key:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,application_config_id:ado,auto-approve,force,help,msi -- "$@")
 VALID_ARGUMENTS=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
 	showhelp
@@ -64,6 +64,10 @@ while :; do
 	-f | --force)
 		force=1
 		shift
+		;;
+	-g | --application_config_id)
+		application_config_id="$2"
+		shift 2
 		;;
 	-i | --auto-approve)
 		approve="--auto-approve"
@@ -118,6 +122,10 @@ tfstate_parameter=""
 deployer_tfstate_key_parameter=""
 landscape_tfstate_key=""
 landscape_tfstate_key_parameter=""
+
+application_configuration_name=$(echo "$application_config_id" | cut -d '/' -f 9)
+application_configuration_subscription=$(echo "$application_config_id" | cut -d '/' -f 3)
+
 
 deployment_system="sap_landscape"
 
@@ -219,21 +227,6 @@ fi
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
-if [ "$deployer_environment" != "$environment" ]; then
-	if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
-		# Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
-		if [ -f "${automation_config_directory}/${environment}${region_code}${network_logical_name}" ]; then
-			mv "${automation_config_directory}/${environment}${region_code}" "${automation_config_directory}/${environment}${region_code}${network_logical_name}"
-		fi
-	fi
-fi
-
-workload_config_information="${automation_config_directory}/${environment}-${region_code}-${network_logical_name}"
-touch "${workload_config_information}"
-deployer_config_information="${automation_config_directory}/${deployer_environment}"
-save_config_vars "${workload_config_information}" \
-	STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
-
 if [ "${force}" == 1 ]; then
 	if [ -f "${workload_config_information}" ]; then
 		rm "${workload_config_information}"
@@ -242,10 +235,9 @@ if [ "${force}" == 1 ]; then
 fi
 
 echo ""
-echo "Configuration file:                  $workload_config_information"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
-echo "Deployment environment:              $deployer_environment"
+echo "Control Plane Name:                  $deployer_environment"
 echo "Deployer Keyvault:                   $keyvault"
 echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
 echo "Remote state storage account:        $REMOTE_STATE_SA"
@@ -279,8 +271,16 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 
 fi
 
-if [ -n "$REMOTE_STATE_SA" ]; then
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
+if [ -z "$REMOTE_STATE_SA" ]; then
+	storage_account_id=$(az appconfig kv show -n "$application_configuration_name" --subscription "$application_configuration_subscription" --key "${deployer_environment}_TerraformRemoteStateStorageAccountId" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+	REMOTE_STATE_SA=$(echo "$storage_account_id" | cut -d '/' -f 9)
+	STATE_SUBSCRIPTION=$(echo "$storage_account_id" | cut -d '/' -f 3)
+
+fi
+
+if [ -z "$keyvault" ]; then
+  keyvault=$(az appconfig kv show -n "$application_configuration_name" --subscription "$application_configuration_subscription" --key "${deployer_environment}_Key_Vault" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+  export keyvault
 fi
 
 if [ -n "$keyvault" ]; then
