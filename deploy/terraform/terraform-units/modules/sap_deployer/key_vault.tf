@@ -16,7 +16,7 @@ resource "time_sleep" "wait_for_keyvault" {
 }
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
-  count                                = (var.key_vault.kv_exists) ? 0 : 1
+  count                                = (var.key_vault.exists) ? 0 : 1
   name                                 = local.keyvault_names.user_access
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
@@ -63,9 +63,9 @@ resource "azurerm_key_vault" "kv_user" {
 
 // Import an existing user Key Vault
 data "azurerm_key_vault" "kv_user" {
-  count                                = var.key_vault.kv_exists ? 1 : 0
-  name                                 = split("/", var.key_vault.keyvault_id_for_system_credentials)[8]
-  resource_group_name                  = split("/", var.key_vault.keyvault_id_for_system_credentials)[4]
+  count                                = var.key_vault.exists ? 1 : 0
+  name                                 = split("/", var.key_vault.id)[8]
+  resource_group_name                  = split("/", var.key_vault.id)[4]
 }
 
 
@@ -89,7 +89,7 @@ resource "tls_private_key" "deployer" {
 resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   provider                             = azurerm.main
 
-  key_vault_id                         = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  key_vault_id                         = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
   object_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 
@@ -110,7 +110,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
   provider                             = azurerm.main
   count                                = var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
 
-  key_vault_id                         = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  key_vault_id                         = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   tenant_id                            = azurerm_linux_virtual_machine.deployer[count.index].identity[0].tenant_id
   object_id                            = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
 
@@ -128,7 +128,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
   provider                             = azurerm.main
-  count                                = var.key_vault.kv_exists && length(var.spn_id) > 0 ? 0 : 1
+  count                                = var.key_vault.exists && length(var.spn_id) > 0 ? 0 : 1
 
   key_vault_id                         = azurerm_key_vault.kv_user[0].id
   tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
@@ -161,7 +161,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
   provider                             = azurerm.main
-  count                                = !var.key_vault.kv_exists && length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
+  count                                = !var.key_vault.exists && length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
                                            length(compact(var.additional_users_to_add_to_keyvault_policies))) : (
                                            0
                                          )
@@ -183,8 +183,8 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
 #   provider = azurerm.main
 #   count = var.use_webapp ? 1 : 0
 
-#   key_vault_id = var.key_vault.kv_exists ? (
-#     var.key_vault.keyvault_id_for_system_credentials) : (
+#   key_vault_id = var.key_vault.exists ? (
+#     var.key_vault.id) : (
 #     azurerm_key_vault.kv_user[0].id
 #   )
 
@@ -204,7 +204,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
 
 resource "azurerm_management_lock" "keyvault" {
   provider                             = azurerm.main
-  count                                = (var.key_vault.kv_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  count                                = (var.key_vault.exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
   name                                 = format("%s-lock", local.keyvault_names.user_access)
   scope                                = azurerm_key_vault.kv_user[0].id
   lock_level                           = "CanNotDelete"
@@ -215,7 +215,7 @@ resource "azurerm_management_lock" "keyvault" {
 }
 
 resource "azurerm_key_vault_secret" "subscription" {
-  count                                = !var.key_vault.kv_exists ? (1) : (0)
+  count                                = !var.key_vault.exists ? (1) : (0)
 
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
@@ -226,8 +226,8 @@ resource "azurerm_key_vault_secret" "subscription" {
 
   name                                 = format("%s-subscription-id", upper(var.infrastructure.environment))
   value                                = data.azurerm_client_config.deployer.subscription_id
-  key_vault_id                         = var.key_vault.kv_exists ? (
-                                           var.key_vault.keyvault_id_for_system_credentials) : (
+  key_vault_id                         = var.key_vault.exists ? (
+                                           var.key_vault.id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
 
@@ -238,7 +238,7 @@ resource "azurerm_key_vault_secret" "subscription" {
 }
 
 # ephemeral "azurerm_key_vault_secret" "test" {
-#   count                                = !var.key_vault.kv_exists ? (1) : (0)
+#   count                                = !var.key_vault.exists ? (1) : (0)
 
 #   depends_on                           = [
 #                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
@@ -248,8 +248,8 @@ resource "azurerm_key_vault_secret" "subscription" {
 
 #   name                                 = format("%s-subscription-id-tester", upper(var.infrastructure.environment))
 #   value                                = data.azurerm_client_config.deployer.subscription_id
-#   key_vault_id                         = var.key_vault.kv_exists ? (
-#                                            var.key_vault.keyvault_id_for_system_credentials) : (
+#   key_vault_id                         = var.key_vault.exists ? (
+#                                            var.key_vault.id) : (
 #                                            azurerm_key_vault.kv_user[0].id
 #                                          )
 
@@ -259,7 +259,7 @@ resource "azurerm_key_vault_secret" "subscription" {
 #                                          )
 # }
 # resource "azurerm_key_vault_secret" "tenant" {
-#   count                                = !var.key_vault.kv_exists ? (1) : (0)
+#   count                                = !var.key_vault.exists ? (1) : (0)
 
 #   depends_on                           = [
 #                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
@@ -269,8 +269,8 @@ resource "azurerm_key_vault_secret" "subscription" {
 
 #   name                                 = format("%s-tenant-id", upper(var.infrastructure.environment))
 #   value                                = data.azurerm_client_config.deployer.tenant_id
-#   key_vault_id                         = var.key_vault.kv_exists ? (
-#                                            var.key_vault.keyvault_id_for_system_credentials) : (
+#   key_vault_id                         = var.key_vault.exists ? (
+#                                            var.key_vault.id) : (
 #                                            azurerm_key_vault.kv_user[0].id
 #                                          )
 
@@ -282,7 +282,7 @@ resource "azurerm_key_vault_secret" "subscription" {
 
 
 # resource "azurerm_key_vault_secret" "spn" {
-#   count                                = !var.key_vault.kv_exists && length(var.spn_id) > 0 ? (1) : (0)
+#   count                                = !var.key_vault.exists && length(var.spn_id) > 0 ? (1) : (0)
 
 #   depends_on                           = [
 #                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
@@ -292,8 +292,8 @@ resource "azurerm_key_vault_secret" "subscription" {
 
 #   name                                 = format("%s-client-id", upper(var.infrastructure.environment))
 #   value                                = var.spn_id
-#   key_vault_id                         = var.key_vault.kv_exists ? (
-#                                            var.key_vault.keyvault_id_for_system_credentials) : (
+#   key_vault_id                         = var.key_vault.exists ? (
+#                                            var.key_vault.id) : (
 #                                            azurerm_key_vault.kv_user[0].id
 #                                          )
 
@@ -313,8 +313,8 @@ resource "azurerm_key_vault_secret" "ppk" {
                                          ]
   name                                 = local.ppk_secret_name
   value                                = local.private_key
-  key_vault_id                         = var.key_vault.kv_exists ? (
-                                           var.key_vault.keyvault_id_for_system_credentials) : (
+  key_vault_id                         = var.key_vault.exists ? (
+                                           var.key_vault.id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
 
@@ -334,8 +334,8 @@ resource "azurerm_key_vault_secret" "pk" {
                                          ]
   name                                 = local.pk_secret_name
   value                                = local.public_key
-  key_vault_id                         = var.key_vault.kv_exists ? (
-                                           var.key_vault.keyvault_id_for_system_credentials) : (
+  key_vault_id                         = var.key_vault.exists ? (
+                                           var.key_vault.id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
 
@@ -348,7 +348,7 @@ resource "azurerm_key_vault_secret" "pk" {
 resource "azurerm_key_vault_secret" "username" {
   count                                = (local.enable_key && !local.key_exist) ? (
                                           (
-                                            !var.bootstrap || !var.key_vault.kv_exists) ? (
+                                            !var.bootstrap || !var.key_vault.exists) ? (
                                             1) : (
                                             0
                                           )) : (
@@ -362,8 +362,8 @@ resource "azurerm_key_vault_secret" "username" {
 
   name                                 = local.username_secret_name
   value                                = local.username
-  key_vault_id                         = var.key_vault.kv_exists ? (
-                                           var.key_vault.keyvault_id_for_system_credentials) : (
+  key_vault_id                         = var.key_vault.exists ? (
+                                           var.key_vault.id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
 
@@ -377,7 +377,7 @@ resource "azurerm_key_vault_secret" "username" {
 resource "azurerm_key_vault_secret" "pat" {
   count                                = (local.enable_key && !local.key_exist) ? (
                                           (
-                                            !var.bootstrap || !var.key_vault.kv_exists) ? (
+                                            !var.bootstrap || !var.key_vault.exists) ? (
                                             1) : (
                                             0
                                           )) : (
@@ -391,8 +391,8 @@ resource "azurerm_key_vault_secret" "pat" {
                                          ]
   name                                 = "PAT"
   value                                = var.agent_pat
-  key_vault_id                         = var.key_vault.kv_exists ? (
-                                           var.key_vault.keyvault_id_for_system_credentials) : (
+  key_vault_id                         = var.key_vault.exists ? (
+                                           var.key_vault.id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
 
@@ -406,7 +406,7 @@ resource "azurerm_key_vault_secret" "pat" {
 # resource "azurerm_key_vault_secret" "web_pwd" {
 #   count                                = (local.enable_key && !local.key_exist) ? (
 #                                           (
-#                                             !var.bootstrap || !var.key_vault.kv_exists) ? (
+#                                             !var.bootstrap || !var.key_vault.exists) ? (
 #                                             1) : (
 #                                             0
 #                                           )) : (
@@ -420,8 +420,8 @@ resource "azurerm_key_vault_secret" "pat" {
 
 #   name                                 = "WEB-PWD"
 #   value                                = var.webapp_client_secret
-#   key_vault_id                         = var.key_vault.kv_exists ? (
-#                                            var.key_vault.keyvault_id_for_system_credentials) : (
+#   key_vault_id                         = var.key_vault.exists ? (
+#                                            var.key_vault.id) : (
 #                                            azurerm_key_vault.kv_user[0].id
 #                                          )
 
@@ -434,7 +434,7 @@ resource "azurerm_key_vault_secret" "pat" {
 resource "azurerm_key_vault_secret" "pwd" {
   count                                = (local.enable_password && !local.pwd_exist) ? (
                                            (
-                                             !var.bootstrap || !var.key_vault.kv_exists) ? (
+                                             !var.bootstrap || !var.key_vault.exists) ? (
                                              1) : (
                                              0
                                            )) : (
@@ -449,8 +449,8 @@ resource "azurerm_key_vault_secret" "pwd" {
                                          ]
   name                                 = local.pwd_secret_name
   value                                = local.password
-  key_vault_id                         = var.key_vault.kv_exists ? (
-                                           var.key_vault.keyvault_id_for_system_credentials) : (
+  key_vault_id                         = var.key_vault.exists ? (
+                                           var.key_vault.id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
 
@@ -464,23 +464,23 @@ resource "azurerm_key_vault_secret" "pwd" {
 data "azurerm_key_vault_secret" "pk" {
   count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
   name                                 = local.pk_secret_name
-  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.keyvault_id_for_system_credentials)
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
 data "azurerm_key_vault_secret" "ppk" {
   count                                = (local.enable_key && local.key_exist) ? 1 : 0
   name                                 = local.ppk_secret_name
-  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.keyvault_id_for_system_credentials)
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
 data "azurerm_key_vault_secret" "username" {
   count                                = (local.username_exist) ? 1 : 0
   name                                 = local.username_secret_name
-  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.keyvault_id_for_system_credentials)
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
 data "azurerm_key_vault_secret" "pwd" {
   count                                = (local.enable_password && local.pwd_exist) ? 1 : 0
   name                                 = local.pwd_secret_name
-  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.keyvault_id_for_system_credentials)
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }

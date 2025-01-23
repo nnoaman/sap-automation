@@ -128,7 +128,7 @@ output "random_id" {
 
 output "user_vault_name" {
   description                          = "Key Vault Name"
-  value                                = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
+  value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
 }
 
 ###############################################################################
@@ -168,7 +168,7 @@ output "deployer_user" {
 
 output "deployer_keyvault_user_arm_id" {
   description                          = "Azure resource ID of the deployer key vault"
-  value                                = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 
