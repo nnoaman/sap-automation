@@ -61,20 +61,21 @@ resource "azurerm_app_configuration_key" "deployer_app_configuration_keys" {
 }
 locals {
 
+  prefix                               = replace(var.state_filename_prefix, format("-%", var.network_logical_name), "")
   pipeline_parameters                  = {
-                                          format("%s_StateFileName", var.state_filename_prefix) = {
+                                          format("%s_StateFileName", local.prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
                                           }
-                                          format("%s_Key_Vault", var.state_filename_prefix) = {
+                                          format("%s_Key_Vault", local.prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
                                           }
-                                          format("%s_ResourceGroup", var.state_filename_prefix) = {
+                                          format("%s_ResourceGroup", local.prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = local.resourcegroup_name
                                           }
-                                          format("%s_Subscription", var.state_filename_prefix) = {
+                                          format("%s_Subscription", local.prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = data.azurerm_subscription.primary.subscription_id
                                           }

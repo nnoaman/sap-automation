@@ -41,6 +41,7 @@ module "sap_deployer" {
   firewall                                      = local.firewall
   infrastructure                                = local.infrastructure
   key_vault                                     = local.key_vault
+  network_logical_name                         = var.network_logical_name
   options                                       = local.options
   place_delete_lock_on_resources                = var.place_delete_lock_on_resources
   public_network_access_enabled                 = var.recover ? true : var.public_network_access_enabled
