@@ -410,7 +410,7 @@ fi
 echo "Return code from deployment:         ${return_code}"
 cd "$CONFIG_REPO_PATH" || exit
 
-prefix="${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+workload_prefix="${ENVIRONMENT}-${LOCATION_CODE_IN_FILENAME}-${NETWORK}"
 
 
 az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "FENCING_SPN_ID.value")
@@ -434,10 +434,6 @@ cd "$CONFIG_REPO_PATH" || exit
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 added=0
-if [ -f ".sap_deployment_automation/${prefix}" ]; then
-	git add ".sap_deployment_automation/${prefix}"
-	added=1
-fi
 
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 normalizedName=$(echo "${workload_prefix}" | tr -d '-')
