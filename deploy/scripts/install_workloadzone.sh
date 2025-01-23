@@ -119,9 +119,7 @@ done
 tfstate_resource_id=""
 tfstate_parameter=""
 
-deployer_tfstate_key_parameter=""
-landscape_tfstate_key=""
-landscape_tfstate_key_parameter=""
+deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
 
 deployment_system="sap_landscape"
 
@@ -245,7 +243,6 @@ fi
 #Persisting the parameters across executions
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
-generic_config_information="${automation_config_directory}"/config
 
 if [ "${force}" == 1 ]; then
 	if [ -f "${workload_config_information}" ]; then
@@ -303,7 +300,24 @@ else
 	REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 fi
 
-
+if [ -z "$deployer_tfstate_key" ]; then
+	deployer_tfstate_key=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_StateFileName" "${deployer_environment}")
+	if [ -z "$deployer_tfstate_key" ]; then
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo "# The key: '${deployer_environment}_StateFileName'"
+		echo "# was not found in the application configuration '$application_configuration'.
+		echo " #                                                                                       #"
+		echo "#########################################################################################"
+		exit 65
+	else
+		deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+		export TF_VAR_deployer_tfstate_key=${deployer_tfstate_key}
+	fi
+else
+	deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+	export TF_VAR_deployer_tfstate_key=${deployer_tfstate_key}
+fi
 
 if [ -z "$keyvault" ]; then
 	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_KeyVaultName" "${deployer_environment}")
@@ -517,7 +531,6 @@ echo "State file:                          ${key}.terraform.tfstate"
 echo "Deployer state file:                 ${TF_VAR_deployer_tfstate_key}"
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 echo "-------------------------------------------------------------------------"
-
 
 if [ ! -d .terraform/ ]; then
 	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
