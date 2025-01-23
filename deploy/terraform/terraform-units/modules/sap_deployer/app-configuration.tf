@@ -61,21 +61,21 @@ resource "azurerm_app_configuration_key" "deployer_app_configuration_keys" {
 }
 locals {
 
-  prefix                               = replace(var.state_filename_prefix, format("-%", var.network_logical_name), "")
+  key_prefix                           = replace(var.state_filename_prefix, format("-%", var.network_logical_name), "")
   pipeline_parameters                  = {
-                                          format("%s_StateFileName", local.prefix) = {
+                                          format("%s_StateFileName", local.key_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
                                           }
-                                          format("%s_Key_Vault", local.prefix) = {
+                                          format("%s_Key_Vault", local.key_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
                                           }
-                                          format("%s_ResourceGroup", local.prefix) = {
+                                          format("%s_ResourceGroup", local.key_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = local.resourcegroup_name
                                           }
-                                          format("%s_Subscription", local.prefix) = {
+                                          format("%s_Subscription", local.key_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.deployer[0].name) : ( azurerm_resource_group.deployer[0].name )
                                             value = data.azurerm_subscription.primary.subscription_id
                                           }
