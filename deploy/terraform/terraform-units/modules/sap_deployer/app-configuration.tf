@@ -10,7 +10,7 @@
 
 resource "azurerm_app_configuration" "app_config" {
   provider                             = azurerm.main
-  name                                 = var.naming.appconfig_names.DEPLOYER
+  name                                 = var.app_config_service_name
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
