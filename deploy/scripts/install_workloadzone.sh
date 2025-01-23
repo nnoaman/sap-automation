@@ -303,10 +303,10 @@ fi
 if [ ! -f "${workload_config_information}" ]; then
 	# Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
 	if [ -z "$deployer_environment" ]; then
-		read -r -p "Deployer environment name: " deployer_environment
+		read -r -p "Control Plane name: " deployer_environment
 	fi
 
-	deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
+	deployer_config_information="${automation_config_directory}"/"${deployer_environment}"
 	if [ -f "$deployer_config_information" ]; then
 		if [ -z "${keyvault}" ]; then
 			load_config_vars "${deployer_config_information}" "keyvault"
