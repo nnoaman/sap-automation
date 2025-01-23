@@ -44,7 +44,7 @@ resource "azurerm_app_configuration_key" "deployer_app_configuration_keys" {
   key                                  = each.key
   label                                = each.value.label
   value                                = each.value.value
-  content_type                         = "text/plain"
+  content_type                         = each.value.content_type
   type                                 = "kv"
 
   depends_on                          = [
@@ -65,22 +65,27 @@ locals {
                                           format("%s_StateFileName", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
                                             value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
+                                            content_type="text/plain"
                                           }
-                                          format("%s_Key_Vault", var.state_filename_prefix) = {
+                                          format("%s_Key_VaultName", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
+                                            content_type="text/plain"
                                           }
                                           format("%s_Key_VaultResourceId", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+                                            content_type="text/id"
                                           }
-                                          format("%s_ResourceGroup", var.state_filename_prefix) = {
+                                          format("%s_ResourceGroupName", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
                                             value = local.resourcegroup_name
+                                            content_type="text/plain"
                                           }
-                                          format("%s_Subscription", var.state_filename_prefix) = {
+                                          format("%s_SubscriptionId", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
                                             value = data.azurerm_subscription.primary.subscription_id
+                                            content_type="text/id"
                                           }
                                         }
 }

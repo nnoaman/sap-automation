@@ -15,12 +15,13 @@ data  "azurerm_app_configuration" "app_config" {
 
 
 resource "azurerm_app_configuration_key" "library_app_configuration_keys" {
-  for_each               = local.configuration_values
-  provider               = azurerm.deployer
-  configuration_store_id = data.azurerm_app_configuration.app_config.id
-  key                    = each.key
-  label                  = each.value.label
-  value                  = each.value.value
+  for_each                             = local.configuration_values
+  provider                             = azurerm.deployer
+  configuration_store_id               = data.azurerm_app_configuration.app_config.id
+  key                                  = each.key
+  label                                = each.value.label
+  value                                = each.value.value
+  content_type                         = each.value.content_type
 }
 
 locals {
@@ -30,22 +31,25 @@ locals {
   app_config_resource_group_name       = local.parsed_id["resource_group_name"]
   configuration_values                 = {
                                           format("%s_LibraryStateFileName", var.state_filename_prefix) = {
-                                            label = var.state_filename_prefix
-                                            value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
+                                            label        = var.state_filename_prefix
+                                            value        = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
+                                            content_type = "text/plain"
                                           }
                                           format("%s_TerraformRemoteStateStorageAccountId", var.state_filename_prefix) = {
-                                            label = var.state_filename_prefix
-                                            value = local.sa_tfstate_exists ? (
-                                                     data.azurerm_storage_account.storage_tfstate[0].id) : (
-                                                     try(azurerm_storage_account.storage_tfstate[0].id, "")
-                                                   )
+                                            label        = var.state_filename_prefix
+                                            value        = local.sa_tfstate_exists ? (
+                                                            data.azurerm_storage_account.storage_tfstate[0].id) : (
+                                                            try(azurerm_storage_account.storage_tfstate[0].id, "")
+                                                          )
+                                            content_type = "text/id"
                                           }
                                           format("%s_SAPLibraryStorageAccountId", var.state_filename_prefix) = {
-                                            label = var.state_filename_prefix
-                                            value = local.sa_sapbits_exists ? (
-                                                     data.azurerm_storage_account.storage_sapbits[0].id) : (
-                                                     try(azurerm_storage_account.storage_sapbits[0].id, "")
-                                                   )
+                                            label        = var.state_filename_prefix
+                                            value        = local.sa_sapbits_exists ? (
+                                                            data.azurerm_storage_account.storage_sapbits[0].id) : (
+                                                            try(azurerm_storage_account.storage_sapbits[0].id, "")
+                                                          )
+                                            content_type = "text/id"
                                           }
                                         }
 }
