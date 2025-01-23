@@ -31,13 +31,16 @@ locals {
   configuration_values                 = {
                                           format("%s_KeyVault", var.naming.prefix.WORKLOAD_ZONE) = {
                                             label = var.naming.prefix.WORKLOAD_ZONE
-                                            value = local.keyvault_names.user_access
+                                            value = length(var.key_vault.kv_user_id) > 0 ? (
+                                                                  try(data.azurerm_key_vault.kv_user[0].id, "")) : (
+                                                                  try(azurerm_key_vault.kv_user[0].id, "")
+                                                                )
                                          }
                                         format("%s_VirtualNetworkResourceId", var.naming.prefix.WORKLOAD_ZONE) = {
                                             label = var.naming.prefix.WORKLOAD_ZONE
                                             value = local.SAP_virtualnetwork_exists ? (
-                                                                  data.azurerm_virtual_network.vnet_sap[0].id) : (
-                                                                  azurerm_virtual_network.vnet_sap[0].id
+                                                                  try(data.azurerm_virtual_network.vnet_sap[0].id, "")) : (
+                                                                  try(azurerm_virtual_network.vnet_sap[0].id, "")
                                                                   )
                                          }
                                          }
