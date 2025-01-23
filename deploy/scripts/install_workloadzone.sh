@@ -464,8 +464,8 @@ else
 	fi
 fi
 
-TF_VAR_deployer_tfstate_key_parameter=${deployer_tfstate_key}
-export TF_VAR_deployer_tfstate_key_parameter
+TF_VAR_deployer_tfstate_key=${deployer_tfstate_key}
+export TF_VAR_deployer_tfstate_key
 
 TF_VAR_tfstate_resource_id=${tfstate_resource_id}
 export TF_VAR_tfstate_resource_id
@@ -514,7 +514,7 @@ echo "Storage Account:                     ${REMOTE_STATE_SA}"
 echo "Resource Group:                      ${REMOTE_STATE_RG}"
 echo "Resource Id:                         ${TF_VAR_tfstate_resource_id}"
 echo "State file:                          ${key}.terraform.tfstate"
-echo "Deployer state file:                 ${TF_VAR_deployer_tfstate_key_parameter}"
+echo "Deployer state file:                 ${TF_VAR_deployer_tfstate_key}"
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 echo "-------------------------------------------------------------------------"
 
