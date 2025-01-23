@@ -25,9 +25,9 @@ resource "azurerm_app_configuration_key" "library_app_configuration_keys" {
 
 locals {
 
-  parsed_id                            = length(var.deployer.application_configuration_id) > 0 ? provider::azurerm::parse_resource_id(var.deployer.application_configuration_id): ""
+  parsed_id                            = length(var.deployer.application_configuration_id) > 0 ? provider::azurerm::parse_resource_id(var.deployer.application_configuration_id): {}
   app_config_name                      = coalesce(var.deployer_tfstate.deployer_app_config_name, try(local.parsed_id["resource_name"]))
-  app_config_resource_group_name       = coalesce(var.deployer_tfstate.created_resource_group_name, try(local.parsed_id["resource_name"]))
+  app_config_resource_group_name       = coalesce(var.deployer_tfstate.created_resource_group_name, try(local.parsed_id["resource_group_name"]))
   configuration_values                 = {
                                           format("%s_LibraryStateFileName", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
