@@ -25,7 +25,7 @@ resource "azurerm_app_configuration_key" "library_app_configuration_keys" {
 
 locals {
 
-  key_prefix                           = replace(var.state_filename_prefix, format("-%", var.deployer_tfstate.network_logical_name), "")
+  key_prefix                           = replace(var.state_filename_prefix, format("-%s", var.deployer_tfstate.network_logical_name), "")
   configuration_values                 = {
                                           format("%s_LibraryStateFileName", local.key_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.library[0].name) : ( azurerm_resource_group.library[0].name )
