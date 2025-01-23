@@ -61,22 +61,21 @@ resource "azurerm_app_configuration_key" "deployer_app_configuration_keys" {
 }
 locals {
 
-  key_prefix                           = replace(var.state_filename_prefix, format("-%s", var.network_logical_name), "")
   pipeline_parameters                  = {
-                                          format("%s_StateFileName", local.key_prefix) = {
-                                            label = local.key_prefix
+                                          format("%s_StateFileName", var.state_filename_prefix) = {
+                                            label = var.state_filename_prefix
                                             value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
                                           }
-                                          format("%s_Key_Vault", local.key_prefix) = {
-                                            label = local.key_prefix
+                                          format("%s_Key_Vault", var.state_filename_prefix) = {
+                                            label = var.state_filename_prefix
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
                                           }
-                                          format("%s_ResourceGroup", local.key_prefix) = {
-                                            label = local.key_prefix
+                                          format("%s_ResourceGroup", var.state_filename_prefix) = {
+                                            label = var.state_filename_prefix
                                             value = local.resourcegroup_name
                                           }
-                                          format("%s_Subscription", local.key_prefix) = {
-                                            label = local.key_prefix
+                                          format("%s_Subscription", var.state_filename_prefix) = {
+                                            label = var.state_filename_prefix
                                             value = data.azurerm_subscription.primary.subscription_id
                                           }
                                         }
