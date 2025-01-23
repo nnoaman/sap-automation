@@ -1,7 +1,22 @@
+#!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
+function getVariableFromApplicationConfiguration() {
+	local application_configuration_id="$1"
+	local variable_name="$2"
+	local label="$3"
+	local variable_value
+
+  application_configuration_name=$(echo "$application_configuration_id" | cut -d '/' -f 9)
+  application_configuration_subscription=$(echo "$application_configuration_id" | cut -d '/' -f 3)
+
+	variable_value=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${variable_name}'].value | [0]" --label "${label}" --query value --output tsv)
+	echo "$variable_value"
+
+}
+
 
 function getVariableFromVariableGroup() {
 	local variable_group_id="$1"
