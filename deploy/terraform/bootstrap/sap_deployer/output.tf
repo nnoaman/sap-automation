@@ -27,6 +27,15 @@ output "environment"                             {
                                                    value       = var.environment
                                                  }
 
+output "location_short"                          {
+                                                   description = "Deployer Location short name"
+                                                   value       = module.sap_namegenerator.naming_new.location_short
+                                                 }
+
+output "network_logical_name"                    {
+                                                   description = "Deployer Location short name"
+                                                   value       = var.management_network_logical_name
+                                                 }
 
 output "created_resource_group_location"         {
                                                    description = "Created resource group's location"

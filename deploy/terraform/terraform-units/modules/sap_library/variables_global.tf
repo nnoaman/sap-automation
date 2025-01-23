@@ -117,3 +117,5 @@ variable "short_named_endpoints_nics"     {
                                             description = "If defined, uses short names for private endpoints nics"
                                             default     = false
                                           }
+
+variable "state_filename_prefix"          { description = "State file name" }
