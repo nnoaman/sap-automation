@@ -287,21 +287,19 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 
 fi
 
-if [ -z "$REMOTE_STATE_SA" ]; then
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_TerraformRemoteStateStorageAccountId" "${deployer_environment}")
-	if [ -z "$tfstate_resource_id" ]; then
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo "# The key: '${deployer_environment}_TerraformRemoteStateStorageAccountId'"
-		echo "# was not found in the application configuration '$application_configuration'.
+tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_TerraformRemoteStateStorageAccountId" "${deployer_environment}")
+if [ -z "$tfstate_resource_id" ]; then
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo "# The key: '${deployer_environment}_TerraformRemoteStateStorageAccountId'"
+	echo "# was not found in the application configuration '$application_configuration'.
 		echo " #                                                                                       #"
-		echo "#########################################################################################"
-		exit 65
-	else
-		echo "Terraform Storage Account Id:        $tfstate_resource_id"
-		REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-		STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-	fi
+	echo "#########################################################################################"
+	exit 65
+else
+	echo "Terraform Storage Account Id:        $tfstate_resource_id"
+	REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 fi
 
 if [ -z "$keyvault" ]; then
