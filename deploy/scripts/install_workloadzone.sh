@@ -36,7 +36,7 @@ force=0
 called_from_ado=0
 deploy_using_msi_only=0
 
-INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:g:aifhm --longoptions parameterfile:,deployer_tfstate_key:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,application_configuration_id:ado,auto-approve,force,help,msi -- "$@")
+INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:g:aifhm --longoptions parameterfile:,deployer_tfstate_key:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,application_configuration_id:,ado,auto-approve,force,help,msi -- "$@")
 VALID_ARGUMENTS=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
 	showhelp
@@ -66,7 +66,7 @@ while :; do
 		shift
 		;;
 	-g | --application_configuration_id)
-		application_configuration_id="$2"
+		APPLICATION_CONFIGURATION_ID="$2"
 		shift 2
 		;;
 	-i | --auto-approve)
@@ -175,7 +175,7 @@ if [ -z "$deployer_environment" ]; then
 	return 64 #script usage wrong
 fi
 
-if [ -z "$application_configuration_id" ]; then
+if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo -e "#                      $bold_red   Missing parameter. $reset_formatting                                #"
@@ -187,7 +187,7 @@ if [ -z "$application_configuration_id" ]; then
 	return 64 #script usage wrong
 fi
 
-application_configuration_name=$(echo "$application_configuration_id" | cut -d '/' -f 9)
+application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
 
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
@@ -288,7 +288,7 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 fi
 
 if [ -z "$REMOTE_STATE_SA" ]; then
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$application_configuration_id" "${deployer_environment}_TerraformRemoteStateStorageAccountId" "${deployer_environment}")
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_TerraformRemoteStateStorageAccountId" "${deployer_environment}")
 	if [ -z "$tfstate_resource_id" ]; then
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
@@ -305,7 +305,7 @@ if [ -z "$REMOTE_STATE_SA" ]; then
 fi
 
 if [ -z "$keyvault" ]; then
-	keyvault=$(getVariableFromApplicationConfiguration "$application_configuration_id" "${deployer_environment}_KeyVaultName" "${deployer_environment}")
+	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_KeyVaultName" "${deployer_environment}")
 	if [ -z "$keyvault" ]; then
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
