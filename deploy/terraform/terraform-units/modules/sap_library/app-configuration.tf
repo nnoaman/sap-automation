@@ -32,7 +32,7 @@ locals {
   configuration_values                 = {
                                           format("%s_LibraryStateFileName", var.state_filename_prefix) = {
                                             label        = var.state_filename_prefix
-                                            value        = format("%s.terraform.tfstate",var.naming.prefix.LIBRARY)
+                                            value        = format("%s-SAP_LIBRARY.terraform.tfstate",var.naming.prefix.LIBRARY)
                                             content_type = "text/plain"
                                           }
                                           format("%s_TerraformRemoteStateStorageAccountId", var.state_filename_prefix) = {
