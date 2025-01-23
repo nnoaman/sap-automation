@@ -31,7 +31,7 @@ locals {
   configuration_values                 = {
                                           format("%s_KeyVault", var.naming.prefix.WORKLOAD_ZONE) = {
                                             label = var.naming.prefix.WORKLOAD_ZONE
-                                            value = length(var.key_vault.kv_user_id) > 0 ? (
+                                            value = length(try(var.key_vault.keyvault_id_for_system_credentials, "")) > 0 ? (
                                                                   try(data.azurerm_key_vault.kv_user[0].id, "")) : (
                                                                   try(azurerm_key_vault.kv_user[0].id, "")
                                                                 )

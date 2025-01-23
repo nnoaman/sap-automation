@@ -96,7 +96,7 @@ variable "key_vault"                   {
                                          validation {
                                                       condition = (
                                                         contains(keys(var.key_vault), "kv_spn_id") ? (
-                                                          length(split("/", var.key_vault.kv_spn_id)) == 9) : (
+                                                          length(split("/", var.key_vault.keyvault_id_for_deployment_credentials)) == 9) : (
                                                           true
                                                         )
                                                       )
