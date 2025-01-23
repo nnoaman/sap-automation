@@ -193,6 +193,7 @@ locals {
                                            patch_assessment_mode         = var.patch_assessment_mode
                                            shared_access_key_enabled     = var.shared_access_key_enabled
                                            shared_access_key_enabled_nfs = var.shared_access_key_enabled_nfs
+                                           application_configuration_id = var.application_configuration_id
                                          }
 
   authentication                       = {

@@ -235,7 +235,6 @@ export landscape_tfstate_key
 
 application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
 application_configuration_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
-cplnnoeuapc748
 
 deployer_tfstate_key=$(az appconfig kv show -n "$application_configuration_name" --subscription "$application_configuration_subscription" --key "${CONTROL_PLANE_NAME}_StateFileName" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
 export deployer_tfstate_key
@@ -243,10 +242,11 @@ export deployer_tfstate_key
 key_vault=$(az appconfig kv show -n "$application_configuration_name" --subscription "$application_configuration_subscription" --key "${CONTROL_PLANE_NAME}_Key_Vault" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
 export key_vault
 
-REMOTE_STATE_SA=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
-export REMOTE_STATE_SA
+storage_account_id=$(az appconfig kv show -n "$application_configuration_name" --subscription "$application_configuration_subscription" --key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" --label "${CONTROL_PLANE_NAME}" --query value --output tsv)
+REMOTE_STATE_SA=$(echo "$storage_account_id" | cut -d '/' -f 9)
+STATE_SUBSCRIPTION=$(echo "$storage_account_id" | cut -d '/' -f 3)
 
-STATE_SUBSCRIPTION=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${deployer_environment_file_name}" "STATE_SUBSCRIPTION")
+export REMOTE_STATE_SA
 export STATE_SUBSCRIPTION
 
 workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Workload_Key_Vault" "${workload_environment_file_name}" "workloadkeyvault")
