@@ -274,8 +274,8 @@ export workload_key_vault
 echo "Deployer state filename:             $deployer_tfstate_key"
 echo "Target subscription                  $WL_ARM_SUBSCRIPTION_ID"
 
-echo "Terraform state file subscription:   $STATE_SUBSCRIPTION"
-echo "Terraform state file storage account:$REMOTE_STATE_SA"
+echo "Terraform statefile subscription:    $STATE_SUBSCRIPTION"
+echo "Terraform statefile storage account: $REMOTE_STATE_SA"
 
 if [ -n "$key_vault" ]; then
 	echo "Deployer Key Vault:                  ${key_vault}"

@@ -461,10 +461,17 @@ else
 	fi
 fi
 
-export TF_VAR_deployer_tfstate_key_parameter=${deployer_tfstate_key}
-export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
-export TF_VAR_subscription="${subscription}"
-export TF_VAR_management_subscription="${STATE_SUBSCRIPTION}"
+TF_VAR_deployer_tfstate_key_parameter=${deployer_tfstate_key}
+export TF_VAR_deployer_tfstate_key_parameter
+
+TF_VAR_tfstate_resource_id=${tfstate_resource_id}
+export TF_VAR_tfstate_resource_id
+
+TF_VAR_management_subscription="${STATE_SUBSCRIPTION}"
+export TF_VAR_management_subscription
+
+TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+export TF_VAR_subscription_id
 
 terraform_module_directory="$(realpath "${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}")"
 
@@ -503,10 +510,10 @@ echo "Subscription:                        ${STATE_SUBSCRIPTION}"
 echo "Storage Account:                     ${REMOTE_STATE_SA}"
 echo "Resource Group:                      ${REMOTE_STATE_RG}"
 echo "State file:                          ${key}.terraform.tfstate"
+echo "Deployer state file:                 ${TF_VAR_deployer_tfstate_key_parameter}"
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
+echo "-------------------------------------------------------------------------"
 
-TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
-export TF_VAR_subscription_id
 
 if [ ! -d .terraform/ ]; then
 	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
