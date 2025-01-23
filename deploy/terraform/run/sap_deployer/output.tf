@@ -248,3 +248,8 @@ output "deployer_app_config_name"                {
                                                     description = "Application Configuration Name"
                                                     value       = module.sap_deployer.deployer_app_config_name
                                                  }
+
+output "deployer_app_config_id"                  {
+                                                    description = "Application Configuration Azure Resource Id"
+                                                    value       = module.sap_deployer.deployer_app_config_id
+                                                 }
