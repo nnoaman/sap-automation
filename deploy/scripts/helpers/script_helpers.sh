@@ -596,7 +596,7 @@ function ImportAndReRunApply {
 				echo -e "${cyan}No resources to import$reset_formatting"
 				echo ""
 				rm "$fileName"
-				return_value=1
+				return_value=10
 			fi
 		fi
 	fi

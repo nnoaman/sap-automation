@@ -1283,7 +1283,7 @@ if [ -f apply_output.json ]; then
 	rm apply_output.json
 fi
 
-if [ 1 == $return_value ]; then
+if [ 0 -ne $return_value ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
