@@ -946,8 +946,6 @@ fi
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
 	workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
-	save_config_var "workload_zone_prefix" "${workload_config_information}"
-	save_config_vars "landscape_tfstate_key" "${workload_config_information}"
 	workload_keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 
 	workload_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
