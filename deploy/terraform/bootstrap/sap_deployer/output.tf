@@ -47,6 +47,11 @@ output "random_id"                               {
                                                    value       = substr(coalesce(var.custom_random_id, module.sap_deployer.random_id), 0, 3)
                                                  }
 
+output "control_plane_name"                      {
+                                                   description = "Control plane name"
+                                                   value       = upper(format("%s-%s-%s", var.environment, module.sap_namegenerator.naming_new.location_short, var.management_network_logical_name))
+                                                 }
+
 ###############################################################################
 #                                                                             #
 #                                 Deployer                                    #
