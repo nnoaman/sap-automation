@@ -67,12 +67,12 @@ locals {
                                             value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
                                             content_type="text/plain"
                                           }
-                                          format("%s_Key_VaultName", var.state_filename_prefix) = {
+                                          format("%s_KeyVaultName", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
                                             content_type="text/plain"
                                           }
-                                          format("%s_Key_VaultResourceId", var.state_filename_prefix) = {
+                                          format("%s_KeyVaultResourceId", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
                                             value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
                                             content_type="text/id"
