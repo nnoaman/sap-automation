@@ -69,12 +69,12 @@ locals {
                                           }
                                           format("%s_KeyVaultName", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
-                                            value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
+                                            value = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
                                             content_type="text/plain"
                                           }
                                           format("%s_KeyVaultResourceId", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
-                                            value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+                                            value = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
                                             content_type="text/id"
                                           }
                                           format("%s_ResourceGroupName", var.state_filename_prefix) = {
