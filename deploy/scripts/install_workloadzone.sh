@@ -300,7 +300,10 @@ else
 	echo "Terraform Storage Account Id:        $tfstate_resource_id"
 	REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+	REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 fi
+
+
 
 if [ -z "$keyvault" ]; then
 	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_KeyVaultName" "${deployer_environment}")
