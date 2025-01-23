@@ -90,4 +90,3 @@ stages:
               LOGON_USING_SPN:         $(Logon_Using_SPN)
               USE_MSI:                 $(Use_MSI)
               CONTROL_PLANE_NAME:      ${{ parameters.control_plane_name }}
-

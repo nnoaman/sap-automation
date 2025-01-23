@@ -63,7 +63,17 @@ variable "subscription_id"                       {
                                                    default     = null
                                                  }
 
+variable "deployer_prefix"                       {
+                                                    description = "Defines the prefix for the deployer"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
 
+variable "application_configuration_id"          {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
