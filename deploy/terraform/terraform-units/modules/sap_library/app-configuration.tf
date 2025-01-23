@@ -25,20 +25,20 @@ resource "azurerm_app_configuration_key" "library_app_configuration_keys" {
 
 locals {
 
-  prefix                               = replace(var.state_filename_prefix, format("-%", var.deployer_tfstate.network_logical_name), "")
+  key_prefix                           = replace(var.state_filename_prefix, format("-%", var.deployer_tfstate.network_logical_name), "")
   configuration_values                 = {
-                                          format("%s_LibraryStateFileName", local.prefix) = {
+                                          format("%s_LibraryStateFileName", local.key_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.library[0].name) : ( azurerm_resource_group.library[0].name )
                                             value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
                                           }
-                                          format("%s_TerraformRemoteStateStorageAccountId", local.prefix) = {
+                                          format("%s_TerraformRemoteStateStorageAccountId", local.key_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.library[0].name) : ( azurerm_resource_group.library[0].name )
                                             value = local.sa_tfstate_exists ? (
                                                      data.azurerm_storage_account.storage_tfstate[0].id) : (
                                                      try(azurerm_storage_account.storage_tfstate[0].id, "")
                                                    )
                                           }
-                                          format("%s_SAPLibraryStorageAccountId", local.prefix) = {
+                                          format("%s_SAPLibraryStorageAccountId", local.key_prefix) = {
                                             label = local.resource_group_exists ? ( data.azurerm_resource_group.library[0].name) : ( azurerm_resource_group.library[0].name )
                                             value = local.sa_sapbits_exists ? (
                                                      data.azurerm_storage_account.storage_sapbits[0].id) : (
