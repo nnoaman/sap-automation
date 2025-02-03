@@ -51,5 +51,15 @@ locals {
                                                           )
                                             content_type = "text/id"
                                           }
+
+                                          format("%s_SAPMediaPath", var.state_filename_prefix) = {
+                                            label        = var.state_filename_prefix
+                                            value        = format("https://%s.blob.core.windows.net/%s", length(var.storage_account_sapbits.arm_id) > 0 ?
+                                                             split("/", var.storage_account_sapbits.arm_id)[8] : local.sa_sapbits_name,
+                                                             var.storage_account_sapbits.sapbits_blob_container.name)
+
+                                            content_type = "text/id"
+                                          }
+
                                         }
 }

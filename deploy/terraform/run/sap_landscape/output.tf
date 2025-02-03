@@ -369,3 +369,11 @@ output ng_resource_id                           {
                                                   description = "NAT Gateway resource ID"
                                                   value       = module.sap_landscape.ng_resource_id
                                                 }
+
+output application_configuration_id             {
+                                                  description = "Application Configuration ID"
+                                                  value       = coalesce(
+                                                                             var.application_configuration_id,
+                                                                             try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
+                                                                           )
+                                                }
