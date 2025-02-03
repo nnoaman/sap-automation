@@ -272,7 +272,7 @@ output "witness_storage_account"                {
                                                   description = "Witness storage account"
                                                   value       = length(var.witness_storage_account.arm_id) > 0 ? (
                                                                   split("/", var.witness_storage_account.arm_id)[8]) : (
-                                                                  local.witness_storageaccount_name
+                                                                  var.naming.storageaccount_names.WORKLOAD_ZONE.witness_storageaccount_name
                                                                 )
                                                 }
 

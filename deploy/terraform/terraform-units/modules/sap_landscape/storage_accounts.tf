@@ -15,7 +15,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
                                            azurerm_subnet.db,
                                            azurerm_subnet.web,
                                          ]
-  name                                 = local.storageaccount_name
+  name                                 = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_storageaccount_name
 
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.resource_group[0].name) : (
@@ -146,7 +146,7 @@ resource "azurerm_storage_account" "witness_storage" {
                                            azurerm_subnet.app,
                                            azurerm_subnet.db
                                          ]
-  name                                 = local.witness_storageaccount_name
+  name                                 = var.naming.storageaccount_names.WORKLOAD_ZONE.witness_storageaccount_name
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.resource_group[0].name) : (
                                            azurerm_resource_group.resource_group[0].name
