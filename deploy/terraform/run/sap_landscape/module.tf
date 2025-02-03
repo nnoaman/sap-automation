@@ -8,6 +8,7 @@
 
 module "sap_landscape" {
   source                                       = "../../terraform-units/modules/sap_landscape"
+  depends_on                                   = [ module.sap_namegenerator ]
   providers                                    = {
                                                    azurerm.main                     = azurerm.workload
                                                    azurerm.deployer                 = azurerm
@@ -68,10 +69,10 @@ module "sap_namegenerator" {
   source                                       = "../../terraform-units/modules/sap_namegenerator"
   codename                                     = lower(try(local.infrastructure.codename, ""))
   environment                                  = local.infrastructure.environment
-  iscsi_server_count                           = try(local.infrastructure.iscsi.iscsi_count, 0)
+  iscsi_server_count                           = var.iscsi_count
   location                                     = local.infrastructure.region
   random_id                                    = var.custom_random_id
-  sap_vnet_name                                = local.infrastructure.virtual_networks.sap.logical_name
+  sap_vnet_name                                = var.network_logical_name
   utility_vm_count                             = var.utility_vm_count
 }
 
