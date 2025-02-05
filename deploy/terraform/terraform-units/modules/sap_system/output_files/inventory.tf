@@ -187,7 +187,7 @@ resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.tmpl", path.module), {
               app_instance_number                    = var.app_instance_number
               application_configuration_name         = local.parsed_application_configuration_id["resource_name"]
-              application_configuration_subscription = local.parsed_application_configuration_id["subscription"]
+              application_configuration_subscription = local.parsed_application_configuration_id["subscription_id"]
               bom                                    = length(var.bom_name) > 0 ? var.bom_name : ""
               database_cluster_type                  = var.database_cluster_type
               database_high_availability             = var.database_high_availability
