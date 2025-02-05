@@ -3,7 +3,7 @@
 
 #######################################4#######################################8
 #                                                                              #
-#                          Resource group definitioms                          #
+#                          Resource group definitions                          #
 #                                                                              #
 #######################################4#######################################8
 
@@ -255,4 +255,9 @@ output "deployer_app_config_name"                {
 output "deployer_app_config_id"                  {
                                                     description = "Application Configuration Azure Resource Id"
                                                     value       = module.sap_deployer.deployer_app_config_id
+                                                 }
+
+output "control_plane_name"                      {
+                                                    description = "Control plane name"
+                                                    value       = module.sap_namegenerator.naming.prefix.DEPLOYER
                                                  }

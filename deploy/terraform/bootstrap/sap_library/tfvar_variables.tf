@@ -3,7 +3,7 @@
 
 #######################################4#######################################8
 #                                                                              #
-#                           Environment definitioms                            #
+#                           Environment definitions                            #
 #                                                                              #
 #######################################4#######################################8
 
@@ -69,14 +69,9 @@ variable "deployer_prefix"                       {
                                                     default     = ""
                                                  }
 
-variable "application_configuration_id"          {
-                                                    description = "Defines the Azure application configuration Resource id"
-                                                    type        = string
-                                                    default     = ""
-                                                 }
 #######################################4#######################################8
 #                                                                              #
-#                          Resource group definitioms                          #
+#                          Resource group definitions                          #
 #                                                                              #
 #######################################4#######################################8
 
@@ -241,7 +236,7 @@ variable "public_network_access_enabled"              {
 
 #########################################################################################
 #                                                                                       #
-#  Miscallaneous definitioms                                                            #
+#  Miscallaneous definitions                                                            #
 #                                                                                       #
 #########################################################################################
 
@@ -269,7 +264,7 @@ variable "custom_random_id"                     {
 
 #########################################################################################
 #                                                                                       #
-#  Web App definitioms                                                                  #
+#  Web App definitions                                                                  #
 #                                                                                       #
 #########################################################################################
 
@@ -366,3 +361,26 @@ variable "additional_network_id"                     {
                                                        description = "Agent Network resource ID"
                                                        default     = ""
                                                      }
+
+
+#########################################################################################
+#                                                                                       #
+#  Miscellaneous                                                                         #
+#                                                                                       #
+#########################################################################################
+
+variable "additional_network_id"                {
+                                                   description = "Agent Network resource ID"
+                                                   default     = ""
+                                                 }
+
+
+variable "tags"                                  {
+                                                   description = "If provided, tags for all resources"
+                                                   default     = {}
+                                                 }
+variable "application_configuration_id"          {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
+                                                 }

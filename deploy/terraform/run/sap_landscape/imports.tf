@@ -10,9 +10,9 @@
 data "azurerm_client_config" "current" {}
 
 data "azurerm_app_configuration_key" "deployer_state_file" {
-  configuration_store_id = "/subscriptions/dcb2713e-5dc8-4139-a9af-9768287bbb8d/resourceGroups/CPLN-NOEU-DEP01-INFRASTRUCTURE/providers/Microsoft.AppConfiguration/configurationStores/cplnnoeuapc748"
-  key                    = "CPLN-NOEU-DEP01_StateFileName"
-  label                  = "CPLN-NOEU-DEP01"
+  configuration_store_id = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
+  key                    = format("%s_StateFileName", local.control_plane_name)
+  label                  = local.control_plane_name
 }
 
 data "terraform_remote_state" "deployer" {

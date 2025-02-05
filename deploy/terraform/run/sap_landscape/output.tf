@@ -377,3 +377,8 @@ output application_configuration_id             {
                                                                              try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
                                                                            )
                                                 }
+
+output "control_plane_name"                     {
+                                                  description = "Control plane name"
+                                                  value       = data.terraform_remote_state.deployer[0].outputs.control_plane_name
+                                                }

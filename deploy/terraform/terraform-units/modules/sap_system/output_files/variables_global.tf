@@ -19,6 +19,7 @@ variable "app_tier_os_types"                    { description = "Defines the app
 variable "app_vm_names"                         { description = "List of VM names for the Application Servers" }
 variable "application_server_ips"               { description = "List of IP addresses for the Application Servers" }
 variable "application_server_secondary_ips"     { description = "List of secondary IP addresses for the Application Servers" }
+variable "application_configuration_id"         { description = "Application Configuration ID" }
 variable "authentication_type"                  {
                                                   description = "VM Authentication type"
                                                   default     = "key"

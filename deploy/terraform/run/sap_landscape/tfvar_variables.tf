@@ -3,7 +3,7 @@
 
 #######################################4#######################################8
 #                                                                              #
-#                           Environment definitioms                            #
+#                           Environment definitions                            #
 #                                                                              #
 #######################################4#######################################8
 
@@ -70,7 +70,7 @@ variable "application_configuration_id"         {
 
 #######################################4#######################################8
 #                                                                              #
-#                          Resource group definitioms                          #
+#                          Resource group definitions                          #
 #                                                                              #
 #######################################4#######################################8
 
@@ -1020,3 +1020,8 @@ variable "additional_network_id"                {
                                                    description = "Agent Network resource ID"
                                                    default     = ""
                                                  }
+variable "control_plane_name"                   {
+                                                  description = "The name of the control plane"
+                                                  default     = ""
+                                                }
+

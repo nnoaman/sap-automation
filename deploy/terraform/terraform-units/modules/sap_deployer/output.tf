@@ -259,3 +259,4 @@ output "deployer_app_config_id"                  {
                                                     description = "Application Configuration Resource Id"
                                                     value       = azurerm_app_configuration.app_config.id
                                                  }
+
