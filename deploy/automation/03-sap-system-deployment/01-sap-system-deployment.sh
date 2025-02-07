@@ -67,7 +67,7 @@ cd ${CONFIG_REPO_PATH}
 storage_account_parameter=""
 
 start_group "SAP System Deployment"
-echo "Deploying the SAP System defined in $(sap_system_folder)"
+echo "Deploying the SAP System defined in ${sap_system_folder}"
 ENVIRONMENT=$(echo ${sap_system_folder} | awk -F'-' '{print $1}' | xargs)
 echo Environment: ${ENVIRONMENT}
 LOCATION=$(echo ${sap_system_folder} | awk -F'-' '{print $2}' | xargs)
@@ -156,7 +156,7 @@ if [ ! -f $environment_file_name ]; then
 fi
 
 echo -e "$green--- Define variables ---$reset"
-cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
+cd $HOME_CONFIG/SYSTEM/${sap_system_folder}
 
 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
 if [ -z ${az_var} ]; then
@@ -217,7 +217,7 @@ if [ 0 != $return_code ]; then
 fi
 # Pull changes if there are other deployment jobs
 
-cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
+cd $HOME_CONFIG/SYSTEM/${sap_system_folder}
 
 echo -e "$green--- Pull the latest content from DevOps ---$reset"
 git pull
