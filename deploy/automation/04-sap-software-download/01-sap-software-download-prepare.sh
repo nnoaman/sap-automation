@@ -73,7 +73,7 @@ kv_name=$(cat ${CONFIG_REPO_PATH}/.sap_deployment_automation/${deployer_environm
 
 export SUsernamefromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Username')] | [0]"  -o tsv)
 
-if [ $SUsernamefromVault == $SUsername ]; then
+if [ "$SUsernamefromVault" == "$SUsername" ]; then
     echo "$SUsername present in keyvault. In case of download errors check that user and password are correct"
 else
     echo "Setting the S username in key vault"
@@ -82,7 +82,7 @@ else
 fi
 
 export SPasswordfromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Password')] | [0]"  -o tsv)
-if [ ${SPassword} == $SPasswordfromVault ]; then
+if [ "${SPassword}" == "$SPasswordfromVault" ]; then
     echo "${SPasswordfromVault}"
     echo "Password present in keyvault. In case of download errors check that user and password are correct"
 else
