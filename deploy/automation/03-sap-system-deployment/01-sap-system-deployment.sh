@@ -152,7 +152,7 @@ echo "Location(filename):    $LOCATION_IN_FILENAME"
 echo "Network(filename):     $NETWORK"
 echo "SID(filename):         $SID"
 
-environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}
+environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}
 if [ ! -f $environment_file_name ]; then
     echo -e "$boldred--- $environment_file_name was not found ---$reset"
     echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $environment_file_name was not found."
@@ -160,7 +160,7 @@ if [ ! -f $environment_file_name ]; then
 fi
 
 echo -e "$green--- Define variables ---$reset"
-cd $HOME_CONFIG/SYSTEM/${sap_system_folder}
+cd ${CONFIG_REPO_PATH}/SYSTEM/${sap_system_folder}
 
 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
 if [ -z ${az_var} ]; then
@@ -221,7 +221,7 @@ if [ 0 != $return_code ]; then
 fi
 # Pull changes if there are other deployment jobs
 
-cd $HOME_CONFIG/SYSTEM/${sap_system_folder}
+cd ${CONFIG_REPO_PATH}/SYSTEM/${sap_system_folder}
 
 echo -e "$green--- Pull the latest content from DevOps ---$reset"
 git pull
@@ -273,7 +273,7 @@ if [ 1 == $added ]; then
 fi
 
 if [ -f ${SID}.md ]; then
-    echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/${sap_system_folder}/${SID}.md"
+    echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/SYSTEM/${sap_system_folder}/${SID}.md"
 fi
 
 # file_name=${SID}_inventory.md
