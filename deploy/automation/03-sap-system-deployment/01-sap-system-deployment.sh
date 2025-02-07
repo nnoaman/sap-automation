@@ -152,7 +152,7 @@ echo "Location(filename):    $LOCATION_IN_FILENAME"
 echo "Network(filename):     $NETWORK"
 echo "SID(filename):         $SID"
 
-environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}
+environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
 if [ ! -f $environment_file_name ]; then
     echo -e "$boldred--- $environment_file_name was not found ---$reset"
     echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $environment_file_name was not found."
