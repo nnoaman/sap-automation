@@ -102,7 +102,7 @@ resource "azurerm_key_vault_access_policy" "kv_user" {
                                          )
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
   tenant_id                            = local.service_principal.tenant_id
-  object_id                            = local.service_principal.object_id != "" ? local.service_principal.object_id : "00000000-0000-0000-0000-000000000000"
+  object_id                            = var.deployer_tfstate.deployer_uai.principal_id
 
   secret_permissions                   = [
                                           "Get",
