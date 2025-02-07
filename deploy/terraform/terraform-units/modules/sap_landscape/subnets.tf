@@ -7,8 +7,6 @@ resource "azurerm_subnet" "admin" {
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [local.admin_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
-
   service_endpoints                    = var.use_service_endpoint ? (
                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
                                           ) : (
@@ -25,7 +23,6 @@ resource "azurerm_subnet" "db" {
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [local.database_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
                                            ) : (
@@ -42,8 +39,6 @@ resource "azurerm_subnet" "app" {
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [local.application_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
-
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
                                            ) : (
@@ -59,8 +54,6 @@ resource "azurerm_subnet" "web" {
   resource_group_name                  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [local.web_subnet_prefix]
-
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
