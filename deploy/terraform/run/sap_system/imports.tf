@@ -33,6 +33,13 @@ data "terraform_remote_state" "landscape"            {
                                                                        }
                                                      }
 
+data "azurerm_app_configuration_key" "media_path" {
+                                                             configuration_store_id = data.terraform_remote_state.landscape[0].outputs.application_configuration_id
+                                                             key                    = format("%s_StateFileName", data.terraform_remote_state.landscape[0].outputs.control_plane_name)
+                                                             label                  = data.terraform_remote_state.landscape[0].outputs.control_plane_name
+                                                           }
+
+
 data "azurerm_key_vault_secret" "subscription_id"    {
                                                         count        = length(var.subscription_id) > 0 ? 0 : (var.use_spn ? 1 : 0)
                                                         name         = format("%s-subscription-id", local.environment)
