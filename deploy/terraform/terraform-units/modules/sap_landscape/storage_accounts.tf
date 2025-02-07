@@ -25,7 +25,6 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  enable_https_traffic_only            = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
@@ -142,7 +141,6 @@ resource "azurerm_storage_account" "witness_storage" {
 
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  enable_https_traffic_only            = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
@@ -289,7 +287,6 @@ resource "azurerm_storage_account" "transport" {
   account_tier                         = "Premium"
   account_replication_type             = "ZRS"
   account_kind                         = "FileStorage"
-  enable_https_traffic_only            = false
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
@@ -366,10 +363,10 @@ resource "azurerm_storage_share" "transport" {
                                          )
   name                                 = format("%s", local.resource_suffixes.transport_volume)
 
-  storage_account_name                 = length(var.transport_storage_account_id) > 0 ? (
-                                           split("/", var.transport_storage_account_id)[8]
+  storage_account_id                   = length(var.transport_storage_account_id) > 0 ? (
+                                           var.transport_storage_account_id
                                            ) : (
-                                           azurerm_storage_account.transport[0].name
+                                           azurerm_storage_account.transport[0].id
                                          )
   enabled_protocol                     = "NFS"
 
@@ -509,7 +506,6 @@ resource "azurerm_storage_account" "install" {
   account_replication_type             = var.storage_account_replication_type
   account_tier                         = "Premium"
   allow_nested_items_to_be_public      = false
-  enable_https_traffic_only            = false
   min_tls_version                      = "TLS1_2"
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
@@ -681,11 +677,11 @@ resource "azurerm_storage_share" "install" {
                                          )
 
   name                                 = format("%s", local.resource_suffixes.install_volume)
-  storage_account_name                 = local.use_AFS_for_shared ? (
+  storage_account_id                   = local.use_AFS_for_shared ? (
                                            length(var.install_storage_account_id) > 0 ? (
-                                             split("/", var.install_storage_account_id)[8]
+                                             var.install_storage_account_id
                                              ) : (
-                                             azurerm_storage_account.install[0].name
+                                             azurerm_storage_account.install[0].id
                                            )) : (
                                            ""
                                          )
@@ -705,11 +701,11 @@ resource "azurerm_storage_share" "install_smb" {
                                          )
 
   name                                 = format("%s", local.resource_suffixes.install_volume_smb)
-  storage_account_name                 = local.use_AFS_for_shared ? (
+  storage_account_id                   = local.use_AFS_for_shared ? (
                                            length(var.install_storage_account_id) > 0 ? (
-                                             split("/", var.install_storage_account_id)[8]
+                                             var.install_storage_account_id
                                              ) : (
-                                             azurerm_storage_account.install[0].name
+                                             azurerm_storage_account.install[0].id
                                            )) : (
                                            ""
                                          )

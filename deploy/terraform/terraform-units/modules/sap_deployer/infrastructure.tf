@@ -57,8 +57,6 @@ resource "azurerm_subnet" "subnet_mgmt" {
   virtual_network_name                 = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
   address_prefixes                     = [local.management_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = !var.use_private_endpoint
-
   service_endpoints                    = var.use_service_endpoint ? (
                                            var.use_webapp ? (
                                              ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
@@ -83,7 +81,6 @@ resource "azurerm_storage_account" "deployer" {
   location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  enable_https_traffic_only            = local.enable_secure_transfer
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   shared_access_key_enabled            = var.deployer.shared_access_key_enabled
