@@ -62,12 +62,6 @@ variable "management_subscription"              {
                                                   default     = ""
                                                 }
 
-variable "application_configuration_id"         {
-                                                    description = "Defines the Azure application configuration Resource id"
-                                                    type        = string
-                                                    default     = ""
-                                                 }
-
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #
@@ -1020,6 +1014,13 @@ variable "additional_network_id"                {
                                                    description = "Agent Network resource ID"
                                                    default     = ""
                                                  }
+
+variable "application_configuration_id"         {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
+
 variable "control_plane_name"                   {
                                                   description = "The name of the control plane"
                                                   default     = ""

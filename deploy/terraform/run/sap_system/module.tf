@@ -430,7 +430,7 @@ module "output_files" {
   hana_shared                                   = var.NFS_provider == "ANF" ? module.hdb_node.hana_shared : module.hdb_node.hana_shared_afs_path
   usr_sap                                       = module.common_infrastructure.usrsap_path
 
-  media_path                                    = try(data.terraform_remote_state.landscape.outputs.media_path, "")
+  media_path                                    = try(data.azurerm_app_configuration_key.media_path.value, "")
 
   #########################################################################################
   #  DNS information                                                                      #
