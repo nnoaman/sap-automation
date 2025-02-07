@@ -25,7 +25,7 @@ function check_deploy_inputs() {
         REQUIRED_VARS+=("this_agent")
         REQUIRED_VARS+=("PAT")
         REQUIRED_VARS+=("POOL")
-        REQUIRED_VARS+=("VARIABLE_GROUP_ID")\
+        REQUIRED_VARS+=("VARIABLE_GROUP_ID")
         ;;
 
     *) ;;
@@ -78,7 +78,11 @@ SID=$(echo ${sap_system_folder} | awk -F'-' '{print $4}' | xargs)
 echo SID: ${SID}
 
 mkdir -p ${CONFIG_REPO_PATH}/.sap_deployment_automation
-sap_system_configuration_file = "${CONFIG_REPO_PATH}/SYSTEM/${sap_system_folder}/${sap_system_configuration}"
+if [ -z "${sap_system_configuration}" ]; then
+    exit_error "sap_system_configuration is not set" 2
+fi
+
+sap_system_configuration_file="${CONFIG_REPO_PATH}/SYSTEM/${sap_system_folder}/${sap_system_configuration}"
 if [ ! -f ${sap_system_configuration_file} ]; then
     exit_error "File ${sap_system_configuration_file} was not found" 2
 fi
@@ -202,7 +206,7 @@ fi
 
 echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
 
-$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
+$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile ${sap_system_configuration} --type sap_system \
     --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                                 \
     --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                    \
     --ado --auto-approve
@@ -225,7 +229,7 @@ echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
 added=0
 
-if [ -f $.terraform/terraform.tfstate ]; then
+if [ -f ./terraform/terraform.tfstate ]; then
     git add -f .terraform/terraform.tfstate
     added=1
 fi
@@ -261,15 +265,15 @@ if [ -f $(sap_system_configuration) ]; then
 fi
 
 if [ 1 == $added ]; then
-    git config --global user.email "$(Build.RequestedForEmail)"
-    git config --global user.name "$(Build.RequestedFor)"
+    git config user.email "$(Build.RequestedForEmail)"
+    git config user.name "$(Build.RequestedFor)"
     git commit -m "Added updates from devops system deployment $(Build.DefinitionName) [skip ci]"
 
     git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
 fi
 
 if [ -f ${SID}.md ]; then
-    echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/$(sap_system_folder)/${SID}.md"
+    echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/${sap_system_folder}/${SID}.md"
 fi
 
 # file_name=${SID}_inventory.md
