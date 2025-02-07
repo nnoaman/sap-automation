@@ -6,13 +6,8 @@
 function check_deploy_inputs() {
 
     REQUIRED_VARS=(
-        "LOGON_USING_SPN"
         "SAP_AUTOMATION_REPO_PATH"
-        "SYSTEM_ACCESSTOKEN"
         "TEST_ONLY"
-        "TF_IN_AUTOMATION"
-        "TF_LOG"
-        "USE_MSI"
         "WL_ARM_SUBSCRIPTION_ID"
         "WL_ARM_CLIENT_ID"
         "WL_ARM_CLIENT_SECRET"
