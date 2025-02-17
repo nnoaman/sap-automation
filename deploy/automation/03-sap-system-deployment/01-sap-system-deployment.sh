@@ -90,8 +90,6 @@ LOCATION_IN_FILENAME=$(region_with_region_map ${LOCATION_CODE})
 NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $3}')
 SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
 
-mkdir -p ${CONFIG_REPO_PATH}/.sap_deployment_automation
-
 if [ -z "${SAP_SYSTEM_TFVARS_FILENAME}" ]; then
     exit_error "SAP_SYSTEM_TFVARS_FILENAME is not set" 2
 fi
@@ -105,7 +103,7 @@ echo "Location(filename):    $LOCATION_IN_FILENAME"
 echo "Network(filename):     $NETWORK"
 echo "SID(filename):         $SID"
 
-environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
+environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}
 if [ ! -f $environment_file_name ]; then
     echo -e "$boldred--- $environment_file_name was not found ---${resetformatting}"
     echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $environment_file_name was not found."
