@@ -65,6 +65,11 @@ export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
 export ARM_TENANT_ID=$WL_ARM_TENANT_ID
 export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
 
+start_group "Setup platform dependencies"
+# Will return vars which we need to export afterwards
+eval "$(setup_dependencies | sed 's/^/export /')"
+end_group
+
 if [ ! -f ${CONFIG_REPO_PATH}/SYSTEM/${SAP_SYSTEM_FOLDERNAME}/${SAP_SYSTEM_TFVARS_FILENAME} ]; then
     exit_error "${SAP_SYSTEM_TFVARS_FILENAME} was not found" 2
 fi
