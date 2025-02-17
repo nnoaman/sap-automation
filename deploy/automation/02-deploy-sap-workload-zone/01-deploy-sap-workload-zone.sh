@@ -477,11 +477,13 @@ fi
 
 start_group "Adding variables to platform variable group"
 
-# if [ -n $VARIABLE_GROUP_ID ]; then
-#     set_value_with_key "Workload_Key_Vault" ${workload_key_vault}
-#     set_value_with_key "${NETWORK}Workload_Secret_Prefix" ${workload_prefix}
-#     set_value_with_key "${NETWORK}Workload_Zone_State_FileName" ${landscape_tfstate_key}
-#     set_value_with_key "Workload_Zone_State_FileName" ${landscape_tfstate_key}
+if [ -n "${VARIABLE_GROUP_ID}" ]; then
+    set_value_with_key "Workload_Key_Vault" "${workload_key_vault}"
+    set_value_with_key "${NETWORK}Workload_Secret_Prefix" "${workload_prefix}"
+    set_value_with_key "${NETWORK}Workload_Zone_State_FileName" "${landscape_tfstate_key}"
+    set_value_with_key "Workload_Zone_State_FileName" "${landscape_tfstate_key}"
+fi
+end_group
 
 #     if [[ $(get_platform) = devops ]]; then
 #         set_secret_with_key "WZ_PAT" $AZURE_DEVOPS_EXT_PAT
