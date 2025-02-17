@@ -288,46 +288,4 @@ if [ 1 == $git_diff_return_code ]; then
     commit_changes "Added updates from deployment"
 fi
 
-if [ -f ${workload_environment_file_name}.md ]; then
-    upload_summary ${workload_environment_file_name}.md
-fi
-
-if [ 0 != $return_code ]; then
-    log_warning "Return code from install_workloadzone $return_code."
-    if [ -f ${workload_environment_file_name}.err ]; then
-        error_message=$(cat ${workload_environment_file_name}.err)
-        exit_error "Error message: $error_message." $return_code
-    fi
-fi
-
 exit $return_code
-
-# if [ 1 == $added ]; then
-#     git config user.email "$(Build.RequestedForEmail)"
-#     git config user.name "$(Build.RequestedFor)"
-#     git commit -m "Added updates from devops system deployment $(Build.DefinitionName) [skip ci]"
-
-#     git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
-# fi
-
-# if [ -f ${SID}.md ]; then
-#     echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/SYSTEM/${SAP_SYSTEM_FOLDERNAME}/${SID}.md"
-# fi
-
-# file_name=${SID}_inventory.md
-# if [ -f ${SID}_inventory.md ]; then
-#   az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-
-#   # ToDo: Fix this later
-#   # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
-#   # echo "${WIKI_NAME_FOUND}"
-#   # if [ -n "${WIKI_NAME_FOUND}" ]; then
-#   #   eTag=$(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
-#   #   if [ -n "$eTag" ]; then
-#   #     az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none
-#   #   else
-#   #     az devops wiki page create --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --output none --only-show-errors
-#   #   fi
-#   # fi
-# fi
-# exit $return_code
