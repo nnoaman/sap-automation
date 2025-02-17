@@ -11,6 +11,7 @@ function check_required_inputs() {
         "WL_ARM_CLIENT_ID"
         "WL_ARM_CLIENT_SECRET"
         "WL_ARM_TENANT_ID"
+        "DEPLOYER_FOLDER"
         "SAP_SYSTEM_FOLDERNAME"
         "SAP_SYSTEM_TFVARS_FILENAME"
     )
@@ -79,6 +80,11 @@ echo "Deploying the SAP System defined in ${SAP_SYSTEM_FOLDERNAME}"
 
 dos2unix -q tfvarsFile
 
+deployer_environment=$(echo ${DEPLOYER_FOLDER} | awk -F'-' '{print $1}' | xargs)
+echo Deployer Environment: ${deployer_environment}
+deployer_location=$(echo ${DEPLOYER_FOLDER} | awk -F'-' '{print $2}' | xargs)
+echo Deployer Location: ${deployer_location}
+
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
@@ -102,6 +108,9 @@ echo "Environment(filename): $ENVIRONMENT"
 echo "Location(filename):    $LOCATION_IN_FILENAME"
 echo "Network(filename):     $NETWORK"
 echo "SID(filename):         $SID"
+
+deployer_environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${deployer_environment}${deployer_location}
+echo "Deployer Environment File: ${deployer_environment_file_name}"
 
 environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}
 if [ ! -f $environment_file_name ]; then
