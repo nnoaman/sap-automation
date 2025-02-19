@@ -63,6 +63,8 @@ steps:
       fi
 
       az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+      ARM_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID
+      export ARM_SUBSCRIPTION_ID
 
     fi
 
