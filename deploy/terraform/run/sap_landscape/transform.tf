@@ -197,6 +197,7 @@ locals {
                                                                              var.application_configuration_id,
                                                                              try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
                                                                            )
+                                           encryption_at_host_enabled    = var.encryption_at_host_enabled
                                          }
 
   authentication                       = {
