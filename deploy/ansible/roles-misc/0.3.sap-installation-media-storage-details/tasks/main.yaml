@@ -15,7 +15,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "0.4 Installation Media: - Retrieve Deployer Keyvault details"
+- name:                                "0.4 Installation Media: - Retrieve Storage account details"
   when:
    - deployer_kv_name is not defined
    - media_path is not defined
@@ -281,7 +281,7 @@
 - name:                                 "0.4 Installation Media: - Debug storage account details"
   ansible.builtin.debug:
     msg:
-      - "KEYVAULT:     {{ deployer_kv_name }}"
+      - "KEYVAULT:     {{ deployer_kv_name | default('') }}"
       - "URL     :     {{ sapbits_location_base_path }}"
 
 - name:                                "0.4 Installation Media: - Debug storage account details (sas)"
