@@ -186,14 +186,12 @@ echo -e "$green--- Variables ---$reset"
 key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 if [ -z "$key_vault" ]; then
 	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultName' was not found in the application configuration ( '$application_configuration_name' )."
-	exit 2
 fi
 export key_vault
 
 key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 if [ -z "$key_vault_id" ]; then
 	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
-	exit 2
 fi
 export TF_VAR_spn_keyvault_id=${key_vault_id}
 
