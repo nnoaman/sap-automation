@@ -29,6 +29,14 @@ resource "azurerm_role_assignment" "appconf_dataowner" {
   principal_id                         = data.azurerm_client_config.current.object_id
 }
 
+resource "azurerm_role_assignment" "appconf_dataowner_msi" {
+  provider                             = azurerm.main
+  scope                                = azurerm_app_configuration.app_config.id
+  role_definition_name                 = "App Configuration Data Owner"
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+
+}
+
 resource "time_sleep" "wait_for_appconf_dataowner_assignment" {
   create_duration                      = "60s"
 
