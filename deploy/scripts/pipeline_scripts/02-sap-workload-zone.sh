@@ -396,6 +396,8 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
+DEPLOYER_ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f 1)
+
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
 	--deployer_environment "$CONTROL_PLANE_NAME" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
 	--deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
