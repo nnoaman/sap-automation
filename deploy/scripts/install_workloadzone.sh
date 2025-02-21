@@ -319,6 +319,8 @@ else
 	export TF_VAR_deployer_tfstate_key=${deployer_tfstate_key}
 fi
 
+
+
 if [ -z "$keyvault" ]; then
 	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_KeyVaultName" "${deployer_environment}")
 	if [ -z "$keyvault" ]; then
