@@ -52,11 +52,6 @@ variable "use_spn"                               {
                                                   default     = false
                                                  }
 
-variable "tags"                                  {
-                                                   description = "If provided, tags for all resources"
-                                                   default     = {}
-                                                 }
-
 variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string

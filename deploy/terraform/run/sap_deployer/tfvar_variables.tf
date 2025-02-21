@@ -447,11 +447,6 @@ variable "shared_access_key_enabled"                  {
                                                         type        = bool
                                                       }
 
-variable "tags"                                      {
-                                                       description = "If provided, tags for all resources"
-                                                       default     = {}
-                                                     }
-
 variable "additional_network_id"                     {
                                                        description = "Agent Network resource ID"
                                                        default     = ""
@@ -466,7 +461,7 @@ variable "encryption_at_host_enabled"           {
                                                   description = "Enable or disable host encryption for the deployer"
                                                   default     = false
                                                   type        = bool
-                                                }                                                  
+                                                }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
