@@ -193,12 +193,11 @@ fi
 get_region_code "$region"
 
 echo "Region code:                         ${region_code}"
-
-CONTROL_PLANE_NAME="${environment}-${management_network_logical_name}-${region_code}"
+echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
-deployer_config_information="${automation_config_directory}/${CONTROL_PLANE_NAME}"
+deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
 
 if [ $force == 1 ]; then
 	if [ -f "${deployer_config_information}" ]; then
