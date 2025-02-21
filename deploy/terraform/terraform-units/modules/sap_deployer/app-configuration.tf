@@ -61,7 +61,6 @@ resource "azurerm_app_configuration_key" "deployer_app_configuration_keys" {
 }
 locals {
 
-  key_prefix                           = replace(var.state_filename_prefix, format("-%s", var.network_logical_name), "")
   pipeline_parameters                  = {
                                           format("%s_StateFileName", var.state_filename_prefix) = {
                                             label = var.state_filename_prefix
