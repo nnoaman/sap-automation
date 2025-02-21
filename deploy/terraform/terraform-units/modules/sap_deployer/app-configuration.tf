@@ -37,14 +37,13 @@ resource "time_sleep" "wait_for_appconf_dataowner_assignment" {
                                          ]
 }
 
-resource "azurerm_app_configuration_key" "deployer_app_configuration_keys" {
-  for_each                             = local.pipeline_parameters
+resource "azurerm_app_configuration_key" "deployer_state_file_name" {
   provider                             = azurerm.main
   configuration_store_id               = azurerm_app_configuration.app_config.id
-  key                                  = each.key
-  label                                = each.value.label
-  value                                = each.value.value
-  content_type                         = each.value.content_type
+  key                                  = format("%s_StateFileName", var.state_filename_prefix)
+  label                                = var.state_filename_prefix
+  value                                = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
+  content_type                         = "text/plain"
   type                                 = "kv"
 
   depends_on                          = [
@@ -59,33 +58,91 @@ resource "azurerm_app_configuration_key" "deployer_app_configuration_keys" {
     ]
   }
 }
-locals {
 
-  pipeline_parameters                  = {
-                                          format("%s_StateFileName", var.state_filename_prefix) = {
-                                            label = var.state_filename_prefix
-                                            value = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
-                                            content_type="text/plain"
-                                          }
-                                          format("%s_KeyVaultName", var.state_filename_prefix) = {
-                                            label = var.state_filename_prefix
-                                            value = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
-                                            content_type="text/plain"
-                                          }
-                                          format("%s_KeyVaultResourceId", var.state_filename_prefix) = {
-                                            label = var.state_filename_prefix
-                                            value = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-                                            content_type="text/id"
-                                          }
-                                          format("%s_ResourceGroupName", var.state_filename_prefix) = {
-                                            label = var.state_filename_prefix
-                                            value = local.resourcegroup_name
-                                            content_type="text/plain"
-                                          }
-                                          format("%s_SubscriptionId", var.state_filename_prefix) = {
-                                            label = var.state_filename_prefix
-                                            value = data.azurerm_subscription.primary.subscription_id
-                                            content_type="text/id"
-                                          }
-                                        }
+resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
+  provider                             = azurerm.main
+  configuration_store_id               = azurerm_app_configuration.app_config.id
+  key                                  = format("%s_KeyVaultName", var.state_filename_prefix)
+  label                                = var.state_filename_prefix
+  value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
+  content_type                         = "text/plain"
+  type                                 = "kv"
+
+  depends_on                          = [
+                                          time_sleep.wait_for_appconf_dataowner_assignment
+                                        ]
+
+  lifecycle {
+    ignore_changes = [
+      configuration_store_id,
+      etag,
+      id
+    ]
+  }
+}
+
+resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
+  provider                             = azurerm.main
+  configuration_store_id               = azurerm_app_configuration.app_config.id
+  key                                  = format("%s_KeyVaultResourceId", var.state_filename_prefix)
+  label                                = var.state_filename_prefix
+  value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  content_type                         = "text/id"
+  type                                 = "kv"
+
+  depends_on                          = [
+                                          time_sleep.wait_for_appconf_dataowner_assignment
+                                        ]
+
+  lifecycle {
+    ignore_changes = [
+      configuration_store_id,
+      etag,
+      id
+    ]
+  }
+}
+
+resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
+  provider                             = azurerm.main
+  configuration_store_id               = azurerm_app_configuration.app_config.id
+  key                                  = format("%s_ResourceGroupName", var.state_filename_prefix)
+  label                                = var.state_filename_prefix
+  value                                = local.resourcegroup_name
+  content_type                         = "text/plain"
+  type                                 = "kv"
+
+  depends_on                          = [
+                                          time_sleep.wait_for_appconf_dataowner_assignment
+                                        ]
+
+  lifecycle {
+    ignore_changes = [
+      configuration_store_id,
+      etag,
+      id
+    ]
+  }
+}
+
+resource "azurerm_app_configuration_key" "deployer_subscription_id" {
+  provider                             = azurerm.main
+  configuration_store_id               = azurerm_app_configuration.app_config.id
+  key                                  = format("%s_SubscriptionId", var.state_filename_prefix)
+  label                                = var.state_filename_prefix
+  value                                = data.azurerm_subscription.primary.subscription_id
+  content_type                         = "text/id"
+  type                                 = "kv"
+
+  depends_on                          = [
+                                          time_sleep.wait_for_appconf_dataowner_assignment
+                                        ]
+
+  lifecycle {
+    ignore_changes = [
+      configuration_store_id,
+      etag,
+      id
+    ]
+  }
 }
