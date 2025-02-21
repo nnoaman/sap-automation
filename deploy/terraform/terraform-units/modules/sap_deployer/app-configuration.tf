@@ -39,6 +39,7 @@ resource "time_sleep" "wait_for_appconf_dataowner_assignment" {
 
 resource "azurerm_app_configuration_key" "deployer_state_file_name" {
   provider                             = azurerm.main
+  count                                = var.bootstrap ? 0 : 1
   configuration_store_id               = azurerm_app_configuration.app_config.id
   key                                  = format("%s_StateFileName", var.state_filename_prefix)
   label                                = var.state_filename_prefix
@@ -61,6 +62,7 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
 
 resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
   provider                             = azurerm.main
+  count                                = var.bootstrap ? 0 : 1
   configuration_store_id               = azurerm_app_configuration.app_config.id
   key                                  = format("%s_KeyVaultName", var.state_filename_prefix)
   label                                = var.state_filename_prefix
@@ -83,6 +85,7 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
 
 resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
   provider                             = azurerm.main
+  count                                = var.bootstrap ? 0 : 1
   configuration_store_id               = azurerm_app_configuration.app_config.id
   key                                  = format("%s_KeyVaultResourceId", var.state_filename_prefix)
   label                                = var.state_filename_prefix
@@ -105,6 +108,7 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
 
 resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
   provider                             = azurerm.main
+  count                                = var.bootstrap ? 0 : 1
   configuration_store_id               = azurerm_app_configuration.app_config.id
   key                                  = format("%s_ResourceGroupName", var.state_filename_prefix)
   label                                = var.state_filename_prefix
@@ -127,6 +131,7 @@ resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
 
 resource "azurerm_app_configuration_key" "deployer_subscription_id" {
   provider                             = azurerm.main
+  count                                = var.bootstrap ? 0 : 1
   configuration_store_id               = azurerm_app_configuration.app_config.id
   key                                  = format("%s_SubscriptionId", var.state_filename_prefix)
   label                                = var.state_filename_prefix
