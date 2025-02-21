@@ -67,6 +67,12 @@ variable "management_subscription"              {
                                                   default     = ""
                                                 }
 
+variable "application_configuration_id"         {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #
