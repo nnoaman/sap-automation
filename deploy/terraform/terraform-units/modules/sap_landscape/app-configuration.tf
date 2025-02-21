@@ -26,25 +26,30 @@ resource "azurerm_app_configuration_key" "workload_app_configuration_keys" {
 
 locals {
 
-  parsed_id                            = provider::azurerm::parse_resource_id(coalesce(var.infrastructure.application_configuration_id,var.deployer_tfstate.deployer_app_config_id))
-  app_config_name                      = local.parsed_id["resource_name"]
-  app_config_resource_group_name       = local.parsed_id["resource_group_name"]
-  configuration_values                 = {
+  parsed_id                           = provider::azurerm::parse_resource_id(coalesce(var.infrastructure.application_configuration_id, var.deployer_tfstate.deployer_app_config_id))
+  app_config_name                     = local.parsed_id["resource_name"]
+  app_config_resource_group_name      = local.parsed_id["resource_group_name"]
+  configuration_values                = {
                                           format("%s_KeyVaultResourceId", var.naming.prefix.WORKLOAD_ZONE) = {
                                             label = var.naming.prefix.WORKLOAD_ZONE
                                             value = length(try(var.key_vault.keyvault_id_for_system_credentials, "")) > 0 ? (
                                               try(data.azurerm_key_vault.kv_user[0].id, "")) : (
                                               try(azurerm_key_vault.kv_user[0].id, "")
                                             )
-                                            content_type = "text/id"
-                                          }
-                                          format("%s_VirtualNetworkResourceId", var.naming.prefix.WORKLOAD_ZONE) = {
                                             label = var.naming.prefix.WORKLOAD_ZONE
-                                            value = local.SAP_virtualnetwork_exists ? (
-                                              try(data.azurerm_virtual_network.vnet_sap[0].id, "")) : (
-                                              try(azurerm_virtual_network.vnet_sap[0].id, "")
+                                            value = length(try(var.key_vault.keyvault_id_for_system_credentials, "")) > 0 ? (
+                                              try(data.azurerm_key_vault.kv_user[0].id, "")) : (
+                                              try(azurerm_key_vault.kv_user[0].id, "")
                                             )
                                             content_type = "text/id"
+                                            format("%s_VirtualNetworkResourceId", var.naming.prefix.WORKLOAD_ZONE) = {
+                                              label = var.naming.prefix.WORKLOAD_ZONE
+                                              value = local.SAP_virtualnetwork_exists ? (
+                                                try(data.azurerm_virtual_network.vnet_sap[0].id, "")) : (
+                                                try(azurerm_virtual_network.vnet_sap[0].id, "")
+                                              )
+                                              content_type = "text/id"
+                                            }
                                           }
                                         }
 }
