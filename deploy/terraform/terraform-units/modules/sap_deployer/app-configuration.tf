@@ -54,6 +54,16 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
   value                                = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
   content_type                         = "text/plain"
   type                                 = "kv"
+  tags                                 = {
+                                           "source" = "Deployer"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
 }
 
 resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
@@ -65,6 +75,16 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
   value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
   content_type                         = "text/plain"
   type                                 = "kv"
+  tags                                 = {
+                                           "source" = "Deployer"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
 
 }
 
@@ -77,6 +97,16 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
   value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   content_type                         = "text/id"
   type                                 = "kv"
+  tags                                 = {
+                                           "source" = "Deployer"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
 
 }
 
@@ -89,6 +119,16 @@ resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
   value                                = local.resourcegroup_name
   content_type                         = "text/plain"
   type                                 = "kv"
+  tags                                 = {
+                                           "source" = "Deployer"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
 }
 
 resource "azurerm_app_configuration_key" "deployer_subscription_id" {
@@ -100,4 +140,14 @@ resource "azurerm_app_configuration_key" "deployer_subscription_id" {
   value                                = data.azurerm_subscription.primary.subscription_id
   content_type                         = "text/id"
   type                                 = "kv"
+  tags                                 = {
+                                           "source" = "Deployer"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
 }

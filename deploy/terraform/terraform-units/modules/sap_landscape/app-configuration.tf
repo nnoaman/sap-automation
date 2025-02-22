@@ -24,6 +24,16 @@ resource "azurerm_app_configuration_key" "KeyVaultResourceId" {
                                             )
   content_type                         = "text/id"
   type                                 = "kv"
+  tags                                 = {
+                                           "source" = "WorkloadZone"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
 }
 resource "azurerm_app_configuration_key" "VirtualNetworkResourceId" {
   provider                             = azurerm.deployer
@@ -36,6 +46,16 @@ resource "azurerm_app_configuration_key" "VirtualNetworkResourceId" {
                                               )
   content_type                         = "text/id"
   type                                 = "kv"
+  tags                                 = {
+                                           "source" = "WorkloadZone"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
 }
 
 
