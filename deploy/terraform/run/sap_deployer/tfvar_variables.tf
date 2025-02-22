@@ -659,3 +659,20 @@ variable "deploy_defender_extension"                {
                                                       description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
                                                       default     = false
                                                     }
+
+#########################################################################################
+#                                                                                       #
+#  Application configuration variables                                                  #
+#                                                                                       #
+#########################################################################################
+
+variable "application_configuration_id"          {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
+variable "deploy_application_configuration"      {
+                                                    description = "If defined, will add the Microsoft.Azure.ApplicationConfiguration extension to the virtual machines"
+                                                    default     = false
+                                                 }
+

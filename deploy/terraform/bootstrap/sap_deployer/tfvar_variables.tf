@@ -291,7 +291,7 @@ variable "encryption_at_host_enabled"           {
                                                   description = "Enable or disable host encryption for the deployer"
                                                   default     = false
                                                   type        = bool
-                                                }   
+                                                }
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
                                                   default     = false
@@ -629,3 +629,21 @@ variable "deploy_defender_extension"            {
                                                   description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
                                                   default     = false
                                                 }
+
+
+#########################################################################################
+#                                                                                       #
+#  Application configuration variables                                                  #
+#                                                                                       #
+#########################################################################################
+
+variable "application_configuration_id"          {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
+variable "deploy_application_configuration"      {
+                                                    description = "If defined, will add the Microsoft.Azure.ApplicationConfiguration extension to the virtual machines"
+                                                    default     = false
+                                                 }
+
