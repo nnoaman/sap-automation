@@ -502,6 +502,9 @@ locals {
                                            var.database.use_ppg) : (
                                            var.application_tier.app_use_ppg || var.application_tier.scs_use_ppg || var.application_tier.web_use_ppg || var.database.use_ppg
                                          )
-
+  deployment_type                      = var.application_tier.enable_deployment ? (
+                                           (var.application_tier.scs_high_availability || var.database.high_availability) ? "HA" : "DISTRIBUTED") : (
+                                           "STANDALONE"
+                                         )
 
 }
