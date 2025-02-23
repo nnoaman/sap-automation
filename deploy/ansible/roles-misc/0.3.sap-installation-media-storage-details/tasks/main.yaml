@@ -2,6 +2,9 @@
 # Licensed under the MIT License.
 
 ---
+- name:                                Look up configuration value when Ansible host is MSI enabled Azure VM
+  ansible.builtin.debug:
+    msg:                               "The configuration value is {{lookup('azure_appconfig', 'CPLN-NOEU-DEP01_TerraformRemoteStateStorageAccountId', config_label='CPLN-NOEU-DEP01',  appconfig_url='https://{{  application_configuration_name }}.azconfig.io')}}"
 
 - name:                                "0.4 Persist the provided media path"
   ansible.builtin.set_fact:
