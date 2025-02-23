@@ -1186,7 +1186,7 @@ if [ 1 == $apply_needed ]; then
 	echo "#########################################################################################"
 	echo ""
 
-	      allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+	allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
 	allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
 	if [ -n "${approve}" ]; then
@@ -1325,23 +1325,12 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
 	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 
-  app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+	app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
 
 	created_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-
 	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${created_resource_group_name}" --name "ControlPlane_Deployer_${created_resource_group_name}" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none
 	return_value=0
 	if [ 1 == $called_from_ado ]; then
 
@@ -1421,46 +1410,6 @@ fi
 
 save_config_var "deployer_public_ip_address" "${system_config_information}"
 
-if [ "${deployment_system}" == sap_system ]; then
-
-	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${rg_name}" --name "SAP_${rg_name}" --subscription "$ARM_SUBSCRIPTION_ID" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none
-
-fi
-
-if [ "${deployment_system}" == sap_landscape ]; then
-	save_config_vars "${system_config_information}" \
-		landscape_tfstate_key
-
-	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "$ARM_SUBSCRIPTION_ID" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none
-fi
-
 if [ "${deployment_system}" == sap_library ]; then
 	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 	sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
@@ -1496,20 +1445,6 @@ if [ "${deployment_system}" == sap_library ]; then
 
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
 	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${rg_name}" --name "SAP-LIBRARY_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 fi
 
@@ -1556,6 +1491,16 @@ if [ -f sap-parameters.yaml ]; then
 		else
 			az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
 				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+		fi
+
+		if [ -f .terraform/terraform.tfstate ]; then
+			if [ "$useSAS" = "true" ]; then
+				az storage blob upload --file .terraform/terraform.tfstate --container-name tfvars/"${state_path}"/"${key}/.terraform/" --name terraform.tfstate \
+					--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+			else
+				az storage blob upload --file .terraform/terraform.tfstate --container-name tfvars/"${state_path}"/"${key}/.terraform/" --name terraform.tfstate \
+					--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+			fi
 		fi
 	fi
 fi

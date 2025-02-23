@@ -1010,21 +1010,8 @@ if [ 0 != $return_value ]; then
 	exit $return_value
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#                            $cyan Creating deployment     $reset_formatting                                  #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
-
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
-
-if [ -n "${resourceGroupName}" ]; then
-	az deployment group create --resource-group "${resourceGroupName}" --name "SAP-WORKLOAD-ZONE_${resourceGroupName}" --subscription "$ARM_SUBSCRIPTION_ID" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none --only-show-errors --no-wait
-fi
 
 now=$(date)
 cat <<EOF >"${workload_zone_prefix}".md
