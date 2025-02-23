@@ -24,6 +24,7 @@ resource "azurerm_app_configuration" "app_config" {
 
 resource "azurerm_role_assignment" "appconf_dataowner" {
   provider                             = azurerm.main
+  count                                = var.bootstrap ? 1 : 0
   scope                                = azurerm_app_configuration.app_config.id
   role_definition_name                 = "App Configuration Data Owner"
   principal_id                         = data.azurerm_client_config.current.object_id
@@ -41,7 +42,7 @@ resource "time_sleep" "wait_for_appconf_dataowner_assignment" {
   create_duration                      = "60s"
 
   depends_on                           = [
-                                           azurerm_role_assignment.appconf_dataowner
+                                           azurerm_role_assignment.appconf_dataowner_msi
                                          ]
 }
 
