@@ -252,6 +252,13 @@ if [ "${deployment_system}" == sap_system ]; then
 	network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
 fi
 
+
+if [ "${deployment_system}" == sap_deployer ]; then
+	load_config_vars "$parameterfile_name" "management_network_logical_name"
+	network_logical_name=$(echo "${management_network_logical_name}" | tr "[:lower:]" "[:upper:]")
+fi
+
+
 #Persisting the parameters across executions
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
@@ -1195,7 +1202,7 @@ if [ 1 == $apply_needed ]; then
 			return_value=$?
 		else
 			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
 			return_value=0
 		fi
@@ -1473,6 +1480,16 @@ else
 		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 fi
 
+
+if [ -f .terraform/terraform.tfstate ]; then
+	if [ "$useSAS" = "true" ]; then
+		az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/${state_path}/${key}/.terraform" --name terraform.tfstate \
+			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+	else
+		az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/${state_path}/${key}/.terraform" --name terraform.tfstate \
+			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+	fi
+fi
 if [ -f sap-parameters.yaml ]; then
 	if [ "${deployment_system}" == sap_system ]; then
 		echo "Uploading the yaml files from ${param_dirname} to the storage account"
@@ -1493,15 +1510,6 @@ if [ -f sap-parameters.yaml ]; then
 				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 		fi
 
-		if [ -f .terraform/terraform.tfstate ]; then
-			if [ "$useSAS" = "true" ]; then
-				az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/${state_path}/${key}/.terraform" --name terraform.tfstate \
-					--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-			else
-				az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/${state_path}/${key}/.terraform" --name terraform.tfstate \
-					--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
-			fi
-		fi
 	fi
 fi
 
