@@ -14,7 +14,7 @@ resource "azurerm_resource_group_template_deployment" "sap_deployer" {
       "contentVersion" : "1.0.0.0",
       "parameters" : {
         "Deployment" : {
-          "type" : "string",
+          "type" : "String",
           "defaultValue" : "SAP Deployer"
         }
       },
