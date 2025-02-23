@@ -1495,10 +1495,10 @@ if [ -f sap-parameters.yaml ]; then
 
 		if [ -f .terraform/terraform.tfstate ]; then
 			if [ "$useSAS" = "true" ]; then
-				az storage blob upload --file .terraform/terraform.tfstate --container-name tfvars/"${state_path}"/"${key}/.terraform/" --name terraform.tfstate \
+				az storage blob upload --file .terraform/terraform.tfstate --container-name tfvars/"${state_path}"/"${key}/.terraform" --name terraform.tfstate \
 					--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 			else
-				az storage blob upload --file .terraform/terraform.tfstate --container-name tfvars/"${state_path}"/"${key}/.terraform/" --name terraform.tfstate \
+				az storage blob upload --file .terraform/terraform.tfstate --container-name tfvars/"${state_path}"/"${key}/.terraform" --name terraform.tfstate \
 					--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 			fi
 		fi
