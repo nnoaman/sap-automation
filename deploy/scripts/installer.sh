@@ -89,7 +89,7 @@ function missing {
 
 force=0
 
-INPUT_ARGUMENTS=$(getopt -n installer -o p:t:o:d:l:s:g:ahif --longoptions type:,parameterfile:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_id:,ado,auto-approve,force,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n installer -o p:t:o:d:l:s:g:c:w:ahif --longoptions type:,parameterfile:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_id:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -109,6 +109,10 @@ while :; do
 		;;
 	-d | --deployer_tfstate_key)
 		deployer_tfstate_key="$2"
+		shift 2
+		;;
+	-c | --control_plane_name)
+		CONTROL_PLANE_NAME="$2"
 		shift 2
 		;;
 	-g | --application_configuration_id)
@@ -133,6 +137,10 @@ while :; do
 		;;
 	-t | --type)
 		deployment_system="$2"
+		shift 2
+		;;
+	-w | --workload_zone_name)
+		WORKLOAD_ZONE_NAME="$2"
 		shift 2
 		;;
 	-f | --force)
@@ -164,6 +172,24 @@ echo "Parameter file:                      $parameterfile"
 echo "Current directory:                   $(pwd)"
 echo "Terraform state subscription_id:     ${STATE_SUBSCRIPTION}"
 echo "Terraform state storage account name:${REMOTE_STATE_SA}"
+echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
+echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
+
+if [ -z $CONTROL_PLANE_NAME ] && [ -n "$deployer_tfstate_key" ]; then
+	CONTROL_PLANE_NAME=$(echo $deployer_tfstate_key | cut -d'-' -f1-3)
+fi
+
+if [ -n "$CONTROL_PLANE_NAME" ] && [ -z $deployer_tfstate_key ]; then
+	$deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+fi
+
+if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
+	WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
+fi
+
+if [ -n "$WORKLOAD_ZONE_NAME" ] && [ -z $landscape_tfstate_key ]; then
+	$landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+fi
 
 landscape_tfstate_key_exists=false
 
@@ -252,18 +278,16 @@ if [ "${deployment_system}" == sap_system ]; then
 	network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
 fi
 
-
 if [ "${deployment_system}" == sap_deployer ]; then
 	load_config_vars "$parameterfile_name" "management_network_logical_name"
 	network_logical_name=$(echo "${management_network_logical_name}" | tr "[:lower:]" "[:upper:]")
 fi
 
-
 #Persisting the parameters across executions
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
+system_config_information="${automation_config_directory}${WORKLOAD_ZONE_NAME}"
 
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
@@ -1480,7 +1504,6 @@ else
 		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 fi
 
-
 if [ -f .terraform/terraform.tfstate ]; then
 	if [ "$useSAS" = "true" ]; then
 		az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/${state_path}/${key}/.terraform" --name terraform.tfstate \
@@ -1490,8 +1513,8 @@ if [ -f .terraform/terraform.tfstate ]; then
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 fi
-if [ -f sap-parameters.yaml ]; then
-	if [ "${deployment_system}" == sap_system ]; then
+if [ "${deployment_system}" == sap_system ]; then
+	if [ -f sap-parameters.yaml ]; then
 		echo "Uploading the yaml files from ${param_dirname} to the storage account"
 		if [ "$useSAS" = "true" ]; then
 			az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml \
@@ -1500,35 +1523,35 @@ if [ -f sap-parameters.yaml ]; then
 			az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml \
 				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 		fi
-
-		hosts_file=$(ls *_hosts.yaml)
-		if [ "$useSAS" = "true" ]; then
-			az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
-				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-		else
-			az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
-				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
-		fi
-
 	fi
+
+	hosts_file=$(ls *_hosts.yaml)
+	if [ "$useSAS" = "true" ]; then
+		az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
+			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+	else
+		az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
+			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+	fi
+
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
 	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
+		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	else
-		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
+		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 fi
 if [ "${deployment_system}" == sap_library ]; then
-	deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
+	deployer_config_information="${automation_config_directory}/${CONTROL_PLANE_NAME}"
 	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
+		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${CONTROL_PLANE_NAME}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	else
-		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
+		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${CONTROL_PLANE_NAME}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 fi
