@@ -97,7 +97,7 @@ function missing {
 	echo "##################################################################################################################"
 }
 
-INPUT_ARGUMENTS=$(getopt -n advanced_state_management -o p:s:a:k:t:n:i:l:d:o:h --longoptions parameterfile:,subscription:,storage_account_name:,terraform_keyfile:,type:,tf_resource_name:,azure_resource_id:,workload_zone_name:,control_plane_name:,operation:,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n advanced_state_management -o p:s:a:k:t:n:i:l:d:o:hv --longoptions parameterfile:,subscription:,storage_account_name:,terraform_keyfile:,type:,tf_resource_name:,azure_resource_id:,workload_zone_name:,control_plane_name:,operation:,help,verbose -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -108,7 +108,7 @@ eval set -- "$INPUT_ARGUMENTS"
 while :; do
 	case "$1" in
 	-p | --parameterfile)
-		parameterfile="$2"
+		parameter_file="$2"
 		shift 2
 		;;
 	-s | --subscription)
@@ -152,6 +152,13 @@ while :; do
 		exit 3
 		shift
 		;;
+	-v | --verbose)
+		# Enable debugging
+		set -x
+		# Exit on error
+		set -o errexit
+		shift
+		;;
 	--)
 		shift
 		break
@@ -159,8 +166,8 @@ while :; do
 	esac
 done
 
-if [ ! -f "${parameterfile}" ]; then
-	printf -v val %-35.35s "$parameterfile"
+if [ ! -f "${parameter_file}" ]; then
+	printf -v val %-35.35s "$parameter_file"
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -211,7 +218,7 @@ if [ 0 != $return_code ]; then
 fi
 
 # Check that parameter files have environment and location defined
-validate_key_parameters "$parameterfile"
+validate_key_parameters "$parameter_file"
 if [ 0 != $return_code ]; then
 	exit $return_code
 fi
@@ -228,7 +235,6 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 system_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 #Plugins
-isInCloudShellCheck=$(checkIfCloudShell)
 
 if checkIfCloudShell; then
 	mkdir -p "${HOME}/.terraform.d/plugin-cache"
@@ -236,7 +242,7 @@ if checkIfCloudShell; then
 else
 	if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
 		sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
-		sudo chown -R $USER /opt/terraform
+		sudo chown -R "$USER" /opt/terraform
 	fi
 	export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
@@ -247,9 +253,9 @@ set_executing_user_environment_variables "none"
 
 if [ -n "${resourceID}" ]; then
 
-	subscription_with_resource=$(echo "$resourceID" | cut -d / -f3)
+	subscription_from_resource_id=$(echo "$resourceID" | cut -d / -f3)
 
-	az account set --sub "${subscription_with_resource}"
+	az account set --sub "${subscription_from_resource_id}"
 	az resource show --ids "${resourceID}"
 	return_value=$?
 	if [ 0 != $return_value ]; then
@@ -267,7 +273,7 @@ if [ -n "${resourceID}" ]; then
 fi
 
 if [ -n "${storage_account_name}" ]; then
-	tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
+	tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts  --query "[].id | [0]" -o tsv )
 else
 	if [ -f .terraform/terraform.tfstate ]; then
 		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
@@ -297,7 +303,7 @@ if [ -z "${storage_account_name}" ]; then
 
 			if [[ -z $tfstate_resource_id ]]; then
 				az account set --sub "${STATE_SUBSCRIPTION}"
-				tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
+				tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts  --query "[].id | [0]" -o tsv)
 			fi
 			fail_if_null tfstate_resource_id
 		fi
@@ -306,13 +312,13 @@ if [ -z "${storage_account_name}" ]; then
 fi
 
 if [ -z "${subscription_id}" ]; then
-	read -p "Subscription ID containing Terraform state storage account:" subscription_id
+	read -r -p "Subscription ID containing Terraform state storage account:" subscription_id
 	az account set --sub "${subscription_id}"
 fi
 
 if [ -z "${storage_account_name}" ]; then
-	read -p "Terraform state storage account:" storage_account_name
-	tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
+	read -r -p "Terraform state storage account:" storage_account_name
+	tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts  --query "[].id | [0]" -o tsv)
 fi
 
 resource_group_name=$(echo "${tfstate_resource_id}" | cut -d/ -f5 | tr -d \" | xargs)
@@ -357,8 +363,8 @@ if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
 	if [ -n "${workload_zone_name}" ]; then
 		workload_zone_name_parameter=" -var landscape_tfstate_key=${workload_zone_name}-INFRASTRUCTURE.terraform.tfstate"
 	else
-		read -r -p "Workload terraform statefile name :" workload_zone_name
-		workload_zone_name_parameter=" -var workload_zone_name=${workload_zone_name}"
+		read -r -p "Workload zone name (ENV_REGIONCODE-VNET):" workload_zone_name
+		workload_zone_name_parameter=" -var landscape_tfstate_key=${workload_zone_name}-INFRASTRUCTURE.terraform.tfstate"
 		save_config_var "workload_zone_name" "${system_config_information}"
 	fi
 else
@@ -417,7 +423,7 @@ if [ "${operation}" == "import" ]; then
 
 	tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 
-	terraform -chdir="${module_dir}" import -var-file $(pwd)/"${parameterfile}" "${tfstate_parameter}" "${workload_zone_name_parameter}" "${moduleID}" "${resourceID}"
+	terraform -chdir="${module_dir}" import -var-file $(pwd)/"${parameter_file}" "${tfstate_parameter}" "${workload_zone_name_parameter}" "${moduleID}" "${resourceID}"
 
 	return_value=$?
 	if [ 0 != $return_value ]; then
