@@ -19,8 +19,8 @@ locals {
                                             shared_access_key_enabled        = var.shared_access_key_enabled
                                             shared_access_key_enabled_nfs    = var.shared_access_key_enabled_nfs
                                             encryption_at_host_enabled       = var.encryption_at_host_enabled
-                                            application_configuration_id     = try(coalesce(var.application_configuration_id, data.landscape_tfstate.outputs.application_configuration_id), "")
-                                            control_plane_name               = try(coalesce(var.control_plane_name, data.landscape_tfstate.outputs.control_plane_name), "")
+                                            application_configuration_id     = try(coalesce(var.application_configuration_id, data.terraform_remote_state.landscape.outputs.application_configuration_id), "")
+                                            control_plane_name               = try(coalesce(var.control_plane_name, data.terraform_remote_state.landscape.outputs.control_plane_name), "")
 
                                          }
 
