@@ -322,8 +322,6 @@ else
 	export TF_VAR_deployer_tfstate_key=${deployer_tfstate_key}
 fi
 
-
-
 if [ -z "$keyvault" ]; then
 	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_KeyVaultName" "${deployer_environment}")
 	if [ -z "$keyvault" ]; then
@@ -1076,11 +1074,13 @@ else
 		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --auth-mode login --only-show-errors --output none
 fi
 
-if [ "$useSAS" = "true" ]; then
+if [ -f "${automation_config_directory}/${WORKLOAD_ZONE_NAME}" ]; then
+	if [ "$useSAS" = "true" ]; then
 		az storage blob upload --file "${automation_config_directory}/${WORKLOAD_ZONE_NAME}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	else
 		az storage blob upload --file "${automation_config_directory}/${WORKLOAD_ZONE_NAME}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
+fi
 exit $return_value
