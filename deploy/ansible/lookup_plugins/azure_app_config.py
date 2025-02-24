@@ -31,16 +31,21 @@ DOCUMENTATION = """
             required: True
         client_id:
             description: Client id of service principal that has access to the Azure App Configuration.
+            required: False
         client_secret:
             description: Secret of the service principal.
+            required: False
         tenant_id:
             description: Tenant id of service principal.
+            required: False
         timeout:
             description: Timeout (in seconds) for checking endpoint responsiveness. Default is 5.
+            required: False
     notes:
         - If Ansible is running on an Azure Virtual Machine with MSI enabled, client_id, client_secret and tenant_id aren't required.
-        - For enabling MSI on Azure VM, please refer to:
-          https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/
+        - |
+            For enabling MSI on Azure VM, please refer to:
+            https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/
         - After enabling MSI on Azure VM, remember to grant access of the App Configuration to the VM by adding a new Access Policy in Azure Portal.
         - If MSI is not enabled on Ansible host, it's required to provide a valid service principal which has access to the App Configuration.
 """

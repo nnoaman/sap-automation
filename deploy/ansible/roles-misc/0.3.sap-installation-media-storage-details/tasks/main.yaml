@@ -2,6 +2,15 @@
 # Licensed under the MIT License.
 
 ---
+
+- name:                                Look up configuration value when Ansible host is MSI enabled Azure VM
+  ansible.builtin.debug:
+    msg:                               "{{ lookup('azure_app_config', 'CPLN-NOEU-DEP01_TerraformRemoteStateStorageAccountId',
+                                           config_label='CPLN-NOEU-DEP01',
+                                           appconfig_url=app_config_url) }}"
+  vars:
+    app_config_url:                    "https://{{ application_configuration_name }}.azconfig.io"
+
 - name:                                Look up configuration value when Ansible host is MSI enabled Azure VM
   ansible.builtin.debug:
     msg:                               "The configuration value is {{lookup('azure_app_config', 'CPLN-NOEU-DEP01_TerraformRemoteStateStorageAccountId', config_label='CPLN-NOEU-DEP01',  appconfig_url='https://{{  application_configuration_name }}.azconfig.io')}}"
