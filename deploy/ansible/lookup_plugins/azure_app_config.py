@@ -79,6 +79,7 @@ from azure.identity import (
     ManagedIdentityCredential,
 )
 from azure.appconfiguration import AzureAppConfigurationClient
+import time
 import requests
 
 display = Display()
@@ -119,43 +120,99 @@ class AzureAppConfigHelper:
 
     def get_responsive_url(self, appconfig_url, timeout=5):
         """
-        Tests both public and private endpoints and returns the first responsive URL.
+        Checks the responsiveness of both public and private Azure App Configuration URLs.
+        Returns the first responsive URL.
+        1. Constructs both public and private URLs.
+        2. Checks the responsiveness of each URL using a HEAD request.
+        3. Returns the first responsive URL.
+        4. Raises an AnsibleError if neither URL is responsive.
+
         :param appconfig_url: The base URL for Azure App Configuration.
-        :param timeout: Timeout in seconds for endpoint responsiveness.
-        :return: A responsive URL string.
+        :type appconfig_url: str
+        :param timeout: Timeout for the URL check. Defaults to 5 seconds.
+        :type timeout: int, optional
+        :raises AnsibleError: If neither URL is responsive.
+        :return: The responsive URL.
+        :rtype: str
         """
+
         public_url = appconfig_url
         private_url = appconfig_url.replace(".azconfig.io", ".private.azconfig.io")
 
+        urls_status = {}
         for url in [private_url, public_url]:
             try:
-                response = requests.get(url, timeout=timeout)
+                display.v(f"Attempting to connect to: {url}")
+                # Use HEAD request instead of GET for efficiency
+                response = requests.head(
+                    url,
+                    timeout=timeout,
+                    allow_redirects=True,
+                    headers={"Accept": "application/json"},
+                )
+                urls_status[url] = response.status_code
                 if response.status_code == 200:
-                    display.v(f"Using responsive URL: {url}")
+                    display.v(f"Successfully connected to: {url}")
                     return url
-            except requests.RequestException:
-                display.v(f"URL not responsive: {url}")
+                else:
+                    display.warning(
+                        f"URL {url} responded with status code: {response.status_code}"
+                    )
+            except requests.RequestException as e:
+                urls_status[url] = str(e)
+                display.warning(f"Failed to connect to {url}: {str(e)}")
 
-        raise AnsibleError(
-            "Failed to connect to both public and private endpoints of Azure App Configuration."
-        )
+        # Detailed error message with all attempted URLs and their status
+        error_msg = "Failed to connect to all Azure App Configuration endpoints:\n"
+        for url, status in urls_status.items():
+            error_msg += f"  - {url}: {status}\n"
+        raise AnsibleError(error_msg)
 
     def get_credential(self, client_id, client_secret, tenant_id):
         """
         Returns the appropriate credential based on provided parameters.
-        :return: An Azure credential object.
+        Implements secure credential handling with additional logging.
+
+        1. If all three parameters are provided, it uses ClientSecretCredential.
+        2. If only client_id is provided, it uses ManagedIdentityCredential.
+        3. If none are provided, it falls back to DefaultAzureCredential.
+        4. If any error occurs during credential initialization, it logs the error and raises an AnsibleError.
+
+        :param client_id: Application (client) ID
+        :type client_id: str
+        :param client_secret: The client secret
+        :type client_secret: str
+        :param tenant_id: The Azure tenant ID
+        :type tenant_id: str
+        :raises AnsibleError: Thrown if credential initialization fails
+        :return: An Azure credential object
+        :rtype: azure.identity.DefaultAzureCredential
         """
-        if client_id and client_secret and tenant_id:
-            display.v("Using ClientSecretCredential for authentication")
-            return ClientSecretCredential(
-                client_id=client_id, client_secret=client_secret, tenant_id=tenant_id
-            )
-        elif client_id:
-            display.v("Using ManagedIdentityCredential for authentication")
-            return ManagedIdentityCredential(client_id=client_id)
-        else:
-            display.v("Using DefaultAzureCredential for authentication")
-            return DefaultAzureCredential()
+        try:
+            if all([client_id, client_secret, tenant_id]):
+                display.v(
+                    f"Using service principal authentication with client_id: {client_id[:6]}..."
+                )
+                return ClientSecretCredential(
+                    client_id=client_id,
+                    client_secret=client_secret,
+                    tenant_id=tenant_id,
+                )
+            elif client_id:
+                display.v(
+                    f"Using managed identity authentication with client_id: {client_id[:6]}..."
+                )
+                return ManagedIdentityCredential(client_id=client_id)
+            else:
+                display.v(
+                    "No explicit credentials provided, falling back to DefaultAzureCredential"
+                )
+                return DefaultAzureCredential(
+                    exclude_shared_token_cache_credential=True
+                )
+        except Exception as e:
+            display.error(f"Failed to initialize Azure credentials: {str(e)}")
+            raise AnsibleError(f"Authentication configuration error: {str(e)}")
 
     def get_configuration(self, config_key, config_label=None):
         """
@@ -164,57 +221,90 @@ class AzureAppConfigHelper:
         :param config_label: The label (optional) for the configuration.
         :return: The value of the configuration setting.
         """
-        try:
-            display.v(
-                f"Fetching configuration: {config_key} with label: {config_label}"
-            )
-            config = self.client.get_configuration_setting(
-                key=config_key, label=config_label
-            )
-            display.v(
-                f"Successfully fetched configuration: {config_key} with label: {config_label}"
-            )
-            return config.value
-        except Exception as e:
-            display.error(
-                f"Failed to fetch configuration {config_key} with label {config_label}: {str(e)}"
-            )
-            raise AnsibleError(
-                f"Failed to fetch configuration {config_key} with label {config_label}: {str(e)}"
-            )
+        max_retries = 3
+        retry_delay = 1  # seconds
+
+        for attempt in range(max_retries):
+            try:
+                display.v(
+                    f"Attempt {attempt + 1}/{max_retries}: "
+                    f"Fetching configuration key: {config_key} "
+                    f"with label: {config_label or 'None'}"
+                )
+
+                config = self.client.get_configuration_setting(
+                    key=config_key, label=config_label
+                )
+
+                if not config:
+                    display.warning(f"No configuration found for key: {config_key}")
+                    return None
+
+                display.v(f"Successfully retrieved configuration for key: {config_key}")
+                return config.value
+
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    display.warning(
+                        f"Attempt {attempt + 1} failed: {str(e)}. "
+                        f"Retrying in {retry_delay} seconds..."
+                    )
+                    time.sleep(retry_delay)
+                else:
+                    display.error(f"All attempts failed for key {config_key}: {str(e)}")
+                    raise AnsibleError(
+                        f"Failed to fetch configuration after {max_retries} attempts: {str(e)}"
+                    )
 
 
 class LookupModule(LookupBase):
-    """
-    Ansible lookup module for retrieving configuration settings from Azure App Configuration.
-    """
-
     def run(self, terms, variables, **kwargs):
+        # Input validation
+        if not terms:
+            raise AnsibleError("No configuration keys provided")
+
         appconfig_url = kwargs.get("appconfig_url")
-        client_id = kwargs.get("client_id")
-        client_secret = kwargs.get("client_secret")
-        tenant_id = kwargs.get("tenant_id")
-        config_label = kwargs.get("config_label")
-        timeout = kwargs.get(
-            "timeout", 5
-        )  # Allow the user to customize the URL check timeout
-
         if not appconfig_url:
-            display.error("Failed to get a valid appconfig URL.")
-            raise AnsibleError("Failed to get a valid appconfig URL.")
+            raise AnsibleError("appconfig_url is required")
 
-        # Initialize the helper with the provided timeout value.
-        helper = AzureAppConfigHelper(
-            appconfig_url, client_id, client_secret, tenant_id, timeout
-        )
-        ret = []
+        # Sanitize and validate inputs
+        config_label = kwargs.get("config_label")
+        timeout = int(kwargs.get("timeout", 5))
+        if timeout < 1:
+            display.warning("Timeout value too low, setting to minimum of 1 second")
+            timeout = 1
+
+        # Initialize helper with proper error handling
+        try:
+            helper = AzureAppConfigHelper(
+                appconfig_url=appconfig_url,
+                client_id=kwargs.get("client_id"),
+                client_secret=kwargs.get("client_secret"),
+                tenant_id=kwargs.get("tenant_id"),
+                timeout=timeout,
+            )
+        except Exception as e:
+            raise AnsibleError(
+                f"Failed to initialize Azure App Configuration client: {str(e)}"
+            )
+
+        # Process configuration keys
+        results = []
+        failed_keys = []
 
         for term in terms:
             try:
-                config_value = helper.get_configuration(term, config_label)
-                ret.append(config_value)
-            except AnsibleError as e:
-                display.error(str(e))
-                raise
+                value = helper.get_configuration(term, config_label)
+                if value is None:
+                    failed_keys.append(term)
+                results.append(value)
+            except Exception as e:
+                failed_keys.append(term)
+                display.error(f"Failed to fetch key {term}: {str(e)}")
 
-        return ret
+        if failed_keys:
+            raise AnsibleError(
+                f"Failed to fetch the following keys: {', '.join(failed_keys)}"
+            )
+
+        return results
