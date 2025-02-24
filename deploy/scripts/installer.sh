@@ -313,7 +313,7 @@ fi
 
 parallelism=10
 
-#Provide a way to limit the number of parallell tasks for Terraform
+#Provide a way to limit the number of parallel tasks for Terraform
 if [[ -n "$TF_PARALLELLISM" ]]; then
 	parallelism=$TF_PARALLELLISM
 fi

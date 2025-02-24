@@ -138,6 +138,8 @@ fi
 
 workload_file_parametername=$(basename "${parameterfile}")
 
+WORKLOAD_ZONE_NAME=$(echo "$workload_file_parametername" | cut -d'-' -f1-3)
+
 param_dirname=$(dirname "${parameterfile}")
 
 if [ "$param_dirname" != '.' ]; then
@@ -1073,4 +1075,11 @@ else
 		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --auth-mode login --only-show-errors --output none
 fi
 
+if [ "$useSAS" = "true" ]; then
+		az storage blob upload --file "${workload_config_information}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
+			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+	else
+		az storage blob upload --file "${workload_config_information}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
+			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+	fi
 exit $return_value
