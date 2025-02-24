@@ -154,7 +154,7 @@ variable "encryption_at_host_enabled"           {
                                                   description = "Enables host encryption for sap vms"
                                                   default     = false
                                                   type        = bool
-                                                }                                                     
+                                                }
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
                                                   default     = false
@@ -1534,13 +1534,20 @@ variable "sap_cal_product_name"                 {
                                                   default     = ""
                                                 }
 
+
+###############################################################################
+#                                                                             #
+#                            Application  configuration                       #
+#                                                                             #
+###############################################################################
+
 variable "application_configuration_id"         {
                                                     description = "Defines the Azure application configuration Resource id"
                                                     type        = string
                                                     default     = ""
-                                                }
+                                                 }
+
 variable "control_plane_name"                   {
                                                   description = "The name of the control plane"
                                                   default     = ""
                                                 }
-

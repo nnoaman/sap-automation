@@ -186,9 +186,9 @@ resource "local_file" "ansible_inventory_new_yml" {
 resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.tmpl", path.module), {
               app_instance_number                    = var.app_instance_number
-              media_path                             = var.media_path
               application_configuration_name         = local.parsed_application_configuration_id["resource_name"]
               bom                                    = length(var.bom_name) > 0 ? var.bom_name : ""
+              control_plane_name                     = var.infrastructure.control_plane_name
               database_cluster_type                  = var.database_cluster_type
               database_high_availability             = var.database_high_availability
               database_cluster_ip                    = try(format("%s/%s", var.database_cluster_ip, var.database_subnet_netmask), "")
@@ -223,6 +223,7 @@ resource "local_file" "sap-parameters_yml" {
               is_use_sles_hanasr_angi                = var.database.database_hana_use_saphanasr_angi
               iscsi_server_list                      = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
               kv_name                                = lower(local.kv_name),
+              media_path                             = var.media_path
               NFS_provider                           = var.NFS_provider
               pas_instance_number                    = var.pas_instance_number
               platform                               = var.platform

@@ -12,7 +12,7 @@ locals {
   kv_name                              = split("/", var.sid_keyvault_user_id)[8]
 
   landscape_tfstate                    = var.landscape_tfstate
-  parsed_application_configuration_id  = provider::azurerm::parse_resource_id(var.landscape_tfstate.application_configuration_id)
+  parsed_application_configuration_id  = provider::azurerm::parse_resource_id(var.infrastructure.application_configuration_id)
 
   ips_dbnodes_admin                    = var.database_admin_ips
 

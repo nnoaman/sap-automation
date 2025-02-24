@@ -370,6 +370,12 @@ output ng_resource_id                           {
                                                   value       = module.sap_landscape.ng_resource_id
                                                 }
 
+
+###############################################################################
+#                                                                             #
+#                            Application  configuration                       #
+#                                                                             #
+###############################################################################
 output application_configuration_id             {
                                                   description = "Application Configuration ID"
                                                   value       = coalesce(
@@ -380,5 +386,8 @@ output application_configuration_id             {
 
 output "control_plane_name"                     {
                                                   description = "Control plane name"
-                                                  value       = data.terraform_remote_state.deployer[0].outputs.control_plane_name
+                                                  value       = coalesce(
+                                                                          var.control_plane_name,
+                                                                          data.terraform_remote_state.deployer[0].outputs.control_plane_name
+                                                     )
                                                 }
