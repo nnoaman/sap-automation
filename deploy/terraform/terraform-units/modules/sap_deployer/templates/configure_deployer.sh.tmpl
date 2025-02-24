@@ -594,7 +594,9 @@ else
         setuptools
 
     # Install requirements
-    sudo "$${ansible_venv_bin}/pip3" install -r "$${asad_dir}/deploy/ansible/requirements.txt"
+    if [[ -f "$${asad_dir}/deploy/ansible/requirements.txt" ]]; then
+        sudo "$${ansible_venv_bin}/pip3" install -r "$${asad_dir}/deploy/ansible/requirements.txt"
+    fi
 
     # Install latest MicroSoft tication LAuthenibrary
     # TODO(rtamalin): Do we need this? In particular do we expect to integrated
