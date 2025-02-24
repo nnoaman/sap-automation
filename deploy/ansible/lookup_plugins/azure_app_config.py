@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = """
-    lookup: azure_appconfig
+    lookup: azure_app_config
     author:
         - Hai Cao <cao.hai@microsoft.com>
         - SDAF Core Dev Team <sdaf_core_team@microsoft.com>
@@ -23,6 +23,9 @@ DOCUMENTATION = """
         _terms:
             description: Configuration key.
             required: True
+        config_label:
+            description: Label for the configuration setting.
+            required: False
         appconfig_url:
             description: URL of Azure App Configuration.
             required: True
