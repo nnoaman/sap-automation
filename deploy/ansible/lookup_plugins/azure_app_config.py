@@ -108,65 +108,13 @@ class AzureAppConfigHelper:
         :param tenant_id: Optional tenant id.
         :param timeout: Timeout (in seconds) for responsiveness check.
         """
-        # Cache the responsive URL for reuse.
-        # self.appconfig_url = self.get_responsive_url(appconfig_url, timeout)
         self.credential = self.get_credential(client_id, client_secret, tenant_id)
         self.client = AzureAppConfigurationClient(
             base_url=appconfig_url, credential=self.credential
         )
         display.v(
-            f"Initialized AzureAppConfigHelper with appconfig_url: {self.appconfig_url}"
+            f"Initialized AzureAppConfigHelper with appconfig_url: {appconfig_url}"
         )
-
-    def get_responsive_url(self, appconfig_url, timeout=5):
-        """
-        Checks the responsiveness of both public and private Azure App Configuration URLs.
-        Returns the first responsive URL.
-        1. Constructs both public and private URLs.
-        2. Checks the responsiveness of each URL using a HEAD request.
-        3. Returns the first responsive URL.
-        4. Raises an AnsibleError if neither URL is responsive.
-
-        :param appconfig_url: The base URL for Azure App Configuration.
-        :type appconfig_url: str
-        :param timeout: Timeout for the URL check. Defaults to 5 seconds.
-        :type timeout: int, optional
-        :raises AnsibleError: If neither URL is responsive.
-        :return: The responsive URL.
-        :rtype: str
-        """
-
-        url = appconfig_url
-
-        url_status = {}
-
-        # Check public URL
-        try:
-            display.v(f"Attempting to connect to: {url}")
-            # Use HEAD request instead of GET for efficiency
-            response = requests.head(
-                url,
-                timeout=timeout,
-                allow_redirects=True,
-                headers={"Accept": "application/json"},
-            )
-            url_status[url] = response.status_code
-            if response.status_code == 200:
-                display.v(f"Successfully connected to: {url}")
-                return url
-            else:
-                display.warning(
-                    f"URL {url} responded with status code: {response.status_code}"
-                )
-        except requests.RequestException as e:
-            url_status[url] = str(e)
-            display.warning(f"Failed to connect to {url}: {str(e)}")
-
-        # Detailed error message with all attempted URLs and their status
-        error_msg = "Failed to connect to all Azure App Configuration endpoints:\n"
-        for url, status in url_status.items():
-            error_msg += f"  - {url}: {status}\n"
-        raise AnsibleError(error_msg)
 
     def get_credential(self, client_id, client_secret, tenant_id):
         """
