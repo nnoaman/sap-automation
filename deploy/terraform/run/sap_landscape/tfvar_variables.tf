@@ -1021,6 +1021,12 @@ variable "additional_network_id"                {
                                                    default     = ""
                                                  }
 
+###############################################################################
+#                                                                             #
+#                            Application  configuration                       #
+#                                                                             #
+###############################################################################
+
 variable "application_configuration_id"         {
                                                     description = "Defines the Azure application configuration Resource id"
                                                     type        = string
