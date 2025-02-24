@@ -72,6 +72,7 @@ from azure.identity import (
     ManagedIdentityCredential,
 )
 from azure.keyvault.secrets import SecretClient
+from azure.core.exceptions import HttpResponseError
 import requests
 import time
 import logging
@@ -102,16 +103,15 @@ class AzureKeyVaultHelper:
         :param timeout: Timeout (in seconds) for checking endpoint responsiveness.
         """
         # Determine and cache the responsive URL.
-        self.vault_url = self.get_responsive_url(vault_url, timeout)
         self.credential = self.get_credential(client_id, client_secret, tenant_id)
+        self.vault_url = self.get_responsive_url(vault_url, timeout)
         self.client = SecretClient(vault_url=self.vault_url, credential=self.credential)
         display.v(f"Initialized AzureKeyVaultHelper with vault_url: {self.vault_url}")
         logger.info(f"Initialized AzureKeyVaultHelper with vault_url: {self.vault_url}")
 
     def get_responsive_url(self, vault_url, timeout=5):
         """
-        Tests both public and private endpoints and returns the first responsive URL.
-        For the private endpoint, we assume the URL uses the "privatelink" domain.
+        Tests both public and private endpoints using SecretClient to validate connectivity.
         :param vault_url: Base URL for Azure Key Vault.
         :param timeout: Timeout (in seconds) for endpoint responsiveness.
         :return: A responsive URL string.
@@ -126,19 +126,22 @@ class AzureKeyVaultHelper:
             delay = 1
             for attempt in range(attempts):
                 try:
-                    response = requests.get(url, timeout=timeout)
-                    if response.status_code == 200:
-                        display.v(f"Using responsive URL: {url}")
-                        logger.info(f"Using responsive URL: {url}")
-                        return url
-                    else:
-                        display.v(
-                            f"Attempt {attempt + 1}: URL {url} returned status code {response.status_code}"
-                        )
-                        logger.warning(
-                            f"Attempt {attempt + 1}: URL {url} returned status code {response.status_code}"
-                        )
-                except requests.RequestException as e:
+                    # Create a SecretClient for the given URL using the existing credential.
+                    client = SecretClient(vault_url=url, credential=self.credential)
+                    # Perform a lightweight operation: try listing secret properties.
+                    # We only need to iterate over one value.
+                    _ = next(client.list_properties_of_secrets(), None)
+                    display.v(f"Using responsive URL: {url}")
+                    logger.info(f"Using responsive URL: {url}")
+                    return url
+                except HttpResponseError as e:
+                    display.v(
+                        f"Attempt {attempt + 1}: URL {url} returned an HTTP error: {e}"
+                    )
+                    logger.warning(
+                        f"Attempt {attempt + 1}: URL {url} returned an HTTP error: {e}"
+                    )
+                except Exception as e:
                     display.v(f"Attempt {attempt + 1}: URL {url} not responsive: {e}")
                     logger.error(
                         f"Attempt {attempt + 1}: URL {url} not responsive: {e}"

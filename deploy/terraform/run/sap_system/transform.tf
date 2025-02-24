@@ -380,15 +380,17 @@ locals {
                                          }
 
   subnet_db                            = {
-                                             "name"    = try(coalesce(
-                                                          var.db_subnet_name,
-                                                          split("/",data.terraform_remote_state.landscape.outputs.db_subnet_id)[10]
-                                                        ), "")
+                                             "name"    = length(var.db_subnet_arm_id)>0 ? split("/",var.db_subnet_arm_id)[10] : try(
+                                                          coalesce(
+                                                              var.db_subnet_name,
+                                                              split("/",data.terraform_remote_state.landscape.outputs.db_subnet_id)[10]
+                                                              ),
+                                                          "")
                                              "arm_id"  = try(coalesce(
                                                           var.db_subnet_arm_id,
                                                           data.terraform_remote_state.landscape.outputs.db_subnet_id
                                                         ), "")
-                                             "prefix"  = var.db_subnet_address_prefix
+                                             "prefix"  = length(var.db_subnet_arm_id)>0 ? null : var.db_subnet_address_prefix
                                              "defined" = length(var.db_subnet_address_prefix) > 0
                                               "nsg" = {
                                                         "name"   = try(coalesce(
