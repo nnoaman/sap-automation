@@ -253,10 +253,11 @@ if [ "${force}" == 1 ]; then
 	rm -Rf .terraform terraform.tfstate*
 fi
 
-echo ""
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
 echo "Control Plane Name:                  $deployer_environment"
+echo "Workload Zone Name:                  $WORKLOAD_ZONE_NAME"
+echo ""
 echo "Deployer Keyvault:                   $keyvault"
 echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
 echo "Target Subscription:                 $subscription"
