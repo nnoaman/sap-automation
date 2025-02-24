@@ -136,35 +136,35 @@ class AzureAppConfigHelper:
         :rtype: str
         """
 
-        public_url = appconfig_url
-        private_url = appconfig_url.replace(".azconfig.io", ".private.azconfig.io")
+        url = appconfig_url
 
-        urls_status = {}
-        for url in [private_url, public_url]:
-            try:
-                display.v(f"Attempting to connect to: {url}")
-                # Use HEAD request instead of GET for efficiency
-                response = requests.head(
-                    url,
-                    timeout=timeout,
-                    allow_redirects=True,
-                    headers={"Accept": "application/json"},
+        url_status = {}
+
+        # Check public URL
+        try:
+            display.v(f"Attempting to connect to: {url}")
+            # Use HEAD request instead of GET for efficiency
+            response = requests.head(
+                url,
+                timeout=timeout,
+                allow_redirects=True,
+                headers={"Accept": "application/json"},
+            )
+            url_status[url] = response.status_code
+            if response.status_code == 200:
+                display.v(f"Successfully connected to: {url}")
+                return url
+            else:
+                display.warning(
+                    f"URL {url} responded with status code: {response.status_code}"
                 )
-                urls_status[url] = response.status_code
-                if response.status_code == 200:
-                    display.v(f"Successfully connected to: {url}")
-                    return url
-                else:
-                    display.warning(
-                        f"URL {url} responded with status code: {response.status_code}"
-                    )
-            except requests.RequestException as e:
-                urls_status[url] = str(e)
-                display.warning(f"Failed to connect to {url}: {str(e)}")
+        except requests.RequestException as e:
+            url_status[url] = str(e)
+            display.warning(f"Failed to connect to {url}: {str(e)}")
 
         # Detailed error message with all attempted URLs and their status
         error_msg = "Failed to connect to all Azure App Configuration endpoints:\n"
-        for url, status in urls_status.items():
+        for url, status in url_status.items():
             error_msg += f"  - {url}: {status}\n"
         raise AnsibleError(error_msg)
 
