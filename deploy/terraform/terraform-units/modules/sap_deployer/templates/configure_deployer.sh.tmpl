@@ -593,6 +593,9 @@ else
         wheel \
         setuptools
 
+    # Install requirements
+    sudo "$${ansible_venv_bin}/pip3" install -r "$${asad_dir}/deploy/ansible/requirements.txt"
+
     # Install latest MicroSoft tication LAuthenibrary
     # TODO(rtamalin): Do we need this? In particular do we expect to integrated
     # Rust based tools with the Python/Ansible envs that we are using?
