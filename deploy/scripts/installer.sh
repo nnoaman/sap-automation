@@ -180,7 +180,7 @@ if [ -z $CONTROL_PLANE_NAME ] && [ -n "$deployer_tfstate_key" ]; then
 fi
 
 if [ -n "$CONTROL_PLANE_NAME" ] && [ -z $deployer_tfstate_key ]; then
-	$deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+	deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 fi
 
 if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
@@ -188,7 +188,7 @@ if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
 fi
 
 if [ -n "$WORKLOAD_ZONE_NAME" ] && [ -z $landscape_tfstate_key ]; then
-	$landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+	landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 fi
 
 landscape_tfstate_key_exists=false
