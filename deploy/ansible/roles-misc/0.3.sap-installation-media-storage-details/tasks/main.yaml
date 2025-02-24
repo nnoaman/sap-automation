@@ -9,7 +9,7 @@
 
 - name:                                Look up configuration value when Ansible host is MSI enabled Azure VM
   ansible.builtin.debug:
-    msg:                               "{{ lookup('azure_app_config', config_key, client_id,config_label,
+    msg:                               "{{ lookup('azure_app_config', config_key, config_label,
                                            appconfig_url=app_config_url, client_id) }}"
   vars:
     app_config_url:                    "https://{{ application_configuration_name }}.azconfig.io"
@@ -17,14 +17,14 @@
     client_id:                         "{{ msi_client_id }}"
     config_label:                      "{{ control_plane_name }}"
 
-- name:                                Look up configuration value when Ansible host is MSI enabled Azure VM
-  ansible.builtin.debug:
-    msg:                               "The configuration value of {{ config_key }} is {{  lookup('azure_app_config', config_key, client_id, config_label, appconfig_url=app_config_url, client_id) }}"
-  vars:
-    app_config_url:                    "https://{{ application_configuration_name }}.azconfig.io"
-    config_key:                        "{{ control_plane_name }}_TerraformRemoteStateStorageAccountId"
-    client_id:                         "{{ msi_client_id }}"
-    config_label:                      "{{ control_plane_name }}"
+# - name:                                Look up configuration value when Ansible host is MSI enabled Azure VM
+#   ansible.builtin.debug:
+#     msg:                               "The configuration value of {{ config_key }} is {{ lookup('azure_app_config', config_key, client_id, config_label, appconfig_url=app_config_url) }}"
+#   vars:
+#     app_config_url:                    "https://{{ application_configuration_name }}.azconfig.io"
+#     config_key:                        "{{ control_plane_name }}_TerraformRemoteStateStorageAccountId"
+#     client_id:                         "{{ msi_client_id }}"
+#     config_label:                      "{{ control_plane_name }}"
 
 - name:                                "0.4 Persist the provided media path"
   ansible.builtin.set_fact:
