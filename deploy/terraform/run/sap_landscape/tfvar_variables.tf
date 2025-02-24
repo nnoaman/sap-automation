@@ -67,7 +67,6 @@ variable "management_subscription"              {
                                                   default     = ""
                                                 }
 
-
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #

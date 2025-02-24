@@ -155,6 +155,12 @@ variable "encryption_at_host_enabled"           {
                                                   default     = false
                                                   type        = bool
                                                 }
+
+variable "encryption_at_host_enabled"           {
+                                                  description = "Enables host encryption for sap vms"
+                                                  default     = false
+                                                  type        = bool
+                                                }
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
                                                   default     = false
@@ -1014,7 +1020,7 @@ variable "webdispatcher_server_use_ppg"         {
 
 #########################################################################################
 #                                                                                       #
-#  Miscallaneous settings                                                               #
+#  Miscellaneous settings                                                               #
 #                                                                                       #
 #########################################################################################
 
