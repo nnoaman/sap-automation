@@ -109,10 +109,10 @@ class AzureAppConfigHelper:
         :param timeout: Timeout (in seconds) for responsiveness check.
         """
         # Cache the responsive URL for reuse.
-        self.appconfig_url = self.get_responsive_url(appconfig_url, timeout)
+        # self.appconfig_url = self.get_responsive_url(appconfig_url, timeout)
         self.credential = self.get_credential(client_id, client_secret, tenant_id)
         self.client = AzureAppConfigurationClient(
-            appconfig_url=self.appconfig_url, credential=self.credential
+            base_url=appconfig_url, credential=self.credential
         )
         display.v(
             f"Initialized AzureAppConfigHelper with appconfig_url: {self.appconfig_url}"
