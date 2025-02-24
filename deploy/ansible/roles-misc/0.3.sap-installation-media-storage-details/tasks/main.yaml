@@ -9,13 +9,14 @@
 
 - name:                                Look up configuration value when Ansible host is MSI enabled Azure VM
   ansible.builtin.debug:
-    msg:                               "{{ lookup('azure_app_config', config_key, config_label,
-                                           appconfig_url=app_config_url, client_id) }}"
+    msg:                               "{{ lookup('azure_app_config', app_config_key, config_label=app_config_label,
+                                           appconfig_url=app_config_url, client_id=app_config_client_id) }}"
   vars:
+    app_config_key:                    "{{ control_plane_name }}_TerraformRemoteStateStorageAccountId"
+    app_config_label:                  "{{ control_plane_name }}"
     app_config_url:                    "https://{{ application_configuration_name }}.azconfig.io"
-    config_key:                        "{{ control_plane_name }}_TerraformRemoteStateStorageAccountId"
-    client_id:                         "{{ msi_client_id }}"
-    config_label:                      "{{ control_plane_name }}"
+    app_config_client_id:              "{{ msi_client_id }}"
+
 
 # - name:                                Look up configuration value when Ansible host is MSI enabled Azure VM
 #   ansible.builtin.debug:
