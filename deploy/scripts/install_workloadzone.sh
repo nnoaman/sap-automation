@@ -1077,10 +1077,10 @@ else
 fi
 
 if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${workload_config_information}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
+		az storage blob upload --file "${automation_config_directory}/${WORKLOAD_ZONE_NAME}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	else
-		az storage blob upload --file "${workload_config_information}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
+		az storage blob upload --file "${automation_config_directory}/${WORKLOAD_ZONE_NAME}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 exit $return_value
