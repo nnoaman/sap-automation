@@ -47,7 +47,6 @@ echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 
-
 if [ "$FORCE_RESET" == "True" ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
 	echo -e "$bold_red--- Resetting the environment file ---$reset"
@@ -156,8 +155,6 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
-
-
 
 else
 	echo -e "$green--- az login ---$reset"
@@ -343,8 +340,10 @@ if [ 1 = $added ]; then
 	fi
 fi
 
-if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
-	echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
+	if echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md"; then
+		echo ""
+	fi
 fi
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
