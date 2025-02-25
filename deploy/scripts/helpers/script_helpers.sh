@@ -409,10 +409,6 @@ function validate_key_parameters {
 	environment=$(echo "${environment}" | xargs | tr "[:lower:]" "[:upper:]" | tr -d '\r')
 	export environment
 
-	load_config_vars "$1" "location"
-	region=$(echo "${location}" | xargs | tr -d '\r')
-	export region
-
 	if [ -z "${environment}" ]; then
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
@@ -424,6 +420,10 @@ function validate_key_parameters {
 		echo ""
 		return 64 #script usage wrong
 	fi
+
+	load_config_vars "$1" "location"
+	region=$(echo "${location}" | xargs | tr -d '\r')
+	export region
 
 	if [ -z "${region}" ]; then
 		echo "#########################################################################################"
