@@ -194,11 +194,9 @@ else
 	echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	load_config_vars "${deployer_environment_file_name}" "keyvault"
 	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
-fi
-
-if [ -z $key_vault_id ]; then
 	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
+
 
 TF_VAR_spn_keyvault_id=${key_vault_id}
 export TF_VAR_spn_keyvault_id
