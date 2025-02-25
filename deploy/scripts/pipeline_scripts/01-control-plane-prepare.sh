@@ -22,6 +22,9 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
+
+	set -o errexit
+	set -o pipefail
 fi
 
 export DEBUG
@@ -308,8 +311,8 @@ git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
 
-if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
-	git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
+if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
+	git add ".sap_deployment_automation/$CONTROL_PLANE_NAME"
 	added=1
 fi
 
