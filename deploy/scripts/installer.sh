@@ -287,7 +287,11 @@ fi
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}${WORKLOAD_ZONE_NAME}"
+if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
+	system_config_information="${automation_config_directory}${WORKLOAD_ZONE_NAME}"
+else
+	system_config_information="${automation_config_directory}${CONTROL_PLANE_NAME}"
+fi
 
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
@@ -913,9 +917,6 @@ if [ $return_value -eq 1 ]; then
 	echo ""
 	exit $return_value
 else
-	return_value=$?
-	echo "Terraform Plan return code:          $return_value"
-
 	echo ""
 	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
 	echo ""
