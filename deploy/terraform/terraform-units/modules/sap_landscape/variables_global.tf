@@ -282,6 +282,6 @@ variable "tags"                                          { description = "List o
 
 variable "data_plane_available"                          {
                                                            description = "Boolean value indicating if storage account access is via data plane"
-                                                           default     = false
+                                                           default     = true
                                                            type        = bool
                                                          }
