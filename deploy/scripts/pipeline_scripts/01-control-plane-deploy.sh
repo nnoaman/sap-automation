@@ -193,6 +193,7 @@ if is_valid_guid "$APPLICATION_CONFIGURATION_ID"; then
 else
 	echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	load_config_vars "${deployer_environment_file_name}" "keyvault"
+	key_vault="$keyvault"
 	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
 	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
