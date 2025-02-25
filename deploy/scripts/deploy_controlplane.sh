@@ -424,9 +424,6 @@ else
 	echo "#########################################################################################"
 	echo ""
 	echo "##vso[task.setprogress value=20;]Progress Indicator"
-	if [ 1 = "${only_deployer:-}" ]; then
-		exit 0
-	fi
 
 fi
 
