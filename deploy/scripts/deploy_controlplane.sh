@@ -204,7 +204,7 @@ deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
 
 if [ ! -f "$deployer_config_information" ]; then
 	if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
-	  echo "Copying existing configuration file"
+		echo "Copying existing configuration file"
 		sudo mv "${automation_config_directory}/${environment}${region_code}" "${deployer_config_information}"
 	fi
 fi
@@ -424,6 +424,9 @@ else
 	echo "#########################################################################################"
 	echo ""
 	echo "##vso[task.setprogress value=20;]Progress Indicator"
+	if [ 1 = "${only_deployer:-}" ]; then
+		exit 0
+	fi
 
 fi
 
