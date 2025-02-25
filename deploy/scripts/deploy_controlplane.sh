@@ -202,6 +202,12 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
 
+if [ ! -f "$deployer_config_information" ]; then
+	if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
+		sudo mv "${automation_config_directory}/${environment}${region_code}" "${deployer_config_information}"
+	fi
+fi
+
 if [ $force == 1 ]; then
 	if [ -f "${deployer_config_information}" ]; then
 		rm "${deployer_config_information}"
