@@ -216,11 +216,11 @@ if [ $FORCE_RESET == True ]; then
 	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_RG")
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
-		echo "Terraform Remote State Account:       ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+		echo "Terraform Remote State Account:      ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
-		echo "Terraform Remote State RG Name:       ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+		echo "Terraform Remote State RG Name:      ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ] && [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
@@ -291,12 +291,12 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform Remote State Account:       ${file_REMOTE_STATE_SA}"
+		echo "Terraform Remote State Account:      ${file_REMOTE_STATE_SA}"
 	fi
 
 	file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
+		echo "Terraform Remote State RG Name:      ${file_REMOTE_STATE_RG}"
 	fi
 fi
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
