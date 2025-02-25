@@ -196,10 +196,10 @@ fi
 export TF_VAR_spn_keyvault_id=${key_vault_id}
 
 if [ -n "${key_vault}" ]; then
-	echo "Deployer Key Vault:                   ${key_vault}"
+	echo "Deployer Key Vault:                  ${key_vault}"
 	keyvault_parameter=" --keyvault ${key_vault} "
 else
-	echo "Deployer Key Vault:                   undefined"
+	echo "Deployer Key Vault:                  undefined"
 	exit 2
 
 fi
@@ -213,7 +213,7 @@ if [ -n "$tfstate_resource_id" ]; then
 	REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 	REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-	echo "Terraform storage account:            $REMOTE_STATE_SA"
+	echo "Terraform storage account:           $REMOTE_STATE_SA"
 	storage_account_parameter=" --storageaccountname ${REMOTE_STATE_SA} "
 
 	export REMOTE_STATE_SA
@@ -233,13 +233,13 @@ if [ -z "${TF_VAR_ansible_core_version}" ]; then
 fi
 
 if [ "$USE_WEBAPP" = "true" ]; then
-	echo "Deploy Web Application:               true"
+	echo "Deploy Web Application:              true"
 
 	if [ -z "$APP_REGISTRATION_APP_ID" ]; then
 		echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
 		exit 2
 	fi
-	echo "App Registration ID:                  $APP_REGISTRATION_APP_ID"
+	echo "App Registration Id:                 $APP_REGISTRATION_APP_ID"
 	TF_VAR_app_registration_app_id=$APP_REGISTRATION_APP_ID
 	export TF_VAR_app_registration_app_id
 
