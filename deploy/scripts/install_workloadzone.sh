@@ -742,25 +742,23 @@ echo ""
 allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
-	return_value=$?
-	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		if [ -f plan_output.log ]; then
-			rm plan_output.log
-		fi
-		exit $return_value
+terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log
+return_value=${PIPESTATUS[0]}
+if [ $return_value -eq 1 ]; then
+	echo ""
+	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	if [ -f plan_output.log ]; then
+		rm plan_output.log
 	fi
+	exit $return_value
 else
-	return_value=$?
 	echo ""
 	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
 	echo ""

@@ -897,23 +897,21 @@ fi
 
 allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
-# shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log; then
-	return_value=$?
-	echo "Terraform Plan return code:          $return_value"
+terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log
+return_value=${PIPESTATUS[0]}
+echo "Terraform Plan return code:          $return_value"
 
-	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		exit $return_value
-	fi
+if [ $return_value -eq 1 ]; then
+	echo ""
+	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	exit $return_value
 else
 	return_value=$?
 	echo "Terraform Plan return code:          $return_value"
@@ -1222,22 +1220,12 @@ if [ 1 == $apply_needed ]; then
 
 	if [ -n "${approve}" ]; then
 		# shellcheck disable=SC2086
-		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
-			return_value=$?
-		else
-			echo ""
-			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-			echo ""
-			return_value=0
-		fi
-
+		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json
+		return_value=${PIPESTATUS[0]}
 	else
 		# shellcheck disable=SC2086
-		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee -a apply_output.json; then
-			return_value=$?
-		else
-			return_value=0
-		fi
+		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee -a apply_output.json
+		return_value=${PIPESTATUS[0]}
 	fi
 
 	if [ $return_value -eq 1 ]; then
