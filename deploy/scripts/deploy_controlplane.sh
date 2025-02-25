@@ -204,6 +204,7 @@ deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
 
 if [ ! -f "$deployer_config_information" ]; then
 	if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
+	  echo "Copying existing configuration file"
 		sudo mv "${automation_config_directory}/${environment}${region_code}" "${deployer_config_information}"
 	fi
 fi
