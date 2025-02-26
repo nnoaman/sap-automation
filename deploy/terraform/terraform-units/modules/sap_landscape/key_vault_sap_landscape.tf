@@ -387,43 +387,6 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
 }
 
 //Witness access key
-resource "azurerm_key_vault_secret" "witness_name" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user,
-                                           time_sleep.wait_for_private_endpoints
-                                         ]
-  count                                = 1
-  content_type                         = "configuration"
-  name                                 = replace(
-                                           format("%s%s%s",
-                                             length(local.prefix) > 0 ? (
-                                               local.prefix) : (
-                                               var.infrastructure.environment
-                                             ),
-                                             var.naming.separator,
-                                             local.resource_suffixes.witness_name
-                                           ),
-                                           "/[^A-Za-z0-9-]/",
-                                           ""
-                                         )
-  value                                = length(var.witness_storage_account.arm_id) > 0 ? (
-                                           data.azurerm_storage_account.witness_storage[0].name) : (
-                                           azurerm_storage_account.witness_storage[0].name
-                                         )
-  key_vault_id                         = local.user_keyvault_exist ? (
-                                           data.azurerm_key_vault.kv_user[0].id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-}
-
-//Witness access key
 resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   provider                             = azurerm.main
   depends_on                           = [

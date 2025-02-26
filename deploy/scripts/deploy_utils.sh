@@ -180,6 +180,15 @@ function is_valid_guid() {
   fi
 }
 
+function is_valid_app_config_id() {
+  local id=$1
+	local type=$2
+  test=$(echo "$id" | grep "$type")
+  return $?
+}
+
+/subscriptions/dcb2713e-5dc8-4139-a9af-9768287bbb8d/resourceGroups/CPLN-NOEU-DEP01-INFRASTRUCTURE/providers/Microsoft.AppConfiguration/configurationStores/cplnnoeuapc748
+
 function getEnvVarValue() {
   local varName=$1
   local varValue=$(printenv $varName)

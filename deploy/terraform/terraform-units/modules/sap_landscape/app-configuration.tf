@@ -58,6 +58,28 @@ resource "azurerm_app_configuration_key" "VirtualNetworkResourceId" {
             }
 }
 
+resource "azurerm_app_configuration_key" "witness_name" {
+  provider                             = azurerm.deployer
+  configuration_store_id               = data.azurerm_app_configuration.app_config.id
+  key                                  = format("%s_WitnessStorageAccountName", var.naming.prefix.WORKLOAD_ZONE)
+  label                                = var.naming.prefix.WORKLOAD_ZONE
+  value                                = length(var.witness_storage_account.arm_id) > 0 ? (
+                                           data.azurerm_storage_account.witness_storage[0].name) : (
+                                           azurerm_storage_account.witness_storage[0].name
+                                         )
+  content_type                         = "text/plain"
+  type                                 = "kv"
+  tags                                 = {
+                                           "source" = "WorkloadZone"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
+}
 
 locals {
 
