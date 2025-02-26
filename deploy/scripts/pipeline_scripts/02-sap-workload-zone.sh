@@ -12,13 +12,11 @@ cyan="\e[1;36m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
+top_directory="$(dirname "$parent_directory")"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
-source "${parent_directory}/deploy_utils.sh"
-
-#call stack has full script name when using source
-source "${script_directory}/helper.sh"
+source "${top_directory}/deploy_utils.sh"
 
 DEBUG=False
 
