@@ -17,6 +17,7 @@ top_directory="$(dirname "$parent_directory")"
 #call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${top_directory}/deploy_utils.sh"
+source "${script_directory}/helper.sh"
 
 DEBUG=False
 
