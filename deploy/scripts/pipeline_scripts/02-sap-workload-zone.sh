@@ -192,6 +192,7 @@ if [ ! -f "${deployer_environment_file_name}" ]; then
 fi
 workload_zone_name="${ENVIRONMENT}-${LOCATION_CODE_IN_FILENAME}-${NETWORK}"
 echo "Workload Zone Name:                  $workload_zone_name"
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$workload_zone_name"
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --output none
@@ -228,37 +229,41 @@ echo -e "$green--- Read parameter values ---$reset"
 
 dos2unix -q "${deployer_environment_file_name}"
 
-landscape_tfstate_key=$WORKLOAD_ZONE_FOLDERNAME.terraform.tfstate
+landscape_tfstate_key="${WORKLOAD_ZONE_FOLDERNAME}.terraform.tfstate"
 export landscape_tfstate_key
-
-application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
-
-deployer_tfstate_key=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_StateFileName" "${CONTROL_PLANE_NAME}")
-if [ -z "$deployer_tfstate_key" ]; then
-	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_StateFileName' was not found in the application configuration ( '$application_configuration_name' )."
-	exit 2
-fi
+deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export deployer_tfstate_key
 
-key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/" ; then
+	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+	if [ -z "$key_vault_id" ]; then
+		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+	fi
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	if [ -z "$tfstate_resource_id" ]; then
+		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+	fi
+	workload_key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${workload_zone_name}_KeyVaultName" "${workload_zone_name}")
+else
+	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
+	load_config_vars "${workload_environment_file_name}" "keyvault"
+	key_vault="$keyvault"
+	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
+	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+fi
+
 if [ -z "$key_vault" ]; then
-	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultName' was not found in the application configuration ( '$application_configuration_name' )."
+	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
 	exit 2
 fi
-export key_vault
 
-key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
-if [ -z "$key_vault_id" ]; then
-	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
-	exit 2
-fi
-export TF_VAR_spn_keyvault_id=${key_vault_id}
-
-tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 if [ -z "$tfstate_resource_id" ]; then
-	echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+	echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
 	exit 2
 fi
+
+export TF_VAR_spn_keyvault_id=${key_vault_id}
 
 REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
@@ -269,7 +274,6 @@ export REMOTE_STATE_RG
 export STATE_SUBSCRIPTION
 export tfstate_resource_id
 
-workload_key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${workload_zone_name}_KeyVaultName" "${workload_zone_name}")
 
 export workload_key_vault
 

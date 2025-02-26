@@ -33,11 +33,12 @@ data "terraform_remote_state" "landscape"            {
                                                                        }
                                                      }
 
-data "azurerm_app_configuration_key" "media_path" {
-                                                             configuration_store_id = coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, ""))
-                                                             key                    = format("%s_SAPMediaPath", coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, "")))
-                                                             label                  = coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, ""))
-                                                           }
+data "azurerm_app_configuration_key" "media_path"    {
+                                                        count                  = length(coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, " "))) == 1 ? 0 : 1
+                                                        configuration_store_id = coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, " "))
+                                                        key                    = format("%s_SAPMediaPath", coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, "")))
+                                                        label                  = coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, ""))
+                                                      }
 
 
 data "azurerm_key_vault_secret" "subscription_id"    {
