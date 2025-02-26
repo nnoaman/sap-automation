@@ -180,7 +180,7 @@ function is_valid_guid() {
   fi
 }
 
-function is_valid_app_config_id() {
+function is_valid_id() {
   local id=$1
 	local type=$2
   test=$(echo "$id" | grep "$type")
