@@ -22,10 +22,14 @@ locals {
   db_zonal_deployment                 = length(try(local.database.zones, [])) > 0
 
   // Locate the tfstate storage account
-  saplib_subscription_id             = split("/", var.tfstate_resource_id)[2]
-  saplib_resource_group_name         = split("/", var.tfstate_resource_id)[4]
-  tfstate_storage_account_name       = split("/", var.tfstate_resource_id)[8]
-  tfstate_container_name             = module.sap_namegenerator.naming.resource_suffixes.tfstate
+
+
+  parsed_id                           = provider::azurerm::parse_resource_id(var.tfstate_resource_id)
+
+  SAPLibrary_subscription_id          = local.parsed_id["subscription_id"]
+  SAPLibrary_resource_group_name      = local.parsed_id["resource_group_name"]
+  tfstate_storage_account_name        = local.parsed_id["resource_name"]
+  tfstate_container_name              = module.sap_namegenerator.naming.resource_suffixes.tfstate
 
   // Retrieve the arm_id of deployer's Key Vault
   spn_key_vault_arm_id               = trimspace(coalesce(

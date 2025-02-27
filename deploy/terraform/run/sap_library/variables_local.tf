@@ -24,10 +24,12 @@ locals {
                                          ))
 
   // Locate the tfstate storage account
-  saplib_subscription_id               = split("/", var.tfstate_resource_id)[2]
-  saplib_resource_group_name           = split("/", var.tfstate_resource_id)[4]
-  tfstate_storage_account_name         = split("/", var.tfstate_resource_id)[8]
-  tfstate_container_name               = module.sap_namegenerator.naming.resource_suffixes.tfstate
+  parsed_id                           = provider::azurerm::parse_resource_id(var.tfstate_resource_id)
+
+  SAPLibrary_subscription_id          = local.parsed_id["subscription_id"]
+  SAPLibrary_resource_group_name      = local.parsed_id["resource_group_name"]
+  tfstate_storage_account_name        = local.parsed_id["resource_name"]
+  tfstate_container_name              = module.sap_namegenerator.naming.resource_suffixes.tfstate
   deployer_tfstate_key                 = length(var.deployer_tfstate_key) > 0 ? (
                                            var.deployer_tfstate_key) : (
                                            format("%s%s", local.deployer_rg_name, ".terraform.tfstate")
@@ -38,7 +40,7 @@ locals {
 
 
   spn                                  = {
-                                           subscription_id = local.use_spn ? coalesce(local.saplib_subscription_id, data.azurerm_key_vault_secret.subscription_id[0].value) : null,
+                                           subscription_id = local.use_spn ? coalesce(local.SAPLibrary_subscription_id, data.azurerm_key_vault_secret.subscription_id[0].value) : null,
                                            client_id       = local.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
                                            client_secret   = local.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
                                            tenant_id       = local.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null

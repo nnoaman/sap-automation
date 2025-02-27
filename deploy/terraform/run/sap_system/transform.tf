@@ -374,8 +374,8 @@ locals {
                                                       }
                                          }
 
-  subnet_db_arm_id                     = try(coalesce(var.db_subnet_arm_id, data.terraform_remote_state.landscape.outputs.db_subnet_id), "")
-  subnet_db_nsg_arm_id                 = try(coalesce(var.db_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.db_nsg_id), "")
+  subnet_db_arm_id                     = coalesce(var.db_subnet_arm_id, data.terraform_remote_state.landscape.outputs.db_subnet_id)
+  subnet_db_nsg_arm_id                 = coalesce(var.db_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.db_nsg_id)
 
   subnet_db                            = {
                                             "name"    = length(local.subnet_db_arm_id) > 0 ? (
@@ -391,8 +391,8 @@ locals {
                                                         "arm_id"  = local.subnet_db_nsg_arm_id
                                                       }
                                          }
-  subnet_app_arm_id                     = try(coalesce(var.app_subnet_arm_id, data.terraform_remote_state.landscape.outputs.app_subnet_id), "")
-  subnet_app_nsg_arm_id                 = try(coalesce(var.app_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.app_nsg_id), "")
+  subnet_app_arm_id                     = coalesce(var.app_subnet_arm_id, data.terraform_remote_state.landscape.outputs.app_subnet_id)
+  subnet_app_nsg_arm_id                 = coalesce(var.app_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.app_nsg_id)
 
   subnet_app                            = {
                                             "name"    = length(local.subnet_app_arm_id) > 0 ? (
@@ -597,13 +597,13 @@ all_subnets                          = merge(local.sap, (
     dns_settings                         = {
                                             use_custom_dns_a_registration                = var.use_custom_dns_a_registration
                                             dns_zone_names                               = var.dns_zone_names
-                                            management_dns_resourcegroup_name            = trimspace(coalesce(var.management_dns_resourcegroup_name, try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)," "))
+                                            management_dns_resourcegroup_name            = trimspace(coalesce(var.management_dns_resourcegroup_name, try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)," "))
                                             management_dns_subscription_id               = trimspace(coalesce(var.management_dns_subscription_id, try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, " ")," "))
 
 
                                             privatelink_dns_resourcegroup_name           = trimspace(coalesce(var.privatelink_dns_resourcegroup_name,
                                                                                              try(data.terraform_remote_state.landscape.outputs.privatelink_dns_resourcegroup_name,
-                                                                                               try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+                                                                                               try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)
                                                                                              ),
                                                                                              " "
                                                                                            ))

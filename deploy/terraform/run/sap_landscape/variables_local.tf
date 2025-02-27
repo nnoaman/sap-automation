@@ -19,10 +19,12 @@ locals {
 
 
   // Locate the tfstate storage account
-  saplib_subscription_id               = split("/", var.tfstate_resource_id)[2]
-  saplib_resource_group_name           = split("/", var.tfstate_resource_id)[4]
-  tfstate_storage_account_name         = split("/", var.tfstate_resource_id)[8]
-  tfstate_container_name               = module.sap_namegenerator.naming.resource_suffixes.tfstate
+  parsed_id                           = provider::azurerm::parse_resource_id(var.tfstate_resource_id)
+
+  SAPLibrary_subscription_id          = local.parsed_id["subscription_id"]
+  SAPLibrary_resource_group_name      = local.parsed_id["resource_group_name"]
+  tfstate_storage_account_name        = local.parsed_id["resource_name"]
+  tfstate_container_name              = module.sap_namegenerator.naming.resource_suffixes.tfstate
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
   spn_key_vault_arm_id                 = try(local.key_vault.keyvault_id_for_deployment_credentials,data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id)
@@ -30,7 +32,7 @@ locals {
   deployer_subscription_id             = coalesce(
                                            try(data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id,""),
                                            length(var.spn_keyvault_id) > 0 ? (split("/", var.spn_keyvault_id)[2]) : (""),
-                                           local.saplib_subscription_id
+                                           local.SAPLibrary_subscription_id
                                            )
 
   spn                                  = {
@@ -72,7 +74,7 @@ locals {
   is_DNS_info_different                = (
                                            var.management_dns_subscription_id != ((length(var.subscription_id) > 0) ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value)
                                            ) || (
-                                           var.management_dns_resourcegroup_name != (local.saplib_resource_group_name)
+                                           var.management_dns_resourcegroup_name != (local.SAPLibrary_resource_group_name)
                                          )
 
   control_plane_name                   = coalesce(var.control_plane_name, data.terraform_remote_state.deployer[0].outputs.control_plane_name)

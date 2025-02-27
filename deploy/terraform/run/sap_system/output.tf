@@ -123,7 +123,7 @@ output "management_dns_subscription_id" {
                                         }
 output "management_dns_resourcegroup_name" {
                                              description = "Resource group name for DNS resource group"
-                                             value       = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+                                             value       = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)
                                            }
 
 
