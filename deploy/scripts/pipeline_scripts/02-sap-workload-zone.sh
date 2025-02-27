@@ -22,12 +22,11 @@ source "${script_directory}/helper.sh"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-  set -x
-  set -o errexit
-  DEBUG=True
+	set -x
+	set -o errexit
+	DEBUG=True
 	echo "Environment variables:"
 	printenv | sort
-
 
 fi
 export DEBUG
@@ -226,6 +225,13 @@ if [ -z "${VARIABLE_GROUP_ID}" ]; then
 fi
 export VARIABLE_GROUP_ID
 
+az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value")
+if [ -z "${az_var}" ]; then
+	az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --value "$CONTROL_PLANE_NAME" --output none --only-show-errors
+else
+	az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --value "$CONTROL_PLANE_NAME" --output none --only-show-errors
+fi
+
 printf -v tempval '%s id:' "$VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
 echo "$val                 $VARIABLE_GROUP_ID"
@@ -243,7 +249,7 @@ export landscape_tfstate_key
 deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export deployer_tfstate_key
 
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/" ; then
+if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$key_vault_id" ]; then
@@ -283,7 +289,6 @@ export REMOTE_STATE_RG
 export STATE_SUBSCRIPTION
 export tfstate_resource_id
 
-
 export workload_key_vault
 
 echo "Deployer state filename:             $deployer_tfstate_key"
@@ -318,7 +323,6 @@ else
 fi
 secrets_set=$?
 echo "Set Secrets returned: $secrets_set"
-
 
 echo -e "$green--- Set Permissions ---$reset"
 
@@ -426,7 +430,6 @@ echo "Return code from deployment:         ${return_code}"
 cd "$CONFIG_REPO_PATH" || exit
 
 workload_prefix="${ENVIRONMENT}-${LOCATION_CODE_IN_FILENAME}-${NETWORK}"
-
 
 az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "FENCING_SPN_ID.value")
 if [ -z "${az_var}" ]; then

@@ -684,48 +684,48 @@ if [ 1 == $check_output ]; then
 			echo "#########################################################################################"
 			echo ""
 
-			# Remediating the Storage Accounts and File Shares
+			# # Remediating the Storage Accounts and File Shares
 
-			moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
-			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw storageaccount_name)
-			storage_account_rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw storageaccount_rg_name)
-			STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
-			export STORAGE_ACCOUNT_ID
+			# moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
+			# storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw storageaccount_name)
+			# storage_account_rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw storageaccount_rg_name)
+			# STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
+			# export STORAGE_ACCOUNT_ID
 
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
+			# ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
-			moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
-			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw witness_storage_account)
-			STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
-			export STORAGE_ACCOUNT_ID
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
+			# moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
+			# storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw witness_storage_account)
+			# STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
+			# export STORAGE_ACCOUNT_ID
+			# ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
-			moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
-			STORAGE_ACCOUNT_ID=$(terraform -chdir="${terraform_module_directory}" output -raw transport_storage_account_id | xargs | cut -d "=" -f2 | xargs)
-			export STORAGE_ACCOUNT_ID
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
+			# moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
+			# STORAGE_ACCOUNT_ID=$(terraform -chdir="${terraform_module_directory}" output -raw transport_storage_account_id | xargs | cut -d "=" -f2 | xargs)
+			# export STORAGE_ACCOUNT_ID
+			# ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
-			moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
-			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -raw install_path | xargs | cut -d "/" -f2 | xargs)
-			STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --query "id" --output tsv)
-			export STORAGE_ACCOUNT_ID
+			# moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
+			# storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -raw install_path | xargs | cut -d "/" -f2 | xargs)
+			# STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --query "id" --output tsv)
+			# export STORAGE_ACCOUNT_ID
 
-			resourceGroupName=$(az resource show --subscription "${subscription}" --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
-			resourceType=$(az resource show --subscription "${subscription}" --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
-			az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
-				--resource-group "${resourceGroupName}" --resource "${storage_account_name}" --resource-type "${resourceType}"
+			# resourceGroupName=$(az resource show --subscription "${subscription}" --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
+			# resourceType=$(az resource show --subscription "${subscription}" --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
+			# az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
+			# 	--resource-group "${resourceGroupName}" --resource "${storage_account_name}" --resource-type "${resourceType}"
 
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
-			unset STORAGE_ACCOUNT_ID
+			# ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+			# unset STORAGE_ACCOUNT_ID
 
-			moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
+			# moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
+			# ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
-			moduleID='module.sap_landscape.azurerm_storage_share.install[0]'
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
+			# moduleID='module.sap_landscape.azurerm_storage_share.install[0]'
+			# ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
-			moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]'
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
+			# moduleID='module.sap_landscape.azurerm_storage_share.install_smb[0]'
+			# ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
 
 		fi
 	fi
@@ -1061,6 +1061,24 @@ if [ "${container_exists}" == "false" ]; then
 		az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
 	else
 		az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --auth-mode login --only-show-errors
+	fi
+fi
+
+if [ "$useSAS" = "true" ]; then
+	az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" \
+		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+else
+	az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" \
+		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --auth-mode login --only-show-errors --output none
+fi
+
+if [ -f .terraform/terraform.tfstate ]; then
+	if [ "$useSAS" = "true" ]; then
+		az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/LANDSCAPE/${key}/.terraform" --name terraform.tfstate \
+			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+	else
+		az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/LANDSCAPE/${key}/.terraform" --name terraform.tfstate \
+			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 fi
 
