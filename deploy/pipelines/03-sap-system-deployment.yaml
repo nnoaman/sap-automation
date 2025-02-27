@@ -69,5 +69,5 @@ stages:
               WL_ARM_CLIENT_SECRET:     $(ARM_CLIENT_SECRET)
               WL_ARM_SUBSCRIPTION_ID:   $(ARM_SUBSCRIPTION_ID)
               WL_ARM_TENANT_ID:         $(ARM_TENANT_ID)
-
+              WORKLOAD_ZONE_NAME:       ${{ parameters.environment }}
 

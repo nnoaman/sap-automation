@@ -175,7 +175,7 @@ if [ "$SID" != "$SID_IN_FILENAME" ]; then
 	exit 2
 fi
 
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -218,7 +218,7 @@ export STATE_SUBSCRIPTION
 workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${workload_environment_file_name}" "workloadkeyvault" || true)
 export workload_key_vault
 
-landscape_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key" || true)
+landscape_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${workload_environment_file_name}" "landscape_tfstate_key" || true)
 export landscape_tfstate_key
 
 echo "Deployer statefile:                  $deployer_tfstate_key"
