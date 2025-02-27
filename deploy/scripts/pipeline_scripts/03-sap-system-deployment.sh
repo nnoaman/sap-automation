@@ -7,13 +7,18 @@ reset="\e[0m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
-#External helper functions
+# External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+top_directory="$(dirname "$parent_directory")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${parent_directory}/deploy_utils.sh"
 source "${script_directory}/helper.sh"
+
 
 DEBUG=False
 

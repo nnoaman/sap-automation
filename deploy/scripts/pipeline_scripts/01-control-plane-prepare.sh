@@ -38,6 +38,11 @@ mkdir -p .sap_deployment_automation
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
 
+if [ -z $CONTROL_PLANE_NAME ]; then
+	CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
+	export $CONTROL_PLANE_NAME
+fi
+
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
@@ -348,10 +353,7 @@ fi
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
 
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$LOCATION"
 
 fi
 exit $return_code

@@ -33,36 +33,6 @@ fi
 export DEBUG
 set -eu
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-
-CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
-
-application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
-
-deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
-deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
-if [ -f "${deployer_environment_file_name}" ]; then
-	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-	echo "Step:                                $step"
-fi
-
-file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
-file_key_vault=""
-file_REMOTE_STATE_SA=""
-file_REMOTE_STATE_RG=$DEPLOYER_FOLDERNAME
-REMOTE_STATE_SA=""
-REMOTE_STATE_RG=$DEPLOYER_FOLDERNAME
-sourced_from_file=0
-
-if [[ -f /etc/profile.d/deploy_server.sh ]]; then
-	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export PATH=$PATH:$path
-fi
-
 echo -e "$green--- File Validations ---$reset"
 
 if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
@@ -76,6 +46,36 @@ if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILEN
 	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
+
+
+ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
+
+if [ -z $CONTROL_PLANE_NAME ]; then
+	CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
+	export $CONTROL_PLANE_NAME
+fi
+
+application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
+
+deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+if [ -f "${deployer_environment_file_name}" ]; then
+	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+	echo "Step:                                $step"
+fi
+
+REMOTE_STATE_SA=""
+REMOTE_STATE_RG=$DEPLOYER_FOLDERNAME
+
+if [[ -f /etc/profile.d/deploy_server.sh ]]; then
+	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export PATH=$PATH:$path
+fi
+
 
 echo -e "$green--- Information ---$reset"
 echo "Environment:                         ${ENVIRONMENT}"
@@ -305,12 +305,12 @@ fi
 
 export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
-sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh"
+sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_control_plane_v2.sh"
 if [ "$USE_MSI" != "true" ]; then
 
 	export TF_VAR_use_spn=true
 
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_control_plane_v2.sh" \
 		--deployer_parameter_file "${deployer_configuration_file}" \
 		--library_parameter_file "${library_configuration_file}" \
 		--subscription "$ARM_SUBSCRIPTION_ID" \
@@ -319,21 +319,21 @@ if [ "$USE_MSI" != "true" ]; then
 		--auto-approve --ado \
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
 		return_code=$?
-		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
+		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
 		echo "Return code from deploy_controlplane $return_code."
 	fi
 else
 	export TF_VAR_use_spn=false
 
-	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
+	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" \
 		--deployer_parameter_file "${deployer_configuration_file}" \
 		--library_parameter_file "${library_configuration_file}" \
 		--subscription "$ARM_SUBSCRIPTION_ID" \
 		--auto-approve --ado --msi \
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
 		return_code=$?
-		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
-		echo "Return code from deploy_controlplane $return_code."
+		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
+		echo "Return code from deploy_control_plane_v2 $return_code."
 	fi
 
 fi
