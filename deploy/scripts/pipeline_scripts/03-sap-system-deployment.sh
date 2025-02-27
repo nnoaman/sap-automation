@@ -134,8 +134,14 @@ NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $3}')
 
 SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
 
+WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
+landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+export landscape_tfstate_key
+
 echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
 echo "Environment:                         $ENVIRONMENT"
+echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
+echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
 echo "Location:                            $LOCATION"
 echo "Network:                             $NETWORK"
 echo "SID:                                 $SID"
@@ -203,23 +209,51 @@ dos2unix -q "${workload_environment_file_name}"
 
 prefix="${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 
-deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key" || true)
+deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${workload_environment_file_name}" "keyvault" || true)
-export key_vault
+if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+	if [ -z "$key_vault_id" ]; then
+		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+	fi
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	if [ -z "$tfstate_resource_id" ]; then
+		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+	fi
+	workload_key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${workload_zone_name}_KeyVaultName" "${workload_zone_name}")
+else
+	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
+	load_config_vars "${workload_environment_file_name}" "keyvault"
+	key_vault="$keyvault"
+	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
+	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+fi
 
-REMOTE_STATE_SA=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA" || true)
+if [ -z "$key_vault" ]; then
+	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	exit 2
+fi
+
+if [ -z "$tfstate_resource_id" ]; then
+	echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	exit 2
+fi
+
+export TF_VAR_spn_keyvault_id=${key_vault_id}
+
+REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+
 export REMOTE_STATE_SA
-
-STATE_SUBSCRIPTION=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${workload_environment_file_name}" "STATE_SUBSCRIPTION" || true)
+export REMOTE_STATE_RG
 export STATE_SUBSCRIPTION
+export tfstate_resource_id
 
-workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${workload_environment_file_name}" "workloadkeyvault" || true)
 export workload_key_vault
 
-landscape_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${workload_environment_file_name}" "landscape_tfstate_key" || true)
-export landscape_tfstate_key
 
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
