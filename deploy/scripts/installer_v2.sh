@@ -18,6 +18,28 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
+# Fail on any error, undefined variable, or pipeline failure
+set -euo pipefail
+
+# Enable debug mode if DEBUG is set to 'true'
+[[ "${DEBUG:-false}" == 'true' ]] && set -x
+
+# Constants
+script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+readonly script_directory
+
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
+
+CONFIG_REPO_PATH="${script_directory}/.."
+CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+readonly CONFIG_DIR
+
+if [[ -f /etc/profile.d/deploy_server.sh ]]; then
+	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export PATH=$path
+fi
+
 function showhelp {
 	echo ""
 	echo "#########################################################################################"
@@ -219,10 +241,32 @@ parse_arguments() {
 		esac
 	done
 
-	 # Validate required parameters
-  [[ -z "$CONTROL_PLANE_NAME" ]] && { print_banner "Deploy-Controlplane" "control_plane_name is required" "error"; exit 1; }
-  [[ -z "$APPLICATION_CONFIGURATION_ID" ]] && { print_banner "Deploy-Controlplane" "application_configuration_id is required" "error"; exit 1; }
-  [[ -z "$deployment_system" ]] && { print_banner "Deploy-Controlplane" "type is required" "error"; exit 1; }
+	# Validate required parameters
+
+	parameterfile_name=$(basename "${parameterfile}")
+	param_dirname=$(dirname "${parameterfile}")
+
+	if [ "${param_dirname}" != '.' ]; then
+			print_banner "Installer" "Please run this command from the folder containing the parameter file" "error"
+	fi
+
+	if [ ! -f "${parameterfile}" ]; then
+		print_banner "Installer" "Parameter file does not exist: ${parameterfile}" "error"
+	fi
+
+	[[ -z "$CONTROL_PLANE_NAME" ]] && {
+		print_banner "Installer" "control_plane_name is required" "error"
+		exit 1
+	}
+	[[ -z "$APPLICATION_CONFIGURATION_ID" ]] && {
+		print_banner "Installer" "application_configuration_id is required" "error"
+		exit 1
+	}
+
+	[[ -z "$deployment_system" ]] && {
+		print_banner "Installer" "type is required" "error"
+		exit 1
+	}
 
 	if [ -z $CONTROL_PLANE_NAME ] && [ -n "$deployer_tfstate_key" ]; then
 		CONTROL_PLANE_NAME=$(echo $deployer_tfstate_key | cut -d'-' -f1-3)
@@ -239,15 +283,51 @@ parse_arguments() {
 	if [ -n "$WORKLOAD_ZONE_NAME" ] && [ -z $landscape_tfstate_key ]; then
 		landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 	fi
+
+	# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
+	if ! validate_exports; then
+		exit $?
+	fi
+
+	# Check that Terraform and Azure CLI is installed
+	if ! validate_dependencies; then
+		exit $?
+	fi
+
+	# Check that parameter files have environment and location defined
+	if ! validate_key_parameters "$parameterfile_name" ; then
+		exit $?
+	fi
+
+	network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3 )
+	management_network_logical_name=$(echo $CONTROL_PLANE_NAME | cut -d'-' -f3 )
+
+  if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
+		system_config_information="${CONFIG_DIR}${WORKLOAD_ZONE_NAME}"
+	else
+		system_config_information="${CONFIG_DIR}${CONTROL_PLANE_NAME}"
+	fi
+	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
+	if valid_region_name "${region}"; then
+		# Convert the region to the correct code
+		get_region_code "${region}"
+	else
+		echo "Invalid region: $region"
+		exit 2
+	fi
+
+	return 0
+
+
 }
 main() {
 
+	landscape_tfstate_key_exists=false
 	called_from_ado=0
 
 	# Define an array of helper scripts
 	helper_scripts=(
 		"${script_directory}/helpers/script_helpers.sh"
-		"${script_directory}/helpers/common_utils.sh"
 		"${script_directory}/deploy_utils.sh"
 	)
 
@@ -270,107 +350,7 @@ main() {
 	echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
 	echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
 
-	landscape_tfstate_key_exists=false
-
-	parameterfile_name=$(basename "${parameterfile}")
-	param_dirname=$(dirname "${parameterfile}")
-
-	if [ "${param_dirname}" != '.' ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#  $bold_red Please run this command from the folder containing the parameter file $reset_formatting              #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		exit 3
-	fi
-
-	if [ ! -f "${parameterfile}" ]; then
-		printf -v val %-35.35s "$parameterfile"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                 $bold_red  Parameter file does not exist: ${val} $reset_formatting #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-
-		echo "Parameter file does not exist: ${val}" >"${system_config_information}".err
-
-		exit 2 #No such file or directory
-	fi
-
-	if [ -z "${deployment_system}" ]; then
-		printf -v val %-40.40s "$deployment_system"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#  $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
-		echo "#                                                                                       #"
-		echo "#     Valid options are:                                                                #"
-		echo "#       sap_deployer                                                                    #"
-		echo "#       sap_library                                                                     #"
-		echo "#       sap_landscape                                                                   #"
-		echo "#       sap_system                                                                      #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		exit 64 #script usage wrong
-	fi
-
-	# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
-	validate_exports
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo "Missing exports" >"${system_config_information}".err
-		exit $return_code
-	fi
-
-	# Check that Terraform and Azure CLI is installed
-	validate_dependencies
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo "Missing software" >"${system_config_information}".err
-		exit $return_code
-	fi
-
-	# Check that parameter files have environment and location defined
-	validate_key_parameters "$parameterfile_name"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo "Missing parameters in $parameterfile_name" >"${system_config_information}".err
-		exit $return_code
-	fi
-
-	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
-	if valid_region_name "${region}"; then
-		# Convert the region to the correct code
-		get_region_code "${region}"
-	else
-		echo "Invalid region: $region"
-		exit 2
-	fi
 	key=$(echo "${parameterfile_name}" | cut -d. -f1)
-
-	network_logical_name=""
-
-	if [ "${deployment_system}" == sap_system ]; then
-		load_config_vars "$parameterfile_name" "network_logical_name"
-		network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
-	fi
-
-	if [ "${deployment_system}" == sap_deployer ]; then
-		load_config_vars "$parameterfile_name" "management_network_logical_name"
-		network_logical_name=$(echo "${management_network_logical_name}" | tr "[:lower:]" "[:upper:]")
-	fi
-
-	#Persisting the parameters across executions
-
-	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-	generic_config_information="${automation_config_directory}"config
-	if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
-		system_config_information="${automation_config_directory}${WORKLOAD_ZONE_NAME}"
-	else
-		system_config_information="${automation_config_directory}${CONTROL_PLANE_NAME}"
-	fi
 
 	echo "Configuration file:                  $system_config_information"
 	echo "Deployment region:                   $region"
@@ -406,7 +386,7 @@ main() {
 	param_dirname=$(pwd)
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
+	init "${CONFIG_DIR}" "${generic_config_information}" "${system_config_information}"
 
 	tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 	TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -1614,7 +1594,7 @@ main() {
 		fi
 	fi
 	if [ "${deployment_system}" == sap_library ]; then
-		deployer_config_information="${automation_config_directory}/${CONTROL_PLANE_NAME}"
+		deployer_config_information="${CONFIG_DIR}/${CONTROL_PLANE_NAME}"
 		if [ "$useSAS" = "true" ]; then
 			az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${CONTROL_PLANE_NAME}" \
 				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
