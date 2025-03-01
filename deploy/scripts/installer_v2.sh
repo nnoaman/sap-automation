@@ -128,8 +128,8 @@ parse_arguments() {
 		exit 1
 	fi
 
-	eval set -- "$INPUT_ARGUMENTS"
-	while :; do
+	eval set -- "$input_opts"
+	while true; do
 		case "$1" in
 		-a | --ado)
 			called_from_ado=1
@@ -303,6 +303,8 @@ parse_arguments() {
 		echo "Invalid region: $region"
 		exit 2
 	fi
+
+
 
 	return 0
 
@@ -602,7 +604,7 @@ main() {
 				exit $return_value
 			else
 				return_value=$?
-  			print_banner "Installer" "Terraform local init succeeded" "info"
+				print_banner "Installer" "Terraform local init succeeded" "info"
 			fi
 
 			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
@@ -614,7 +616,7 @@ main() {
 				--backend-config "container_name=tfstate" \
 				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
-  			print_banner "Installer" "Terraform init succeeded" "info"
+				print_banner "Installer" "Terraform init succeeded" "info"
 
 				allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 			else
@@ -644,13 +646,13 @@ main() {
 
 	if [ 1 -eq "$check_output" ]; then
 		if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-		  print_banner "Installer" "New deployment" "info"
+			print_banner "Installer" "New deployment" "info"
 			deployment_parameter=" -var deployment=new "
 			new_deployment=0
 			check_output=0
 
 		else
-		  print_banner "Installer" "Existing deployment was detected" "info"
+			print_banner "Installer" "Existing deployment was detected" "info"
 			deployment_parameter=""
 			new_deployment=0
 			check_output=true
@@ -684,7 +686,7 @@ main() {
 		else
 			version_parameter="-var terraform_template_version=${deployed_using_version}"
 
-   	  print_banner "Installer" "Deployed using the Terraform templates version: $deployed_using_version" "info"
+			print_banner "Installer" "Deployed using the Terraform templates version: $deployed_using_version" "info"
 
 			# version_compare "${deployed_using_version}" "3.13.2.0"
 			# older_version=$?
@@ -963,11 +965,11 @@ main() {
 		fi
 
 		if [ $return_value -eq 1 ]; then
-		  print_banner "Installer" "Terraform apply failed" "error"
+			print_banner "Installer" "Terraform apply failed" "error"
 			exit $return_value
 		elif [ $return_value -eq 2 ]; then
 			# return code 2 is ok
-		  print_banner "Installer" "Terraform apply succeeded" "info"
+			print_banner "Installer" "Terraform apply succeeded" "info"
 			return_value=0
 		else
 			print_banner "Installer" "Terraform apply succeeded" "info"
@@ -1080,7 +1082,6 @@ main() {
 
 	fi
 
-
 	if [ "${deployment_system}" == sap_library ]; then
 		terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 		sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
@@ -1102,7 +1103,6 @@ main() {
 	fi
 
 	unset TF_DATA_DIR
-
 
 	echo ""
 	echo "#########################################################################################"
