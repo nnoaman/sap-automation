@@ -9,10 +9,6 @@ bold_red="\e[1;31m"
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
-script_directory_parent="$(dirname "${script_directory}")"
-
-#call stack has full scriptname when using source
-source "${script_directory_parent}"/deploy_utils.sh
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
