@@ -117,53 +117,6 @@ source_helper_scripts() {
 	done
 }
 
-print_banner() {
-	local title="$1"
-	local message="$2"
-	local type="${3:-info}"
-
-	local boldred="\e[1;31m"
-	local cyan="\e[1;36m"
-	local green="\e[1;32m"
-	local reset="\e[0m"
-
-	local color
-	case "$type" in
-	error)
-		color="$boldred"
-		;;
-	success)
-		color="$green"
-		;;
-	info)
-		color="$cyan"
-		;;
-	*)
-		color="$cyan"
-		;;
-	esac
-
-	local width=80
-	local padding_title=$(((width - ${#title}) / 2))
-	local padding_message=$(((width - ${#message}) / 2))
-
-	local centered_title
-	local centered_message
-	centered_title=$(printf "%*s%s%*s" $padding_title "" "$title" $padding_title "")
-	centered_message=$(printf "%*s%s%*s" $padding_message "" "$message" $padding_message "")
-
-	echo ""
-	echo -e "${color}"
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#${centered_title}#"
-	echo "#                                                                                       #"
-	echo -e "#${centered_message}#"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo -e "${reset}"
-	echo ""
-}
 
 # Function to parse command line arguments
 parse_arguments() {
