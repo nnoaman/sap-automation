@@ -69,14 +69,32 @@ steps:
     fi
 
     set -eu
+    prefix=$(echo $SSH_KEY_NAME | cut -d'-' -f1-3)
+    prefix2=echo ${prefix//-/}
+    suffix=$(echo $SSH_KEY_NAME | cut -d'-' -f4-6)
 
     if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
       echo "##[section]Retrieving sshkey..."
-      az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv > "$PARAMETERS_FOLDER/sshkey"
-      sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
+      name=$(az keyvault secret list --vault-name $VAULT_NAME --query "[?name=='$SSH_KEY_NAME'].name | [0]" --output tsv)
+      if [ -n "$name" ]; then
+        az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv > "$PARAMETERS_FOLDER/sshkey"
+        sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
+      else
+        az keyvault secret show --name "${prefix2}${suffix}" --vault-name "$VAULT_NAME" --query value -o tsv > "$PARAMETERS_FOLDER/sshkey"
+        sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
+      fi
     fi
 
-    password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv)
+
+    prefix=$(echo $PASSWORD_KEY_NAME | cut -d'-' -f1-3)
+    prefix2=echo ${prefix//-/}
+    suffix=$(echo $PASSWORD_KEY_NAME | cut -d'-' -f4-6)
+    name=$(az keyvault secret list --vault-name $VAULT_NAME --query "[?name=='$PASSWORD_KEY_NAME'].name | [0]" --output tsv)
+    if [ -n "$name" ]; then
+      password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv)
+    else
+      password_secret=$(az keyvault secret show --name "${prefix2}${suffix}" --vault-name "$VAULT_NAME" --query value -o tsv)
+    fi
 
     echo "Extra parameters passed: " "$EXTRA_PARAMS"
 
