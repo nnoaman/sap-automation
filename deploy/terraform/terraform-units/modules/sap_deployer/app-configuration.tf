@@ -152,3 +152,46 @@ resource "azurerm_app_configuration_key" "deployer_subscription_id" {
               ]
             }
 }
+
+resource "azurerm_app_configuration_key" "web_application_resource_id" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_application_configuration ? var.use_webapp ? 1 :0 : 0
+  configuration_store_id               = try(azurerm_windows_web_app.webapp[0].id, "")
+  key                                  = format("%s_AppServiceId", var.state_filename_prefix)
+  label                                = var.state_filename_prefix
+  value                                = data.azurerm_subscription.primary.subscription_id
+  content_type                         = "text/id"
+  type                                 = "kv"
+  tags                                 = {
+                                           "source" = "Deployer"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
+}
+
+resource "azurerm_app_configuration_key" "deployer_msi_id" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
+  configuration_store_id               = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+  key                                  = format("%s_Deployer_MSI_Id", var.state_filename_prefix)
+  label                                = var.state_filename_prefix
+  value                                = data.azurerm_subscription.primary.subscription_id
+  content_type                         = "text/id"
+  type                                 = "kv"
+  tags                                 = {
+                                           "source" = "Deployer"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
+}
+
