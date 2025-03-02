@@ -270,6 +270,22 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
                                            )
 }
 
+resource "azurerm_storage_container" "storagecontainer_tfvars" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           azurerm_private_endpoint.storage_tfstate,
+                                         ]
+  name                                 = "tfvars"
+
+  storage_account_id                   = local.sa_tfstate_exists ? (
+                                             data.azurerm_storage_account.storage_tfstate[0].id) : (
+                                             azurerm_storage_account.storage_tfstate[0].id
+                                           )
+
+  container_access_type                = "private"
+}
+
+
 ##############################################################################################
 #
 #  SAPBits storage account which is used to store the SAP media and the BoM files

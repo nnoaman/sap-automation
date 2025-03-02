@@ -304,8 +304,6 @@ parse_arguments() {
 		exit 2
 	fi
 
-
-
 	return 0
 
 }
@@ -590,7 +588,6 @@ main() {
 
 	else
 		new_deployment=1
-		check_output=1
 
 		local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
 		if [ -n "$local_backend" ]; then
@@ -628,7 +625,6 @@ main() {
 			echo "Terraform state:                     remote"
 			print_banner "Installer" "The system has already been deployed and the state file is in Azure" "info"
 
-			check_output=1
 			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
 				--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 				--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
@@ -645,18 +641,15 @@ main() {
 		fi
 	fi
 
-	if [ 1 -eq "$check_output" ]; then
+	if [ 1 -eq "$new_deployment" ]; then
 		if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 			print_banner "Installer" "New deployment" "info"
 			deployment_parameter=" -var deployment=new "
 			new_deployment=0
-			check_output=0
-
 		else
 			print_banner "Installer" "Existing deployment was detected" "info"
 			deployment_parameter=""
 			new_deployment=0
-			check_output=true
 		fi
 	fi
 
@@ -705,24 +698,14 @@ main() {
 		fi
 	fi
 
-	print_banner "Installer" "Terraform plan: $deployed_using_version" "info"
-
 	allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
 	terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log
 	return_value=${PIPESTATUS[0]}
 	echo "Terraform Plan return code:          $return_value"
 
-	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+	if [ 1 -eq $return_value ]; then
+		print_banner "Installer" "Error when running plan" "error"
 		exit $return_value
 	else
 		echo ""
@@ -734,44 +717,41 @@ main() {
 	apply_needed=1
 
 	state_path="SYSTEM"
-	if [ 1 != $return_value ]; then
 
-		if [ "${deployment_system}" == sap_deployer ]; then
-			state_path="DEPLOYER"
+	if [ "${deployment_system}" == sap_deployer ]; then
+		state_path="DEPLOYER"
 
-			if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-				deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
+			deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
 
-				keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-				if [ -n "$keyvault" ]; then
-					save_config_var "keyvault" "${system_config_information}"
-				fi
-
+			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+			if [ -n "$keyvault" ]; then
+				save_config_var "keyvault" "${system_config_information}"
 			fi
 
 		fi
-
-		if [ "${deployment_system}" == sap_landscape ]; then
-			state_path="LANDSCAPE"
-			if [ $landscape_tfstate_key_exists == false ]; then
-				save_config_vars "${system_config_information}" \
-					landscape_tfstate_key
-			fi
-		fi
-
-		if [ "${deployment_system}" == sap_library ]; then
-			state_path="LIBRARY"
-			if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-				tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
-				save_config_vars "${system_config_information}" \
-					tfstate_resource_id
-			fi
-		fi
-
-		apply_needed=1
 
 	fi
+
+	if [ "${deployment_system}" == sap_landscape ]; then
+		state_path="LANDSCAPE"
+		if [ $landscape_tfstate_key_exists == false ]; then
+			save_config_vars "${system_config_information}" \
+				landscape_tfstate_key
+		fi
+	fi
+
+	if [ "${deployment_system}" == sap_library ]; then
+		state_path="LIBRARY"
+		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+			tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
+			save_config_vars "${system_config_information}" \
+				tfstate_resource_id
+		fi
+	fi
+
+	apply_needed=1
 
 	if [ "$useSAS" = "true" ]; then
 		container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists)
