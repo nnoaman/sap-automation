@@ -263,7 +263,7 @@ export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
 set +eu
 
 if [ "$USE_MSI" != "true" ]; then
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
+	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane_v2.sh" \
 		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
 		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" \
@@ -271,7 +271,7 @@ if [ "$USE_MSI" != "true" ]; then
 		--auto-approve --ado --only_deployer
 
 else
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
+	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane_v2.sh" \
 		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
 		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi

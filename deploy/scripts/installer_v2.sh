@@ -1040,7 +1040,7 @@ main() {
 	fi
 
 	unset TF_DATA_DIR
-	print_banner "Installer" "Deployment completed" "success"
+	print_banner "Installer" "Deployment completed." "success"
 
 	exit 0
 }
