@@ -266,9 +266,8 @@ if [ "$USE_MSI" != "true" ]; then
 	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane_v2.sh" \
 		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
 		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" \
-		--spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" \
-		--auto-approve --ado --only_deployer
+		--subscription "$ARM_SUBSCRIPTION_ID"
+	--auto-approve --ado --only_deployer
 
 else
 	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane_v2.sh" \
@@ -293,6 +292,11 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Deployer Key Vault:                  ${file_key_vault}"
+	echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+	if [ "$USE_MSI" != "true" ]; then
+		"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --environment "${ENVIRONMENT}" --vault ${file_key_vault} \
+			--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado
+	fi
 
 	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then

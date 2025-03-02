@@ -64,7 +64,7 @@ source_helper_scripts() {
 # Function to parse command line arguments
 parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n deploy_controlplane_v2 -o d:l:s:c:p:t:a:k:ifohrvm --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
+	input_opts=$(getopt -n deploy_controlplane_v2 -o d:l:s:c:p:t:a:k:ifohrvm --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -74,12 +74,8 @@ parse_arguments() {
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
-		-a | --storage_account_name)
-			REMOTE_STATE_SA="$2"
-			shift 2
-			;;
-		-c | --spn_id)
-			client_id="$2"
+		-t | --terraform_storage_account_name)
+			terraform_storage_account_name="$2"
 			shift 2
 			;;
 		-d | --deployer_parameter_file)
@@ -98,16 +94,8 @@ parse_arguments() {
 			only_deployer=1
 			shift
 			;;
-		-p | --spn_secret)
-			client_secret="$2"
-			shift 2
-			;;
 		-s | --subscription)
 			subscription="$2"
-			shift 2
-			;;
-		-t | --tenant_id)
-			tenant_id="$2"
 			shift 2
 			;;
 		-f | --force)
@@ -255,6 +243,7 @@ bootstrap_deployer() {
 	cd "$root_dirname" || exit
 	exit $return_code
 }
+
 function validate_keyvault_access {
 
 	##########################################################################################
@@ -313,36 +302,14 @@ function validate_keyvault_access {
 
 		else
 			return_code=$?
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       $bold_red  Key vault not found $reset_formatting                                      #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			print_banner "Key Vault" "Key vault not found" "error"
 		fi
 
 	fi
+	step=2
+	save_config_var "step" "${deployer_config_information}"
 
 	cd "${deployer_dirname}" || exit
-
-	if [ 1 -eq $step ] && [ -n "$client_secret" ]; then
-
-		if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
-			--environment "${environment}" \
-			--region "${region_code}" \
-			--vault "${keyvault}" \
-			--spn_id "${client_id}" \
-			--spn_secret "${client_secret}" \
-			--tenant_id "${tenant_id}"; then
-			echo ""
-			echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
-			echo ""
-			step=2
-			save_config_var "step" "${deployer_config_information}"
-		else
-			echo -e "${bold_red}Set secrets:                           failed$reset_formatting"
-			exit 10
-		fi
-	fi
 
 	unset TF_DATA_DIR
 
@@ -411,18 +378,18 @@ function bootstrap_library {
 
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-			if [ -z "$REMOTE_STATE_SA" ]; then
+			if [ -z "$terraform_storage_account_name" ]; then
 				REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
 			fi
-			if [ -z "$REMOTE_STATE_SA" ]; then
-				REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+			if [ -z "$terraform_storage_account_name" ]; then
+				terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 			fi
 			if [ -z "$STATE_SUBSCRIPTION" ]; then
 				STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
 			fi
 
 			if [ "${ado_flag}" != "--ado" ]; then
-				az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
+				az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${terraform_storage_account_name}" --ip-address "${this_ip}" --output none
 			fi
 
 			TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
@@ -432,7 +399,7 @@ function bootstrap_library {
 		if [ -n "${tfstate_resource_id}" ]; then
 			TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 		else
-			tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+			tfstate_resource_id=$(az resource list --name "$terraform_storage_account_name" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 		fi
 		export TF_VAR_tfstate_resource_id
@@ -613,8 +580,8 @@ main() {
 	echo ""
 
 	if [ $recover == 1 ]; then
-		if [ -n "$REMOTE_STATE_SA" ]; then
-			getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${deployer_config_information}"
+		if [ -n "$terraform_storage_account_name" ]; then
+			getAndStoreTerraformStateStorageAccountDetails "${terraform_storage_account_name}" "${deployer_config_information}"
 			#Support running deploy_controlplane on new host when the resources are already deployed
 			step=3
 			save_config_var "step" "${deployer_config_information}"
@@ -647,21 +614,21 @@ main() {
 
 		cd "${deployer_dirname}" || exit
 
-		if [ -z "$REMOTE_STATE_SA" ]; then
+		if [ -z "$terraform_storage_account_name" ]; then
 			if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
 				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
 				export TF_VAR_tfstate_resource_id
 
-				REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 				STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 				REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 				ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 			fi
 		fi
 
-		if [[ -z $REMOTE_STATE_SA ]]; then
-			load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
+		if [[ -z $terraform_storage_account_name ]]; then
+			load_config_vars "${deployer_config_information}" "terraform_storage_account_name"
 		fi
 
 		if [[ -z $STATE_SUBSCRIPTION ]]; then
@@ -672,7 +639,7 @@ main() {
 			load_config_vars "${deployer_config_information}" "ARM_SUBSCRIPTION_ID"
 		fi
 
-		if [ -z "${REMOTE_STATE_SA}" ]; then
+		if [ -z "${terraform_storage_account_name}" ]; then
 			export step=2
 			save_config_var "step" "${deployer_config_information}"
 			echo "##vso[task.setprogress value=40;]Progress Indicator"
@@ -688,12 +655,12 @@ main() {
 		fi
 
 		echo "Calling installer.sh with:          --parameterfile ${deployer_parameter_file_name} \
-  --storage_account_name ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
+  --storage_account_name ${terraform_storage_account_name} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
 
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
 			--type sap_deployer \ --control_plane_name "${CONTROL_PLANE_NAME}" \
 			--parameterfile ${deployer_parameter_file_name} \
-			--storage_account_name "${REMOTE_STATE_SA}" \
+			--storage_account_name "${terraform_storage_account_name}" \
 			$ado_flag \
 			"${autoApproveParameter}"; then
 
@@ -747,12 +714,12 @@ main() {
 		terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
 		cd "${library_dirname}" || exit
 
-		echo "Calling installer.sh with: --type sap_library --parameterfile ${library_parameter_file_name} --storage_account_name ${REMOTE_STATE_SA}  --deployer_tfstate_key ${deployer_tfstate_key} ${autoApproveParameter} ${ado_flag}"
+		echo "Calling installer.sh with: --type sap_library --parameterfile ${library_parameter_file_name} --storage_account_name ${terraform_storage_account_name}  --deployer_tfstate_key ${deployer_tfstate_key} ${autoApproveParameter} ${ado_flag}"
 
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
 			--type sap_library \
 			--parameterfile "${library_parameter_file_name}" \
-			--storage_account_name "${REMOTE_STATE_SA}" \
+			--storage_account_name "${terraform_storage_account_name}" \
 			--deployer_tfstate_key "${deployer_tfstate_key}" \
 			$ado_flag \
 			$autoApproveParameter; then
@@ -783,7 +750,7 @@ main() {
 
 	printf -v kvname '%-40s' "${keyvault}"
 	printf -v dep_ip '%-40s' "${deployer_public_ip_address}"
-	printf -v storage_account '%-40s' "${REMOTE_STATE_SA}"
+	printf -v storage_account '%-40s' "${terraform_storage_account_name}"
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -822,7 +789,7 @@ EOF
 		export deployer_ip
 	fi
 
-	terraform_state_storage_account="${REMOTE_STATE_SA}"
+	terraform_state_storage_account="${terraform_storage_account_name}"
 	export terraform_state_storage_account
 
 	if [ 5 -eq $step ]; then
