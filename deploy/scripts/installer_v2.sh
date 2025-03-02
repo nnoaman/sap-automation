@@ -735,7 +735,7 @@ main() {
 		print_banner "Installer" "Error when running plan" "error"
 		exit $return_value
 	else
-		print_banner "Installer" "Terraform Plan succeeded" "info"
+		print_banner "Installer" "Terraform plan succeeded" "info"
 	fi
 
 	if [ 2 -eq $return_value ]; then
@@ -866,27 +866,10 @@ main() {
 	fi
 
 	if [ "${TEST_ONLY}" == "True" ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                                 $cyan Running plan only. $reset_formatting                                  #"
-		echo "#                                                                                       #"
-		echo "#                                  No deployment performed.                             #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "Installer" "Running plan only. No deployment performed" "info"
 
 		if [ $fatal_errors == 1 ]; then
-			apply_needed=0
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                               $bold_red_underscore!!! Risk for Data loss !!!$reset_formatting                              #"
-			echo "#                                                                                       #"
-			echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+			print_banner "Installer" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
 			exit 10
 		fi
 		exit 0
@@ -894,18 +877,9 @@ main() {
 
 	if [ $fatal_errors == 1 ]; then
 		apply_needed=0
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                               $bold_red_underscore!!! Risk for Data loss !!!$reset_formatting                              #"
-		echo "#                                                                                       #"
-		echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "Installer" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
 		if [ 1 == "$called_from_ado" ]; then
 			unset TF_DATA_DIR
-			echo "Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer" >"${system_config_information}".err
 			echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
 			exit 1
 		fi

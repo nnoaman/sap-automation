@@ -19,6 +19,7 @@ print_banner() {
 	local title="$1"
 	local message="$2"
 	local type="${3:-info}"
+	local secondary_message="$4"
 
 	local boldred="\e[1;31m"
 	local cyan="\e[1;36m"
@@ -44,6 +45,7 @@ print_banner() {
 	local width=80
 	local padding_title=$(((width - ${#title}) / 2))
 	local padding_message=$(((width - ${#message}) / 2))
+	local padding_secondary_message=$(((width - ${#secondary_message}) / 2))
 
 	local centered_title
 	local centered_message
@@ -58,6 +60,12 @@ print_banner() {
 	echo "#                                                                               #"
 	echo -e "#${color}${centered_message}${reset}#"
 	echo "#                                                                               #"
+	if [ -n "$secondary_message" ]; then
+		local centered_secondary_message
+		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
+		echo -e "#${color}${centered_secondary_message}${reset}#"
+		echo "#                                                                               #"
+	fi
 	echo "#################################################################################"
 	echo -e "${reset}"
 	echo ""
