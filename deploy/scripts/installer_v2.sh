@@ -489,7 +489,7 @@ main() {
 	if [ -f terraform.tfvars ]; then
 		extra_vars="-var-file=${param_dirname}/terraform.tfvars"
 	else
-		unset extra_vars
+		extra_vars=""
 	fi
 
 	current_subscription_id=$(az account show --query id -o tsv)
