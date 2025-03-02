@@ -46,19 +46,23 @@ print_banner() {
 	local padding_title=$(((width - ${#title}) / 2))
 	if [[ $((padding_title % 2)) -eq 0 ]];
 	then
-		padding_title=$((padding_title + 1))
+		padding_title2=$((padding_title + 1))
+	else
+		padding_title2=$padding_title
 	fi
 	local padding_message=$(((width - ${#message}) / 2))
 	if [[ $((padding_message % 2)) -eq 0 ]];
 	then
-		padding_message=$((padding_message + 1))
+		padding_message2=$((padding_message + 1))
+	else
+		padding_message2=$padding_message
 	fi
 	local padding_secondary_message=$(((width - ${#secondary_message}) / 2))
 
 	local centered_title
 	local centered_message
-	centered_title=$(printf "%*s%s%*s" $padding_title "" "$title" $padding_title "")
-	centered_message=$(printf "%*s%s%*s" $padding_message "" "$message" $padding_message "")
+	centered_title=$(printf "%*s%s%*s" $padding_title "" "$title" $padding_title2 "")
+	centered_message=$(printf "%*s%s%*s" $padding_message "" "$message" $padding_message2 "")
 
 	echo ""
 	echo -e "${color}"
