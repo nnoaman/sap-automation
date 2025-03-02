@@ -423,7 +423,7 @@ persist_files() {
 
 }
 
-main() {
+install() {
 
 	landscape_tfstate_key_exists=false
 	called_from_ado=0
