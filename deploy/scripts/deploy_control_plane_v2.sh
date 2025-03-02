@@ -74,21 +74,66 @@ parse_arguments() {
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
-		-a | --storage_account_name) REMOTE_STATE_SA="$2" shift 2 ;;
-		-c | --spn_id) client_id="$2" shift 2 ;;
-		-d | --deployer_parameter_file) deployer_parameter_file="$2" shift 2 ;;
-		-k | --vault) keyvault="$2" shift 2 ;;
-		-l | --library_parameter_file) library_parameter_file="$2" shift 2 ;;
-		-o | --only_deployer) only_deployer=1 shift ;;
-		-p | --spn_secret) client_secret="$2" shift 2 ;;
-		-s | --subscription) subscription="$2" shift 2 ;;
-		-t | --tenant_id) tenant_id="$2" shift 2 ;;
-		-f | --force) force=1 shift ;;
-		-h | --help) control_plane_showhelp exit 3 ;;
-		-i | --auto-approve) approve="--auto-approve" shift ;;
-		-m | --msi) deploy_using_msi_only=1 shift ;;
-		-v | --ado) ado_flag="--ado" shift ;;
-		-r | --recover) recover=1 shift ;;
+		-a | --storage_account_name)
+			REMOTE_STATE_SA="$2"
+			shift 2
+			;;
+		-c | --spn_id)
+			client_id="$2"
+			shift 2
+			;;
+		-d | --deployer_parameter_file)
+			deployer_parameter_file="$2"
+			shift 2
+			;;
+		-k | --vault)
+			keyvault="$2"
+			shift 2
+			;;
+		-l | --library_parameter_file)
+			library_parameter_file="$2"
+			shift 2
+			;;
+		-o | --only_deployer)
+			only_deployer=1
+			shift
+			;;
+		-p | --spn_secret)
+			client_secret="$2"
+			shift 2
+			;;
+		-s | --subscription)
+			subscription="$2"
+			shift 2
+			;;
+		-t | --tenant_id)
+			tenant_id="$2"
+			shift 2
+			;;
+		-f | --force)
+			force=1
+			shift
+			;;
+		-h | --help)
+			control_plane_showhelp
+			exit 3
+			;;
+		-i | --auto-approve)
+			approve="--auto-approve"
+			shift
+			;;
+		-m | --msi)
+			deploy_using_msi_only=1
+			shift
+			;;
+		-v | --ado)
+			ado_flag="--ado"
+			shift
+			;;
+		-r | --recover)
+			recover=1
+			shift
+			;;
 		--)
 			shift
 			break
@@ -96,15 +141,15 @@ parse_arguments() {
 		esac
 	done
 
-	if [ ! -f "$deployer_parameter_file" ]; then
+	if [ ! -f "${library_parameter_file}" ]; then
+		control_plane_missing 'library parameter file'
+		exit 2 #No such file or directory
+	fi
+	if [ ! -f "${deployer_parameter_file}" ]; then
 		control_plane_missing 'deployer parameter file'
 		exit 2 #No such file or directory
 	fi
 
-	if [ ! -f "$library_parameter_file" ]; then
-		control_plane_missing 'library parameter file'
-		exit 2 #No such file or directory
-	fi
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 		echo "Approve:                             Automatically"
 		autoApproveParameter="--auto-approve"
