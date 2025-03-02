@@ -44,14 +44,14 @@ print_banner() {
 
 	local width=80
 	local padding_title=$(((width - ${#title}) / 2))
-	if [[ $((padding_title % 2)) -eq 0 ]];
+	if [[ $((padding_title % 2)) -eq 1 ]];
 	then
 		padding_title2=$((padding_title + 1))
 	else
 		padding_title2=$padding_title
 	fi
 	local padding_message=$(((width - ${#message}) / 2))
-	if [[ $((padding_message % 2)) -eq 0 ]];
+	if [[ $((padding_message % 2)) -eq 1 ]];
 	then
 		padding_message2=$((padding_message + 1))
 	else
@@ -72,7 +72,7 @@ print_banner() {
 	echo "#                                                                               #"
 	echo -e "#${color}${centered_message}${reset}#"
 	echo "#                                                                               #"
-	if [ -n "$secondary_message" ]; then
+	if [ ${#secondary_message} -gt 1 ]; then
 		local centered_secondary_message
 		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
 		echo -e "#${color}${centered_secondary_message}${reset}#"
