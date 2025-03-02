@@ -22,7 +22,14 @@ script_directory="$(dirname "${full_script_path}")"
 set -euo pipefail
 
 # Enable debug mode if DEBUG is set to 'true'
-[[ "${DEBUG:-false}" == 'true' ]] && set -x
+if [[ "${DEBUG:-false}" == 'true' ]]; then
+	# Enable debugging
+	set -x
+	# Exit on error
+	set -o errexit
+	echo "Environment variables:"
+	printenv | sort
+fi
 
 # Constants
 script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
@@ -716,21 +723,26 @@ main() {
 
 	allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
-	terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log
-	return_value=${PIPESTATUS[0]}
+	if terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log; then
+		return_value=${PIPESTATUS[0]}
+	else
+		return_value=${PIPESTATUS[0]}
+	fi
+
 	echo "Terraform Plan return code:          $return_value"
 
 	if [ 1 -eq $return_value ]; then
 		print_banner "Installer" "Error when running plan" "error"
 		exit $return_value
 	else
-		echo ""
-		echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
-		echo ""
-
+		print_banner "Installer" "Terraform Plan succeeded" "info"
 	fi
 
-	apply_needed=1
+	if [ 2 -eq $return_value ]; then
+		apply_needed=1
+	else
+		apply_needed=0
+	fi
 
 	state_path="SYSTEM"
 
