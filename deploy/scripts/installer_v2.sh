@@ -679,16 +679,7 @@ main() {
 	if [ 1 -eq $new_deployment ]; then
 		deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \" || true)
 		if [ -z "${deployed_using_version}" ]; then
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#   $bold_red The environment was deployed using an older version of the Terraform templates$reset_formatting     #"
-			echo "#                                                                                       #"
-			echo "#                               !!! Risk for Data loss !!!                              #"
-			echo "#                                                                                       #"
-			echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+		  print_banner "Installer" "The environment was deployed using an older version of the Terraform templates" "error" "Please inspect the output of Terraform plan carefully!"
 
 			if [ 1 == $called_from_ado ]; then
 				unset TF_DATA_DIR
@@ -735,7 +726,7 @@ main() {
 		print_banner "Installer" "Error when running plan" "error"
 		exit $return_value
 	else
-		print_banner "Installer" "Terraform plan succeeded" "info"
+		print_banner "Installer" "Terraform plan succeeded." "info"
 	fi
 
 	if [ 2 -eq $return_value ]; then
@@ -866,7 +857,7 @@ main() {
 	fi
 
 	if [ "${TEST_ONLY}" == "True" ]; then
-		print_banner "Installer" "Running plan only. No deployment performed" "info"
+		print_banner "Installer" "Running plan only. No deployment performed." "info"
 
 		if [ $fatal_errors == 1 ]; then
 			print_banner "Installer" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
@@ -908,13 +899,7 @@ main() {
 			rm plan_output.log
 		fi
 
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                            $cyan Running Terraform apply $reset_formatting                                  #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "Installer" "Running Terraform apply" "info"
 
 		allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
 		allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
