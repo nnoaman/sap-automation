@@ -234,7 +234,6 @@ function bootstrap_deployer() {
 		echo "Key vault:                           ${keyvault}"
 		echo "Application configuration Id         ${APPLICATION_CONFIGURATION_ID}"
 
-
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	else
 		print_banner "Bootstrap-Deployer" "Deployer is bootstrapped" "info"
@@ -334,7 +333,7 @@ function bootstrap_library {
 	##########################################################################################
 
 	if [ 2 -eq $step ]; then
-	  print_banner "Bootstrap-Library" "Bootstrapping the library..." "info"
+		print_banner "Bootstrap-Library" "Bootstrapping the library..." "info"
 
 		relative_path="${library_dirname}"
 		export TF_DATA_DIR="${relative_path}/.terraform"
@@ -422,7 +421,7 @@ function bootstrap_library {
 
 }
 
-migrate_deployer_state() {
+function migrate_deployer_state() {
 	##########################################################################################
 	#                                                                                        #
 	#                                      STEP 3                                            #
@@ -483,10 +482,57 @@ migrate_deployer_state() {
 
 }
 
+function migrate_library_state() {
+	##########################################################################################
+	#                                                                                        #
+	#                                      STEP 4                                            #
+	#                           Migrating the state file for the library                     #
+	#                                                                                        #
+	#                                                                                        #
+	##########################################################################################
+
+	if [ 4 -eq $step ]; then
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#                          $cyan Migrating the library state $reset_formatting                                #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
+
+		terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
+		cd "${library_dirname}" || exit
+
+		echo "Calling installer_v2.sh with: --type sap_library --parameterfile ${library_parameter_file_name} --storage_account_name ${terraform_storage_account_name}  --deployer_tfstate_key ${deployer_tfstate_key} ${autoApproveParameter} ${ado_flag}"
+		source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
+		if install --type sap_library \
+			--parameterfile "${library_parameter_file_name}" \
+			--storage_account_name "${terraform_storage_account_name}" \
+			--deployer_tfstate_key "${deployer_tfstate_key}" \
+			$ado_flag \
+			$autoApproveParameter; then
+
+			print_banner "Migrate-Library" "Migrating the Library state failed." "error"
+			step=4
+			save_config_var "step" "${deployer_config_information}"
+			return 40
+		else
+			return_code=$?
+			print_banner "Migrate-Library" "Migrating the Library state succeeded." "success"
+		fi
+
+		cd "$root_dirname" || exit
+
+		step=5
+		save_config_var "step" "${deployer_config_information}"
+	fi
+
+}
+
 # Function to execute deployment steps
 execute_deployment_steps() {
 	local step
-	load_config_vars "${deployer_config_file}" "step"
+	load_config_vars "${deployer_config_information}" "step"
 
 	while [[ $step -le 4 ]]; do
 		case $step in
@@ -496,7 +542,7 @@ execute_deployment_steps() {
 		4) migrate_library_state ;;
 		esac
 		((step++))
-		save_config_var "step" "${deployer_config_file}"
+		save_config_var "step" "${deployer_config_information}"
 	done
 }
 
@@ -573,26 +619,17 @@ main() {
 		step=0
 	fi
 	echo "Step:                                $step"
+	current_directory=$(pwd)
 
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                   $cyan Starting the control plane deployment $reset_formatting                             #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Control Plane Deployment" "Starting the control plane deployment..." "info"
+
 	noAccess=$(az account show --query name | grep "N/A(tenant level account)" || true)
 
 	if [ -n "$noAccess" ]; then
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#        $bold_red The provided credentials do not have access to the subscription!!! $reset_formatting           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-
+		print_banner "Control Plane Deployment" "The provided credentials do not have access to the subscription" "error"
 		az account show --output table
 
-		exit 65
+		return 65
 	fi
 	az account list --query "[].{Name:name,Id:id}" --output table
 
@@ -606,7 +643,7 @@ main() {
 	fi
 
 	if [ 0 -eq $step ]; then
-		if bootstrap_deployer ; then
+		if bootstrap_deployer; then
 			print_banner "Bootstrap-Deployer" "Bootstrapping the deployer failed" "error"
 			exit 10
 		fi
@@ -616,84 +653,15 @@ main() {
 		fi
 	fi
 
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#       $cyan Changing the subscription to: $subscription $reset_formatting            #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-
-	if [ $recover == 1 ]; then
-		if [ -n "$terraform_storage_account_name" ]; then
-			getAndStoreTerraformStateStorageAccountDetails "${terraform_storage_account_name}" "${deployer_config_information}"
-			#Support running deploy_controlplane on new host when the resources are already deployed
-			step=3
-			save_config_var "step" "${deployer_config_information}"
-		fi
-	fi
 
 	#Persist the parameters
 	if [ -n "$subscription" ]; then
 		export terraform_storage_account_subscription_id=$subscription
 		export ARM_SUBSCRIPTION_ID=$subscription
+		print_banner "Bootstrap-Deployer" "Changing the subscription to: $subscription" "info"
 	fi
 
-	current_directory=$(pwd)
-
-	##########################################################################################
-	#                                                                                        #
-	#                                      STEP 4                                            #
-	#                           Migrating the state file for the library                     #
-	#                                                                                        #
-	#                                                                                        #
-	##########################################################################################
-
-	if [ 4 -eq $step ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Migrating the library state $reset_formatting                                #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-
-		terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
-		cd "${library_dirname}" || exit
-
-		echo "Calling installer.sh with: --type sap_library --parameterfile ${library_parameter_file_name} --storage_account_name ${terraform_storage_account_name}  --deployer_tfstate_key ${deployer_tfstate_key} ${autoApproveParameter} ${ado_flag}"
-
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
-			--type sap_library \
-			--parameterfile "${library_parameter_file_name}" \
-			--storage_account_name "${terraform_storage_account_name}" \
-			--deployer_tfstate_key "${deployer_tfstate_key}" \
-			$ado_flag \
-			$autoApproveParameter; then
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       ${bold_red}  Migrating the Library state failed ${reset_formatting}                           #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-			step=4
-			save_config_var "step" "${deployer_config_information}"
-			exit 40
-		else
-			return_code=$?
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       ${cyan}  Migrating the Library state succeeded ${reset_formatting}                        #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-		fi
-
-		cd "$root_dirname" || exit
-
-		step=5
-		save_config_var "step" "${deployer_config_information}"
-	fi
+	execute_deployment_steps
 
 	printf -v kvname '%-40s' "${keyvault}"
 	printf -v dep_ip '%-40s' "${deployer_public_ip_address}"
