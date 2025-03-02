@@ -19,7 +19,7 @@ print_banner() {
 	local title="$1"
 	local message="$2"
 	local type="${3:-info}"
-	local secondary_message="$4"
+	local secondary_message"${4:-''}"
 
 	local boldred="\e[1;31m"
 	local cyan="\e[1;36m"
