@@ -72,8 +72,8 @@ parse_arguments() {
 		control_plane_showhelp
 	fi
 
-	eval set -- "$INPUT_ARGUMENTS"
-	while :; do
+	eval set -- "$input_opts"
+	while true; do
 		case "$1" in
 		-a | --storage_account_name) REMOTE_STATE_SA="$2" shift 2 ;;
 		-c | --spn_id) client_id="$2" shift 2 ;;
