@@ -987,13 +987,7 @@ main() {
 	fi
 
 	if [ 0 -ne $return_value ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                       $bold_red_underscore!!! Errors during the apply phase !!!$reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "Installer" "Errors during the apply phase" "error"
 		unset TF_DATA_DIR
 		exit $return_value
 	fi
@@ -1046,14 +1040,7 @@ main() {
 	fi
 
 	unset TF_DATA_DIR
-
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $green Deployment completed $reset_formatting                                         #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Installer" "Deployment completed" "success"
 
 	exit 0
 }

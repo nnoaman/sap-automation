@@ -572,13 +572,7 @@ function ImportAndReRunApply {
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 
 		if [[ -n $errors_occurred ]]; then
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       $bold_red_underscore!!! Errors during the apply phase !!!$reset_formatting                           #"
-			echo "#                                                                                       #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			print_banner "Installer" "Errors during the apply phase" "error"
 
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
@@ -611,33 +605,21 @@ function ImportAndReRunApply {
 					echo ""
 				fi
 
-				echo "#########################################################################################"
-				echo "#                                                                                       #"
-				echo -e "#                          $cyan Re-running Terraform apply$reset_formatting                                  #"
-				echo "#                                                                                       #"
-				echo "#########################################################################################"
-				echo ""
-				echo ""
+				print_banner "Installer" "Re-running Terraform apply" "info"
 
 				echo terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters
 				# shellcheck disable=SC2086
 				terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee -a "$fileName"
 				return_value=${PIPESTATUS[0]}
 				if [ $return_value -eq 1 ]; then
-					echo ""
-					echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-					echo ""
+					print_banner "Installer" "Errors during the apply phase" "error"
 				else
 					# return code 2 is ok
-					echo ""
-					echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-					echo ""
+					print_banner "Installer" "Terraform apply succeeded" "success"
 					return_value=0
 				fi
 			else
-				echo ""
-				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-				echo ""
+				print_banner "Installer" "Terraform apply failed" "error"
 			fi
 			errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 			if [[ -n $errors_occurred ]]; then
@@ -649,9 +631,7 @@ function ImportAndReRunApply {
 				fi
 			fi
 		else
-			echo ""
-			echo -e "${cyan}No resources to import$reset_formatting"
-			echo ""
+			print_banner "Installer" "No resources to import" "info"
 			rm "$fileName"
 			return_value=10
 		fi
@@ -669,16 +649,7 @@ function testIfResourceWouldBeRecreated {
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
 	willResourceWouldBeRecreated=$(grep "$moduleId" "$fileName" | grep -m1 "must be replaced" || true)
 	if [ -n "${willResourceWouldBeRecreated}" ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                               $bold_red_underscore!!! Risk for Data loss !!!$reset_formatting                              #"
-		echo "#                                                                                       #"
-		echo "#  Resource will be removed: ${val}                   #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		echo ""
+		print_banner "Installer" "Risk for dataloss" "error"  "${val} will be removed"
 		echo "##vso[task.logissue type=error]Resource will be removed: $shortName"
 		return_value=1
 	fi
