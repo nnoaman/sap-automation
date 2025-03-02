@@ -122,7 +122,7 @@ library_parameter_file_name=$(basename "${library_parameter_file}")
 
 if [ -z $CONTROL_PLANE_NAME ]; then
 	CONTROL_PLANE_NAME=$(basename "${deployer_parameter_file}" | cut -d'-' -f1-3)
-	export $CONTROL_PLANE_NAME
+	export CONTROL_PLANE_NAME
 fi
 
 # Check that Terraform and Azure CLI is installed
