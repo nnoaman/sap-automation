@@ -311,8 +311,7 @@ if [ "$USE_MSI" != "true" ]; then
 
 	export TF_VAR_use_spn=true
 
-	if main \
-		--deployer_parameter_file "${deployer_configuration_file}" \
+	if main --deployer_parameter_file "${deployer_configuration_file}" \
 		--library_parameter_file "${library_configuration_file}" \
 		--subscription "$ARM_SUBSCRIPTION_ID" \
 		--spn_secret "$ARM_CLIENT_SECRET" \
@@ -326,8 +325,7 @@ if [ "$USE_MSI" != "true" ]; then
 else
 	export TF_VAR_use_spn=false
 
-	if  main \
-		--deployer_parameter_file "${deployer_configuration_file}" \
+	if  main --deployer_parameter_file "${deployer_configuration_file}" \
 		--library_parameter_file "${library_configuration_file}" \
 		--subscription "$ARM_SUBSCRIPTION_ID" \
 		--auto-approve --ado --msi \
