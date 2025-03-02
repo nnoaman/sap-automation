@@ -6,13 +6,6 @@
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
-#colors for terminal
-bold_red_underscore="\e[1;4;31m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-green="\e[1;32m"
-reset_formatting="\e[0m"
-
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -463,7 +456,7 @@ install() {
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 	if [ "$DEBUG" = True ]; then
-		echo -e "${cyan}Enabling debug mode$reset_formatting"
+	  print_banner "Installer" "Enabling debug mode" "info"
 		set -x
 		set -o errexit
 	fi
@@ -537,19 +530,9 @@ install() {
 	cd "${param_dirname}" || exit
 
 	if [ ! -d "${terraform_module_directory}" ]; then
+
 		printf -v val %-40.40s "$deployment_system"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#   $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
-		echo "#                                                                                       #"
-		echo "#     Valid options are:                                                                #"
-		echo "#       sap_deployer                                                                    #"
-		echo "#       sap_library                                                                     #"
-		echo "#       sap_landscape                                                                   #"
-		echo "#       sap_system                                                                      #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "Installer" "Incorrect system deployment type specified: ${val}$" "error"
 		exit 1
 	fi
 
@@ -578,19 +561,13 @@ install() {
 	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_subscription_id
 
-	check_output=0
-
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	new_deployment=0
 
 	if [ ! -f .terraform/terraform.tfstate ]; then
-		echo ""
-		echo -e "${cyan}New deployment${reset_formatting}"
-		echo ""
-		deployment_parameter=" -var deployment=new "
-		check_output=0
+	  print_banner "Installer" "New deployment" "info"
 
 		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
@@ -599,14 +576,8 @@ install() {
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
 		else
 			return_value=$?
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
 		fi
 
 	else
@@ -932,7 +903,6 @@ install() {
 			if [[ -n $errors_occurred ]]; then
 				return_value=10
 				if [ -n "${approve}" ]; then
-					echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
 					# shellcheck disable=SC2086
 					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
@@ -940,7 +910,6 @@ install() {
 					fi
 
 					sleep 10
-					echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
