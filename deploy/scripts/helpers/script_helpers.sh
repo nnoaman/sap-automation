@@ -25,6 +25,7 @@ print_banner() {
 	local cyan="\e[1;36m"
 	local green="\e[1;32m"
 	local reset="\e[0m"
+	local yellow="\e[0;33m"
 
 	local color
 	case "$type" in
@@ -33,6 +34,9 @@ print_banner() {
 		;;
 	success)
 		color="$green"
+		;;
+	warning)
+		color="$yellow"
 		;;
 	info)
 		color="$cyan"

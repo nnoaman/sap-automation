@@ -185,7 +185,7 @@ parse_arguments() {
 }
 
 # Function to bootstrap the deployer
-bootstrap_deployer() {
+function bootstrap_deployer() {
 	##########################################################################################
 	#                                                                                        #
 	#                                      STEP 0                                            #
@@ -202,16 +202,20 @@ bootstrap_deployer() {
 
 		echo "Calling install_deployer.sh:         $allParameters"
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" \
-			--parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
+		source "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh"
+
+		if ! install_deployer --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
 			return_code=$?
 
-			echo "Return code from install_deployer_v2:   ${return_code}"
-
-			print_banner "Bootstrap-Deployer" "Bootstrapping the deployer failed" "error"
-			step=0
-			save_config_var "step" "${deployer_config_information}"
-			exit 10
+			if [ $return_code -eq 10 ]; then
+				print_banner "Bootstrap-Deployer" "Deployer is bootstrapped" "info"
+				step=3
+				save_config_var "step" "${deployer_config_information}"
+				return 0
+			else
+				print_banner "Bootstrap-Deployer" "Bootstrapping the deployer failed" "error"
+				return 10
+			fi
 		else
 			return_code=$?
 			print_banner "Bootstrap-Deployer" "Bootstrapping the deployer succeeded" "success"
@@ -219,29 +223,31 @@ bootstrap_deployer() {
 			step=1
 			save_config_var "step" "${deployer_config_information}"
 			if [ 1 = "${only_deployer:-}" ]; then
-				exit 0
+				return 0
 			fi
 		fi
 
 		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
 		export APPLICATION_CONFIGURATION_ID
 		load_config_vars "${deployer_config_information}" "keyvault"
+
 		echo "Key vault:                           ${keyvault}"
 		echo "Application configuration Id         ${APPLICATION_CONFIGURATION_ID}"
-		cd "$root_dirname" || exit
+
+
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	else
 		print_banner "Bootstrap-Deployer" "Deployer is bootstrapped" "info"
 
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 		if [ 1 = "${only_deployer:-}" ]; then
-			exit 0
+			return 0
 		fi
 
 	fi
 
 	cd "$root_dirname" || exit
-	exit $return_code
+	return "$return_code"
 }
 
 function validate_keyvault_access {
@@ -328,13 +334,7 @@ function bootstrap_library {
 	##########################################################################################
 
 	if [ 2 -eq $step ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Bootstrapping the library $reset_formatting                                  #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+	  print_banner "Bootstrap-Library" "Bootstrapping the library..." "info"
 
 		relative_path="${library_dirname}"
 		export TF_DATA_DIR="${relative_path}/.terraform"
@@ -342,10 +342,6 @@ function bootstrap_library {
 
 		cd "${library_dirname}" || exit
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
-
-		if [ $force == 1 ]; then
-			rm -Rf .terraform terraform.tfstate*
-		fi
 
 		echo "Calling install_library.sh with: --parameterfile ${library_parameter_file_name} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
 
@@ -379,17 +375,17 @@ function bootstrap_library {
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
 			if [ -z "$terraform_storage_account_name" ]; then
-				REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
+				terraform_storage_account_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
 			fi
 			if [ -z "$terraform_storage_account_name" ]; then
 				terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 			fi
-			if [ -z "$STATE_SUBSCRIPTION" ]; then
-				STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
+			if [ -z "$terraform_storage_account_subscription_id" ]; then
+				terraform_storage_account_subscription_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
 			fi
 
 			if [ "${ado_flag}" != "--ado" ]; then
-				az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${terraform_storage_account_name}" --ip-address "${this_ip}" --output none
+				az storage account network-rule add -g "${terraform_storage_account_resource_group_name}" --account-name "${terraform_storage_account_name}" --ip-address "${this_ip}" --output none
 			fi
 
 			TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
@@ -399,7 +395,7 @@ function bootstrap_library {
 		if [ -n "${tfstate_resource_id}" ]; then
 			TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 		else
-			tfstate_resource_id=$(az resource list --name "$terraform_storage_account_name" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+			tfstate_resource_id=$(az resource list --name "$terraform_storage_account_name" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 		fi
 		export TF_VAR_tfstate_resource_id
@@ -425,6 +421,68 @@ function bootstrap_library {
 	echo "##vso[task.setprogress value=80;]Progress Indicator"
 
 }
+
+migrate_deployer_state() {
+	##########################################################################################
+	#                                                                                        #
+	#                                      STEP 3                                            #
+	#                           Migrating the state file for the deployer                    #
+	#                                                                                        #
+	#                                                                                        #
+	##########################################################################################
+	if [ 3 -eq "$step" ]; then
+		print_banner "Migrate-Deployer" "Migrating the deployer state..." "info"
+
+		cd "${deployer_dirname}" || exit
+
+		if [ -z "$terraform_storage_account_name" ]; then
+			if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+				export TF_VAR_tfstate_resource_id
+
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+				terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+				terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+				ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+			fi
+		fi
+
+		if [ -z "${terraform_storage_account_name}" ]; then
+			export step=2
+			save_config_var "step" "${deployer_config_information}"
+			echo "##vso[task.setprogress value=40;]Progress Indicator"
+			print_banner "Migrate-Deployer" "Could not find the SAP Library, please re-run!" "error"
+			exit 11
+		fi
+
+		source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
+		if install --parameterfile $deployer_parameter_file_name --type sap_deployer \
+			--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
+			--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
+			$ado_flag \
+			"${autoApproveParameter}"; then
+
+			echo ""
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+			print_banner "Migrate-Deployer" "Migrating the Deployer state failed." "error"
+			exit 30
+		else
+			print_banner "Migrate-Deployer" "Migrating the Deployer state succeeded." "success"
+		fi
+
+		cd "${current_directory}" || exit
+		export step=4
+		save_config_var "step" "${deployer_config_information}"
+
+	fi
+
+	unset TF_DATA_DIR
+	cd "$root_dirname" || exit
+
+}
+
 # Function to execute deployment steps
 execute_deployment_steps() {
 	local step
@@ -432,8 +490,7 @@ execute_deployment_steps() {
 
 	while [[ $step -le 4 ]]; do
 		case $step in
-		0) bootstrap_deployer ;;
-		1) validate_keyvault_access ;;
+
 		2) bootstrap_library ;;
 		3) migrate_deployer_state ;;
 		4) migrate_library_state ;;
@@ -509,6 +566,8 @@ main() {
 	TF_DATA_DIR="${relative_path}"/.terraform
 	export TF_DATA_DIR
 
+	execute_deployment_steps
+
 	load_config_vars "${deployer_config_information}" "step"
 	if [ -z "${step}" ]; then
 		step=0
@@ -540,27 +599,20 @@ main() {
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then
 		echo "Identity to use:                     Service Principal"
 		unset ARM_USE_MSI
-		set_executing_user_environment_variables "${client_secret}"
+		set_executing_user_environment_variables $ARM_CLIENT_SECRET
 	else
 		echo "Identity to use:                     Managed Identity"
 		set_executing_user_environment_variables "none"
 	fi
 
-	#setting the user environment variables
-	if [ -n "${subscription}" ]; then
-		if is_valid_guid "$subscription"; then
-			echo ""
-		else
-			printf -v val %-40.40s "$subscription"
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#   The provided subscription is not valid:$bold_red ${val} $reset_formatting#   "
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+	if [ 0 -eq $step ]; then
+		if bootstrap_deployer ; then
+			print_banner "Bootstrap-Deployer" "Bootstrapping the deployer failed" "error"
+			exit 10
+		fi
 
-			echo "The provided subscription is not valid: ${subscription}" >"${deployer_config_information}".err
-
-			exit 65
+		if [ 1 == "${only_deployer:-}" ]; then
+			exit 0
 		fi
 	fi
 
@@ -583,109 +635,11 @@ main() {
 
 	#Persist the parameters
 	if [ -n "$subscription" ]; then
-		export STATE_SUBSCRIPTION=$subscription
+		export terraform_storage_account_subscription_id=$subscription
 		export ARM_SUBSCRIPTION_ID=$subscription
 	fi
 
 	current_directory=$(pwd)
-
-	##########################################################################################
-	#                                                                                        #
-	#                                      STEP 3                                            #
-	#                           Migrating the state file for the deployer                    #
-	#                                                                                        #
-	#                                                                                        #
-	##########################################################################################
-	if [ 3 -eq "$step" ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Migrating the deployer state $reset_formatting                               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-
-		cd "${deployer_dirname}" || exit
-
-		if [ -z "$terraform_storage_account_name" ]; then
-			if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-				TF_VAR_tfstate_resource_id=$tfstate_resource_id
-				export TF_VAR_tfstate_resource_id
-
-				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-				STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-				REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-				ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
-			fi
-		fi
-
-		if [[ -z $terraform_storage_account_name ]]; then
-			load_config_vars "${deployer_config_information}" "terraform_storage_account_name"
-		fi
-
-		if [[ -z $STATE_SUBSCRIPTION ]]; then
-			load_config_vars "${deployer_config_information}" "STATE_SUBSCRIPTION"
-		fi
-
-		if [[ -z $ARM_SUBSCRIPTION_ID ]]; then
-			load_config_vars "${deployer_config_information}" "ARM_SUBSCRIPTION_ID"
-		fi
-
-		if [ -z "${terraform_storage_account_name}" ]; then
-			export step=2
-			save_config_var "step" "${deployer_config_information}"
-			echo "##vso[task.setprogress value=40;]Progress Indicator"
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                   $bold_red Could not find the SAP Library, please re-run! $reset_formatting                    #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-			exit 11
-
-		fi
-
-		echo "Calling installer.sh with:          --parameterfile ${deployer_parameter_file_name} \
-  --storage_account_name ${terraform_storage_account_name} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
-
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
-			--type sap_deployer \ --control_plane_name "${CONTROL_PLANE_NAME}" \
-			--parameterfile ${deployer_parameter_file_name} \
-			--storage_account_name "${terraform_storage_account_name}" \
-			$ado_flag \
-			"${autoApproveParameter}"; then
-
-			echo ""
-			step=3
-			save_config_var "step" "${deployer_config_information}"
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       ${bold_red}  Migrating the Deployer state failed ${reset_formatting}                          #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-
-			exit 30
-		else
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       ${cyan}  Migrating the Deployer state succeeded ${reset_formatting}                       #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-
-		fi
-
-		cd "${current_directory}" || exit
-		export step=4
-		save_config_var "step" "${deployer_config_information}"
-
-	fi
-
-	unset TF_DATA_DIR
-	cd "$root_dirname" || exit
 
 	##########################################################################################
 	#                                                                                        #

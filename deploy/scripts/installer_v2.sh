@@ -118,14 +118,14 @@ source_helper_scripts() {
 }
 
 # Function to parse command line arguments
-parse_arguments() {
+function parse_arguments() {
 	local input_opts
 	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:g:c:w:ahif --longoptions type:,parameterfile:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_id:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
 		showhelp
-		exit 1
+		return 1
 	fi
 
 	eval set -- "$input_opts"
@@ -184,7 +184,7 @@ parse_arguments() {
 			;;
 		-h | --help)
 			showhelp
-			exit 3
+			return  3
 			;;
 		--)
 			shift
@@ -208,16 +208,16 @@ parse_arguments() {
 
 	[[ -z "$CONTROL_PLANE_NAME" ]] && {
 		print_banner "Installer" "control_plane_name is required" "error"
-		exit 1
+		return 1
 	}
 	[[ -z "$APPLICATION_CONFIGURATION_ID" ]] && {
 		print_banner "Installer" "application_configuration_id is required" "error"
-		exit 1
+		return  1
 	}
 
 	[[ -z "$deployment_system" ]] && {
 		print_banner "Installer" "type is required" "error"
-		exit 1
+		return  1
 	}
 
 	if [ -z $CONTROL_PLANE_NAME ] && [ -n "$deployer_tfstate_key" ]; then
@@ -244,7 +244,7 @@ parse_arguments() {
 			else
 				print_banner "Installer" "Workload terraform statefile name is required" "error"
 				unset TF_DATA_DIR
-				exit 2
+				return  2
 			fi
 		fi
 	fi
@@ -257,7 +257,7 @@ parse_arguments() {
 			else
 				print_banner "Installer" "Deployer terraform state file name is required" "error"
 				unset TF_DATA_DIR
-				exit 2
+				return  2
 			fi
 		fi
 	fi
@@ -275,17 +275,17 @@ parse_arguments() {
 
 	# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 	if ! validate_exports; then
-		exit $?
+		return  $?
 	fi
 
 	# Check that Terraform and Azure CLI is installed
 	if ! validate_dependencies; then
-		exit $?
+		return  $?
 	fi
 
 	# Check that parameter files have environment and location defined
 	if ! validate_key_parameters "$parameterfile_name"; then
-		exit $?
+		return  $?
 	fi
 
 	network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3)
@@ -302,7 +302,7 @@ parse_arguments() {
 		get_region_code "${region}"
 	else
 		echo "Invalid region: $region"
-		exit 2
+		return  2
 	fi
 
 	return 0
@@ -432,7 +432,9 @@ install() {
 	source_helper_scripts "${helper_scripts[@]}"
 
 	# Parse command line arguments
-	parse_arguments "$@"
+	if parse_arguments "$@" ; then
+		return $?
+	fi
 
 	retrieve_parameters
 
