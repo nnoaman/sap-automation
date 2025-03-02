@@ -312,7 +312,7 @@ parse_arguments() {
 
 # Function to parse command line arguments
 retrieve_parameters() {
-	tfstate_resource_id=getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME"
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
 	TF_VAR_tfstate_resource_id=$tfstate_resource_id
 	export TF_VAR_tfstate_resource_id
 
@@ -325,7 +325,7 @@ retrieve_parameters() {
 	terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
 	export terraform_storage_account_subscription_id
 
-	TF_VAR_deployer_kv_user_arm_id=getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME"
+	TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
 	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
 }
