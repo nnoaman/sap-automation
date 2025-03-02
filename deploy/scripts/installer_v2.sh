@@ -420,6 +420,7 @@ main() {
 
 	landscape_tfstate_key_exists=false
 	called_from_ado=0
+	extra_vars=""
 
 	# Define an array of helper scripts
 	helper_scripts=(
