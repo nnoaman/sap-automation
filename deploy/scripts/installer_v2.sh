@@ -265,6 +265,7 @@ parse_arguments() {
 	if [ -n "${landscape_tfstate_key}" ]; then
 		TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
 		export TF_VAR_landscape_tfstate_key
+		landscape_tfstate_key_exists=true
 	fi
 
 	if [ -n "${deployer_tfstate_key}" ]; then
@@ -334,6 +335,20 @@ persist_files() {
 	#                           Copy tfvars to storage account                      #
 	#                                                                               #
 	#################################################################################
+
+	if [ "$useSAS" = "true" ]; then
+		container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists)
+	else
+		container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists --auth-mode login)
+	fi
+
+	if [ "${container_exists}" == "false" ]; then
+		if [ "$useSAS" = "true" ]; then
+			az storage container create --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors
+		else
+			az storage container create --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --auth-mode login --only-show-errors
+		fi
+	fi
 
 	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --query allowSharedKeyAccess --subscription "${terraform_storage_account_subscription_id}" --out tsv)
 
@@ -722,14 +737,10 @@ main() {
 		state_path="DEPLOYER"
 
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-
-			deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
-
 			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 			if [ -n "$keyvault" ]; then
 				save_config_var "keyvault" "${system_config_information}"
 			fi
-
 		fi
 
 	fi
@@ -752,20 +763,6 @@ main() {
 	fi
 
 	apply_needed=1
-
-	if [ "$useSAS" = "true" ]; then
-		container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists)
-	else
-		container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists --auth-mode login)
-	fi
-
-	if [ "${container_exists}" == "false" ]; then
-		if [ "$useSAS" = "true" ]; then
-			az storage container create --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors
-		else
-			az storage container create --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --auth-mode login --only-show-errors
-		fi
-	fi
 
 	fatal_errors=0
 
@@ -1047,7 +1044,6 @@ main() {
 
 		app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
 
-		created_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 		echo ""
 		return_value=0
 		if [ 1 == $called_from_ado ]; then
@@ -1065,7 +1061,6 @@ main() {
 
 	if [ "${deployment_system}" == sap_library ]; then
 		terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-		sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
 
 		library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 		if [ -n "${library_random_id}" ]; then
@@ -1076,11 +1071,6 @@ main() {
 
 		fi
 
-	fi
-
-	if [ -f "${system_config_information}".err ]; then
-		cat "${system_config_information}".err
-		rm "${system_config_information}".err
 	fi
 
 	unset TF_DATA_DIR
