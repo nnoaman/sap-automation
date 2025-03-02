@@ -42,8 +42,8 @@ print_banner() {
 	esac
 
 	local width=80
-	local padding_title=$(((width - ${#title}) / 2))+2
-	local padding_message=$(((width - ${#message}) / 2))+2
+	local padding_title=$(((width - ${#title}) / 2))
+	local padding_message=$(((width - ${#message}) / 2))
 
 	local centered_title
 	local centered_message
@@ -52,13 +52,13 @@ print_banner() {
 
 	echo ""
 	echo -e "${color}"
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
+	echo "#############################################################################################"
+	echo "#                                                                                           #"
 	echo -e "#${color}${centered_title}${reset}#"
-	echo "#                                                                                       #"
+	echo "#                                                                                           #"
 	echo -e "#${color}${centered_message}${reset}#"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	echo "#                                                                                           #"
+	echo "#############################################################################################"
 	echo -e "${reset}"
 	echo ""
 }
