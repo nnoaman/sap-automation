@@ -515,13 +515,6 @@ main() {
 	fi
 	echo "Step:                                $step"
 
-	if [ -n "${client_id}" ]; then
-		TF_VAR_spn_id="$client_id"
-		export TF_VAR_spn_id
-	else
-		unset TF_VAR_spn_id
-	fi
-
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"

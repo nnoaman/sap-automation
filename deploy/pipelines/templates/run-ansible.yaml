@@ -70,7 +70,7 @@ steps:
 
     set -eu
     prefix=$(echo $SSH_KEY_NAME | cut -d'-' -f1-3)
-    prefix2=echo ${prefix//-/}
+    prefix2=$(echo ${prefix//-/})
     suffix=$(echo $SSH_KEY_NAME | cut -d'-' -f4-6)
 
     if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
@@ -87,7 +87,7 @@ steps:
 
 
     prefix=$(echo $PASSWORD_KEY_NAME | cut -d'-' -f1-3)
-    prefix2=echo ${prefix//-/}
+    prefix2=$(echo ${prefix//-/})
     suffix=$(echo $PASSWORD_KEY_NAME | cut -d'-' -f4-6)
     name=$(az keyvault secret list --vault-name $VAULT_NAME --query "[?name=='$PASSWORD_KEY_NAME'].name | [0]" --output tsv)
     if [ -n "$name" ]; then
