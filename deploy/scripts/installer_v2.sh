@@ -468,7 +468,7 @@ main() {
 	param_dirname=$(pwd)
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	#init "${CONFIG_DIR}" "${generic_config_information}" "${system_config_information}"
+	#§init "${CONFIG_DIR}" "${generic_config_information}" "${system_config_information}"
 
 	var_file="${param_dirname}"/"${parameterfile}"
 
@@ -639,7 +639,8 @@ main() {
 				print_banner "Installer" "Terraform init failed" "error"
 				exit $return_value
 			else
-				return_value=$?print_banner "Installer" "Terraform init succeeded" "info"
+				return_value=$?
+				print_banner "Installer" "Terraform init succeeded" "info"
 			fi
 		fi
 	fi
