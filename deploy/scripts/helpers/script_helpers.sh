@@ -44,7 +44,15 @@ print_banner() {
 
 	local width=80
 	local padding_title=$(((width - ${#title}) / 2))
+	if [[ $((padding_title % 2)) -eq 0 ]];
+	then
+		padding_title=$((padding_title + 1))
+	fi
 	local padding_message=$(((width - ${#message}) / 2))
+	if [[ $((padding_message % 2)) -eq 0 ]];
+	then
+		padding_message=$((padding_message + 1))
+	fi
 	local padding_secondary_message=$(((width - ${#secondary_message}) / 2))
 
 	local centered_title
