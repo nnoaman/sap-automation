@@ -468,7 +468,7 @@ main() {
 	param_dirname=$(pwd)
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	init "${CONFIG_DIR}" "${generic_config_information}" "${system_config_information}"
+	#init "${CONFIG_DIR}" "${generic_config_information}" "${system_config_information}"
 
 	var_file="${param_dirname}"/"${parameterfile}"
 
