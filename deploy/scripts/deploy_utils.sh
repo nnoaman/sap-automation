@@ -78,10 +78,6 @@ function init() {
 		# No configuration directory exists
 		mkdir "${automation_config_directory}"
 		touch "${app_config_information}"
-		if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
-			# Store repo path in $CONFIG_REPO_PATH/.sap_deployment_automation/config
-			save_config_var "DEPLOYMENT_REPO_PATH" "${generic_config_information}"
-		fi
 		if [ -n "$ARM_SUBSCRIPTION_ID" ]; then
 			# Store ARM Subscription info in $CONFIG_REPO_PATH/.sap_deployment_automation
 			save_config_var "ARM_SUBSCRIPTION_ID" "${app_config_information}"
