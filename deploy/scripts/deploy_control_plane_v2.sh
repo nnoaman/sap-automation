@@ -61,7 +61,6 @@ source_helper_scripts() {
 	done
 }
 
-
 # Function to parse command line arguments
 parse_arguments() {
 	local input_opts
@@ -154,51 +153,36 @@ parse_arguments() {
 
 # Function to bootstrap the deployer
 bootstrap_deployer() {
-  ##########################################################################################
+	##########################################################################################
 	#                                                                                        #
 	#                                      STEP 0                                            #
 	#                                                                                        #
 	#                           Bootstrapping the deployer                                   #
 	#                                                                                        #
 	##########################################################################################
-  if [ 0 == $step ]; then
-    print_banner "Bootstrap-Deployer" "Bootstrapping the deployer..." "info"
-
+	if [ 0 == $step ]; then
+		print_banner "Bootstrap-Deployer" "Bootstrapping the deployer..." "info"
 
 		allParameters=$(printf " --parameter_file %s %s" "${deployer_parameter_file_name}" "${autoApproveParameter}")
 
 		cd "${deployer_dirname}" || exit
 
 		echo "Calling install_deployer.sh:         $allParameters"
-		echo "Deployer State File:                 ${deployer_tfstate_key}"
 
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" \
 			--parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
 			return_code=$?
+
 			echo "Return code from install_deployer_v2:   ${return_code}"
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       $bold_red  Bootstrapping of the deployer failed $reset_formatting                         #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+
+			print_banner "Bootstrap-Deployer" "Bootstrapping the deployer failed" "error"
 			step=0
 			save_config_var "step" "${deployer_config_information}"
 			exit 10
 		else
 			return_code=$?
+			print_banner "Bootstrap-Deployer" "Bootstrapping the deployer succeeded" "success"
 			echo "Return code from install_deployer:   ${return_code}"
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       $cyan Bootstrapping of the deployer succeeded $reset_formatting                       #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-
-		fi
-
-		echo "Return code from install_deployer_v2:   ${return_code}"
-		if [ 0 -eq $return_code ]; then
 			step=1
 			save_config_var "step" "${deployer_config_information}"
 			if [ 1 = "${only_deployer:-}" ]; then
@@ -211,29 +195,11 @@ bootstrap_deployer() {
 		load_config_vars "${deployer_config_information}" "keyvault"
 		echo "Key vault:                           ${keyvault}"
 		echo "Application configuration Id         ${APPLICATION_CONFIGURATION_ID}"
-		if [ -z "$keyvault" ]; then
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       $bold_red  Bootstrapping of the deployer failed $reset_formatting                         #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			exit 10
-		fi
-
 		cd "$root_dirname" || exit
-
-		load_config_vars "${deployer_config_information}" "sshsecret"
-		load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
-
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Deployer is bootstrapped $reset_formatting                                   #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "Bootstrap-Deployer" "Deployer is bootstrapped" "info"
+
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 		if [ 1 = "${only_deployer:-}" ]; then
 			exit 0
@@ -242,6 +208,9 @@ bootstrap_deployer() {
 	fi
 
 	cd "$root_dirname" || exit
+	exit $return_code
+}
+function validate_keyvault_access {
 
 	##########################################################################################
 	#                                                                                        #
@@ -337,22 +306,129 @@ bootstrap_deployer() {
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 }
 
+function bootstrap_library {
+	##########################################################################################
+	#                                                                                        #
+	#                                      STEP 2                                            #
+	#                           Bootstrapping the library                                    #
+	#                                                                                        #
+	#                                                                                        #
+	##########################################################################################
+
+	if [ 2 -eq $step ]; then
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#                          $cyan Bootstrapping the library $reset_formatting                                  #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
+
+		relative_path="${library_dirname}"
+		export TF_DATA_DIR="${relative_path}/.terraform"
+		relative_path="${deployer_dirname}"
+
+		cd "${library_dirname}" || exit
+		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
+
+		if [ $force == 1 ]; then
+			rm -Rf .terraform terraform.tfstate*
+		fi
+
+		echo "Calling install_library.sh with: --parameterfile ${library_parameter_file_name} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
+
+		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+			--parameterfile "${library_parameter_file_name}" \
+			--deployer_statefile_foldername "${relative_path}" \
+			--keyvault "${keyvault}" "$autoApproveParameter"; then
+			echo ""
+			echo "#########################################################################################"
+			echo "#                                                                                       #"
+			echo -e "#                       $bold_red  Bootstrapping of the library failed $reset_formatting                          #"
+			echo "#                                                                                       #"
+			echo "#########################################################################################"
+			echo ""
+			step=2
+			save_config_var "step" "${deployer_config_information}"
+			exit 20
+		else
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+			echo ""
+			echo "#########################################################################################"
+			echo "#                                                                                       #"
+			echo -e "#                       $cyan Bootstrapping of the library succeeded $reset_formatting                        #"
+			echo "#                                                                                       #"
+			echo "#########################################################################################"
+			echo ""
+
+		fi
+
+		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+
+			if [ -z "$REMOTE_STATE_SA" ]; then
+				REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
+			fi
+			if [ -z "$REMOTE_STATE_SA" ]; then
+				REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+			fi
+			if [ -z "$STATE_SUBSCRIPTION" ]; then
+				STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
+			fi
+
+			if [ "${ado_flag}" != "--ado" ]; then
+				az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
+			fi
+
+			TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
+			export TF_VAR_sa_connection_string
+		fi
+
+		if [ -n "${tfstate_resource_id}" ]; then
+			TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+		else
+			tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+			TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		fi
+		export TF_VAR_tfstate_resource_id
+
+		cd "${current_directory}" || exit
+		save_config_var "step" "${deployer_config_information}"
+		echo "##vso[task.setprogress value=60;]Progress Indicator"
+
+	else
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#                           $cyan Library is bootstrapped $reset_formatting                                   #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
+		echo "##vso[task.setprogress value=60;]Progress Indicator"
+
+	fi
+
+	unset TF_DATA_DIR
+	cd "$root_dirname" || exit
+	echo "##vso[task.setprogress value=80;]Progress Indicator"
+
+}
 # Function to execute deployment steps
 execute_deployment_steps() {
-  local step
-  load_config_vars "${deployer_config_file}" "step"
+	local step
+	load_config_vars "${deployer_config_file}" "step"
 
-  while [[ $step -le 4 ]]; do
-    case $step in
-      0) bootstrap_deployer ;;
-      1) validate_keyvault_access ;;
-      2) bootstrap_library ;;
-      3) migrate_deployer_state ;;
-      4) migrate_library_state ;;
-    esac
-    ((step++))
-    save_config_var "step" "${deployer_config_file}"
-  done
+	while [[ $step -le 4 ]]; do
+		case $step in
+		0) bootstrap_deployer ;;
+		1) validate_keyvault_access ;;
+		2) bootstrap_library ;;
+		3) migrate_deployer_state ;;
+		4) migrate_library_state ;;
+		esac
+		((step++))
+		save_config_var "step" "${deployer_config_file}"
+	done
 }
 
 main() {
@@ -507,112 +583,6 @@ main() {
 	fi
 
 	current_directory=$(pwd)
-
-
-	##########################################################################################
-	#                                                                                        #
-	#                                      STEP 2                                            #
-	#                           Bootstrapping the library                                    #
-	#                                                                                        #
-	#                                                                                        #
-	##########################################################################################
-
-	if [ 2 -eq $step ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Bootstrapping the library $reset_formatting                                  #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-
-		relative_path="${library_dirname}"
-		export TF_DATA_DIR="${relative_path}/.terraform"
-		relative_path="${deployer_dirname}"
-
-		cd "${library_dirname}" || exit
-		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
-
-		if [ $force == 1 ]; then
-			rm -Rf .terraform terraform.tfstate*
-		fi
-
-		echo "Calling install_library.sh with: --parameterfile ${library_parameter_file_name} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
-
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
-			--parameterfile "${library_parameter_file_name}" \
-			--deployer_statefile_foldername "${relative_path}" \
-			--keyvault "${keyvault}" "$autoApproveParameter"; then
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       $bold_red  Bootstrapping of the library failed $reset_formatting                          #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-			step=2
-			save_config_var "step" "${deployer_config_information}"
-			exit 20
-		else
-			step=3
-			save_config_var "step" "${deployer_config_information}"
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       $cyan Bootstrapping of the library succeeded $reset_formatting                        #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-
-		fi
-
-		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-
-			if [ -z "$REMOTE_STATE_SA" ]; then
-				REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
-			fi
-			if [ -z "$REMOTE_STATE_SA" ]; then
-				REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-			fi
-			if [ -z "$STATE_SUBSCRIPTION" ]; then
-				STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
-			fi
-
-			if [ "${ado_flag}" != "--ado" ]; then
-				az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
-			fi
-
-			TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
-			export TF_VAR_sa_connection_string
-		fi
-
-		if [ -n "${tfstate_resource_id}" ]; then
-			TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
-		else
-			tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-		fi
-		export TF_VAR_tfstate_resource_id
-
-		cd "${current_directory}" || exit
-		save_config_var "step" "${deployer_config_information}"
-		echo "##vso[task.setprogress value=60;]Progress Indicator"
-
-	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                           $cyan Library is bootstrapped $reset_formatting                                   #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		echo "##vso[task.setprogress value=60;]Progress Indicator"
-
-	fi
-
-	unset TF_DATA_DIR
-	cd "$root_dirname" || exit
-	echo "##vso[task.setprogress value=80;]Progress Indicator"
 
 	##########################################################################################
 	#                                                                                        #
