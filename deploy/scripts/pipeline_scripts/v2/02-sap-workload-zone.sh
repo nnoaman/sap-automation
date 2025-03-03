@@ -140,10 +140,6 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
-if [ "$SID" != "$SID_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The sid setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$SID' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
-	exit 2
-fi
 
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
