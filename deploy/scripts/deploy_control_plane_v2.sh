@@ -34,10 +34,10 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-if printenv "CONFIG_REPO_PATH" ; then
+if printenv "CONFIG_REPO_PATH"  ; then
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 else
-	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"]"
+	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
 	exit 1
 fi
 
