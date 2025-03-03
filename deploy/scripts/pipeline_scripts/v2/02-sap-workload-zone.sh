@@ -7,7 +7,6 @@ reset="\e[0m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
-
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -17,7 +16,6 @@ parent_directory="$(dirname "$script_directory")"
 #call stack has full scriptname when using source
 source "${parent_directory}/helper.sh"
 DEBUG=False
-
 
 DEBUG=False
 
@@ -204,6 +202,12 @@ if [ -z "$tfstate_resource_id" ]; then
 	exit 2
 fi
 
+echo -e "$green--- Saving the deployment credentials ---$reset"
+if [ "$USE_MSI" != "true" ]; then
+	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --environment "${ENVIRONMENT}" --vault ${key_vault} \
+		--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado
+fi
+
 export TF_VAR_spn_keyvault_id=${key_vault_id}
 
 terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
@@ -232,7 +236,7 @@ cd "$CONFIG_REPO_PATH/SYSTEM/$WORKLOAD_ZONE_FOLDERNAME" || exit
 source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
 install --parameterfile $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
-  --ado --auto-approve
+	--ado --auto-approve
 return_code=$?
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
