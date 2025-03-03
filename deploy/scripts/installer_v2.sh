@@ -44,6 +44,12 @@ else
 fi
 readonly CONFIG_DIR
 
+if printenv "TEST_ONLY"; then
+	TEST_ONLY="${TEST_ONLY}"
+else
+	TEST_ONLY="false"
+fi
+
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$path
