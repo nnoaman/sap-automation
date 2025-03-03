@@ -409,13 +409,7 @@ function validate_dependencies {
 	fi
 
 	if [ -z "$tf" ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $bold_red_underscore  Please install Terraform $reset_formatting                                 #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+	  print_banner "Installer" "Terraform not found" "error"
 		return 2 #No such file or directory
 	fi
 
@@ -432,24 +426,12 @@ function validate_dependencies {
 
 	az_version=$(az --version | grep "azure-cli")
 	if [ -z "${az_version}" ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $bold_red_underscore Please install the Azure CLI $reset_formatting                               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+	  print_banner "Installer" "Azure CLI not found" "error"
 		return 2 #No such file or directory
 	fi
 	cloudIDUsed=$(az account show | grep "cloudShellID" || true)
 	if [ -n "${cloudIDUsed}" ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#         $bold_red Please login using your credentials or service principal credentials! $reset_formatting       #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+    print_banner "Installer" "Please login using your credentials or service principal credentials" "error"
 		exit 67 #addressee unknown
 	fi
 
@@ -465,14 +447,7 @@ function validate_key_parameters {
 	export environment
 
 	if [ -z "${environment}" ]; then
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                         $bold_red  Incorrect parameter file. $reset_formatting                                  #"
-		echo "#                                                                                       #"
-		echo "#                The file must contain the environment attribute!!                      #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+	  print_banner "Installer" "Incorrect parameter file" "error" "The file must contain the environment attribute"
 		return 64 #script usage wrong
 	fi
 
@@ -481,14 +456,7 @@ function validate_key_parameters {
 	export region
 
 	if [ -z "${region}" ]; then
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $bold_red Incorrect parameter file. $reset_formatting                                  #"
-		echo "#                                                                                       #"
-		echo "#              The file must contain the region/location attribute!!                    #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+	  print_banner "Installer" "Incorrect parameter file" "error" "The file must contain the location attribute"
 		return 64 #script usage wrong
 	fi
 

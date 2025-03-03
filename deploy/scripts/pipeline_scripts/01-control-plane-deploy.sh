@@ -213,7 +213,7 @@ fi
 
 STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 
-echo "Terraform state subscription:         $STATE_SUBSCRIPTION"
+echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
 
 if [ -n "$tfstate_resource_id" ]; then
 	REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)

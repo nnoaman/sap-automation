@@ -609,6 +609,7 @@ function execute_deployment_steps() {
 function deploy_control_plane() {
 	force=0
 	recover=0
+	step=0
 	ado_flag="none"
 	deploy_using_msi_only=0
 	autoApproveParameter=""
