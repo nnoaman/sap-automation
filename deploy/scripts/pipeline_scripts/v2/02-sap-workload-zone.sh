@@ -173,8 +173,6 @@ echo -e "$green--- Read parameter values ---$reset"
 
 dos2unix -q "${workload_environment_file_name}"
 
-prefix="${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
-
 deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
 
@@ -188,7 +186,6 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	if [ -z "$tfstate_resource_id" ]; then
 		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
 	fi
-	workload_key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultName" "${WORKLOAD_ZONE_NAME}")
 else
 	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	load_config_vars "${workload_environment_file_name}" "keyvault"
@@ -209,38 +206,33 @@ fi
 
 export TF_VAR_spn_keyvault_id=${key_vault_id}
 
-REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
-export REMOTE_STATE_SA
-export REMOTE_STATE_RG
-export STATE_SUBSCRIPTION
+export terraform_storage_account_name
+export terraform_storage_account_resource_group_name
+export terraform_storage_account_subscription_id
 export tfstate_resource_id
-
-export workload_key_vault
-
 
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
-echo "Workload Key vault:                  ${workload_key_vault}"
+
 echo "Target subscription                  $WL_ARM_SUBSCRIPTION_ID"
 
-echo "Terraform state file subscription:   $STATE_SUBSCRIPTION"
-echo "Terraform state file storage account:$REMOTE_STATE_SA"
+echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
+echo "Terraform state file storage account:$terraform_storage_account_name"
 
-tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 export tfstate_resource_id
 
 echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/$WORKLOAD_ZONE_FOLDERNAME" || exit
 source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
-install --parameterfile $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_system \
+install --parameterfile $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
-	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
-	--ado --auto-approve
-
+  --ado --auto-approve
 return_code=$?
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
