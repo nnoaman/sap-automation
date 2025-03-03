@@ -105,7 +105,7 @@ stages:
                 echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
               fi
             env:
-              CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
+              CP_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
               CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID),
               CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
               CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
@@ -125,14 +125,14 @@ stages:
 
             displayName: Prepare control plane
             env:
+              ARM_CLIENT_ID:                  $(ParameterValidation.ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:              $(ParameterValidation.ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                  $(ParameterValidation.ARM_OBJECT_ID)
               ARM_SUBSCRIPTION_ID:            $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                  $(ParameterValidation.ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:           $(PAT)
               CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:             ${{ parameters.environment }}
-              ARM_CLIENT_ID:                  $(ParameterValidation.ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:              $(ParameterValidation.ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:                  $(ParameterValidation.ARM_TENANT_ID)
-              ARM_OBJECT_ID:                  $(ParameterValidation.ARM_OBJECT_ID)
               DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
               FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:         true
@@ -212,7 +212,7 @@ stages:
                 echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
               fi
             env:
-              CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
+              CP_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
               CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID),
               CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
               CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
@@ -227,15 +227,16 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy control plane Part 2
             env:
-              APP_REGISTRATION_APP_ID:      $(APP_REGISTRATION_APP_ID)
+
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
+              APP_REGISTRATION_APP_ID:      $(APP_REGISTRATION_APP_ID)
+              ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           ${{ parameters.environment }}
-              ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
-              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
               DEPLOYER_TFSTATE_KEY:         "${{ parameters.deployer }}.terraform.tfstate"
               FORCE_RESET:                  ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:       true
@@ -253,8 +254,6 @@ stages:
               TF_VAR_tf_version:            $(tf_version)
               USE_MSI:                      $(Use_MSI)
               WEB_APP_CLIENT_SECRET:        $(WEB_APP_CLIENT_SECRET)
-              keyvault:                     $(Deployer_Key_Vault)
-
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
     variables:
