@@ -636,7 +636,7 @@ function deploy_control_plane() {
 		echo "validate_dependencies returned $return_code"
 		exit $return_code
 	fi
-
+echo ""
 	echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 	echo "Region code:                         ${region_code}"
 	echo "Deployer State File:                 ${deployer_tfstate_key}"
