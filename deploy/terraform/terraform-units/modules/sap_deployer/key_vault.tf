@@ -128,7 +128,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
   provider                             = azurerm.main
-  count                                = var.key_vault.exists && length(var.spn_id) > 0 ? 0 : 1
+  count                                = var.key_vault.exists && length(var.spn_id) != 36 ? 0 : 1
 
   key_vault_id                         = azurerm_key_vault.kv_user[0].id
   tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
