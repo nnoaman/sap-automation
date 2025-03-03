@@ -306,16 +306,14 @@ fi
 export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
 sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_control_plane_v2.sh"
-source "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh"
+
 if [ "$USE_MSI" != "true" ]; then
 
 	export TF_VAR_use_spn=true
 
-	if main --deployer_parameter_file "${deployer_configuration_file}" \
+	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
 		--library_parameter_file "${library_configuration_file}" \
 		--subscription "$ARM_SUBSCRIPTION_ID" \
-		--spn_secret "$ARM_CLIENT_SECRET" \
-		--tenant_id "$ARM_TENANT_ID" \
 		--auto-approve --ado \
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
 		return_code=$?
@@ -325,7 +323,7 @@ if [ "$USE_MSI" != "true" ]; then
 else
 	export TF_VAR_use_spn=false
 
-	if  main --deployer_parameter_file "${deployer_configuration_file}" \
+	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
 		--library_parameter_file "${library_configuration_file}" \
 		--subscription "$ARM_SUBSCRIPTION_ID" \
 		--auto-approve --ado --msi \

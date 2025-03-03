@@ -525,6 +525,7 @@ function migrate_library_state() {
 # Function to execute deployment steps
 execute_deployment_steps() {
 	load_config_vars "${deployer_config_information}" "step"
+	echo "Step:                                $step"
 
 	while [[ $step -le 4 ]]; do
 		case $step in
@@ -745,3 +746,6 @@ EOF
 
 	exit 0
 }
+
+main "$@"
+exit $?
