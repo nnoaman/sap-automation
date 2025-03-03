@@ -22,9 +22,6 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
-
-	set -o errexit
-	set -o pipefail
 fi
 
 export DEBUG
@@ -38,19 +35,13 @@ mkdir -p .sap_deployment_automation
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
 
-if [ -z $CONTROL_PLANE_NAME ]; then
-	CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
-	export $CONTROL_PLANE_NAME
-fi
-
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
-echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 
 if [ "$FORCE_RESET" == "True" ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
@@ -67,7 +58,6 @@ echo "Step:                                $step"
 
 if [ 0 != "${step}" ]; then
 	echo "##vso[task.logissue type=warning]Already prepared"
-	print_banner "Deployer" "The deployer is already prepared" "info"
 	exit 0
 fi
 
@@ -125,6 +115,15 @@ echo "$val                 $VARIABLE_GROUP_ID"
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
+# Set logon variables
+ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
+export ARM_CLIENT_ID
+ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
+export ARM_CLIENT_SECRET
+ARM_TENANT_ID=$CP_ARM_TENANT_ID
+export ARM_TENANT_ID
+ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -152,6 +151,8 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
+
+
 
 else
 	echo -e "$green--- az login ---$reset"
@@ -213,11 +214,11 @@ if [ $FORCE_RESET == True ]; then
 	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_RG")
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
-		echo "Terraform Remote State Account:      ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+		echo "Terraform Remote State Account:       ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
-		echo "Terraform Remote State RG Name:      ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+		echo "Terraform Remote State RG Name:       ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ] && [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
@@ -255,14 +256,15 @@ export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
 set +eu
 
 if [ "$USE_MSI" != "true" ]; then
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane_v2.sh" \
+	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
 		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
 		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
-		--subscription "$ARM_SUBSCRIPTION_ID" \
+		--subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" \
+		--spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" \
 		--auto-approve --ado --only_deployer
 
 else
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane_v2.sh" \
+	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
 		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
 		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
@@ -284,20 +286,15 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Deployer Key Vault:                  ${file_key_vault}"
-	echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-	if [ "$USE_MSI" != "true" ]; then
-		"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --environment "${ENVIRONMENT}" --vault ${file_key_vault} \
-			--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado
-	fi
 
 	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform Remote State Account:      ${file_REMOTE_STATE_SA}"
+		echo "Terraform Remote State Account:       ${file_REMOTE_STATE_SA}"
 	fi
 
 	file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform Remote State RG Name:      ${file_REMOTE_STATE_RG}"
+		echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
 	fi
 fi
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
@@ -309,8 +306,8 @@ git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
 
-if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
-	git add ".sap_deployment_automation/$CONTROL_PLANE_NAME"
+if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
+	git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 	added=1
 fi
 
@@ -341,15 +338,16 @@ if [ 1 = $added ]; then
 	fi
 fi
 
-if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
-	if echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md"; then
-		echo ""
-	fi
+if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
+	echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
 fi
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
 
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$LOCATION"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
 
 fi
 exit $return_code
