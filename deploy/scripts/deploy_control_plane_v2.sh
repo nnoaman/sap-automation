@@ -655,14 +655,12 @@ main() {
 	execute_deployment_steps
 
 	printf -v kvname '%-40s' "${keyvault}"
-	printf -v dep_ip '%-40s' "${deployer_public_ip_address}"
 	printf -v storage_account '%-40s' "${terraform_storage_account_name}"
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo -e "# $cyan Please save these values: $reset_formatting                                                           #"
 	echo "#     - Key Vault:       ${kvname}                       #"
-	echo "#     - Deployer IP:     ${dep_ip}                       #"
 	echo "#     - Storage Account: ${storage_account}                       #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
@@ -680,7 +678,6 @@ Date : "${now}"
 | Environment             | $environment         |
 | Location                | $region              |
 | Keyvault Name           | ${kvname}            |
-| Deployer IP             | ${dep_ip}            |
 | Terraform state         | ${storage_account}   |
 
 EOF
