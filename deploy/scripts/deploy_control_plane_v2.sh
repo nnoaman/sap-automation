@@ -7,10 +7,8 @@
 set -o pipefail
 
 #colors for terminal
-bold_red_underscore="\e[1;4;31m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
-green="\e[1;32m"
 reset_formatting="\e[0m"
 
 #External helper functions
@@ -36,8 +34,12 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-CONFIG_REPO_PATH="${script_directory}/.."
-CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+if printenv "CONFIG_REPO_PATH" ; then
+	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+else
+	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"]"
+	exit 1
+fi
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
