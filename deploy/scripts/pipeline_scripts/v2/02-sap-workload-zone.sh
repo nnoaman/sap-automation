@@ -19,7 +19,7 @@ DEBUG=False
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$terraform_storage_account_subscription_id_DEBUG" = True ]; then
 	set -x
 	set -o errexit
 	DEBUG=True
@@ -32,7 +32,7 @@ set -eu
 
 echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
 
-tfvarsFile="SYSTEM/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
+tfvarsFile="terraform_storage_account_subscription_id/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
@@ -40,7 +40,7 @@ cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
-if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
+if [ ! -f "$CONFIG_REPO_PATH/terraform_storage_account_subscription_id/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
 	echo -e "$bold_red--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset"
 	echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_TFVARS_FILENAME was not found."
 	exit 2
@@ -118,8 +118,8 @@ echo "Network(filename):                   $NETWORK_IN_FILENAME"
 echo ""
 
 echo "Agent pool:                          $THIS_AGENT"
-echo "Organization:                        $SYSTEM_COLLECTIONURI"
-echo "Project:                             $SYSTEM_TEAMPROJECT"
+echo "Organization:                        $terraform_storage_account_subscription_id_COLLECTIONURI"
+echo "Project:                             $terraform_storage_account_subscription_id_TEAMPROJECT"
 echo ""
 echo "Azure CLI version:"
 echo "-------------------------------------------------"
@@ -153,7 +153,7 @@ az config set extension.use_dynamic_install=yes_without_prompt --output none --o
 
 az extension add --name azure-devops --output none --only-show-errors
 
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none
+az devops configure --defaults organization=$terraform_storage_account_subscription_id_COLLECTIONURI project='$terraform_storage_account_subscription_id_TEAMPROJECT' --output none
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 
@@ -232,7 +232,7 @@ tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}
 export tfstate_resource_id
 
 echo -e "$green--- Deploy the System ---$reset"
-cd "$CONFIG_REPO_PATH/SYSTEM/$WORKLOAD_ZONE_FOLDERNAME" || exit
+cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
 install --parameterfile $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
@@ -253,7 +253,7 @@ git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 # Pull changes if there are other deployment jobs
 
-cd "${CONFIG_REPO_PATH}/SYSTEM/$WORKLOAD_ZONE_FOLDERNAME" || exit
+cd "${CONFIG_REPO_PATH}/terraform_storage_account_subscription_id/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
@@ -281,7 +281,7 @@ if [ -f "${SID}_hosts.yaml" ]; then
 fi
 
 if [ -f "${SID}.md" ]; then
-	git add "${CONFIG_REPO_PATH}/SYSTEM/$WORKLOAD_ZONE_FOLDERNAME/${SID}.md"
+	git add "${CONFIG_REPO_PATH}/terraform_storage_account_subscription_id/$WORKLOAD_ZONE_FOLDERNAME/${SID}.md"
 	# echo "##vso[task.uploadsummary]./${SID}.md)"
 	added=1
 fi
@@ -311,7 +311,7 @@ if [ 1 == $added ]; then
 	git config --global user.name "$BUILD_REQUESTEDFOR"
 	git commit -m "Added updates from SAP deployment of $WORKLOAD_ZONE_FOLDERNAME for $BUILD_BUILDNUMBER [skip ci]"
 
-	if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+	if git -c http.extraheader="AUTHORIZATION: bearer terraform_storage_account_subscription_id_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 		echo "##vso[task.logissue type=warning]Changes from SAP deployment of $WORKLOAD_ZONE_FOLDERNAME pushed to $BUILD_SOURCEBRANCHNAME"
 	else
 		echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
@@ -320,7 +320,7 @@ fi
 
 # file_name=${SID}_inventory.md
 # if [ -f ${SID}_inventory.md ]; then
-#   az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none
+#   az devops configure --defaults organization=$terraform_storage_account_subscription_id_COLLECTIONURI project='$terraform_storage_account_subscription_id_TEAMPROJECT' --output none
 
 #   # ToDo: Fix this later
 #   # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
