@@ -250,6 +250,10 @@ function parse_arguments() {
 				unset TF_DATA_DIR
 				return 2
 			fi
+		else
+			TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+			export TF_VAR_landscape_tfstate_key
+			landscape_tfstate_key_exists=true
 		fi
 	fi
 
@@ -264,12 +268,6 @@ function parse_arguments() {
 				return 2
 			fi
 		fi
-	fi
-
-	if [ -n "${landscape_tfstate_key}" ]; then
-		TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
-		export TF_VAR_landscape_tfstate_key
-		landscape_tfstate_key_exists=true
 	fi
 
 	if [ -n "${deployer_tfstate_key}" ]; then
