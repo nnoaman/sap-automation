@@ -159,7 +159,19 @@ function parse_arguments() {
 function install_deployer() {
 	deployment_system=sap_deployer
 	approve=""
+	# Define an array of helper scripts
+	helper_scripts=(
+		"${script_directory}/helpers/script_helpers.sh"
+		"${script_directory}/deploy_utils.sh"
+	)
 
+	# Call the function with the array
+	source_helper_scripts "${helper_scripts[@]}"
+
+	# Parse command line arguments
+	if parse_arguments "$@"; then
+		return $?
+	fi
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
@@ -390,3 +402,7 @@ function install_deployer() {
 
 	return "$return_value"
 }
+
+# Main script
+install_deployer "$@"
+exit $?
