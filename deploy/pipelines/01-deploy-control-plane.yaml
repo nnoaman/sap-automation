@@ -95,10 +95,10 @@ stages:
               ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
               AZURE_DEVOPS_EXT_PAT:           $(PAT)
               CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_NAME:      ${{ parameters.environment }}
-              CP_ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
-              CP_ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
-              CP_ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
+              CONTROL_PLANE_NAME:             ${{ parameters.environment }}
+              CP_ARM_CLIENT_ID:               ${{ iif($(Use_MSI), $(CP_ARM_CLIENT_ID), '') }}
+              CP_ARM_CLIENT_SECRET:           ${{ iif($(Use_MSI), $(CP_ARM_CLIENT_SECRET), '') }}
+              CP_ARM_TENANT_ID:               ${{ iif($(Use_MSI), $(CP_ARM_TENANT_ID), '') }}
               DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
               FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:         true
@@ -114,11 +114,11 @@ stages:
               TF_VAR_ansible_core_version:    $(ansible_core_version)
               TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
-              TF_VAR_spn_id:                  $(CP_ARM_OBJECT_ID)
+              TF_VAR_spn_id:                  ${{ iif($(Use_MSI), $(CP_ARM_OBJECT_ID), '') }}
               TF_VAR_tf_version:              $(tf_version)
               TF_VAR_use_webapp:              ${{ lower(parameters.use_webapp_param) }}
               TF_VAR_webapp_client_secret:    $(WEB_APP_CLIENT_SECRET)
-              USE_MSI:                        $(Use_MSI)
+              USE_MSI:
               USE_WEBAPP:                     ${{ lower(parameters.use_webapp_param) }}
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
   - stage:                             Deploy_controlplane
@@ -162,10 +162,10 @@ stages:
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           ${{ parameters.environment }}
-              CP_ARM_CLIENT_ID:             $(CP_ARM_CLIENT_ID)
-              CP_ARM_CLIENT_SECRET:         $(CP_ARM_CLIENT_SECRET)
+              CP_ARM_CLIENT_ID:             ${{ iif($(Use_MSI), $(CP_ARM_CLIENT_ID), '') }}
+              CP_ARM_CLIENT_SECRET:         ${{ iif($(Use_MSI), $(CP_ARM_CLIENT_SECRET), '') }}
+              CP_ARM_TENANT_ID:             ${{ iif($(Use_MSI), $(CP_ARM_TENANT_ID), '') }}
               CP_ARM_SUBSCRIPTION_ID:       $(CP_ARM_SUBSCRIPTION_ID)
-              CP_ARM_TENANT_ID:             $(CP_ARM_TENANT_ID)
               DEPLOYER_TFSTATE_KEY:         "${{ parameters.deployer }}.terraform.tfstate"
               FORCE_RESET:                  ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:       true
@@ -179,7 +179,7 @@ stages:
               TF_VAR_agent_pat:             $(PAT)
               TF_VAR_agent_pool:            $(POOL)
               TF_VAR_ansible_core_version:  $(ansible_core_version)
-              TF_VAR_spn_id:                $(CP_ARM_OBJECT_ID)
+              TF_VAR_spn_id:                ${{ iif($(Use_MSI), $(CP_ARM_OBJECT_ID), '') }}
               TF_VAR_tf_version:            $(tf_version)
               USE_MSI:                      $(Use_MSI)
               WEB_APP_CLIENT_SECRET:        $(WEB_APP_CLIENT_SECRET)
