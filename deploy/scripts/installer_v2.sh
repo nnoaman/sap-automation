@@ -184,7 +184,7 @@ function parse_arguments() {
 			;;
 		-h | --help)
 			showhelp
-			return  3
+			return 3
 			;;
 		--)
 			shift
@@ -212,12 +212,12 @@ function parse_arguments() {
 	}
 	[[ -z "$APPLICATION_CONFIGURATION_ID" ]] && {
 		print_banner "Installer" "application_configuration_id is required" "error"
-		return  1
+		return 1
 	}
 
 	[[ -z "$deployment_system" ]] && {
 		print_banner "Installer" "type is required" "error"
-		return  1
+		return 1
 	}
 
 	if [ -z $CONTROL_PLANE_NAME ] && [ -n "$deployer_tfstate_key" ]; then
@@ -228,12 +228,16 @@ function parse_arguments() {
 		deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 	fi
 
-	if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
+	if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
 		WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
-	fi
 
-	if [ -n "$WORKLOAD_ZONE_NAME" ] && [ -z $landscape_tfstate_key ]; then
-		landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+		if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
+			WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
+		fi
+
+		if [ -n "$WORKLOAD_ZONE_NAME" ] && [ -z $landscape_tfstate_key ]; then
+			landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+		fi
 	fi
 
 	if [ "${deployment_system}" == sap_system ]; then
@@ -244,7 +248,7 @@ function parse_arguments() {
 			else
 				print_banner "Installer" "Workload terraform statefile name is required" "error"
 				unset TF_DATA_DIR
-				return  2
+				return 2
 			fi
 		fi
 	fi
@@ -257,7 +261,7 @@ function parse_arguments() {
 			else
 				print_banner "Installer" "Deployer terraform state file name is required" "error"
 				unset TF_DATA_DIR
-				return  2
+				return 2
 			fi
 		fi
 	fi
@@ -275,17 +279,17 @@ function parse_arguments() {
 
 	# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 	if ! validate_exports; then
-		return  $?
+		return $?
 	fi
 
 	# Check that Terraform and Azure CLI is installed
 	if ! validate_dependencies; then
-		return  $?
+		return $?
 	fi
 
 	# Check that parameter files have environment and location defined
 	if ! validate_key_parameters "$parameterfile_name"; then
-		return  $?
+		return $?
 	fi
 
 	network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3)
@@ -302,7 +306,7 @@ function parse_arguments() {
 		get_region_code "${region}"
 	else
 		echo "Invalid region: $region"
-		return  2
+		return 2
 	fi
 
 	return 0
@@ -432,7 +436,7 @@ install() {
 	source_helper_scripts "${helper_scripts[@]}"
 
 	# Parse command line arguments
-	if parse_arguments "$@" ; then
+	if parse_arguments "$@"; then
 		return $?
 	fi
 
@@ -458,7 +462,7 @@ install() {
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 	if [ "$DEBUG" = True ]; then
-	  print_banner "Installer" "Enabling debug mode" "info"
+		print_banner "Installer" "Enabling debug mode" "info"
 		set -x
 		set -o errexit
 	fi
@@ -569,7 +573,7 @@ install() {
 	new_deployment=0
 
 	if [ ! -f .terraform/terraform.tfstate ]; then
-	  print_banner "Installer" "New deployment" "info"
+		print_banner "Installer" "New deployment" "info"
 
 		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
@@ -652,7 +656,7 @@ install() {
 	if [ 1 -eq $new_deployment ]; then
 		deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \" || true)
 		if [ -z "${deployed_using_version}" ]; then
-		  print_banner "Installer" "The environment was deployed using an older version of the Terraform templates" "error" "Please inspect the output of Terraform plan carefully!"
+			print_banner "Installer" "The environment was deployed using an older version of the Terraform templates" "error" "Please inspect the output of Terraform plan carefully!"
 
 			if [ 1 == $called_from_ado ]; then
 				unset TF_DATA_DIR
