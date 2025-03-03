@@ -89,7 +89,7 @@ function missing {
 
 force=0
 
-INPUT_ARGUMENTS=$(getopt -n installer -o p:t:o:d:l:s:g:c:w:ahif --longoptions type:,parameterfile:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_id:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n installer -o p:t:o:d:l:s:ahif --longoptions type:,parameterfile:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,ado,auto-approve,force,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -100,48 +100,36 @@ called_from_ado=0
 eval set -- "$INPUT_ARGUMENTS"
 while :; do
 	case "$1" in
-	-a | --ado)
-		called_from_ado=1
-		approve="--auto-approve"
-		TF_IN_AUTOMATION=true
-		export TF_IN_AUTOMATION
-		shift
-		;;
-	-d | --deployer_tfstate_key)
-		deployer_tfstate_key="$2"
-		shift 2
-		;;
-	-c | --control_plane_name)
-		CONTROL_PLANE_NAME="$2"
-		shift 2
-		;;
-	-g | --application_configuration_id)
-		APPLICATION_CONFIGURATION_ID="$2"
-		shift 2
-		;;
-	-l | --landscape_tfstate_key)
-		landscape_tfstate_key="$2"
-		shift 2
-		;;
-	-o | --storageaccountname)
-		REMOTE_STATE_SA="$2"
+	-t | --type)
+		deployment_system="$2"
 		shift 2
 		;;
 	-p | --parameterfile)
 		parameterfile="$2"
 		shift 2
 		;;
+	-o | --storageaccountname)
+		REMOTE_STATE_SA="$2"
+		shift 2
+		;;
 	-s | --state_subscription)
 		STATE_SUBSCRIPTION="$2"
 		shift 2
 		;;
-	-t | --type)
-		deployment_system="$2"
+	-d | --deployer_tfstate_key)
+		deployer_tfstate_key="$2"
 		shift 2
 		;;
-	-w | --workload_zone_name)
-		WORKLOAD_ZONE_NAME="$2"
+	-l | --landscape_tfstate_key)
+		landscape_tfstate_key="$2"
 		shift 2
+		;;
+	-a | --ado)
+		called_from_ado=1
+		approve="--auto-approve"
+		TF_IN_AUTOMATION=true
+		export TF_IN_AUTOMATION
+		shift
 		;;
 	-f | --force)
 		force=1
@@ -172,24 +160,6 @@ echo "Parameter file:                      $parameterfile"
 echo "Current directory:                   $(pwd)"
 echo "Terraform state subscription_id:     ${STATE_SUBSCRIPTION}"
 echo "Terraform state storage account name:${REMOTE_STATE_SA}"
-echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
-echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
-
-if [ -z $CONTROL_PLANE_NAME ] && [ -n "$deployer_tfstate_key" ]; then
-	CONTROL_PLANE_NAME=$(echo $deployer_tfstate_key | cut -d'-' -f1-3)
-fi
-
-if [ -n "$CONTROL_PLANE_NAME" ] && [ -z $deployer_tfstate_key ]; then
-	deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-fi
-
-if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
-	WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
-fi
-
-if [ -n "$WORKLOAD_ZONE_NAME" ] && [ -z $landscape_tfstate_key ]; then
-	landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-fi
 
 landscape_tfstate_key_exists=false
 
@@ -278,20 +248,11 @@ if [ "${deployment_system}" == sap_system ]; then
 	network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
 fi
 
-if [ "${deployment_system}" == sap_deployer ]; then
-	load_config_vars "$parameterfile_name" "management_network_logical_name"
-	network_logical_name=$(echo "${management_network_logical_name}" | tr "[:lower:]" "[:upper:]")
-fi
-
 #Persisting the parameters across executions
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
-	system_config_information="${automation_config_directory}${WORKLOAD_ZONE_NAME}"
-else
-	system_config_information="${automation_config_directory}${CONTROL_PLANE_NAME}"
-fi
+system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
 
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
@@ -317,7 +278,7 @@ fi
 
 parallelism=10
 
-#Provide a way to limit the number of parallel tasks for Terraform
+#Provide a way to limit the number of parallell tasks for Terraform
 if [[ -n "$TF_PARALLELLISM" ]]; then
 	parallelism=$TF_PARALLELLISM
 fi
@@ -901,22 +862,27 @@ fi
 
 allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
-terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log
-return_value=${PIPESTATUS[0]}
-echo "Terraform Plan return code:          $return_value"
+# shellcheck disable=SC2086
+if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log; then
+	return_value=$?
+	echo "Terraform Plan return code:          $return_value"
 
-if [ $return_value -eq 1 ]; then
-	echo ""
-	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	exit $return_value
+	if [ $return_value -eq 1 ]; then
+		echo ""
+		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
+		exit $return_value
+	fi
 else
+	return_value=$?
+	echo "Terraform Plan return code:          $return_value"
+
 	echo ""
 	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
 	echo ""
@@ -1216,17 +1182,27 @@ if [ 1 == $apply_needed ]; then
 	echo "#########################################################################################"
 	echo ""
 
-	allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+	      allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
 	allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
 	if [ -n "${approve}" ]; then
 		# shellcheck disable=SC2086
-		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json
-		return_value=${PIPESTATUS[0]}
+		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
+			return_value=$?
+		else
+			echo ""
+			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo ""
+			return_value=0
+		fi
+
 	else
 		# shellcheck disable=SC2086
-		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee -a apply_output.json
-		return_value=${PIPESTATUS[0]}
+		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee -a apply_output.json; then
+			return_value=$?
+		else
+			return_value=0
+		fi
 	fi
 
 	if [ $return_value -eq 1 ]; then
@@ -1307,7 +1283,7 @@ if [ -f apply_output.json ]; then
 	rm apply_output.json
 fi
 
-if [ 0 -ne $return_value ]; then
+if [ 1 == $return_value ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -1345,23 +1321,23 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
 	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 
-	app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
-
 	created_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 	echo ""
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	echo ""
+
 	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 	script_directory="$(dirname "${full_script_path}")"
+	az deployment group create --resource-group "${created_resource_group_name}" --name "ControlPlane_Deployer_${created_resource_group_name}" \
+		--template-file "${script_directory}/templates/empty-deployment.json" --output none
 	return_value=0
 	if [ 1 == $called_from_ado ]; then
-
-		if [ -n "${app_config_id}" ]; then
-			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value")
-			if [ -z "${az_var}" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${app_config_id}" --output none --only-show-errors
-			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${app_config_id}" --output none --only-show-errors
-			fi
-		fi
 
 		if [ -n "${deployer_random_id}" ]; then
 			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value")
@@ -1430,6 +1406,46 @@ fi
 
 save_config_var "deployer_public_ip_address" "${system_config_information}"
 
+if [ "${deployment_system}" == sap_system ]; then
+
+	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
+
+	echo ""
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	echo ""
+	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+	script_directory="$(dirname "${full_script_path}")"
+	az deployment group create --resource-group "${rg_name}" --name "SAP_${rg_name}" --subscription "$ARM_SUBSCRIPTION_ID" \
+		--template-file "${script_directory}/templates/empty-deployment.json" --output none
+
+fi
+
+if [ "${deployment_system}" == sap_landscape ]; then
+	save_config_vars "${system_config_information}" \
+		landscape_tfstate_key
+
+	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
+	echo ""
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	echo ""
+	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+	script_directory="$(dirname "${full_script_path}")"
+	az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "$ARM_SUBSCRIPTION_ID" \
+		--template-file "${script_directory}/templates/empty-deployment.json" --output none
+fi
+
 if [ "${deployment_system}" == sap_library ]; then
 	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 	sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
@@ -1466,6 +1482,20 @@ if [ "${deployment_system}" == sap_library ]; then
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
 	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 
+	echo ""
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	echo ""
+
+	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+	script_directory="$(dirname "${full_script_path}")"
+	az deployment group create --resource-group "${rg_name}" --name "SAP-LIBRARY_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
+
 fi
 
 if [ -f "${system_config_information}".err ]; then
@@ -1493,17 +1523,8 @@ else
 		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 fi
 
-if [ -f .terraform/terraform.tfstate ]; then
-	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/${state_path}/${key}/.terraform" --name terraform.tfstate \
-			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-	else
-		az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/${state_path}/${key}/.terraform" --name terraform.tfstate \
-			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
-	fi
-fi
-if [ "${deployment_system}" == sap_system ]; then
-	if [ -f sap-parameters.yaml ]; then
+if [ -f sap-parameters.yaml ]; then
+	if [ "${deployment_system}" == sap_system ]; then
 		echo "Uploading the yaml files from ${param_dirname} to the storage account"
 		if [ "$useSAS" = "true" ]; then
 			az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml \
@@ -1512,35 +1533,34 @@ if [ "${deployment_system}" == sap_system ]; then
 			az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml \
 				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 		fi
-	fi
 
-	hosts_file=$(ls *_hosts.yaml)
-	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
-			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-	else
-		az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
-			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+		hosts_file=$(ls *_hosts.yaml)
+		if [ "$useSAS" = "true" ]; then
+			az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
+				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+		else
+			az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
+				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
+		fi
 	fi
-
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
 	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
+		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	else
-		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
+		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 fi
 if [ "${deployment_system}" == sap_library ]; then
-	deployer_config_information="${automation_config_directory}/${CONTROL_PLANE_NAME}"
+	deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${CONTROL_PLANE_NAME}" \
+		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	else
-		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${CONTROL_PLANE_NAME}" \
+		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 fi
