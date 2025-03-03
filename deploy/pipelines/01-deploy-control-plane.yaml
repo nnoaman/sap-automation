@@ -219,8 +219,6 @@ stages:
               CP_ARM_OBJECT_ID:        $(CP_ARM_OBJECT_ID)
             name:                      ParameterValidation
             displayName:               Parameter Validation
-            name: ParameterValidation
-            displayName: Parameter Validation
           - task: Bash@3
             inputs:
               targetType:              'filePath'
