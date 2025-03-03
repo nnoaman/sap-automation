@@ -47,6 +47,8 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$path
 fi
 
+terraform_storage_account_name=""
+
 # Function to source helper scripts
 source_helper_scripts() {
 	local -a helper_scripts=("$@")
