@@ -468,7 +468,7 @@ function migrate_deployer_state() {
 			print_banner "Migrate-Deployer" "Migrating the Deployer state succeeded." "success"
 		fi
 
-		cd "${current_directory}" || exit
+		cd "$root_dirname" || exit
 		export step=4
 		save_config_var "step" "${deployer_config_information}"
 
