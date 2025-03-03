@@ -10,6 +10,7 @@
 
 resource "azurerm_app_configuration" "app_config" {
   provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_application_configuration ? length(var.infrastructure.application_configuration_id) > 0 ? 0 : 1 : 0
   name                                 = var.app_config_service_name
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
@@ -22,17 +23,23 @@ resource "azurerm_app_configuration" "app_config" {
   sku =                                "standard"
 }
 
+data "azurerm_app_configuration" "app_config" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_application_configuration ? length(var.infrastructure.application_configuration_id) > 0 ? 1 : 0 : 0
+  name                                 = local.app_config_name
+  resource_group_name                  = local.app_config_resource_group_name
+}
 resource "azurerm_role_assignment" "appconf_dataowner" {
   provider                             = azurerm.main
   count                                = var.bootstrap ? 1 : 0
-  scope                                = azurerm_app_configuration.app_config.id
+  scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   role_definition_name                 = "App Configuration Data Owner"
   principal_id                         = data.azurerm_client_config.current.object_id
 }
 
 resource "azurerm_role_assignment" "appconf_dataowner_msi" {
   provider                             = azurerm.main
-  scope                                = azurerm_app_configuration.app_config.id
+  scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   role_definition_name                 = "App Configuration Data Owner"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 
@@ -49,7 +56,8 @@ resource "time_sleep" "wait_for_appconf_dataowner_assignment" {
 resource "azurerm_app_configuration_key" "deployer_state_file_name" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
-  configuration_store_id               = coalesce(var.infrastructure.application_configuration_id,azurerm_app_configuration.app_config.id)
+  configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
+
   key                                  = format("%s_StateFileName", var.state_filename_prefix)
   label                                = var.state_filename_prefix
   value                                = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
@@ -70,7 +78,8 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
 resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
-  configuration_store_id               = coalesce(var.infrastructure.application_configuration_id,azurerm_app_configuration.app_config.id)
+  configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
+
   key                                  = format("%s_KeyVaultName", var.state_filename_prefix)
   label                                = var.state_filename_prefix
   value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
@@ -92,7 +101,7 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
 resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
-  configuration_store_id               = coalesce(var.infrastructure.application_configuration_id,azurerm_app_configuration.app_config.id)
+  configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_KeyVaultResourceId", var.state_filename_prefix)
   label                                = var.state_filename_prefix
   value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
@@ -114,7 +123,7 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
 resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
-  configuration_store_id               = coalesce(var.infrastructure.application_configuration_id,azurerm_app_configuration.app_config.id)
+  configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_ResourceGroupName", var.state_filename_prefix)
   label                                = var.state_filename_prefix
   value                                = local.resourcegroup_name
@@ -135,7 +144,7 @@ resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
 resource "azurerm_app_configuration_key" "deployer_subscription_id" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
-  configuration_store_id               = coalesce(var.infrastructure.application_configuration_id,azurerm_app_configuration.app_config.id)
+  configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SubscriptionId", var.state_filename_prefix)
   label                                = var.state_filename_prefix
   value                                = data.azurerm_subscription.primary.subscription_id
@@ -156,10 +165,10 @@ resource "azurerm_app_configuration_key" "deployer_subscription_id" {
 resource "azurerm_app_configuration_key" "web_application_resource_id" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? var.use_webapp ? 1 :0 : 0
-  configuration_store_id               = try(azurerm_windows_web_app.webapp[0].id, "")
+  configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_AppServiceId", var.state_filename_prefix)
   label                                = var.state_filename_prefix
-  value                                = data.azurerm_subscription.primary.subscription_id
+  value                                = try(azurerm_windows_web_app.webapp[0].id, "")
   content_type                         = "text/id"
   type                                 = "kv"
   tags                                 = {
@@ -177,10 +186,10 @@ resource "azurerm_app_configuration_key" "web_application_resource_id" {
 resource "azurerm_app_configuration_key" "deployer_msi_id" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
-  configuration_store_id               = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+  configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_Deployer_MSI_Id", var.state_filename_prefix)
   label                                = var.state_filename_prefix
-  value                                = data.azurerm_subscription.primary.subscription_id
+  value                                = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
   content_type                         = "text/id"
   type                                 = "kv"
   tags                                 = {
