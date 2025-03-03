@@ -531,7 +531,6 @@ function migrate_library_state() {
 
 # Function to execute deployment steps
 execute_deployment_steps() {
-	local step
 	load_config_vars "${deployer_config_information}" "step"
 
 	while [[ $step -le 4 ]]; do
