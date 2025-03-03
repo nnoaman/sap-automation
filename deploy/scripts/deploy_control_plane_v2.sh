@@ -455,10 +455,9 @@ function migrate_deployer_state() {
 		fi
 
 		source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
-		if install --parameterfile $deployer_parameter_file_name --type sap_deployer \
+		if ! install --parameterfile $deployer_parameter_file_name --type sap_deployer \
 			--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
-			$ado_flag \
-			"${autoApproveParameter}"; then
+			$ado_flag "${autoApproveParameter}"; then
 
 			echo ""
 			step=3
