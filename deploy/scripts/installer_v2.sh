@@ -225,7 +225,7 @@ function parse_arguments() {
 		CONTROL_PLANE_NAME=$(echo $deployer_tfstate_key | cut -d'-' -f1-3)
 	fi
 
-	if [ -n "$CONTROL_PLANE_NAME" ] ; then
+	if [ -n "$CONTROL_PLANE_NAME" ]; then
 		deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 	fi
 
@@ -236,7 +236,7 @@ function parse_arguments() {
 			WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
 		fi
 
-		if [ -n "$WORKLOAD_ZONE_NAME" ] ; then
+		if [ -n "$WORKLOAD_ZONE_NAME" ]; then
 			landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 		fi
 	fi
@@ -290,7 +290,6 @@ function parse_arguments() {
 	if ! validate_key_parameters "$parameterfile_name"; then
 		return $?
 	fi
-
 
 	if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
 		system_config_information="${CONFIG_DIR}${WORKLOAD_ZONE_NAME}"
@@ -452,8 +451,9 @@ function installer() {
 	echo "Parameter file:                      $parameterfile"
 	echo "Current directory:                   $(pwd)"
 	echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
-	echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
-
+	if [ -n "${WORKLOAD_ZONE_NAME}" ]; then
+		echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
+	fi
 	key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 	echo "Configuration file:                  $system_config_information"
