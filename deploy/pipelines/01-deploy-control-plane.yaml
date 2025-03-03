@@ -1,3 +1,11 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline deploys the control plane                      |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+parameters:
   - name:                              deployer
     displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
