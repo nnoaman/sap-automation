@@ -201,9 +201,7 @@ function bootstrap_deployer() {
 
 		echo "Calling install_deployer.sh:         $allParameters"
 
-		source "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh"
-
-		if ! install_deployer --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
+		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
 			return_code=$?
 
 			if [ $return_code -eq 10 ]; then
@@ -636,7 +634,7 @@ function deploy_control_plane() {
 		echo "validate_dependencies returned $return_code"
 		exit $return_code
 	fi
-echo ""
+	echo ""
 	echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 	echo "Region code:                         ${region_code}"
 	echo "Deployer State File:                 ${deployer_tfstate_key}"

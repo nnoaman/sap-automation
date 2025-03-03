@@ -113,6 +113,7 @@ function parse_arguments() {
 			;;
 		esac
 	done
+
 	if [ ! -f "${parameter_file_name}" ]; then
 		printf -v val %-40.40s "$parameter_file_name"
 		echo ""
