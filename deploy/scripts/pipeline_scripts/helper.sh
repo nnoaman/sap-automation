@@ -3,6 +3,66 @@
 # Licensed under the MIT License.
 
 
+print_banner() {
+	local title="$1"
+	local message="$2"
+	local type="${3:-info}"
+	local secondary_message="${4:-''}"
+
+	local boldred="\e[1;31m"
+	local cyan="\e[1;36m"
+	local green="\e[1;32m"
+	local reset="\e[0m"
+	local yellow="\e[0;33m"
+
+	local color
+	case "$type" in
+	error)
+		color="$boldred"
+		;;
+	success)
+		color="$green"
+		;;
+	warning)
+		color="$yellow"
+		;;
+	info)
+		color="$cyan"
+		;;
+	*)
+		color="$cyan"
+		;;
+	esac
+
+	local width=80
+	local padding_title=$(((width - ${#title}) / 2))
+	local padding_message=$(((width - ${#message}) / 2))
+	local padding_secondary_message=$(((width - ${#secondary_message}) / 2))
+
+	local centered_title
+	local centered_message
+	centered_title=$(printf "%*s%s%*s" $padding_title "" "$title" $padding_title "")
+	centered_message=$(printf "%*s%s%*s" $padding_message "" "$message" $padding_message "")
+
+	echo ""
+	echo -e "${color}"
+	echo "#################################################################################"
+	echo "#                                                                               #"
+	echo -e "#${color}${centered_title}${reset}#"
+	echo "#                                                                               #"
+	echo -e "#${color}${centered_message}${reset}#"
+	echo "#                                                                               #"
+	if [ ${#secondary_message} -gt 2 ]; then
+		local centered_secondary_message
+		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
+		echo -e "#${color}${centered_secondary_message}${reset}#"
+		echo "#                                                                               #"
+	fi
+	echo "#################################################################################"
+	echo -e "${reset}"
+	echo ""
+}
+
 function getVariableFromVariableGroup() {
 	local variable_group_id="$1"
 	local variable_name="$2"

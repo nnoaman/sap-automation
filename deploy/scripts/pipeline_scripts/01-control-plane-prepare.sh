@@ -67,6 +67,7 @@ echo "Step:                                $step"
 
 if [ 0 != "${step}" ]; then
 	echo "##vso[task.logissue type=warning]Already prepared"
+	print_banner "Deployer" "The deployer is already prepared" "info"
 	exit 0
 fi
 
@@ -124,15 +125,6 @@ echo "$val                 $VARIABLE_GROUP_ID"
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-# Set logon variables
-ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$CP_ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
