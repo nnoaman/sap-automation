@@ -290,13 +290,13 @@ function parse_arguments() {
 		return $?
 	fi
 
-	network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3)
-	management_network_logical_name=$(echo $CONTROL_PLANE_NAME | cut -d'-' -f3)
 
 	if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
 		system_config_information="${CONFIG_DIR}${WORKLOAD_ZONE_NAME}"
+		network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3)
 	else
 		system_config_information="${CONFIG_DIR}${CONTROL_PLANE_NAME}"
+		management_network_logical_name=$(echo $CONTROL_PLANE_NAME | cut -d'-' -f3)
 	fi
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	if valid_region_name "${region}"; then
