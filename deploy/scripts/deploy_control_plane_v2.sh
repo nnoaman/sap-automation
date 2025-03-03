@@ -536,7 +536,7 @@ execute_deployment_steps() {
 	done
 }
 
-main() {
+deploy_control_plane() {
 	force=0
 	recover=0
 	ado_flag="none"
@@ -744,5 +744,5 @@ EOF
 	exit 0
 }
 
-main "$@"
+deploy_control_plane "$@"
 exit $?
