@@ -568,7 +568,7 @@ function copy_files_to_public_deployer() {
 
 # Function to execute deployment steps
 function execute_deployment_steps() {
-	load_config_vars "${deployer_config_information}" "step"
+	local step=$1
 	echo "Step:                                $step"
 
 	while [[ $step -le 4 ]]; do
@@ -683,12 +683,14 @@ function deploy_control_plane() {
 	if [ 0 -eq $step ]; then
 		if bootstrap_deployer; then
 			print_banner "Bootstrap-Deployer" "Bootstrapping the deployer failed" "error"
-			exit 10
+			return 10
 		fi
 
 		if [ 1 == "${only_deployer:-}" ]; then
-			exit 0
+			return 0
 		fi
+		else
+		execute_deployment_steps $step
 	fi
 
 	#Persist the parameters
@@ -698,7 +700,7 @@ function deploy_control_plane() {
 		print_banner "Bootstrap-Deployer" "Changing the subscription to: $subscription" "info"
 	fi
 
-	execute_deployment_steps
+
 
 	printf -v kvname '%-40s' "${keyvault}"
 	printf -v storage_account '%-40s' "${terraform_storage_account_name}"
