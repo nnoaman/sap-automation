@@ -457,7 +457,6 @@ function migrate_deployer_state() {
 		source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
 		if install --parameterfile $deployer_parameter_file_name --type sap_deployer \
 			--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
-			--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
 			$ado_flag \
 			"${autoApproveParameter}"; then
 
@@ -504,12 +503,9 @@ function migrate_library_state() {
 
 		echo "Calling installer_v2.sh with: --type sap_library --parameterfile ${library_parameter_file_name} --storage_account_name ${terraform_storage_account_name}  --deployer_tfstate_key ${deployer_tfstate_key} ${autoApproveParameter} ${ado_flag}"
 		source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
-		if install --type sap_library \
-			--parameterfile "${library_parameter_file_name}" \
-			--storage_account_name "${terraform_storage_account_name}" \
-			--deployer_tfstate_key "${deployer_tfstate_key}" \
-			$ado_flag \
-			$autoApproveParameter; then
+		if install --type sap_library 	--parameterfile "${library_parameter_file_name}" \
+			--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
+			$ado_flag $autoApproveParameter; then
 
 			print_banner "Migrate-Library" "Migrating the Library state failed." "error"
 			step=4
@@ -650,7 +646,6 @@ main() {
 			exit 0
 		fi
 	fi
-
 
 	#Persist the parameters
 	if [ -n "$subscription" ]; then
