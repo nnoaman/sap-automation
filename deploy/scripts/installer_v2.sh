@@ -82,6 +82,7 @@ function showhelp {
 	echo "#      --auto-approve                                                                   #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
+	return 0
 }
 
 function missing {
@@ -90,7 +91,7 @@ function missing {
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
-	echo "#   Missing environment variables: ${option}!!!              #"
+	echo "#   Missing environment variables: ${val}!!!              #"
 	echo "#                                                                                       #"
 	echo "#   Please export the folloing variables:                                               #"
 	echo "#      SAP_AUTOMATION_REPO_PATH (path to the automation repo folder (sap-automation))   #"
@@ -331,7 +332,7 @@ retrieve_parameters() {
 
 }
 
-persist_files() {
+function persist_files() {
 	#################################################################################
 	#                                                                               #
 	#                           Copy tfvars to storage account                      #
@@ -418,7 +419,7 @@ persist_files() {
 
 }
 
-install() {
+function installer() {
 
 	landscape_tfstate_key_exists=false
 	called_from_ado=0
@@ -434,7 +435,8 @@ install() {
 	source_helper_scripts "${helper_scripts[@]}"
 
 	# Parse command line arguments
-	if parse_arguments "$@"; then
+	if ! parse_arguments "$@"; then
+
 		return $?
 	fi
 
@@ -1018,5 +1020,5 @@ install() {
 	exit 0
 }
 
-install "$@"
+installer "$@"
 exit $?
