@@ -1,14 +1,3 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
-
----
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# |               This pipeline deploys the control plane                      |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-parameters:
   - name:                              deployer
     displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
@@ -78,6 +67,43 @@ stages:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
           # Set Variables.
+          - bash: |
+              #!/bin/bash
+              # Exit immediately if a command exits with a non-zero status.
+              set -e
+              if ["${CP_ARM_SUBSCRIPTION_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(CP_ARM_SUBSCRIPTION_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]''"
+              fi
+              if ["${CP_ARM_CLIENT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(ARM_CLIENT_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]''"
+              fi
+              if ["${CP_ARM_CLIENT_SECRET:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$(ARM_CLIENT_SECRET)"
+              else
+                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]''"
+              fi
+              if ["${CP_ARM_TENANT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$(ARM_TENANT_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]''"
+              fi
+              if ["${CP_ARM_OBJECT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$(ARM_OBJECT_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]''"
+              fi
+            env:
+              CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
+              CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID),
+              CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
+              CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
+              CP_ARM_OBJECT_ID:        $(CP_ARM_OBJECT_ID)
+            name:                      ParameterValidation
+            displayName:               Parameter Validation
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
@@ -91,14 +117,14 @@ stages:
 
             displayName: Prepare control plane
             env:
-
-              ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_SUBSCRIPTION_ID:            $(ParameterValidation.ARM_SUBSCRIPTION_ID)
               AZURE_DEVOPS_EXT_PAT:           $(PAT)
               CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:             ${{ parameters.environment }}
-              CP_ARM_CLIENT_ID:               ${{ iif($(Use_MSI), $(CP_ARM_CLIENT_ID), '') }}
-              CP_ARM_CLIENT_SECRET:           ${{ iif($(Use_MSI), $(CP_ARM_CLIENT_SECRET), '') }}
-              CP_ARM_TENANT_ID:               ${{ iif($(Use_MSI), $(CP_ARM_TENANT_ID), '') }}
+              ARM_CLIENT_ID:                  $(ParameterValidation.ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:              $(ParameterValidation.ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                  $(ParameterValidation.ARM_TENANT_ID)
+              ARM_OBJECT_ID:                  $(ParameterValidation.ARM_OBJECT_ID)
               DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
               FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:         true
@@ -114,7 +140,7 @@ stages:
               TF_VAR_ansible_core_version:    $(ansible_core_version)
               TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
-              TF_VAR_spn_id:                  ${{ iif($(Use_MSI), $(CP_ARM_OBJECT_ID), '') }}
+              TF_VAR_spn_id:                  $(ParameterValidation.ARM_OBJECT_ID)
               TF_VAR_tf_version:              $(tf_version)
               TF_VAR_use_webapp:              ${{ lower(parameters.use_webapp_param) }}
               TF_VAR_webapp_client_secret:    $(WEB_APP_CLIENT_SECRET)
@@ -124,8 +150,8 @@ stages:
   - stage:                             Deploy_controlplane
     dependsOn:
       - Prepare_Deployer
-    condition: eq(dependencies.Prepare_Deployer.result, 'Succeeded')
-    pool: $(this_agent)
+    condition:                         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
+    pool:                              $(this_agent)
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
@@ -148,7 +174,46 @@ stages:
             parameters:
               getLatestFromBranch: true
 
-          - task:                      Bash@3
+          - bash: |
+              #!/bin/bash
+              # Exit immediately if a command exits with a non-zero status.
+              set -e
+              if ["${CP_ARM_SUBSCRIPTION_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(CP_ARM_SUBSCRIPTION_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]''"
+              fi
+              if ["${CP_ARM_CLIENT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(ARM_CLIENT_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]''"
+              fi
+              if ["${CP_ARM_CLIENT_SECRET:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$(ARM_CLIENT_SECRET)"
+              else
+                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]''"
+              fi
+              if ["${CP_ARM_TENANT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$(ARM_TENANT_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]''"
+              fi
+              if ["${CP_ARM_OBJECT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$(ARM_OBJECT_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]''"
+              fi
+            env:
+              CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
+              CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID),
+              CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
+              CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
+              CP_ARM_OBJECT_ID:        $(CP_ARM_OBJECT_ID)
+            name:                      ParameterValidation
+            displayName:               Parameter Validation
+            name: ParameterValidation
+            displayName: Parameter Validation
+          - task: Bash@3
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-deploy.sh"
@@ -156,16 +221,15 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy control plane Part 2
             env:
-
               APP_REGISTRATION_APP_ID:      $(APP_REGISTRATION_APP_ID)
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           ${{ parameters.environment }}
-              CP_ARM_CLIENT_ID:             ${{ iif($(Use_MSI), $(CP_ARM_CLIENT_ID), '') }}
-              CP_ARM_CLIENT_SECRET:         ${{ iif($(Use_MSI), $(CP_ARM_CLIENT_SECRET), '') }}
-              CP_ARM_TENANT_ID:             ${{ iif($(Use_MSI), $(CP_ARM_TENANT_ID), '') }}
-              CP_ARM_SUBSCRIPTION_ID:       $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
               DEPLOYER_TFSTATE_KEY:         "${{ parameters.deployer }}.terraform.tfstate"
               FORCE_RESET:                  ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:       true
@@ -179,12 +243,11 @@ stages:
               TF_VAR_agent_pat:             $(PAT)
               TF_VAR_agent_pool:            $(POOL)
               TF_VAR_ansible_core_version:  $(ansible_core_version)
-              TF_VAR_spn_id:                ${{ iif($(Use_MSI), $(CP_ARM_OBJECT_ID), '') }}
+              TF_VAR_spn_id:                $(ParameterValidation.ARM_OBJECT_ID)
               TF_VAR_tf_version:            $(tf_version)
               USE_MSI:                      $(Use_MSI)
               WEB_APP_CLIENT_SECRET:        $(WEB_APP_CLIENT_SECRET)
               keyvault:                     $(Deployer_Key_Vault)
-
 
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
@@ -232,14 +295,14 @@ stages:
               zipAfterPublish: true
               modifyOutputPath: true
 
-          - task:                      AzureWebApp@1
-            displayName:               "Deploy the Configuration Web Application"
+          - task: AzureWebApp@1
+            displayName: "Deploy the Configuration Web Application"
             inputs:
-              azureSubscription:       ${{parameters.connection_name}}
-              appType:                 "webApp"
-              appName:                 $(WEBAPP_URL_BASE)
-              package:                 "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
-              deploymentMethod:        "auto"
+              azureSubscription: ${{parameters.connection_name}}
+              appType: "webApp"
+              appName: $(WEBAPP_URL_BASE)
+              package: "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
+              deploymentMethod: "auto"
               appSettings: '-CollectionUri $(System.CollectionUri)
                 -ProjectName "$(System.TeamProject)"
                 -RepositoryId $(Build.Repository.ID)
@@ -252,18 +315,18 @@ stages:
                 -CONTROLPLANE_ENV $(ControlPlaneEnvironment)
                 -CONTROLPLANE_LOC $(ControlPlaneLocation)'
             env:
-              ARM_SUBSCRIPTION_ID:     $(CP_ARM_SUBSCRIPTION_ID)
-              SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
+              ARM_SUBSCRIPTION_ID: $(CP_ARM_SUBSCRIPTION_ID)
+              SYSTEM_PIPELINE_ID: $(SYSTEM_PIPELINE_ID)
               WORKLOADZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
               SAP_INSTALL_PIPELINE_ID: $(SAP_INSTALL_PIPELINE_ID)
-              SDAF_GENERAL_GROUP_ID:   $(SDAF_GENERAL_GROUP_ID)
-              WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
-              WEBAPP_RESOURCE_GROUP:   $(WEBAPP_RESOURCE_GROUP)
-              WEBAPP_ID:               $(WEBAPP_ID)
+              SDAF_GENERAL_GROUP_ID: $(SDAF_GENERAL_GROUP_ID)
+              WEBAPP_URL_BASE: $(WEBAPP_URL_BASE)
+              WEBAPP_RESOURCE_GROUP: $(WEBAPP_RESOURCE_GROUP)
+              WEBAPP_ID: $(WEBAPP_ID)
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
               APP_REGISTRATION_OBJECTID: $(APP_REGISTRATION_OBJECTID)
-              APP_TENANT_ID:           $(APP_TENANT_ID)
-              AZURE_CONNECTION_NAME:   ${{variables.connection_name}}
+              APP_TENANT_ID: $(APP_TENANT_ID)
+              AZURE_CONNECTION_NAME: ${{variables.connection_name}}
 
           - bash: |
               #!/bin/bash
@@ -295,9 +358,9 @@ stages:
 
             displayName: "Documentation"
             env:
-              ARM_SUBSCRIPTION_ID:     $(CP_ARM_SUBSCRIPTION_ID)
-              SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
+              ARM_SUBSCRIPTION_ID: $(CP_ARM_SUBSCRIPTION_ID)
+              SYSTEM_PIPELINE_ID: $(SYSTEM_PIPELINE_ID)
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-              WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
-              WEBAPP_ID:               $(WEBAPP_ID)
-              WEBAPP_IDENTITY:         $(WEBAPP_IDENTITY)
+              WEBAPP_URL_BASE: $(WEBAPP_URL_BASE)
+              WEBAPP_ID: $(WEBAPP_ID)
+              WEBAPP_IDENTITY: $(WEBAPP_IDENTITY)
