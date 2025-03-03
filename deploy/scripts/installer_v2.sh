@@ -429,7 +429,7 @@ function persist_files() {
 }
 
 function installer() {
-
+  landscape_tfstate_key=""
 	landscape_tfstate_key_exists=false
 	called_from_ado=0
 	extra_vars=""
