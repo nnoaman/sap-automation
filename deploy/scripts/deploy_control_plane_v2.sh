@@ -671,8 +671,6 @@ function deploy_control_plane() {
 	TF_DATA_DIR="${relative_path}"/.terraform
 	export TF_DATA_DIR
 
-	execute_deployment_steps
-
 	load_config_vars "${deployer_config_information}" "step"
 	if [ -z "${step}" ]; then
 		step=0
