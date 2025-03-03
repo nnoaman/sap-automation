@@ -2,6 +2,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+#colors for terminal
+bold_red="\e[1;31m"
+cyan="\e[1;36m"
+reset_formatting="\e[0m"
+
+
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
@@ -31,8 +37,12 @@ readonly script_directory
 SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_NAME
 
-CONFIG_REPO_PATH="${script_directory}/.."
-CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+if printenv "CONFIG_REPO_PATH"  ; then
+	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+else
+	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
+	exit 1
+fi
 readonly CONFIG_DIR
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
@@ -423,6 +433,7 @@ function installer() {
 	landscape_tfstate_key_exists=false
 	called_from_ado=0
 	extra_vars=""
+	WORKLOAD_ZONE_NAME=""
 
 	# Define an array of helper scripts
 	helper_scripts=(
