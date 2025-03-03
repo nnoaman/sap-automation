@@ -490,7 +490,7 @@ function migrate_library_state() {
 	cd "${library_dirname}" || exit
 
 	echo "Calling installer_v2.sh with: --type sap_library --parameterfile ${library_parameter_file_name} --storage_account_name ${terraform_storage_account_name}  --deployer_tfstate_key ${deployer_tfstate_key} ${autoApproveParameter} ${ado_flag}"
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameterfile "${library_parameter_file_name}" \
+	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameterfile "${library_parameter_file_name}" \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 		$ado_flag $autoApproveParameter; then
 
@@ -507,8 +507,8 @@ function migrate_library_state() {
 
 	step=5
 	save_config_var "step" "${deployer_config_information}"
-
 }
+
 function copy_files_to_public_deployer() {
 	if [ "${ado_flag}" != "--ado" ]; then
 		cd "${current_directory}" || exit
@@ -713,13 +713,6 @@ function deploy_control_plane() {
 		execute_deployment_steps $step
 	fi
 
-	#Persist the parameters
-	if [ -n "$subscription" ]; then
-		export terraform_storage_account_subscription_id=$subscription
-		export ARM_SUBSCRIPTION_ID=$subscription
-		print_banner "Bootstrap-Deployer" "Changing the subscription to: $subscription" "info"
-	fi
-
 	printf -v kvname '%-40s' "${keyvault}"
 	printf -v storage_account '%-40s' "${terraform_storage_account_name}"
 	echo ""
@@ -743,7 +736,7 @@ Date : "${now}"
 | ----------------------- | -------------------- |
 | Environment             | $environment         |
 | Location                | $region              |
-| Keyvault Name           | ${kvname}            |
+| Keyvault Name           | ${keyvault}          |
 | Terraform state         | ${storage_account}   |
 
 EOF
@@ -762,7 +755,7 @@ EOF
 
 	unset TF_DATA_DIR
 
-	exit 0
+	return 0
 }
 
 deploy_control_plane "$@"
