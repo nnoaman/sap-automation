@@ -623,7 +623,7 @@ function installer() {
 				--backend-config "container_name=tfstate" \
 				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
-				print_banner "Installer" "Terraform init succeeded" "info"
+				print_banner "Installer" "Terraform init succeeded." "success"
 
 				allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 			else
@@ -642,11 +642,11 @@ function installer() {
 				--backend-config "container_name=tfstate" \
 				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
-				print_banner "Installer" "Terraform init failed" "error"
+				print_banner "Installer" "Terraform init failed." "error"
 				exit $return_value
 			else
 				return_value=$?
-				print_banner "Installer" "Terraform init succeeded" "info"
+				print_banner "Installer" "Terraform init succeeded." "success"
 			fi
 		fi
 	fi

@@ -226,9 +226,9 @@ function install_deployer() {
 			else
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
 					return_value=$?
-					print_banner "Deployer-bootstrap" "Terraform init succeeded" "info"
+					print_banner "Deployer-bootstrap" "Terraform init succeeded." "success"
 				else
-					print_banner "Deployer-bootstrap" "Terraform init failed" "error"
+					print_banner "Deployer-bootstrap" "Terraform init failed." "error"
 					unset TF_DATA_DIR
 					return $?
 				fi
