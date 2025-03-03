@@ -617,7 +617,7 @@ function installer() {
 				exit $return_value
 			else
 				return_value=$?
-				print_banner "Installer" "Terraform local init succeeded" "info"
+				print_banner "Installer" "Terraform local init succeeded" "success"
 			fi
 
 			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
@@ -719,7 +719,7 @@ function installer() {
 		print_banner "Installer" "Error when running plan" "error"
 		exit $return_value
 	else
-		print_banner "Installer" "Terraform plan succeeded." "info"
+		print_banner "Installer" "Terraform plan succeeded." "success"
 	fi
 
 	if [ 2 -eq $return_value ]; then
@@ -915,10 +915,10 @@ function installer() {
 			exit $return_value
 		elif [ $return_value -eq 2 ]; then
 			# return code 2 is ok
-			print_banner "Installer" "Terraform apply succeeded" "info"
+			print_banner "Installer" "Terraform apply succeeded" "success"
 			return_value=0
 		else
-			print_banner "Installer" "Terraform apply succeeded" "info"
+			print_banner "Installer" "Terraform apply succeeded" "success"
 			return_value=0
 		fi
 
