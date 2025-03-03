@@ -48,6 +48,43 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
+          - bash: |
+              #!/bin/bash
+              # Exit immediately if a command exits with a non-zero status.
+              set -e
+              if ["${WL_ARM_SUBSCRIPTION_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$WL_ARM_SUBSCRIPTION_ID"
+              else
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]"
+              fi
+              if ["${WL_ARM_CLIENT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$WL_ARM_CLIENT_ID"
+              else
+                echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]"
+              fi
+              if ["${WL_ARM_CLIENT_SECRET:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$WL_ARM_CLIENT_SECRET"
+              else
+                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
+              fi
+              if ["${WL_ARM_TENANT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$WL_ARM_TENANT_ID"
+              else
+                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]"
+              fi
+              if ["${WL_ARM_OBJECT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$WL_ARM_OBJECT_ID"
+              else
+                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
+              fi
+            env:
+              WL_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
+              WL_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
+              WL_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
+              WL_ARM_TENANT_ID:        $(ARM_TENANT_ID)
+              WL_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
+            name:                      ParameterValidation
+            displayName:               Parameter Validation
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -56,21 +93,22 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy_SAP_infrastructure
             env:
-              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              LOGON_USING_SPN:              $(Logon_Using_SPN)
+
+              APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
+              ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                $(ParameterValidation.ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
+              LOGON_USING_SPN:              $(Logon_Using_SPN)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               TEST_ONLY:                    ${{ parameters.test }}
               TF_IN_AUTOMATION:             true
               TF_LOG:                       $(TF_LOG)
               USE_MSI:                      $(Use_MSI)
-              WL_ARM_CLIENT_ID:             $(ARM_CLIENT_ID)
-              WL_ARM_CLIENT_SECRET:         $(ARM_CLIENT_SECRET)
-              WL_ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
-              WL_ARM_TENANT_ID:             $(ARM_TENANT_ID)
               WORKLOAD_ZONE_NAME:           ${{ parameters.environment }}
-              CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
-              APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
-
 
