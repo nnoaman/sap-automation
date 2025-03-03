@@ -52,43 +52,23 @@ git checkout -q "$BUILD_SOURCEBRANCHNAME"
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
-	if [ -z "$WL_ARM_SUBSCRIPTION_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
+	if ! printenv ARM_SUBSCRIPTION_ID; then
+		echo "##vso[task.logissue type=error]Variable WL_ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ "$WL_ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
+	if ! printenv ARM_CLIENT_ID; then
+		echo "##vso[task.logissue type=error]Variable WL_ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ -z "$WL_ARM_CLIENT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
+	if ! printenv ARM_CLIENT_SECRET; then
+		echo "##vso[task.logissue type=error]Variable WL_ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ "$WL_ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ -z "$WL_ARM_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ "$WL_ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ -z "$WL_ARM_TENANT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
+	if ! printenv ARM_TENANT_ID; then
+		echo "##vso[task.logissue type=error]Variable WL_ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
@@ -113,16 +93,7 @@ if [ "$USE_MSI" != "true" ]; then
 	fi
 fi
 
-# Set logon variables
-ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$CP_ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-
+#
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
@@ -138,10 +109,6 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-az account set --subscription $ARM_SUBSCRIPTION_ID
-
 echo -e "$green--- Read deployment details ---$reset"
 dos2unix -q tfvarsFile
 
@@ -150,7 +117,6 @@ LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr 'A-Z
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
 ENVIRONMENT_IN_FILENAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | awk -F'-' '{print $1}')
-
 LOCATION_CODE_IN_FILENAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME")
 

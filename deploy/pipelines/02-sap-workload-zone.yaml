@@ -60,6 +60,43 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
+          - bash: |
+              #!/bin/bash
+              # Exit immediately if a command exits with a non-zero status.
+              set -e
+              if ["${WL_ARM_SUBSCRIPTION_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(WL_ARM_SUBSCRIPTION_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]''"
+              fi
+              if ["${WL_ARM_CLIENT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(ARM_CLIENT_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]''"
+              fi
+              if ["${WL_ARM_CLIENT_SECRET:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$(ARM_CLIENT_SECRET)"
+              else
+                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]''"
+              fi
+              if ["${WL_ARM_TENANT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$(ARM_TENANT_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]''"
+              fi
+              if ["${WL_ARM_OBJECT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$(ARM_OBJECT_ID)"
+              else
+                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]''"
+              fi
+            env:
+              WL_ARM_SUBSCRIPTION_ID:  $(WL_ARM_SUBSCRIPTION_ID)
+              WL_ARM_CLIENT_ID:        $(WL_ARM_CLIENT_ID),
+              WL_ARM_CLIENT_SECRET:    $(WL_ARM_CLIENT_SECRET)
+              WL_ARM_TENANT_ID:        $(WL_ARM_TENANT_ID)
+              WL_ARM_OBJECT_ID:        $(WL_ARM_OBJECT_ID)
+            name:                      ParameterValidation
+            displayName:               Parameter Validation
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -69,12 +106,11 @@ stages:
             displayName:               Deploy SAP Workload Zone
             env:
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-              WL_ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
-              WL_ARM_TENANT_ID:             $(ARM_TENANT_ID)
-              WL_ARM_CLIENT_ID:             $(ARM_CLIENT_ID)
-              WL_ARM_CLIENT_SECRET:         $(ARM_CLIENT_SECRET)
-              WL_ARM_OBJECT_ID:             $(ARM_OBJECT_ID)
-              CP_ARM_SUBSCRIPTION_ID:       $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
+              ARM_OBJECT_ID:                $(ParameterValidation.ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
               CP_ARM_CLIENT_ID:             $(CP_ARM_CLIENT_ID)
               CP_ARM_CLIENT_SECRET:         $(CP_ARM_CLIENT_SECRET)
               CP_ARM_TENANT_ID:             $(CP_ARM_TENANT_ID)
