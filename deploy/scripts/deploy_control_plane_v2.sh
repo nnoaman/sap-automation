@@ -687,11 +687,6 @@ EOF
 	deployer_keyvault="${keyvault}"
 	export deployer_keyvault
 
-	if [ -n "${deployer_public_ip_address}" ]; then
-		deployer_ip="${deployer_public_ip_address}"
-		export deployer_ip
-	fi
-
 	terraform_state_storage_account="${terraform_storage_account_name}"
 	export terraform_state_storage_account
 
