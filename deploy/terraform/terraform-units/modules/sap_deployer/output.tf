@@ -251,12 +251,12 @@ output "subnet_bastion_address_prefixes" {
 
 output "deployer_app_config_name"                {
                                                     description = "Application Configuration Name"
-                                                    value       = azurerm_app_configuration.app_config.name
+                                                    value       = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].name : data.azurerm_app_configuration.app_config[0].name
                                                  }
 
 
 output "deployer_app_config_id"                  {
                                                     description = "Application Configuration Resource Id"
-                                                    value       = azurerm_app_configuration.app_config.id
+                                                    value       = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
                                                  }
 
