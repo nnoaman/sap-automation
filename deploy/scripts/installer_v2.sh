@@ -7,7 +7,6 @@ bold_red="\e[1;31m"
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
-
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
@@ -37,7 +36,7 @@ readonly script_directory
 SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_NAME
 
-if printenv "CONFIG_REPO_PATH"  ; then
+if printenv "CONFIG_REPO_PATH"; then
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 else
 	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
@@ -429,7 +428,7 @@ function persist_files() {
 }
 
 function installer() {
-  landscape_tfstate_key=""
+	landscape_tfstate_key=""
 	landscape_tfstate_key_exists=false
 	called_from_ado=0
 	extra_vars=""
@@ -725,6 +724,8 @@ function installer() {
 
 	state_path="SYSTEM"
 
+	fatal_errors=0
+
 	if [ "${deployment_system}" == sap_deployer ]; then
 		state_path="DEPLOYER"
 
@@ -752,97 +753,98 @@ function installer() {
 			save_config_vars "${system_config_information}" \
 				tfstate_resource_id
 		fi
+		# SAP Library
+		if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_account.storage_sapbits" "plan_output.log" "SAP Library Storage Account"; then
+			fatal_errors=1
+		fi
+
+		# SAP Library sapbits
+		if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_container.storagecontainer_sapbits" "plan_output.log" "SAP Library Storage Account container"; then
+			fatal_errors=1
+		fi
+
+		# Terraform State Library
+		if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_account.storage_tfstate" "plan_output.log" "Terraform State Storage Account"; then
+			fatal_errors=1
+		fi
+
+		# Terraform state container
+		if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_container.storagecontainer_tfstate" "plan_output.log" "Terraform State Storage Account container"; then
+			fatal_errors=1
+		fi
+	fi
+
+	if [ "${deployment_system}" == sap_landscape ]; then
+		state_path="SYSTEM"
+
+		# HANA VM
+		if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_linux_virtual_machine.vm_dbnode" "plan_output.log" "Database server(s)"; then
+			fatal_errors=1
+		fi
+
+		# HANA VM disks
+		if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_managed_disk.data_disk" "plan_output.log" "Database server disk(s)"; then
+			fatal_errors=1
+		fi
+
+		# AnyDB server
+		if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_windows_virtual_machine.dbserver" "plan_output.log" "Database server(s)"; then
+			fatal_errors=1
+		fi
+
+		if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_linux_virtual_machine.dbserver" "plan_output.log" "Database server(s)"; then
+			fatal_errors=1
+		fi
+
+		# AnyDB disks
+		if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_managed_disk.disks" "plan_output.log" "Database server disk(s)"; then
+			fatal_errors=1
+		fi
+
+		# App server
+		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.app" "plan_output.log" "Application server(s)"; then
+			fatal_errors=1
+		fi
+
+		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.app" "plan_output.log" "Application server(s)"; then
+			fatal_errors=1
+		fi
+
+		# App server disks
+		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.app" "plan_output.log" "Application server disk(s)"; then
+			fatal_errors=1
+		fi
+
+		# SCS server
+		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.scs" "plan_output.log" "SCS server(s)"; then
+			fatal_errors=1
+		fi
+
+		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.scs" "plan_output.log" "SCS server(s)"; then
+			fatal_errors=1
+		fi
+
+		# SCS server disks
+		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.scs" "plan_output.log" "SCS server disk(s)"; then
+			fatal_errors=1
+		fi
+
+		# Web server
+		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.web" "plan_output.log" "Web server(s)"; then
+			fatal_errors=1
+		fi
+
+		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.web" "plan_output.log" "Web server(s)"; then
+			fatal_errors=1
+		fi
+
+		# Web dispatcher server disks
+		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "plan_output.log" "Web server disk(s)"; then
+			fatal_errors=1
+		fi
 	fi
 
 	apply_needed=1
-
-	fatal_errors=0
-
-	# SAP Library
-	if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_account.storage_sapbits" "plan_output.log" "SAP Library Storage Account"; then
-		fatal_errors=1
-	fi
-
-	# SAP Library sapbits
-	if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_container.storagecontainer_sapbits" "plan_output.log" "SAP Library Storage Account container"; then
-		fatal_errors=1
-	fi
-
-	# Terraform State Library
-	if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_account.storage_tfstate" "plan_output.log" "Terraform State Storage Account"; then
-		fatal_errors=1
-	fi
-
-	# Terraform state container
-	if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_container.storagecontainer_tfstate" "plan_output.log" "Terraform State Storage Account"; then
-		fatal_errors=1
-	fi
-
-	# HANA VM
-	if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_linux_virtual_machine.vm_dbnode" "plan_output.log" "Database server(s)"; then
-		fatal_errors=1
-	fi
-
-	# HANA VM disks
-	if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_managed_disk.data_disk" "plan_output.log" "Database server disk(s)"; then
-		fatal_errors=1
-	fi
-
-	# AnyDB server
-	if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_windows_virtual_machine.dbserver" "plan_output.log" "Database server(s)"; then
-		fatal_errors=1
-	fi
-
-	if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_linux_virtual_machine.dbserver" "plan_output.log" "Database server(s)"; then
-		fatal_errors=1
-	fi
-
-	# AnyDB disks
-	if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_managed_disk.disks" "plan_output.log" "Database server disk(s)"; then
-		fatal_errors=1
-	fi
-
-	# App server
-	if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.app" "plan_output.log" "Application server(s)"; then
-		fatal_errors=1
-	fi
-
-	if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.app" "plan_output.log" "Application server(s)"; then
-		fatal_errors=1
-	fi
-
-	# App server disks
-	if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.app" "plan_output.log" "Application server disk(s)"; then
-		fatal_errors=1
-	fi
-
-	# SCS server
-	if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.scs" "plan_output.log" "SCS server(s)"; then
-		fatal_errors=1
-	fi
-
-	if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.scs" "plan_output.log" "SCS server(s)"; then
-		fatal_errors=1
-	fi
-
-	# SCS server disks
-	if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.scs" "plan_output.log" "SCS server disk(s)"; then
-		fatal_errors=1
-	fi
-
-	# Web server
-	if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.web" "plan_output.log" "Web server(s)"; then
-		fatal_errors=1
-	fi
-
-	if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.web" "plan_output.log" "Web server(s)"; then
-		fatal_errors=1
-	fi
-
-	# Web dispatcher server disks
-	if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "plan_output.log" "Web server disk(s)"; then
-		fatal_errors=1
-	fi
 
 	if [ "${TEST_ONLY}" == "True" ]; then
 		print_banner "Installer" "Running plan only. No deployment performed." "info"
