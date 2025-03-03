@@ -1017,3 +1017,6 @@ install() {
 
 	exit 0
 }
+
+install "$@"
+exit $?
