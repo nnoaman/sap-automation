@@ -428,50 +428,47 @@ function migrate_deployer_state() {
 	#                                                                                        #
 	#                                                                                        #
 	##########################################################################################
-	if [ 3 -eq "$step" ]; then
-		print_banner "Migrate-Deployer" "Migrating the deployer state..." "info"
+	print_banner "Migrate-Deployer" "Migrating the deployer state..." "info"
 
-		cd "${deployer_dirname}" || exit
+	cd "${deployer_dirname}" || exit
 
-		if [ -z "$terraform_storage_account_name" ]; then
-			if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-				TF_VAR_tfstate_resource_id=$tfstate_resource_id
-				export TF_VAR_tfstate_resource_id
+	if [ -z "$terraform_storage_account_name" ]; then
+		if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+			TF_VAR_tfstate_resource_id=$tfstate_resource_id
+			export TF_VAR_tfstate_resource_id
 
-				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-				terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-				terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-				ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
-			fi
+			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
 		fi
-
-		if [ -z "${terraform_storage_account_name}" ]; then
-			export step=2
-			save_config_var "step" "${deployer_config_information}"
-			echo "##vso[task.setprogress value=40;]Progress Indicator"
-			print_banner "Migrate-Deployer" "Could not find the SAP Library, please re-run!" "error"
-			exit 11
-		fi
-
-		if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameterfile $deployer_parameter_file_name --type sap_deployer \
-			--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
-			$ado_flag "${autoApproveParameter}"; then
-
-			echo ""
-			step=3
-			save_config_var "step" "${deployer_config_information}"
-			print_banner "Migrate-Deployer" "Migrating the Deployer state failed." "error"
-			exit 30
-		else
-			print_banner "Migrate-Deployer" "Migrating the Deployer state succeeded." "success"
-		fi
-
-		cd "$root_dirname" || exit
-		export step=4
-		save_config_var "step" "${deployer_config_information}"
-
 	fi
+
+	if [ -z "${terraform_storage_account_name}" ]; then
+		export step=2
+		save_config_var "step" "${deployer_config_information}"
+		echo "##vso[task.setprogress value=40;]Progress Indicator"
+		print_banner "Migrate-Deployer" "Could not find the SAP Library, please re-run!" "error"
+		exit 11
+	fi
+
+	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameterfile $deployer_parameter_file_name --type sap_deployer \
+		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
+		$ado_flag "${autoApproveParameter}"; then
+
+		echo ""
+		step=3
+		save_config_var "step" "${deployer_config_information}"
+		print_banner "Migrate-Deployer" "Migrating the Deployer state failed." "error"
+		exit 30
+	else
+		print_banner "Migrate-Deployer" "Migrating the Deployer state succeeded." "success"
+	fi
+
+	cd "$root_dirname" || exit
+	export step=4
+	save_config_var "step" "${deployer_config_information}"
 
 	unset TF_DATA_DIR
 	cd "$root_dirname" || exit
@@ -501,7 +498,7 @@ function migrate_library_state() {
 
 		echo "Calling installer_v2.sh with: --type sap_library --parameterfile ${library_parameter_file_name} --storage_account_name ${terraform_storage_account_name}  --deployer_tfstate_key ${deployer_tfstate_key} ${autoApproveParameter} ${ado_flag}"
 		source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
-		if install --type sap_library 	--parameterfile "${library_parameter_file_name}" \
+		if install --type sap_library --parameterfile "${library_parameter_file_name}" \
 			--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 			$ado_flag $autoApproveParameter; then
 
