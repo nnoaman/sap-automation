@@ -562,17 +562,48 @@ function execute_deployment_steps() {
 	local step=$1
 	echo "Step:                                $step"
 
-	while [[ $step -le 4 ]]; do
-		case $step in
+	if [ 2 -eq "${step}" ]; then
+		if ! bootstrap_library; then
+			print_banner "Bootstrap-Library" "Bootstrapping the SAP Library failed" "error"
+			return $?
+		else
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+		fi
+	fi
 
-		2) bootstrap_library ;;
-		3) migrate_deployer_state ;;
-		4) migrate_library_state ;;
-		5) copy_files_to_public_deployer ;;
-		esac
-		((step++))
+	if [ 3 -eq "${step}" ]; then
+		if ! migrate_deployer_state; then
+			print_banner "Migrate-Deployer" "Migration of deployer state failed" "error"
+			return $?
+		else
+			step=4
+			save_config_var "step" "${deployer_config_information}"
+		fi
+	fi
+	if [ 4 -eq "${step}" ]; then
+		if ! migrate_library_state; then
+			print_banner "Migrate-Library" "Migration of library state failed" "error"
+			return $?
+		else
+			step=5
+			save_config_var "step" "${deployer_config_information}"
+		fi
+	fi
+	if [ 5 -eq "${step}" ]; then
+		if [ "${ado_flag}" != "--ado" ]; then
+			if ! copy_files_to_public_deployer; then
+				print_banner "Migrate-Library" "Migration of library state failed" "error"
+				return $?
+			else
+				step=3
+				save_config_var "step" "${deployer_config_information}"
+			fi
+		fi
+	else
+		step=3
 		save_config_var "step" "${deployer_config_information}"
-	done
+	fi
 }
 
 function deploy_control_plane() {
