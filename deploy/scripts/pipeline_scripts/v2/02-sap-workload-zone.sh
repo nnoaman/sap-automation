@@ -14,12 +14,6 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
-# print the script paths
-echo "Full path of the script: $full_script_path"
-echo "Script directory: $script_directory"
-echo "Parent directory: $parent_directory"
-echo "Grand parent directory: $grand_parent_directory"
-
 #call stack has full scriptname when using source
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
