@@ -6,8 +6,14 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 if printenv APPLICATION_CONFIGURATION_ID; then
-	echo "Running v2 script"
-	"${script_directory}/v2/01-control-plane-deploy.sh" "$@"
+	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+		echo "Running v2 script"
+		"${script_directory}/v2/01-control-plane-deploy.sh" "$@"
+	else
+		echo "Running v1 script"
+		"${script_directory}/v1/01-control-plane-deploy.sh" "$@"
+
+	fi
 else
 	echo "Running v1 script"
 	"${script_directory}/v1/01-control-plane-deploy.sh" "$@"

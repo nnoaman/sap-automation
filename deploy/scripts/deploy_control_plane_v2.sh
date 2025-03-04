@@ -341,10 +341,10 @@ function bootstrap_library {
 		cd "${library_dirname}" || exit
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
 
-		echo "Calling install_library.sh with: --parameterfile ${library_parameter_file_name} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
+		echo "Calling install_library.sh with: --parameter_file ${library_parameter_file_name} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
 
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
-			--parameterfile "${library_parameter_file_name}" \
+			--parameter_file "${library_parameter_file_name}" \
 			--deployer_statefile_foldername "${relative_path}" \
 			--keyvault "${keyvault}" "$autoApproveParameter"; then
 			echo ""
@@ -453,7 +453,7 @@ function migrate_deployer_state() {
 		exit 11
 	fi
 
-	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameterfile $deployer_parameter_file_name --type sap_deployer \
+	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $deployer_parameter_file_name --type sap_deployer \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 		$ado_flag "${autoApproveParameter}"; then
 
@@ -489,8 +489,8 @@ function migrate_library_state() {
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
 	cd "${library_dirname}" || exit
 
-	echo "Calling installer_v2.sh with: --type sap_library --parameterfile ${library_parameter_file_name} --storage_account_name ${terraform_storage_account_name}  --deployer_tfstate_key ${deployer_tfstate_key} ${autoApproveParameter} ${ado_flag}"
-	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameterfile "${library_parameter_file_name}" \
+	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name} --storage_account_name ${terraform_storage_account_name}  --deployer_tfstate_key ${deployer_tfstate_key} ${autoApproveParameter} ${ado_flag}"
+	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 		$ado_flag $autoApproveParameter; then
 
@@ -518,12 +518,7 @@ function copy_files_to_public_deployer() {
 		load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
 		if [ ! -f /etc/profile.d/deploy_server.sh ]; then
 			# Only run this when not on deployer
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                         $cyan  Copying the parameterfiles $reset_formatting                                 #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+			print_banner "Copy-Files" "Copying the parameter files..." "info"
 
 			if [ -n "${sshsecret}" ]; then
 				step=3

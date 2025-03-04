@@ -231,12 +231,9 @@ export tfstate_resource_id
 
 echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
-# shellcheck disable=SC1091
-source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
-
-sdaf_installer --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
-    --control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
-    --ado --auto-approve
+"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_landscape \
+	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
+	--ado --auto-approve
 return_code=$?
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
@@ -252,8 +249,6 @@ echo -e "$green--- Pull the latest content from DevOps ---$reset"
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 # Pull changes if there are other deployment jobs
-
-cd "${CONFIG_REPO_PATH}/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 

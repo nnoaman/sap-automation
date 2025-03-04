@@ -72,7 +72,7 @@ function showhelp {
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
 	echo "#   Usage: installer.sh                                                                 #"
-	echo "#    -p or --parameterfile           parameter file                                     #"
+	echo "#    -p or --parameterFilename           parameter file                                     #"
 	echo "#    -t or --type                         type of system to remove                      #"
 	echo "#                                         valid options:                                #"
 	echo "#                                           sap_deployer                                #"
@@ -92,7 +92,7 @@ function showhelp {
 	echo "#   Example:                                                                            #"
 	echo "#                                                                                       #"
 	echo "#   [REPO-ROOT]deploy/scripts/installer.sh \                                            #"
-	echo "#      --parameterfile DEV-WEEU-SAP01-X00 \                                             #"
+	echo "#      --parameterFilename DEV-WEEU-SAP01-X00 \                                             #"
 	echo "#      --type sap_system                                                                #"
 	echo "#      --auto-approve                                                                   #"
 	echo "#                                                                                       #"
@@ -136,7 +136,7 @@ source_helper_scripts() {
 # Function to parse command line arguments
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:g:c:w:ahif --longoptions type:,parameterfile:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_id:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
+	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:g:c:w:ahif --longoptions type:,parameterFilename:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_id:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -170,12 +170,12 @@ function parse_arguments() {
 			landscape_tfstate_key="$2"
 			shift 2
 			;;
-		-o | --storageaccountname)
+		-o | --storage_accountname)
 			terraform_storage_account_name="$2"
 			shift 2
 			;;
-		-p | --parameterfile)
-			parameterfile="$2"
+		-p | --parameter_file)
+			parameterFilename="$2"
 			shift 2
 			;;
 		-s | --state_subscription)
@@ -210,15 +210,16 @@ function parse_arguments() {
 	done
 
 	# Validate required parameters
-	parameterfile_name=$(basename "${parameterfile}")
-	param_dirname=$(dirname "${parameterfile}")
+
+	parameterfile_name=$(basename "${parameterFilename}")
+	param_dirname=$(dirname "${parameterFilename}")
 
 	if [ "${param_dirname}" != '.' ]; then
 		print_banner "Installer" "Please run this command from the folder containing the parameter file" "error"
 	fi
 
-	if [ ! -f "${parameterfile}" ]; then
-		print_banner "Installer" "Parameter file does not exist: ${parameterfile}" "error"
+	if [ ! -f "${parameterfile_name}" ]; then
+		print_banner "Installer" "Parameter file does not exist: ${parameterFilename}" "error"
 	fi
 
 	[[ -z "$CONTROL_PLANE_NAME" ]] && {
@@ -301,7 +302,7 @@ function parse_arguments() {
 	fi
 
 	# Check that parameter files have environment and location defined
-	if ! validate_key_parameters "$parameterfile_name"; then
+	if ! validate_key_parameters "$parameterFilename"; then
 		return $?
 	fi
 
@@ -370,11 +371,11 @@ function persist_files() {
 
 	if [ "$useSAS" = "true" ]; then
 		echo "Storage Account authentication:      key"
-		az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" \
+		az storage blob upload --file "${parameterFilename}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterFilename_name}" \
 			--subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
 	else
 		echo "Storage Account authentication:      Entra ID"
-		az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" \
+		az storage blob upload --file "${parameterFilename}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterFilename_name}" \
 			--subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 
@@ -463,13 +464,13 @@ function sdaf_installer() {
 		parallelism=$TF_PARALLELLISM
 	fi
 
-	echo "Parameter file:                      $parameterfile"
+	echo "Parameter file:                      $parameterFilename"
 	echo "Current directory:                   $(pwd)"
 	echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
 	if [ -n "${WORKLOAD_ZONE_NAME}" ]; then
 		echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
 	fi
-	key=$(echo "${parameterfile_name}" | cut -d. -f1)
+	key=$(echo "${parameterFilename_name}" | cut -d. -f1)
 
 	echo "Configuration file:                  $system_config_information"
 	echo "Deployment region:                   $region"
@@ -505,7 +506,7 @@ function sdaf_installer() {
 
 	#§init "${CONFIG_DIR}" "${generic_config_information}" "${system_config_information}"
 
-	var_file="${param_dirname}"/"${parameterfile}"
+	var_file="${param_dirname}"/"${parameterFilename}"
 
 	if [ -f terraform.tfvars ]; then
 		extra_vars="-var-file=${param_dirname}/terraform.tfvars"
@@ -994,7 +995,7 @@ function sdaf_installer() {
 			if [ -n "${deployer_random_id}" ]; then
 				save_config_var "deployer_random_id" "${system_config_information}"
 				custom_random_id="${deployer_random_id:0:3}"
-				sed -i -e /"custom_random_id"/d "${parameterfile}"
+				sed -i -e /"custom_random_id"/d "${parameterFilename}"
 				printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 			fi
 		fi
@@ -1025,7 +1026,7 @@ function sdaf_installer() {
 		if [ -n "${library_random_id}" ]; then
 			save_config_var "library_random_id" "${system_config_information}"
 			custom_random_id="${library_random_id:0:3}"
-			sed -i -e /"custom_random_id"/d "${parameterfile}"
+			sed -i -e /"custom_random_id"/d "${parameterFilename}"
 			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 		fi
