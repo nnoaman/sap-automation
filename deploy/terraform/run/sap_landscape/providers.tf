@@ -17,7 +17,7 @@
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id            = coalesce(var.management_subscription,var.subscription_id, local.deployer_subscription_id)
+                                         subscription_id            = coalesce(var.management_subscription_id,var.subscription_id, local.deployer_subscription_id)
                                          use_msi                    = var.use_spn ? false : true
 
                                          storage_use_azuread        = true

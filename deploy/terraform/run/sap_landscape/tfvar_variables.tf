@@ -61,7 +61,7 @@ variable "subscription_id"                      {
                                                 }
 
 
-variable "management_subscription"              {
+variable "management_subscription_id"           {
                                                   description = "This is the management subscription used by the deployment"
                                                   type        = string
                                                   default     = ""
