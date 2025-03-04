@@ -270,27 +270,6 @@ else
 	return_code=1
 fi
 
-if [ -f "${SID}_hosts.yaml" ]; then
-	git add -f "${SID}_hosts.yaml"
-	added=1
-fi
-
-if [ -f "${SID}.md" ]; then
-	git add "${CONFIG_REPO_PATH}/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/${SID}.md"
-	# echo "##vso[task.uploadsummary]./${SID}.md)"
-	added=1
-fi
-
-if [ -f "${SID}_inventory.md" ]; then
-	git add "${SID}_inventory.md"
-	added=1
-fi
-
-if [ -f "${SID}_resource_names.json" ]; then
-	git add "${SID}_resource_names.json"
-	added=1
-fi
-
 if [ -f $WORKLOAD_ZONE_TFVARS_FILENAME ]; then
 	git add $WORKLOAD_ZONE_TFVARS_FILENAME
 	added=1
