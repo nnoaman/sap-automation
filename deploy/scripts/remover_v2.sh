@@ -192,9 +192,9 @@ function parse_arguments() {
 	# Validate required parameters
 
 	parameterfile_name=$(basename "${parameterFilename}")
-	param_dirname=$(dirname "${parameterFilename}")
+	parameterfile_dirname=$(dirname "${parameterFilename}")
 
-	if [ "${param_dirname}" != '.' ]; then
+	if [ "${parameterfile_dirname}" != '.' ]; then
 		print_banner "Remover" "Please run this command from the folder containing the parameter file" "error"
 	fi
 
