@@ -480,7 +480,7 @@ function sdaf_remover() {
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 
-	var_file="${parameterfile_dirname}"/"${parameterfile}"
+	var_file="${parameterfile_dirname}"/"${parameterfile_name}"
 
 	cd "${param_dirname}" || exit
 	if [ ! -f .terraform/terraform.tfstate ]; then
