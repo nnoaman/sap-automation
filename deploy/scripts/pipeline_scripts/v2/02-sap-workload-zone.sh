@@ -240,9 +240,9 @@ cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 # shellcheck disable=SC1091
 source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
 
-sdaf_installer --parameterfile $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_landscape \
-	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
-	--ado --auto-approve
+sdaf_installer --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
+    --control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
+    --ado --auto-approve
 return_code=$?
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
