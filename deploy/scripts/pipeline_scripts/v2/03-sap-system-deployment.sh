@@ -9,15 +9,14 @@ cyan="\e[1;36m"
 
 
 #External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
 
 #call stack has full scriptname when using source
 source "${parent_directory}/helper.sh"
-DEBUG=False
-
+source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=False
 

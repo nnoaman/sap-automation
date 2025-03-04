@@ -8,7 +8,6 @@ bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
 #External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
