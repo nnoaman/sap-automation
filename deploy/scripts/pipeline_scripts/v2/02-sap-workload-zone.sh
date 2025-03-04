@@ -243,18 +243,12 @@ fi
 set +o errexit
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-cd "$CONFIG_REPO_PATH" || exit
-echo -e "$green--- Pull the latest content from DevOps ---$reset"
 # Pull changes
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 # Pull changes if there are other deployment jobs
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-
-if [ -f stdout.az ]; then
-	rm stdout.az
-fi
 
 added=0
 
@@ -263,27 +257,15 @@ if [ -f .terraform/terraform.tfstate ]; then
 	added=1
 fi
 
-if [ -f sap-parameters.yaml ]; then
-	git add sap-parameters.yaml
-	added=1
-else
-	return_code=1
-fi
-
 if [ -f $WORKLOAD_ZONE_TFVARS_FILENAME ]; then
 	git add $WORKLOAD_ZONE_TFVARS_FILENAME
-	added=1
-fi
-
-if [ -f "${SID}_virtual_machines.json" ]; then
-	git add "${SID}_virtual_machines.json"
 	added=1
 fi
 
 if [ 1 == $added ]; then
 	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 	git config --global user.name "$BUILD_REQUESTEDFOR"
-	git commit -m "Added updates from SAP deployment of $WORKLOAD_ZONE_FOLDERNAME for $BUILD_BUILDNUMBER [skip ci]"
+	git commit -m "Added updates from SAP workload zone deployment of $WORKLOAD_ZONE_FOLDERNAME for $BUILD_BUILDNUMBER [skip ci]"
 
 	if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 		echo "##vso[task.logissue type=warning]Changes from SAP deployment of $WORKLOAD_ZONE_FOLDERNAME pushed to $BUILD_SOURCEBRANCHNAME"
@@ -292,21 +274,5 @@ if [ 1 == $added ]; then
 	fi
 fi
 
-# file_name=${SID}_inventory.md
-# if [ -f ${SID}_inventory.md ]; then
-#   az devops configure --defaults organization=$terraform_storage_account_subscription_id_COLLECTIONURI project='$terraform_storage_account_subscription_id_TEAMPROJECT' --output none
-
-#   # ToDo: Fix this later
-#   # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
-#   # echo "${WIKI_NAME_FOUND}"
-#   # if [ -n "${WIKI_NAME_FOUND}" ]; then
-#   #   eTag=$(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
-#   #   if [ -n "$eTag" ]; then
-#   #     az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none
-#   #   else
-#   #     az devops wiki page create --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --output none --only-show-errors
-#   #   fi
-#   # fi
-# fi
 
 exit $return_code
