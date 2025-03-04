@@ -197,7 +197,7 @@ echo "Workload Key vault:                  ${workload_key_vault}"
 echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 
 echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
-echo "Terraform state file storage account:$terraform_storage_account_name
+echo "Terraform state file storage account:$terraform_storage_account_name"
 
 echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit

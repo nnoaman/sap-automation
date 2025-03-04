@@ -479,7 +479,6 @@ function sdaf_remover() {
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-
 	var_file="${parameterfile_dirname}"/"${parameterfile_name}"
 
 	cd "${param_dirname}" || exit
@@ -520,175 +519,170 @@ function sdaf_remover() {
 		fi
 	fi
 
-	if [ "$resource_group_exist" ]; then
-		print_banner "Remover" "Running Terraform destroy" "info"
+	print_banner "Remover" "Running Terraform destroy" "info"
 
-		if [ "$deployment_system" == "sap_deployer" ]; then
-			terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}"
+	if [ "$deployment_system" == "sap_deployer" ]; then
+		terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}"
+		"$deployer_tfstate_key_parameter"
+
+	elif [ "$deployment_system" == "sap_library" ]; then
+		terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
+		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
+
+		terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
 			"$deployer_tfstate_key_parameter"
 
-		elif [ "$deployment_system" == "sap_library" ]; then
-			terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
-			terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
+		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false \
+			"$deployer_tfstate_key_parameter"
+	elif [ "$deployment_system" == "sap_landscape" ]; then
 
-			terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-				"$deployer_tfstate_key_parameter"
+		allParameters=$(printf " -var-file=%s %s %s  %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
-			terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false \
-				"$deployer_tfstate_key_parameter"
-		elif [ "$deployment_system" == "sap_landscape" ]; then
-
-			allParameters=$(printf " -var-file=%s %s %s  %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
-
-			moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
-			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-					echo "Secret 'sid_ppk' removed from state"
-				fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_ppk' removed from state"
 			fi
+		fi
 
-			moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
-			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-					echo "Secret 'sid_pk' removed from state"
-				fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_pk' removed from state"
 			fi
+		fi
 
-			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-				moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
-				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-					echo "Secret 'sid_username' removed from state"
-				fi
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_username' removed from state"
 			fi
+		fi
 
-			moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
-			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-					echo "Secret 'sid_password' removed from state"
-				fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_password' removed from state"
 			fi
+		fi
 
-			moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
-			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-					echo "Secret 'witness_access_key' removed from state"
-				fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'witness_access_key' removed from state"
 			fi
+		fi
 
-			moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
-			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-					echo "Secret 'deployer_keyvault_user_name' removed from state"
-				fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'deployer_keyvault_user_name' removed from state"
 			fi
+		fi
 
-			moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
-			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-					echo "Secret 'witness_name' removed from state"
-				fi
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'witness_name' removed from state"
 			fi
+		fi
 
-			if [ -n "${approve}" ]; then
-				# shellcheck disable=SC2086
-				if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
-					return_value=$?
-					print_banner "Remover" "Terraform destroy succeeded" "success"
-				else
-					return_value=$?
-					print_banner "Remover" "Terraform destroy failed" "error"
-				fi
-				if [ -f destroy_output.json ]; then
-					errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
-					if [[ -n $errors_occurred ]]; then
-						return_value=10
-					fi
-				fi
-
+		if [ -n "${approve}" ]; then
+			# shellcheck disable=SC2086
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+				return_value=$?
+				print_banner "Remover" "Terraform destroy succeeded" "success"
 			else
-				# shellcheck disable=SC2086
-				if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
-					print_banner "Remover" "Terraform destroy succeeded" "success"
-					return_value=$?
-				else
-					return_value=$?
-					print_banner "Remover" "Terraform destroy failed" "error"
-				fi
+				return_value=$?
+				print_banner "Remover" "Terraform destroy failed" "error"
 			fi
-		else
-
-			echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter"
-
-			allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}")
-
-			if [ -n "${approve}" ]; then
-				# shellcheck disable=SC2086
-				if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
-					return_value=${PIPESTATUS[0]}
-					print_banner "Remover" "Terraform destroy succeeded" "success"
-				else
-					return_value=${PIPESTATUS[0]}
-					print_banner "Remover" "Terraform destroy failed" "error"
-				fi
-			else
-				# shellcheck disable=SC2086
-				if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
-					return_value=$?
-					print_banner "Remover" "Terraform destroy succeeded" "success"
-				else
-					return_value=$?
-					print_banner "Remover" "Terraform destroy failed" "error"
-				fi
-			fi
-
 			if [ -f destroy_output.json ]; then
 				errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
-
 				if [[ -n $errors_occurred ]]; then
-				  print_banner "Remover" "Errors during the destroy phase" "success"
-					echo ""
-					echo "#########################################################################################"
-					echo "#                                                                                       #"
-					echo -e "#                      $bold_red_underscore!!! Errors during the destroy phase !!!$reset_formatting                          #"
-					echo "#                                                                                       #"
-					echo "#########################################################################################"
-					echo ""
+					return_value=10
+				fi
+			fi
 
-					return_value=2
-					all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
-					if [[ -n ${all_errors} ]]; then
-						readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
-						for errors_string in "${errors_strings[@]}"; do
-							string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
-							if [[ -z ${string_to_report} ]]; then
-								string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
-							fi
+		else
+			# shellcheck disable=SC2086
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+				print_banner "Remover" "Terraform destroy succeeded" "success"
+				return_value=$?
+			else
+				return_value=$?
+				print_banner "Remover" "Terraform destroy failed" "error"
+			fi
+		fi
+	else
 
-							report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
-							if [[ -n ${report} ]]; then
-								echo -e "#                          $bold_red_underscore  $report $reset_formatting"
-								echo "##vso[task.logissue type=error]${report}"
-							else
-								echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
-								echo "##vso[task.logissue type=error]${string_to_report}"
-							fi
+		echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter"
 
-						done
+		allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}")
 
-					fi
+		if [ -n "${approve}" ]; then
+			# shellcheck disable=SC2086
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+				return_value=${PIPESTATUS[0]}
+				print_banner "Remover" "Terraform destroy succeeded" "success"
+			else
+				return_value=${PIPESTATUS[0]}
+				print_banner "Remover" "Terraform destroy failed" "error"
+			fi
+		else
+			# shellcheck disable=SC2086
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+				return_value=$?
+				print_banner "Remover" "Terraform destroy succeeded" "success"
+			else
+				return_value=$?
+				print_banner "Remover" "Terraform destroy failed" "error"
+			fi
+		fi
+
+		if [ -f destroy_output.json ]; then
+			errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
+
+			if [[ -n $errors_occurred ]]; then
+				print_banner "Remover" "Errors during the destroy phase" "success"
+				echo ""
+				echo "#########################################################################################"
+				echo "#                                                                                       #"
+				echo -e "#                      $bold_red_underscore!!! Errors during the destroy phase !!!$reset_formatting                          #"
+				echo "#                                                                                       #"
+				echo "#########################################################################################"
+				echo ""
+
+				return_value=2
+				all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
+				if [[ -n ${all_errors} ]]; then
+					readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
+					for errors_string in "${errors_strings[@]}"; do
+						string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
+						if [[ -z ${string_to_report} ]]; then
+							string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
+						fi
+
+						report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
+						if [[ -n ${report} ]]; then
+							echo -e "#                          $bold_red_underscore  $report $reset_formatting"
+							echo "##vso[task.logissue type=error]${report}"
+						else
+							echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
+							echo "##vso[task.logissue type=error]${string_to_report}"
+						fi
+
+					done
 
 				fi
 
-			fi
-
-			if [ -f destroy_output.json ]; then
-				rm destroy_output.json
 			fi
 
 		fi
 
-	else
-		return_value=0
+		if [ -f destroy_output.json ]; then
+			rm destroy_output.json
+		fi
+
 	fi
 
 	if [ "${deployment_system}" == sap_deployer ]; then
