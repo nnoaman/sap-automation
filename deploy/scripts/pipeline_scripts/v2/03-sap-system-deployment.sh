@@ -194,13 +194,13 @@ fi
 
 export TF_VAR_spn_keyvault_id=${key_vault_id}
 
-REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
-export REMOTE_STATE_SA
-export REMOTE_STATE_RG
-export STATE_SUBSCRIPTION
+export terraform_storage_account_name
+export terraform_storage_account_resource_group_name
+export terraform_storage_account_subscription_id
 export tfstate_resource_id
 
 export workload_key_vault
@@ -220,8 +220,7 @@ export tfstate_resource_id
 
 echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
-sdaf_installer --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
+"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
 	--ado --auto-approve

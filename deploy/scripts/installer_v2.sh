@@ -245,14 +245,14 @@ function parse_arguments() {
 	fi
 
 	if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
-		WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
-
-		if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
-			WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
-		fi
-
 		if [ -n "$WORKLOAD_ZONE_NAME" ]; then
 			landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+		else
+			WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
+
+			if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
+				WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
+			fi
 		fi
 	fi
 
@@ -1040,7 +1040,7 @@ function sdaf_installer() {
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    # Only run if script is executed directly, not when sourced
-    sdaf_installer "$@"
-    exit $?
+	# Only run if script is executed directly, not when sourced
+	sdaf_installer "$@"
+	exit $?
 fi
