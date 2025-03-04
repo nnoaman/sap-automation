@@ -1055,5 +1055,9 @@ function sdaf_installer() {
 	exit 0
 }
 
-sdaf_installer "$@"
-exit $?
+# With:
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # Only run if script is executed directly, not when sourced
+    sdaf_installer "$@"
+    exit $?
+fi
