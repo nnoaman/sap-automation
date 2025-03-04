@@ -16,17 +16,17 @@ parameters:
 
 variables:
   - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.deployer_environment }}
-  - group:                             SDAF-${{ parameters.workload_environment }}
+  - group:                             SDAF-${{ parameters.control_plane_name }}
+  - group:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment }}
+    value:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              run_on
     value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment }}
+    value:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              workload_zone_foldername
     value:                             ${{ parameters.workload_zone_name }}
