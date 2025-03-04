@@ -523,17 +523,14 @@ function sdaf_remover() {
 
 	if [ "$deployment_system" == "sap_deployer" ]; then
 		terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}"
-		"$deployer_tfstate_key_parameter"
 
 	elif [ "$deployment_system" == "sap_library" ]; then
 		terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
 		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
 
-		terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-			"$deployer_tfstate_key_parameter"
+		terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}"
 
-		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false \
-			"$deployer_tfstate_key_parameter"
+		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false
 	elif [ "$deployment_system" == "sap_landscape" ]; then
 
 		allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}" )

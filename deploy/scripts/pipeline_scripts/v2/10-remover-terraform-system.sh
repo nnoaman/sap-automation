@@ -203,8 +203,8 @@ export tfstate_resource_id
 
 export workload_key_vault
 
-echo "Deployer statefile:                  $deployer_tfstate_key"
-echo "Workload statefile:                  $landscape_tfstate_key"
+echo "Deployer state file:                 $deployer_tfstate_key"
+echo "Workload state file:                 $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
 echo "Workload Key vault:                  ${workload_key_vault}"
 echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
@@ -212,10 +212,7 @@ echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
 echo "Terraform state file storage account:$terraform_storage_account_name"
 
-tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-export tfstate_resource_id
-
-echo -e "$green--- Deploy the System ---$reset"
+echo -e "$green--- Remove the System ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
