@@ -69,8 +69,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	echo "Step:                                $step"
 fi
 
-REMOTE_STATE_SA=""
-REMOTE_STATE_RG=$DEPLOYER_FOLDERNAME
+terraform_storage_account_name=""
+terraform_storage_account_resource_group_name=$DEPLOYER_FOLDERNAME
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
@@ -201,20 +201,20 @@ else
 
 fi
 
-STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+terraform_storage_account_subscription_id=$ARM_SUBSCRIPTION_ID
 
-echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
+echo "Terraform state subscription:        $terraform_storage_account_subscription_id"
 
 if [ -n "$tfstate_resource_id" ]; then
-	REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-	REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-	echo "Terraform storage account:           $REMOTE_STATE_SA"
-	storage_account_parameter=" --storageaccountname ${REMOTE_STATE_SA} "
+	terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+	echo "Terraform storage account:           $terraform_storage_account_name"
+	storage_account_parameter=" --storageaccountname ${terraform_storage_account_name} "
 
-	export REMOTE_STATE_SA
-	export REMOTE_STATE_RG
-	export STATE_SUBSCRIPTION
+	export terraform_storage_account_name
+	export terraform_storage_account_resource_group_name
+	export terraform_storage_account_subscription_id
 	export tfstate_resource_id
 
 else
@@ -253,8 +253,8 @@ else
 	echo "Deploy Web Application:               false"
 fi
 
-file_REMOTE_STATE_SA=""
-file_REMOTE_STATE_RG=""
+file_terraform_storage_account_name=""
+file_terraform_storage_account_resource_group_name=""
 
 echo -e "$green--- Update .sap_deployment_automation/config as SAP_AUTOMATION_REPO_PATH can change on devops agent ---$reset"
 cd "${CONFIG_REPO_PATH}" || exit
@@ -462,21 +462,21 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	file_key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Deployer Keyvault:    ${file_key_vault}"
 
-	file_REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform account:    ${file_REMOTE_STATE_SA}"
+	file_terraform_storage_account_name=$(grep "^terraform_storage_account_name=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${file_terraform_storage_account_name}" ]; then
+		echo "Terraform account:    ${file_terraform_storage_account_name}"
 	fi
 
-	file_REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_REMOTE_STATE_RG}" ]; then
-		echo "Terraform rgname:     ${file_REMOTE_STATE_RG}"
+	file_terraform_storage_account_resource_group_name=$(grep "^terraform_storage_account_resource_group_name=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${file_terraform_storage_account_resource_group_name}" ]; then
+		echo "Terraform rgname:     ${file_terraform_storage_account_resource_group_name}"
 	fi
 fi
 
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${file_REMOTE_STATE_SA}"; then
+	if [ -n "${file_terraform_storage_account_name}" ]; then
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${file_terraform_storage_account_name}"; then
 			echo "Variable Terraform_Remote_Storage_Account_Name was added to the $VARIABLE_GROUP variable group."
 		else
 			echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Account_Name was not added to the $VARIABLE_GROUP variable group."
@@ -484,8 +484,8 @@ if [ 0 = $return_code ]; then
 		fi
 	fi
 
-	if [ -n "${file_REMOTE_STATE_RG}" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${file_REMOTE_STATE_RG}"; then
+	if [ -n "${file_terraform_storage_account_resource_group_name}" ]; then
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${file_terraform_storage_account_resource_group_name}"; then
 			echo "Variable Terraform_Remote_Storage_Resource_Group_Name was added to the $VARIABLE_GROUP variable group."
 		else
 			echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Resource_Group_Name was not added to the $VARIABLE_GROUP variable group."

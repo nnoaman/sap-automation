@@ -196,11 +196,8 @@ echo "Deployer Key vault:                  $key_vault"
 echo "Workload Key vault:                  ${workload_key_vault}"
 echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 
-echo "Terraform state file subscription:   $STATE_SUBSCRIPTION"
-echo "Terraform state file storage account:$REMOTE_STATE_SA"
-
-tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-export tfstate_resource_id
+echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
+echo "Terraform state file storage account:$terraform_storage_account_name
 
 echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
