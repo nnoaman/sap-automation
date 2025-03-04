@@ -194,6 +194,8 @@ function parse_arguments() {
 	parameterfile_name=$(basename "${parameterFilename}")
 	parameterfile_dirname=$(dirname "${parameterFilename}")
 
+	key=$(echo "${parameterfile_name}" | cut -d. -f1)
+
 	if [ "${parameterfile_dirname}" != '.' ]; then
 		print_banner "Remover" "Please run this command from the folder containing the parameter file" "error"
 	fi
@@ -363,7 +365,6 @@ function sdaf_remover() {
 	if [ -n "${WORKLOAD_ZONE_NAME}" ]; then
 		echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
 	fi
-	key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 	echo "Configuration file:                  $system_config_information"
 	echo "Deployment region:                   $region"
@@ -456,8 +457,6 @@ function sdaf_remover() {
 	# This is used to tell Terraform the version information from the state file
 	version_parameter=""
 
-	export TF_DATA_DIR="${param_dirname}/.terraform"
-
 	terraform --version
 	echo ""
 	echo "Terraform details"
@@ -479,7 +478,7 @@ function sdaf_remover() {
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	var_file="${parameterfile_dirname}"/"${parameterfile_name}"
+	var_file="${param_dirname}"/"${parameterfile_name}"
 
 	cd "${param_dirname}" || exit
 	if [ ! -f .terraform/terraform.tfstate ]; then
