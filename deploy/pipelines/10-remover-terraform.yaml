@@ -139,8 +139,8 @@ stages:
     variables:
       - template:                      variables/10-remover-terraform-variables.yaml
         parameters:
-          deployer_environment:        ${{ parameters.control_plane_name }}
-          workload_environment:        ${{ parameters.workload_zone_name }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
+          workload_zone_name:          ${{ parameters.workload_zone_name }}
           workload_zone:               ${{ parameters.workload_zone }}
           sap_system:                  ${{ parameters.sap_system }}
 
