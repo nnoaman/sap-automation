@@ -479,7 +479,7 @@ function sdaf_remover() {
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
+
 	var_file="${parameterfile_dirname}"/"${parameterfile}"
 
 	cd "${param_dirname}" || exit
