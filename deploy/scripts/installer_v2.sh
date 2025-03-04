@@ -136,7 +136,7 @@ source_helper_scripts() {
 # Function to parse command line arguments
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:g:c:w:ahif --longoptions type:,parameterFilename:,storageaccountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_id:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
+	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:g:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_id:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
