@@ -536,7 +536,7 @@ function sdaf_remover() {
 			"$deployer_tfstate_key_parameter"
 	elif [ "$deployment_system" == "sap_landscape" ]; then
 
-		allParameters=$(printf " -var-file=%s %s %s  %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+		allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}" )
 
 		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
 		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
@@ -615,9 +615,8 @@ function sdaf_remover() {
 		fi
 	else
 
-		echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter"
 
-		allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}")
+		allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
