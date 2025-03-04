@@ -209,8 +209,24 @@ function parse_arguments() {
 		esac
 	done
 
-	# Validate required parameters
+  # display parameters
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo "#   Parameters:                                                                        #"
+	echo "#                                                                                       #"
+	echo "#   Parameter file:                    $parameterfile"
+	echo "#   Control Plane name:                $CONTROL_PLANE_NAME"
+	echo "#   Application Configuration ID:      $APPLICATION_CONFIGURATION_ID"
+	echo "#   Deployment system:                 $deployment_system"
+	echo "#   Deployer terraform state file:     $deployer_tfstate_key"
+	echo "#   Landscape terraform state file:    $landscape_tfstate_key"
+	echo "#   Storage account name:               $terraform_storage_account_name"
+	echo "#   Storage account subscription:       $terraform_storage_account_subscription_id"
+	echo "#   Workload zone name:                 $WORKLOAD_ZONE_NAME"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
 
+	# Validate required parameters
 	parameterfile_name=$(basename "${parameterfile}")
 	param_dirname=$(dirname "${parameterfile}")
 
