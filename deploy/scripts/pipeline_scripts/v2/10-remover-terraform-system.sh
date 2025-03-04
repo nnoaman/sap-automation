@@ -207,7 +207,7 @@ echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
 echo "Workload Key vault:                  ${workload_key_vault}"
-echo "Target subscription                  $WL_ARM_SUBSCRIPTION_ID"
+echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 
 echo "Terraform state file subscription:   $STATE_SUBSCRIPTION"
 echo "Terraform state file storage account:$REMOTE_STATE_SA"
