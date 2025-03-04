@@ -32,7 +32,7 @@ variables:
     value:                             ${{ parameters.workload_zone_name }}
 
   - name:                              workload_zone_tfvars_filename
-    value:                             ${{ parameters.workload_zone_name }}-INFRASTRUCTURE.tfvars
+    value:                             ${{ parameters.workload_zone }}.tfvars
 
   - name:                              sap_system_foldername
     value:                             ${{ parameters.sap_system }}
