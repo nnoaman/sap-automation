@@ -470,7 +470,7 @@ function sdaf_installer() {
 	if [ -n "${WORKLOAD_ZONE_NAME}" ]; then
 		echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
 	fi
-	key=$(echo "${parameterFilename_name}" | cut -d. -f1)
+	key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 	echo "Configuration file:                  $system_config_information"
 	echo "Deployment region:                   $region"
