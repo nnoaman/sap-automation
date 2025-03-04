@@ -14,6 +14,12 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
+# print the script paths
+echo "Full path of the script: $full_script_path"
+echo "Script directory: $script_directory"
+echo "Parent directory: $parent_directory"
+echo "Grand parent directory: $grand_parent_directory"
+
 #call stack has full scriptname when using source
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
@@ -35,6 +41,7 @@ echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
+echo -e "$cyan tfvarsFile: $tfvarsFile $reset"
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
@@ -230,8 +237,10 @@ export tfstate_resource_id
 
 echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
+# shellcheck disable=SC1091
 source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
-install --parameterfile $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_landscape \
+
+sdaf_installer --parameterfile $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 	--ado --auto-approve
 return_code=$?

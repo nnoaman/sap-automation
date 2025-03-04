@@ -449,7 +449,7 @@ function persist_files() {
 
 }
 
-function installer() {
+function sdaf_installer() {
 	landscape_tfstate_key=""
 	landscape_tfstate_key_exists=false
 	called_from_ado=0
@@ -1055,5 +1055,5 @@ function installer() {
 	exit 0
 }
 
-installer "$@"
+sdaf_installer "$@"
 exit $?
