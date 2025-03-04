@@ -1,16 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
+# --------------------------------------+---------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the System and Workload removal     |
 #                                                                              |
-#--------------------------------------+---------------------------------------8
+# --------------------------------------+---------------------------------------8
 
 
 parameters:
-  deployer_environment: ''
-  workload_environment: ''
+  control_plane_name: ''
+  workload_zone_name: ''
   workload_zone: ''
   sap_system: ''
 
@@ -29,10 +29,10 @@ variables:
     value:                             SDAF-${{ parameters.workload_environment }}
 
   - name:                              workload_zone_foldername
-    value:                             ${{ parameters.workload_zone }}
+    value:                             ${{ parameters.workload_zone_name }}
 
   - name:                              workload_zone_tfvars_filename
-    value:                             ${{ parameters.workload_zone }}.tfvars
+    value:                             ${{ parameters.workload_zone_name }}.tfvars
 
   - name:                              sap_system_foldername
     value:                             ${{ parameters.sap_system }}
