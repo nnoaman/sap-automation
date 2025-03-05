@@ -325,12 +325,6 @@ function remove_control_plane() {
 		fi
 	fi
 
-	if [ $force == 1 ]; then
-		if [ -f "${deployer_config_information}" ]; then
-			rm "${deployer_config_information}"
-		fi
-	fi
-
 	load_config_vars "${deployer_config_information}" "step"
 	if [ 1 -eq $step ]; then
 		exit 0
