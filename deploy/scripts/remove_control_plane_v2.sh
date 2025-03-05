@@ -479,14 +479,12 @@ function remove_control_plane() {
 		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 	fi
 
-	var_file="${param_dirname}"/"${library_parameter_file}"
-
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 	export TF_use_spn=false
 
 	print_banner "Remove Control Plane " "Running Terraform destroy (library)" "info"
 
-	if terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" -var use_deployer=false "${approve_parameter}"; then
+	if terraform -chdir="${terraform_module_directory}" destroy -var-file="${library_parameter_file}" -var use_deployer=false "${approve_parameter}"; then
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
 	else
