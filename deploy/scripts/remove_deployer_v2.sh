@@ -156,33 +156,41 @@ function parse_arguments() {
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	# Convert the region to the correct code
 	get_region_code $region
-
-}
-function sdaf_remove_deployer() {
-	deployment_system=sap_deployer
-
-	key=$(echo "${parameterfile_name}" | cut -d. -f1)
-
-
-	#Persisting the parameters across executions
-	automation_config_directory=~/.sap_deployment_automation/
-	generic_config_information="${automation_config_directory}"config
-	deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
-
-	load_config_vars "${deployer_config_information}" "step"
-
-	param_dirname=$(pwd)
-
-	init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
-
-
-	var_file="${param_dirname}"/"${parameterFilename}"
 	# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
 	validate_exports
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		exit $return_code
 	fi
+
+}
+function sdaf_remove_deployer() {
+	deployment_system=sap_deployer
+
+	# Define an array of helper scripts
+	helper_scripts=(
+		"${script_directory}/helpers/script_helpers.sh"
+		"${script_directory}/deploy_utils.sh"
+	)
+
+	# Call the function with the array
+	source_helper_scripts "${helper_scripts[@]}"
+
+	# Parse command line arguments
+	parse_arguments "$@"
+	key=$(echo "${parameterfile_name}" | cut -d. -f1)
+
+	CONTROL_PLANE_NAME=$(echo "$key" | cut -d'-' -f1-3)
+	export "CONTROL_PLANE_NAME"
+
+	#Persisting the parameters across executions
+	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
+
+	load_config_vars "${deployer_config_information}" "step"
+
+	param_dirname=$(pwd)
+
+	var_file="${param_dirname}"/"${parameterFilename}"
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
@@ -192,7 +200,7 @@ function sdaf_remove_deployer() {
 	validate_dependencies
 	return_code=$?
 	if [ 0 != $return_code ]; then
-		exit $return_code
+		return $return_code
 	fi
 
 	current_directory=$(pwd)
