@@ -186,7 +186,7 @@ stages:
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
   - stage:                             Deploy_controlplane
     dependsOn:
-      - Prepare_Deployer
+                                       - Prepare_Deployer
     condition:                         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
     pool:                              $(this_agent)
     variables:
