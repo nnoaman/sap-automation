@@ -225,13 +225,7 @@ function sdaf_remove_deployer() {
 		errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
 
 		if [[ -n $errors_occurred ]]; then
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                      $bold_red_underscore!!! Errors during the destroy phase !!!$reset_formatting                          #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+			print_banner "Remove deployer" "Errors occurred during the destroy phase" "error"
 
 			return_value=2
 			all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)

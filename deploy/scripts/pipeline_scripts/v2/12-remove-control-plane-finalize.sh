@@ -116,39 +116,6 @@ if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 fi
 
 echo -e "$green--- Validations ---$reset"
-if [ "$USE_MSI" != "true" ]; then
-
-	if [ -z "$CP_ARM_CLIENT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$CP_ARM_CLIENT_ID" == '$$(CP_ARM_CLIENT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ -z "$CP_ARM_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$CP_ARM_CLIENT_SECRET" == '$$(CP_ARM_CLIENT_SECRET)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ -z "$CP_ARM_TENANT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$CP_WL_ARM_TENANT_ID" == '$$(CP_ARM_TENANT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -176,8 +143,6 @@ else
 	LogonToAzure "$USE_MSI"
 fi
 
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault" || true)
@@ -205,8 +170,8 @@ echo -e "$green--- Running the remove region script that destroys deployer VM an
 
 cd "$CONFIG_REPO_PATH/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh" --auto-approve \
-	--parameterfile "$DEPLOYER_TFVARS_FILENAME"; then
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh" --auto-approve \
+	--parameter_file "$DEPLOYER_TFVARS_FILENAME"; then
 	return_code=$?
 	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
 	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."

@@ -190,16 +190,16 @@ function parse_arguments() {
 	done
 
 	# Validate required parameters
-	parameterfile_name=$(basename "${parameterFilename}")
-	parameterfile_dirname=$(dirname "${parameterFilename}")
+	parameter_file_name=$(basename "${parameterFilename}")
+	parameter_file_dirname=$(dirname "${parameterFilename}")
 
-	key=$(echo "${parameterfile_name}" | cut -d. -f1)
+	key=$(echo "${parameter_file_name}" | cut -d. -f1)
 
-	if [ "${parameterfile_dirname}" != '.' ]; then
+	if [ "${parameter_file_dirname}" != '.' ]; then
 		print_banner "Remover" "Please run this command from the folder containing the parameter file" "error"
 	fi
 
-	if [ ! -f "${parameterfile_name}" ]; then
+	if [ ! -f "${parameter_file_name}" ]; then
 		print_banner "Remover" "Parameter file does not exist: ${parameterFilename}" "error"
 	fi
 
@@ -415,7 +415,7 @@ function sdaf_remover() {
 
 		return_code=$?
 		if [ 0 != $return_code ]; then
-			print_banner "Remover" "The deployment account (MSI or SPN) does not have access to: $terraform_storage_account_subscription_id" "ption_id}"
+			print_banner "Remover" "The deployment account (MSI or SPN) does not have access to: $terraform_storage_account_subscription_id" "error"
 			exit $return_code
 		fi
 
@@ -477,7 +477,7 @@ function sdaf_remover() {
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	var_file="${param_dirname}"/"${parameterfile_name}"
+	var_file="${param_dirname}"/"${parameter_file_name}"
 
 	cd "${param_dirname}" || exit
 	if [ ! -f .terraform/terraform.tfstate ]; then
@@ -699,42 +699,6 @@ function sdaf_remover() {
 			sed -i /tfstate_resource_id/d "${system_config_information}"
 		fi
 	fi
-	# if [ "${deployment_system}" == sap_system ]; then
-
-	#     echo "#########################################################################################"
-	#     echo "#                                                                                       #"
-	#     echo -e "#                            $cyan Clean up load balancer IP $reset_formatting        #"
-	#     echo "#                                                                                       #"
-	#     echo "#########################################################################################"
-
-	#     database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
-	#     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/tolist/})
-	#     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/]})
-	#     echo "Database Load Balancer IP: $database_loadbalancer_public_ip_address"
-
-	#     load_config_vars "${parameterfile_name}" "database_loadbalancer_ips"
-	#     database_loadbalancer_ips=$(echo ${database_loadbalancer_ips} | xargs)
-
-	#     if [[ "${database_loadbalancer_public_ip_address}" != "${database_loadbalancer_ips}" ]];
-	#     then
-	#       database_loadbalancer_ips=${database_loadbalancer_public_ip_address}
-	#       save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
-	#     fi
-
-	#     scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
-	#     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/tolist/})
-	#     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/]})
-	#     echo "SCS Load Balancer IP: $scs_loadbalancer_public_ip_address"
-
-	#     load_config_vars "${parameterfile_name}" "scs_server_loadbalancer_ips"
-	#     scs_server_loadbalancer_ips=$(echo ${scs_server_loadbalancer_ips} | xargs)
-
-	#     if [[ "${scs_loadbalancer_public_ip_address}" != "${scs_server_loadbalancer_ips}" ]];
-	#     then
-	#       scs_server_loadbalancer_ips=${scs_loadbalancer_public_ip_address}
-	#       save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
-	#     fi
-	# fi
 
 	unset TF_DATA_DIR
 

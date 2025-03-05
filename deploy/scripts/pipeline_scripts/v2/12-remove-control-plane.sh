@@ -37,6 +37,14 @@ deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
+CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
+export "CONTROL_PLANE_NAME"
+
+if [[ -f /etc/profile.d/deploy_server.sh ]]; then
+	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export PATH=$PATH:$path
+fi
+
 echo -e "$green--- File Validations ---$reset"
 
 if [ ! -f "$deployerTFvarsFile" ]; then
@@ -58,7 +66,7 @@ echo -e "$green--- Environment information ---$reset"
 ENVIRONMENT=$(grep -m1 "^environment" "$deployerTFvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"' || true)
 LOCATION=$(grep -m1 "^location" "$deployerTFvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"' || true)
 
-deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
+deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 # shellcheck disable=SC2005
 ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $1}')
@@ -93,19 +101,9 @@ REMOTE_STATE_RG=$LIBRARY_FOLDERNAME
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 
-echo "Using SYSTEM_ACCESSTOKEN for authentication"
-AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-
-export AZURE_DEVOPS_EXT_PAT
-
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 az extension add --name azure-devops --output none --only-show-errors
 az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
-
-if [[ -f /etc/profile.d/deploy_server.sh ]]; then
-	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export PATH=$PATH:$path
-fi
 
 echo -e "$green--- Information ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
@@ -124,21 +122,19 @@ echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
 	if [ -z "$ARM_CLIENT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
 	if [ -z "$ARM_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
 	if [ -z "$ARM_TENANT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
-
-
 fi
 
 # Check if running on deployer
@@ -156,26 +152,7 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault" || true)
-export key_vault
-
-STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
-export STATE_SUBSCRIPTION
-
-REMOTE_STATE_SA=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA" || true)
-export REMOTE_STATE_SA
-
-REMOTE_STATE_RG=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA" || true)
-export REMOTE_STATE_RG
-
-echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
-echo "Terraform state rg name:             $REMOTE_STATE_RG"
-echo "Terraform state account:             $REMOTE_STATE_SA"
-echo "Deployer Key Vault:                  ${key_vault}"
 
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 	pass=${SYSTEM_COLLECTIONID//-/}
@@ -191,12 +168,9 @@ fi
 
 echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh" \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
 	--deployer_parameter_file "$deployerTFvarsFile" \
 	--library_parameter_file "$libraryTFvarsFile" \
-	--storage_account "$REMOTE_STATE_SA" \
-	--subscription "${STATE_SUBSCRIPTION}" \
-	--resource_group "$REMOTE_STATE_RG" \
 	--ado --auto-approve --keep_agent; then
 	return_code=$?
 	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed."
@@ -206,7 +180,7 @@ else
 	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 1 failed."
 fi
 
-echo "Return code from remove_controlplane: $return_code."
+echo "Return code from remove_control_plane_v2: $return_code."
 
 echo -e "$green--- Remove Control Plane Part 1 ---$reset"
 cd "$CONFIG_REPO_PATH" || exit

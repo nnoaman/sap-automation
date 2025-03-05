@@ -106,7 +106,7 @@ stages:
       - template:                       variables/12-remove-control-plane-variables.yaml
         parameters:
           deployer:                     ${{ parameters.deployer }}
-          deployer_environment:         ${{ parameters.deployer_environment }}
+          control_plane_name:         ${{ parameters.control_plane_name }}
           library:                      ${{ parameters.library }}
           use_deployer:                 ${{ parameters.use_deployer }}
     pool:
@@ -118,7 +118,7 @@ stages:
       - job:                            Remove_control_plane
         displayName:                    "Finalize control plane removal"
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment }}
+          - group:                     SDAF-${{ parameters.control_plane_name }}
         workspace:
           clean:                       all
         steps:

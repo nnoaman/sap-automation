@@ -326,8 +326,8 @@ function parse_arguments() {
 
 }
 
-# Function to parse command line arguments
-retrieve_parameters() {
+# Function to retrieve data from Azure App Configuration
+function retrieve_parameters() {
 	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
 	TF_VAR_tfstate_resource_id=$tfstate_resource_id
 	export TF_VAR_tfstate_resource_id
