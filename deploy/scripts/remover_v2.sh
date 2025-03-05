@@ -533,6 +533,8 @@ function sdaf_remover() {
 
 		allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
+		echo "Listing the resources in the state file"
+
 		terraform -chdir="${terraform_module_directory}" state list
 
 		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
