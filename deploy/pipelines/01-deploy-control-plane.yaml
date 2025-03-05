@@ -79,30 +79,54 @@ stages:
               #!/bin/bash
               # Exit immediately if a command exits with a non-zero status.
               set -e
-              if ["${CP_ARM_SUBSCRIPTION_ID:0:2}" == '$(']; then
+              if [ "${CP_ARM_SUBSCRIPTION_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(CP_ARM_SUBSCRIPTION_ID)"
               else
-                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]''"
+                if printenv ARM_SUBSCRIPTION_ID; then
+                  echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$ARM_SUBSCRIPTION_ID"
+                else
+                  echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]"
+                fi
               fi
+
               if [ "${CP_ARM_CLIENT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(ARM_CLIENT_ID)"
               else
-                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]"
+                if printenv ARM_CLIENT_ID; then
+                  echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$ARM_CLIENT_ID"
+                else
+                  echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]"
+                fi
               fi
+
               if [ "${CP_ARM_CLIENT_SECRET:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$(ARM_CLIENT_SECRET)"
               else
-                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
+                if printenv ARM_CLIENT_SECRET; then
+                  echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$ARM_CLIENT_SECRET"
+                else
+                  echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
+                fi
               fi
+
               if [ "${CP_ARM_TENANT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$(ARM_TENANT_ID)"
               else
-                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]"
+                if  printenv ARM_TENANT_ID; then
+                  echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$ARM_TENANT_ID"
+                else
+                  echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]"
+                fi
               fi
+
               if [ "${CP_ARM_OBJECT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$(ARM_OBJECT_ID)"
               else
-                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
+                if printenv ARM_OBJECT_ID; then
+                  echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$ARM_OBJECT_ID"
+                else
+                  echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
+                fi
               fi
             env:
               CP_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
@@ -190,27 +214,51 @@ stages:
               if [ "${CP_ARM_SUBSCRIPTION_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(CP_ARM_SUBSCRIPTION_ID)"
               else
-                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]"
+                if printenv ARM_SUBSCRIPTION_ID; then
+                  echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$ARM_SUBSCRIPTION_ID"
+                else
+                  echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]"
+                fi
               fi
+
               if [ "${CP_ARM_CLIENT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(ARM_CLIENT_ID)"
               else
-                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]"
+                if printenv ARM_CLIENT_ID; then
+                  echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$ARM_CLIENT_ID"
+                else
+                  echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]"
+                fi
               fi
+
               if [ "${CP_ARM_CLIENT_SECRET:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$(ARM_CLIENT_SECRET)"
               else
-                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
+                if printenv ARM_CLIENT_SECRET; then
+                  echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$ARM_CLIENT_SECRET"
+                else
+                  echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
+                fi
               fi
+
               if [ "${CP_ARM_TENANT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$(ARM_TENANT_ID)"
               else
-                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]"
+                if  printenv ARM_TENANT_ID; then
+                  echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$ARM_TENANT_ID"
+                else
+                  echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]"
+                fi
               fi
+
               if [ "${CP_ARM_OBJECT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$(ARM_OBJECT_ID)"
               else
-                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
+                if printenv ARM_OBJECT_ID; then
+                  echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$ARM_OBJECT_ID"
+                else
+                  echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
+                fi
               fi
             env:
               CP_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
