@@ -532,7 +532,7 @@ function sdaf_remover() {
 		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false
 	elif [ "$deployment_system" == "sap_landscape" ]; then
 
-		allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}" )
+		allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
 		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
 		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
@@ -611,7 +611,6 @@ function sdaf_remover() {
 		fi
 	else
 
-
 		allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 
 		if [ -n "${approve}" ]; then
@@ -680,20 +679,22 @@ function sdaf_remover() {
 
 	fi
 
-	if [ "${deployment_system}" == sap_deployer ]; then
-		sed -i /deployer_tfstate_key/d "${system_config_information}"
-	fi
+	if [ -f "${system_config_information}" ]; then
+		if [ "${deployment_system}" == sap_deployer ]; then
+			sed -i /deployer_tfstate_key/d "${system_config_information}"
+		fi
 
-	if [ "${deployment_system}" == sap_landscape ]; then
-		rm "${system_config_information}"
-	fi
+		if [ "${deployment_system}" == sap_landscape ]; then
+			rm "${system_config_information}"
 
-	if [ "${deployment_system}" == sap_library ]; then
-		sed -i /REMOTE_STATE_RG/d "${system_config_information}"
-		sed -i /REMOTE_STATE_SA/d "${system_config_information}"
-		sed -i /tfstate_resource_id/d "${system_config_information}"
-	fi
+		fi
 
+		if [ "${deployment_system}" == sap_library ]; then
+			sed -i /REMOTE_STATE_RG/d "${system_config_information}"
+			sed -i /REMOTE_STATE_SA/d "${system_config_information}"
+			sed -i /tfstate_resource_id/d "${system_config_information}"
+		fi
+	fi
 	# if [ "${deployment_system}" == sap_system ]; then
 
 	#     echo "#########################################################################################"
