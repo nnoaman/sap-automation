@@ -109,7 +109,7 @@ stages:
               ARM_TENANT_ID:                  $(ParameterValidation.ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:           $(PAT)
               CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_NAME:             ${{ parameters.environment }}
+              CONTROL_PLANE_NAME:             ${{ parameters.control_plane_name }}
               DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
               FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:         true
@@ -142,7 +142,7 @@ stages:
         parameters:
           deployer:                    ${{ parameters.deployer }}
           library:                     ${{ parameters.library }}
-          environment:                 ${{ parameters.environment }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
           use_webapp_param:            ${{ parameters.use_webapp_param }}
           use_deployer:                ${{ parameters.use_deployer }}
           force_reset:                 ${{ parameters.force_reset }}
@@ -190,7 +190,7 @@ stages:
               ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_NAME:           ${{ parameters.environment }}
+              CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
               DEPLOYER_TFSTATE_KEY:         "${{ parameters.deployer }}.terraform.tfstate"
               FORCE_RESET:                  ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:       true
