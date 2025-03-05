@@ -78,10 +78,13 @@ stages:
               #!/bin/bash
               # Exit immediately if a command exits with a non-zero status.
               set -e
+
+
               if [ "${WL_ARM_SUBSCRIPTION_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(WL_ARM_SUBSCRIPTION_ID)"
               else
-                if printenv ARM_SUBSCRIPTION_ID; then
+                test=$(printenv ARM_SUBSCRIPTION_ID)
+                if [ -n "$test" ]; then
                   echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$ARM_SUBSCRIPTION_ID"
                 else
                   echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]"
@@ -91,7 +94,8 @@ stages:
               if [ "${WL_ARM_CLIENT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(ARM_CLIENT_ID)"
               else
-                if printenv ARM_CLIENT_ID; then
+                test=$(printenv ARM_CLIENT_ID)
+                if [ -n "$test" ]; then
                   echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$ARM_CLIENT_ID"
                 else
                   echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]"
@@ -101,7 +105,8 @@ stages:
               if [ "${WL_ARM_CLIENT_SECRET:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$(ARM_CLIENT_SECRET)"
               else
-                if printenv ARM_CLIENT_SECRET; then
+                test=$(printenv ARM_CLIENT_SECRET)
+                if [ -n "$test" ]; then
                   echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$ARM_CLIENT_SECRET"
                 else
                   echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
@@ -111,7 +116,8 @@ stages:
               if [ "${WL_ARM_TENANT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$(ARM_TENANT_ID)"
               else
-                if  printenv ARM_TENANT_ID; then
+                test=$(printenv ARM_TENANT_ID)
+                if [ -n "$test" ]; then
                   echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$ARM_TENANT_ID"
                 else
                   echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]"
@@ -121,7 +127,8 @@ stages:
               if [ "${WL_ARM_OBJECT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$(ARM_OBJECT_ID)"
               else
-                if printenv ARM_OBJECT_ID; then
+                test=$(printenv ARM_OBJECT_ID)
+                if [ -n "$test" ]; then
                   echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$ARM_OBJECT_ID"
                 else
                   echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
@@ -182,10 +189,13 @@ stages:
               #!/bin/bash
               # Exit immediately if a command exits with a non-zero status.
               set -e
+
+
               if [ "${WL_ARM_SUBSCRIPTION_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(WL_ARM_SUBSCRIPTION_ID)"
               else
-                if printenv ARM_SUBSCRIPTION_ID; then
+                test=$(printenv ARM_SUBSCRIPTION_ID)
+                if [ -n "$test" ]; then
                   echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$ARM_SUBSCRIPTION_ID"
                 else
                   echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]"
@@ -195,7 +205,8 @@ stages:
               if [ "${WL_ARM_CLIENT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(ARM_CLIENT_ID)"
               else
-                if printenv ARM_CLIENT_ID; then
+                test=$(printenv ARM_CLIENT_ID)
+                if [ -n "$test" ]; then
                   echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$ARM_CLIENT_ID"
                 else
                   echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]"
@@ -205,7 +216,8 @@ stages:
               if [ "${WL_ARM_CLIENT_SECRET:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$(ARM_CLIENT_SECRET)"
               else
-                if printenv ARM_CLIENT_SECRET; then
+                test=$(printenv ARM_CLIENT_SECRET)
+                if [ -n "$test" ]; then
                   echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$ARM_CLIENT_SECRET"
                 else
                   echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
@@ -215,7 +227,8 @@ stages:
               if [ "${WL_ARM_TENANT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$(ARM_TENANT_ID)"
               else
-                if  printenv ARM_TENANT_ID; then
+                test=$(printenv ARM_TENANT_ID)
+                if [ -n "$test" ]; then
                   echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$ARM_TENANT_ID"
                 else
                   echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]"
@@ -225,7 +238,8 @@ stages:
               if [ "${WL_ARM_OBJECT_ID:0:2}" == '$(' ]; then
                 echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$(ARM_OBJECT_ID)"
               else
-                if printenv ARM_OBJECT_ID; then
+                test=$(printenv ARM_OBJECT_ID)
+                if [ -n "$test" ]; then
                   echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$ARM_OBJECT_ID"
                 else
                   echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
