@@ -213,12 +213,12 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
-          deployer: ${{ parameters.deployer }}
-          library: ${{ parameters.library }}
-          environment: ${{ parameters.environment }}
-          use_webapp_param: ${{ parameters.use_webapp_param }}
-          use_deployer: ${{ parameters.use_deployer }}
-    displayName: Deploy SAP configuration Web App
+          deployer:                    ${{ parameters.deployer }}
+          library:                     ${{ parameters.library }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
+          use_deployer:                ${{ parameters.use_deployer }}
+    displayName:                       Deploy SAP configuration Web App
 
     dependsOn:
       - Deploy_controlplane
