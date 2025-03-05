@@ -104,7 +104,7 @@ function source_helper_scripts() {
 function parse_arguments() {
 	local input_opts
 	#process inputs - may need to check the option i for auto approve as it is not used
-	input_opts=$(getopt -n remove_deployer -o p:ih --longoptions parameter_file:,auto-approve,help -- "$@")
+	input_opts=$(getopt -n remove_deployer_v2 -o p:ih --longoptions parameter_file:,auto-approve,help -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
