@@ -535,54 +535,55 @@ function sdaf_remover() {
 
 		echo "Listing the resources in the state file"
 
-		terraform -chdir="${terraform_module_directory}" state list
+		if terraform -chdir="${terraform_module_directory}" state list; then
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'sid_ppk' removed from state"
+			moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
+			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+					echo "Secret 'sid_ppk' removed from state"
+				fi
 			fi
-		fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'sid_pk' removed from state"
+			moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
+			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+					echo "Secret 'sid_pk' removed from state"
+				fi
 			fi
-		fi
 
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'sid_username' removed from state"
+			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+				moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
+				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+					echo "Secret 'sid_username' removed from state"
+				fi
 			fi
-		fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'sid_password' removed from state"
+			moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
+			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+					echo "Secret 'sid_password' removed from state"
+				fi
 			fi
-		fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'witness_access_key' removed from state"
+			moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
+			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+					echo "Secret 'witness_access_key' removed from state"
+				fi
 			fi
-		fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'deployer_keyvault_user_name' removed from state"
+			moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
+			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+					echo "Secret 'deployer_keyvault_user_name' removed from state"
+				fi
 			fi
-		fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'witness_name' removed from state"
+			moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
+			if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+				if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+					echo "Secret 'witness_name' removed from state"
+				fi
 			fi
 		fi
 
