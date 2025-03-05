@@ -226,6 +226,20 @@ parse_arguments() {
 
 	# Convert the region to the correct code
 	get_region_code "$region"
+
+	export TF_IN_AUTOMATION="true"
+	# Terraform Plugins
+	if checkIfCloudShell; then
+		mkdir -p "${HOME}/.terraform.d/plugin-cache"
+		export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+	else
+		if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+			sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
+			sudo chown -R "$USER" /opt/terraform
+		fi
+		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+	fi
+
 }
 
 # Function to retrieve data from Azure App Configuration
@@ -246,13 +260,14 @@ function retrieve_parameters() {
 	TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
 	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
+	subscription=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "$CONTROL_PLANE_NAME")
+	export subscription
+
 }
 
 function remove_control_plane() {
 	step=0
 	ado_flag="none"
-	deploy_using_msi_only=0
-	autoApproveParameter=""
 
 	# Define an array of helper scripts
 	helper_scripts=(
@@ -267,7 +282,6 @@ function remove_control_plane() {
 	parse_arguments "$@"
 	echo "ADO flag:                            ${ado_flag}"
 
-	root_dirname=$(pwd)
 	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
 
 	# Check that Terraform and Azure CLI is installed
@@ -277,14 +291,8 @@ function remove_control_plane() {
 		echo "validate_dependencies returned $return_code"
 		exit $return_code
 	fi
-	echo ""
-	echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
-	echo "Region code:                         ${region_code}"
-	echo "Deployer State File:                 ${deployer_tfstate_key}"
-	echo "Library State File:                  ${library_tfstate_key}"
-	echo "Deployer Subscription:               ${subscription}"
 
-	if [ -z $APPLICATION_CONFIGURATION_ID ]; then
+	if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
 		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
 		export APPLICATION_CONFIGURATION_ID
 	else
@@ -293,7 +301,14 @@ function remove_control_plane() {
 
 	retrieve_parameters
 
-	key=$(echo "${deployer_tfvars_filename}" | cut -d. -f1)
+	echo ""
+	echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
+	echo "Region code:                         ${region_code}"
+	echo "Deployer State File:                 ${deployer_tfstate_key}"
+	echo "Library State File:                  ${library_tfstate_key}"
+	echo "Deployer Subscription:               $ARM_SUBSCRIPTION_ID"
+
+	key=$(echo "${deployer_parameter_file}" | cut -d. -f1)
 
 	echo ""
 	echo "Terraform details"
@@ -302,7 +317,6 @@ function remove_control_plane() {
 	echo "Storage Account:                     ${terraform_storage_account_name}"
 	echo "Resource Group:                      ${terraform_storage_account_resource_group_name}"
 	echo "State file:                          ${key}.terraform.tfstate"
-	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 	if [ ! -f "$deployer_config_information" ]; then
 		if [ -f "${CONFIG_DIR}/${environment}${region_code}" ]; then
@@ -326,23 +340,6 @@ function remove_control_plane() {
 		exit 0
 	fi
 
-	root_dirname=$(pwd)
-
-	export TF_IN_AUTOMATION="true"
-	# Terraform Plugins
-	if checkIfCloudShell; then
-		mkdir -p "${HOME}/.terraform.d/plugin-cache"
-		export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
-	else
-		if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-			sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
-			sudo chown -R "$USER" /opt/terraform
-		fi
-		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
-	fi
-
-	echo "Deployer environment:                  $environment"
-
 	this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 	export TF_VAR_Agent_IP=$this_ip
 	echo "Agent IP:                              $this_ip"
@@ -357,8 +354,6 @@ function remove_control_plane() {
 	cd "${deployer_dirname}" || exit
 
 	param_dirname=$(pwd)
-
-	relative_path="${current_directory}"/"${deployer_dirname}"
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/sap_deployer/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
@@ -467,7 +462,6 @@ function remove_control_plane() {
 	if [ 0 != $return_code ]; then
 		unset TF_DATA_DIR
 		exit 20
-
 	fi
 
 	extra_vars=""
@@ -523,7 +517,6 @@ function remove_control_plane() {
 		print_banner "Remove Control Plane" "Keeping the Azure DevOps agent" "info"
 		step=1
 		save_config_var "step" "${deployer_config_information}"
-
 	else
 		cd "${deployer_dirname}" || exit
 
