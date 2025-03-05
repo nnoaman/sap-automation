@@ -65,10 +65,6 @@ export TF_VAR_deployer_tfstate_key
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 # shellcheck disable=SC2005
-ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $1}')
-
-LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $2}')
-LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 
 echo ""
 echo "Control Plane Name:                  ${CONTROL_PLANE_NAME}"

@@ -38,6 +38,7 @@ deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
+
 echo ""
 echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset"
 echo ""
@@ -63,8 +64,6 @@ CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
 export "CONTROL_PLANE_NAME"
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
-
-LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 
 echo ""
 echo "Control Plane Name:                  ${CONTROL_PLANE_NAME}"

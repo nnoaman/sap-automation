@@ -134,6 +134,10 @@ function parse_arguments() {
 		esac
 	done
 
+	# Validate required parameters
+	parameterfile_name=$(basename "${parameterFilename}")
+	parameterfile_dirname=$(dirname "${parameterFilename}")
+
 	if [ "${parameterfile_dirname}" != '.' ]; then
 		print_banner "Remover" "Please run this command from the folder containing the parameter file" "error"
 	fi
@@ -157,13 +161,8 @@ function parse_arguments() {
 function sdaf_remove_deployer() {
 	deployment_system=sap_deployer
 
-	# Validate required parameters
-	parameterfile_name=$(basename "${parameterFilename}")
-	parameterfile_dirname=$(dirname "${parameterFilename}")
-
 	key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
-	echo "Parameter file:                       ${parameterFilename}"
 
 	#Persisting the parameters across executions
 	automation_config_directory=~/.sap_deployment_automation/
@@ -175,6 +174,7 @@ function sdaf_remove_deployer() {
 	param_dirname=$(pwd)
 
 	init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+
 
 	var_file="${param_dirname}"/"${parameterFilename}"
 	# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
