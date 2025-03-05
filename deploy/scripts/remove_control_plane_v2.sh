@@ -226,14 +226,6 @@ parse_arguments() {
 
 	# Convert the region to the correct code
 	get_region_code "$region"
-	# Check that webapp exports are defined, if deploying webapp
-	if [ -n "${TF_VAR_use_webapp}" ]; then
-		if [ "${TF_VAR_use_webapp}" == "true" ]; then
-			if ! validate_webapp_exports; then
-				exit $?
-			fi
-		fi
-	fi
 }
 
 # Function to retrieve data from Azure App Configuration
