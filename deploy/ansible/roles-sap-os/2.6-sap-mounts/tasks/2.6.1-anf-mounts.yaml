@@ -726,6 +726,7 @@
       - hana_shared_mountpoint is defined
       - hana_shared_mountpoint | length > 1
       - not database_scale_out
+      - ansible_hostname == db_hosts[1]
 
   - name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
     ansible.builtin.file:
