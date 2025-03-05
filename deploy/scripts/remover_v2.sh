@@ -190,7 +190,6 @@ function parse_arguments() {
 	done
 
 	# Validate required parameters
-
 	parameterfile_name=$(basename "${parameterFilename}")
 	parameterfile_dirname=$(dirname "${parameterFilename}")
 

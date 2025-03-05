@@ -19,10 +19,10 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              deployer_environment
-    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+  - name:                              control_plane_name
+    displayName:                       "Control Plane configuration name, use this format: ENV-LOCA-VNET"
     type:                              string
-    default:                           MGMT
+    default:                           MGMT-WEEU-DEP01
 
   - name:                              use_deployer
     displayName:                       Run removal on self hosted agent
@@ -48,7 +48,7 @@ stages:
       - template:                      variables/12-remove-control-plane-variables.yaml
         parameters:
           deployer:                    ${{ parameters.deployer }}
-          deployer_environment:        ${{ parameters.deployer_environment }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
           library:                     ${{ parameters.library }}
           use_deployer:                ${{ parameters.use_deployer }}
     pool:
@@ -63,7 +63,43 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - task:                      PostBuildCleanup@4
+          - bash: |
+              #!/bin/bash
+              # Exit immediately if a command exits with a non-zero status.
+              set -e
+              if ["${CP_ARM_SUBSCRIPTION_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$CP_ARM_SUBSCRIPTION_ID"
+              else
+                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]"
+              fi
+              if ["${CP_ARM_CLIENT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$CP_ARM_CLIENT_ID"
+              else
+                echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]"
+              fi
+              if ["${CP_ARM_CLIENT_SECRET:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$CP_ARM_CLIENT_SECRET"
+              else
+                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
+              fi
+              if ["${CP_ARM_TENANT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$CP_ARM_TENANT_ID"
+              else
+                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]"
+              fi
+              if ["${CP_ARM_OBJECT_ID:0:2}" == '$(']; then
+                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$CP_ARM_OBJECT_ID"
+              else
+                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
+              fi
+            env:
+              CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
+              CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID),
+              CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
+              CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
+              CP_ARM_OBJECT_ID:        $(CP_ARM_OBJECT_ID)
+            name:                      ParameterValidation
+            displayName:               Parameter Validation
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -72,18 +108,20 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              key_vault:                $(Deployer_Key_Vault)
-              TF_IN_AUTOMATION:         true
-              TF_LOG:                   $(TF_LOG)
-              USE_MSI:                  $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
+              APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
+              ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                $(ParameterValidation.ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
+              TF_IN_AUTOMATION:             true
+              TF_LOG:                       $(TF_LOG)
+              USE_MSI:                      $(Use_MSI)
+              key_vault:                    $(Deployer_Key_Vault)
 
   - stage:                              Remove_control_plane
     displayName:                        "Finalize control plane removal"
@@ -125,10 +163,6 @@ stages:
             displayName:               Remove control plane
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-              CP_ARM_CLIENT_ID:         $(CP_ARM_CLIENT_ID)
-              CP_ARM_CLIENT_SECRET:     $(CP_ARM_CLIENT_SECRET)
-              CP_ARM_TENANT_ID:         $(CP_ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               key_vault:                $(Deployer_Key_Vault)

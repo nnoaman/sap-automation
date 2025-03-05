@@ -1,25 +1,25 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
+# --------------------------------------+--------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the Control Plane removal           |
 #                                                                              |
-#--------------------------------------+---------------------------------------8
+# --------------------------------------+--------------------------------------8
 
 parameters:
   deployer: ""
-  deployer_environment: ""
+  control_plane_name: ""
   library: ""
   use_deployer: ""
   connection_name: ""
 
 variables:
   - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.deployer_environment }}
+  - group:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment }}
+    value:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              run_on
     value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]

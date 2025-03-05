@@ -13,7 +13,7 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
