@@ -62,10 +62,6 @@ fi
 TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
 export TF_VAR_deployer_tfstate_key
 
-echo -e "$green--- Environment information ---$reset"
-ENVIRONMENT=$(grep -m1 "^environment" "$deployerTFvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"' || true)
-LOCATION=$(grep -m1 "^location" "$deployerTFvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"' || true)
-
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 # shellcheck disable=SC2005
@@ -74,30 +70,12 @@ ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $1}')
 LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 
-echo "Environment:                         ${ENVIRONMENT}"
-echo "Location:                            ${LOCATION}"
-echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
-echo "Location(filename):                  $LOCATION_IN_FILENAME"
 echo ""
+echo "Control Plane Name:                  ${CONTROL_PLANE_NAME}"
 echo "Agent:                               $THIS_AGENT"
 echo "Organization:                        $SYSTEM_COLLECTIONURI"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
-
-if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The environment setting in $deployerTFvarsFile $ENVIRONMENT does not match the $DEPLOYER_FOLDERNAME file name $ENVIRONMENT_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	exit 2
-fi
-
-if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The location setting in $deployerTFvarsFile $LOCATION does not match the $DEPLOYER_FOLDERNAME file name $LOCATION_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	exit 2
-fi
-
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE_IN_FILENAME"
 echo "Environment file:                    $deployer_environment_file_name"
-
-REMOTE_STATE_SA=""
-REMOTE_STATE_RG=$LIBRARY_FOLDERNAME
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 
