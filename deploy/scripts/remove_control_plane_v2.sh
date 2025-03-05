@@ -377,20 +377,20 @@ function remove_control_plane() {
 			echo "Terraform state:                     remote"
 			if terraform -chdir="${terraform_module_directory}" init -migrate-state -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
-				print_banner "Remove Control Plane" "Terraform init succeeded" "success"
+				print_banner "Remove Control Plane" "Terraform init succeeded (deployer - local)" "success"
 			else
 				return_value=$?
-				print_banner "Remove Control Plane" "Terraform init failed" "error"
+				print_banner "Remove Control Plane" "Terraform init failed (deployer - local)" "error"
 			fi
 
 		else
 			echo "Terraform state:                     local"
 			if terraform -chdir="${terraform_module_directory}" init --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
-				print_banner "Remove Control Plane" "Terraform init succeeded" "success"
+				print_banner "Remove Control Plane" "Terraform init succeeded (deployer - local)" "success"
 			else
 				return_value=$?
-				print_banner "Remove Control Plane" "Terraform init failed" "error"
+				print_banner "Remove Control Plane" "Terraform init failed (deployer - local)" "error"
 			fi
 
 		fi
@@ -398,15 +398,15 @@ function remove_control_plane() {
 		echo "Terraform state:                     unknown"
 		if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
 			return_value=$?
-			print_banner "Remove Control Plane" "Terraform init succeeded" "success"
+			print_banner "Remove Control Plane" "Terraform init succeeded (deployer - local)" "success"
 		else
 			return_value=$?
-			print_banner "Remove Control Plane" "Terraform init failed" "error"
+			print_banner "Remove Control Plane" "Terraform init failed (deployer - local)" "error"
 		fi
 
 	fi
 
-	print_banner "Remove Control Plane" "Running Terraform init (deployer - local)" "info"
+	print_banner "Remove Control Plane" "Running Terraform init (library - local)" "info"
 
 	deployer_statefile_foldername_path="${param_dirname}"
 	export TF_VAR_deployer_statefile_foldername="${deployer_statefile_foldername_path}"
@@ -446,19 +446,19 @@ function remove_control_plane() {
 			echo "Terraform state:                     remote"
 			if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
-				print_banner "Remove Control Plane" "Terraform init succeeded (library)" "success"
+				print_banner "Remove Control Plane" "Terraform init succeeded (library - local)" "success"
 			else
 				return_value=$?
-				print_banner "Remove Control Plane" "Terraform init failed (library)" "error"
+				print_banner "Remove Control Plane" "Terraform init failed (library - local)" "error"
 			fi
 		else
 			echo "Terraform state:                     local"
 			if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
-				print_banner "Remove Control Plane" "Terraform init succeeded (library)" "success"
+				print_banner "Remove Control Plane" "Terraform init succeeded (library - local)" "success"
 			else
 				return_value=$?
-				print_banner "Remove Control Plane" "Terraform init failed (library)" "error"
+				print_banner "Remove Control Plane" "Terraform init failed (library - local)" "error"
 			fi
 
 		fi
@@ -466,10 +466,10 @@ function remove_control_plane() {
 		echo "Terraform state:                     unknown"
 		if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
 			return_value=$?
-			print_banner "Remove Control Plane" "Terraform init succeeded (library)" "success"
+			print_banner "Remove Control Plane" "Terraform init succeeded (library - local)" "success"
 		else
 			return_value=$?
-			print_banner "Remove Control Plane" "Terraform init failed (library)" "error"
+			print_banner "Remove Control Plane" "Terraform init failed (library - local)" "error"
 		fi
 	fi
 
