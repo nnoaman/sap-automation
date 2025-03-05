@@ -269,9 +269,7 @@ else
 		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
 fi
 return_code=$?
-echo ""
-echo -e "${cyan}Deploy_controlplane returned:        $return_code${reset_formatting}"
-echo ""
+print_banner "Deploy Control Plane - Preparation" "Deploy_controlplane returned: $return_code" "info"
 
 set -eu
 

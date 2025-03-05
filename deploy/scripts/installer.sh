@@ -1182,7 +1182,7 @@ if [ 1 == $apply_needed ]; then
 	echo "#########################################################################################"
 	echo ""
 
-	      allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+	allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
 	allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
 	if [ -n "${approve}" ]; then
@@ -1319,6 +1319,13 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	fi
 
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
+
+	application_configuration_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+	if [ -n "${application_configuration_id}" ]; then
+		APPLICATION_CONFIGURATION_ID="${application_configuration_id}"
+		export APPLICATION_CONFIGURATION_ID
+		save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
+	fi
 	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 
 	created_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
@@ -1338,6 +1345,16 @@ if [ "${deployment_system}" == sap_deployer ]; then
 		--template-file "${script_directory}/templates/empty-deployment.json" --output none
 	return_value=0
 	if [ 1 == $called_from_ado ]; then
+
+		if [ -n "${application_configuration_id}" ]; then
+
+			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value")
+			if [ -z "${az_var}" ]; then
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${application_configuration_id}" --output none --only-show-errors
+			else
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${application_configuration_id}" --output none --only-show-errors
+			fi
+		fi
 
 		if [ -n "${deployer_random_id}" ]; then
 			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value")
