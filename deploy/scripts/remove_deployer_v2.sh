@@ -236,7 +236,7 @@ function sdaf_remove_deployer() {
 		if [[ -n $errors_occurred ]]; then
 			print_banner "Remove deployer" "Errors occurred during the destroy phase" "error"
 
-			return_value=2
+			return_value=10
 			all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
 			if [[ -n ${all_errors} ]]; then
 				readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
