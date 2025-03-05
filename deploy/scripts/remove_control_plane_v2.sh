@@ -408,12 +408,6 @@ function remove_control_plane() {
 
 	print_banner "Remove Control Plane" "Running Terraform init (deployer - local)" "info"
 
-	if [ 0 -ne $migrate ]; then
-		flags="-reconfigure"
-	else
-		flags="-force-copy -migrate-state"
-	fi
-
 	deployer_statefile_foldername_path="${param_dirname}"
 	export TF_VAR_deployer_statefile_foldername="${deployer_statefile_foldername_path}"
 
@@ -450,25 +444,33 @@ function remove_control_plane() {
 		azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 		if [ -n "$azure_backend" ]; then
 			echo "Terraform state:                     remote"
-			flags="-force-copy -migrate-state"
+			if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
+				return_value=$?
+				print_banner "Remove Control Plane" "Terraform init succeeded (library)" "success"
+			else
+				return_value=$?
+				print_banner "Remove Control Plane" "Terraform init failed (library)" "error"
+			fi
 		else
 			echo "Terraform state:                     local"
-			flags="-reconfigure"
+			if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
+				return_value=$?
+				print_banner "Remove Control Plane" "Terraform init succeeded (library)" "success"
+			else
+				return_value=$?
+				print_banner "Remove Control Plane" "Terraform init failed (library)" "error"
+			fi
 
 		fi
 	else
 		echo "Terraform state:                     unknown"
-		flags="-reconfigure"
-	fi
-
-	print_banner "Remove Control Plane" "Running Terraform init (library)" "info"
-
-	if terraform -chdir="${terraform_module_directory}" init "${flags}" --backend-config "path=${param_dirname}/terraform.tfstate"; then
-		return_value=$?
-		print_banner "Remove Control Plane" "Terraform init succeeded (library)" "success"
-	else
-		return_value=$?
-		print_banner "Remove Control Plane" "Terraform init failed (library)" "error"
+		if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			return_value=$?
+			print_banner "Remove Control Plane" "Terraform init succeeded (library)" "success"
+		else
+			return_value=$?
+			print_banner "Remove Control Plane" "Terraform init failed (library)" "error"
+		fi
 	fi
 
 	if [ 0 != $return_code ]; then
