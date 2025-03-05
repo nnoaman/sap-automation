@@ -11,17 +11,17 @@ parameters:
   - name:                              deployer
     displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
-    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
+    default:                           CTL-SECE-DEP02-INFRASTRUCTURE
 
   - name:                              library
     displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
     type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
+    default:                           CTL-SECE-SAP_LIBRARY
 
-  - name:                              environment
+  - name:                              control_plane_name
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
     type:                              string
-    default:                           MGMT
+    default:                           CTL-SECE-DEP02
 
   - name:                              use_webapp_param
     displayName:                       "Deploy the configuration web application"
@@ -46,13 +46,13 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.environment }}
+  - group:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              run_on
     value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.environment }}
+    value:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              use_webapp
     value:                             ${{ lower(parameters.use_webapp_param) }}
@@ -81,8 +81,8 @@ variables:
   - name:                              connection_name
     value:                             ${{ parameters.connection_name }}
 
-  - name:                              deployer_environment
-    value:                             ${{ parameters.environment }}
+  - name:                              control_plane_name
+    value:                             ${{ parameters.control_plane_name }}
 
   - name:                              force_reset
     value:                             ${{ parameters.force_reset }}

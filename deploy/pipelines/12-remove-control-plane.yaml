@@ -57,7 +57,7 @@ stages:
       - job:                           Remove_control_plane_remote
         displayName:                   "Start control plane removal"
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment }}
+          - group:                     SDAF-${{ parameters.control_plane_name }}
         workspace:
           clean:                       all
         steps:
