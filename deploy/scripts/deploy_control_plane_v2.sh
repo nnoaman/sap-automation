@@ -34,7 +34,7 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-if printenv "CONFIG_REPO_PATH"  ; then
+if printenv "CONFIG_REPO_PATH"; then
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 else
 	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
@@ -261,37 +261,35 @@ function validate_keyvault_access {
 	TF_DATA_DIR="${deployer_dirname}"/.terraform
 	export TF_DATA_DIR
 
-	if [ -z "$keyvault" ]; then
-		if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-			keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-		else
-			if [ -f ./.terraform/terraform.tfstate ]; then
-				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-				if [ -n "$azure_backend" ]; then
-					echo "Terraform state:                     remote"
+	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+	else
+		if [ -f ./.terraform/terraform.tfstate ]; then
+			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+			if [ -n "$azure_backend" ]; then
+				echo "Terraform state:                     remote"
 
-					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-					terraform -chdir="${terraform_module_directory}" init -upgrade=true
+				terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
+				terraform -chdir="${terraform_module_directory}" init -upgrade=true
 
-					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-					save_config_var "keyvault" "${deployer_config_information}"
-				else
-					echo "Terraform state:                     local"
-					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/bootstrap/sap_deployer/
-					terraform -chdir="${terraform_module_directory}" init -upgrade=true
-
-					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-					save_config_var "keyvault" "${deployer_config_information}"
-				fi
+				keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+				save_config_var "keyvault" "${deployer_config_information}"
 			else
-				if [ $ado_flag != "--ado" ]; then
-					read -r -p "Deployer keyvault name: " keyvault
-					save_config_var "keyvault" "${deployer_config_information}"
-				else
-					step=0
-					save_config_var "step" "${deployer_config_information}"
-					exit 10
-				fi
+				echo "Terraform state:                     local"
+				terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/bootstrap/sap_deployer/
+				terraform -chdir="${terraform_module_directory}" init -upgrade=true
+
+				keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+				save_config_var "keyvault" "${deployer_config_information}"
+			fi
+		else
+			if [ $ado_flag != "--ado" ]; then
+				read -r -p "Deployer keyvault name: " keyvault
+				save_config_var "keyvault" "${deployer_config_information}"
+			else
+				step=0
+				save_config_var "step" "${deployer_config_information}"
+				exit 10
 			fi
 		fi
 	fi
