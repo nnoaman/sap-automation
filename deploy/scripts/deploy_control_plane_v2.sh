@@ -557,6 +557,16 @@ function execute_deployment_steps() {
 	local step=$1
 	echo "Step:                                $step"
 
+	if [ 1 -eq "${step}" ]; then
+		if ! validate_keyvault_access; then
+			print_banner "Bootstrap" "Validating key vault access failed" "error"
+			return $?
+		else
+			step=2
+			save_config_var "step" "${deployer_config_information}"
+		fi
+	fi
+
 	if [ 2 -eq "${step}" ]; then
 		if ! bootstrap_library; then
 			print_banner "Bootstrap-Library" "Bootstrapping the SAP Library failed" "error"
@@ -689,7 +699,7 @@ function deploy_control_plane() {
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then
 		echo "Identity to use:                     Service Principal"
 		unset ARM_USE_MSI
-		set_executing_user_environment_variables $ARM_CLIENT_SECRET
+		set_executing_user_environment_variables "$ARM_CLIENT_SECRET"
 	else
 		echo "Identity to use:                     Managed Identity"
 		set_executing_user_environment_variables "none"

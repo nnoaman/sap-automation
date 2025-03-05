@@ -295,8 +295,7 @@ fi
 
 export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
-sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_control_plane_v2.sh"
-
+print_banner "Deploy Control Plane" "Calling deploy_control_plane_v2" "info"
 if [ "$USE_MSI" != "true" ]; then
 
 	export TF_VAR_use_spn=true
@@ -308,7 +307,7 @@ if [ "$USE_MSI" != "true" ]; then
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
 		return_code=$?
 		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
-		echo "Return code from deploy_controlplane $return_code."
+		echo "Return code from deploy_control_plane_v2 $return_code."
 	fi
 else
 	export TF_VAR_use_spn=false
