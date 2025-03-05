@@ -129,7 +129,7 @@ stages:
               TF_VAR_tf_version:              $(tf_version)
               TF_VAR_use_webapp:              ${{ lower(parameters.use_webapp_param) }}
               TF_VAR_webapp_client_secret:    $(WEB_APP_CLIENT_SECRET)
-              USE_MSI:
+              USE_MSI:                        $(Use_MSI)
               USE_WEBAPP:                     ${{ lower(parameters.use_webapp_param) }}
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
   - stage:                             Deploy_controlplane
