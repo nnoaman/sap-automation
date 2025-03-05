@@ -322,11 +322,12 @@ variable "dns_zone_names"                        {
                                                    description = "Private DNS zone names"
                                                    type        = map(string)
                                                    default = {
-                                                      "file_dns_zone_name"   = "privatelink.file.core.windows.net"
-                                                      "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
-                                                      "table_dns_zone_name"  = "privatelink.table.core.windows.net"
-                                                      "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
-                                                   }
+                                                                "file_dns_zone_name"      = "privatelink.file.core.windows.net"
+                                                                "blob_dns_zone_name"      = "privatelink.blob.core.windows.net"
+                                                                "table_dns_zone_name"     = "privatelink.table.core.windows.net"
+                                                                "vault_dns_zone_name"     = "privatelink.vaultcore.azure.net"
+                                                                "appconfig_dns_zone_name" = "privatelink.azconfig.io"
+                                                              }
                                                  }
 
 variable "register_storage_accounts_keyvaults_with_dns" {
