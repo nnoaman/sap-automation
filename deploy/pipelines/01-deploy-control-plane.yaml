@@ -16,7 +16,7 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              environment
+  - name:                              control_plane_name
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
     type:                              string
     default:                           MGMT-WEEU-DEP01
