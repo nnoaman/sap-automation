@@ -484,7 +484,7 @@ function remove_control_plane() {
 		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 	fi
 
-	var_file="${param_dirname}"/"${library_tfvars_filename}"
+	var_file="${param_dirname}"/"${library_parameter_file}"
 
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 	export TF_use_spn=false
