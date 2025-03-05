@@ -64,22 +64,36 @@ stages:
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            env:
+              CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
+              CHECK_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
+              CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
+              CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
+              CHECK_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
+            name:                      ParameterValidation
+            displayName:               Parameter Validation
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/04-sap-software-download-prepare.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Prepare download
             name:                      Preparation
             env:
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
-              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-              SUSERNAME:                $(S-Username)
-              SPASSWORD:                $(S-Password)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
+              ARM_CLIENT_ID:            $(ParameterValidation.ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ParameterValidation.ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:      $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:            $(ParameterValidation.ARM_TENANT_ID)
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SPASSWORD:                $(S-Password)
+              SUSERNAME:                $(S-Username)
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               USE_MSI:                  $(Use_MSI)
 
   - stage:                             Software_download
@@ -104,6 +118,20 @@ stages:
           - template:                  templates\download_samples.yaml
           - task:                      PostBuildCleanup@4
           - task:                      Bash@3
+            name:                      ParameterValidation
+            displayName:               Parameter Validation
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            env:
+              CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
+              CHECK_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
+              CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
+              CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
+              CHECK_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
+          - task:                      Bash@3
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/04-sap-software-download.sh"
@@ -112,14 +140,14 @@ stages:
             displayName:               Download
             name:                      download
             env:
-              ARM_CLIENT_ID:                 $(CP_ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:             $(CP_ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:                 $(CP_ARM_TENANT_ID)
-              ARM_SUBSCRIPTION_ID:           $(CP_ARM_SUBSCRIPTION_ID)
-              SAP_AUTOMATION_REPO_PATH:      ${{ parameters.sap_automation_repo_path }}
-              SAMPLE_REPO_PATH:              ${{ parameters.sample_repo_path }}
-              CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              ANSIBLE_COLLECTIONS_PATH:      ~/.ansible/collections:/opt/ansible/collections
-              USE_MSI:                       $(Use_MSI)
-              EXTRA_PARAMETERS:              ${{ parameters.ExtraParams }}
-              AGENT_TEMP_DIRECTORY:          $(Agent.TempDirectory)
+              ARM_CLIENT_ID:            $(ParameterValidation.ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ParameterValidation.ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:      $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:            $(ParameterValidation.ARM_TENANT_ID)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              ANSIBLE_COLLECTIONS_PATH: ~/.ansible/collections:/opt/ansible/collections
+              USE_MSI:                  $(Use_MSI)
+              EXTRA_PARAMETERS:         ${{ parameters.ExtraParams }}
+              AGENT_TEMP_DIRECTORY:     $(Agent.TempDirectory)

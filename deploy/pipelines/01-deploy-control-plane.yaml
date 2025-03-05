@@ -135,10 +135,10 @@ stages:
               fi
             env:
               CP_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
-              CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID),
-              CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
-              CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
-              CP_ARM_OBJECT_ID:        $(CP_ARM_OBJECT_ID)
+              CP_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
+              CP_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
+              CP_ARM_TENANT_ID:        $(ARM_TENANT_ID)
+              CP_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
             name:                      ParameterValidation
             displayName:               Parameter Validation
           - task:                      AzureCLI@2
@@ -211,72 +211,20 @@ stages:
             parameters:
               getLatestFromBranch: true
 
-          - bash: |
-              #!/bin/bash
-              # Exit immediately if a command exits with a non-zero status.
-
-              if [ "${CP_ARM_SUBSCRIPTION_ID:0:2}" != '$(' ]; then
-                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(CP_ARM_SUBSCRIPTION_ID)"
-              else
-                test=$(printenv ARM_SUBSCRIPTION_ID)
-                if [ -n "$test" ]; then
-                  echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$ARM_SUBSCRIPTION_ID"
-                else
-                  echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]"
-                fi
-              fi
-
-              if [ "${CP_ARM_CLIENT_ID:0:2}" != '$(' ]; then
-                echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$(ARM_CLIENT_ID)"
-              else
-                test=$(printenv ARM_CLIENT_ID)
-                if [ -n "$test" ]; then
-                  echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$ARM_CLIENT_ID"
-                else
-                  echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]"
-                fi
-              fi
-
-              if [ "${CP_ARM_CLIENT_SECRET:0:2}" != '$(' ]; then
-                echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$(ARM_CLIENT_SECRET)"
-              else
-                test=$(printenv ARM_CLIENT_SECRET)
-                if [ -n "$test" ]; then
-                  echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$ARM_CLIENT_SECRET"
-                else
-                  echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
-                fi
-              fi
-
-              if [ "${CP_ARM_TENANT_ID:0:2}" != '$(' ]; then
-                echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$(ARM_TENANT_ID)"
-              else
-                test=$(printenv ARM_TENANT_ID)
-                if [ -n "$test" ]; then
-                  echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$ARM_TENANT_ID"
-                else
-                  echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]"
-                fi
-              fi
-
-              if [ "${CP_ARM_OBJECT_ID:0:2}" != '$(' ]; then
-                echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$(ARM_OBJECT_ID)"
-              else
-                test=$(printenv ARM_OBJECT_ID)
-                if [ -n "$test" ]; then
-                  echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$ARM_OBJECT_ID"
-                else
-                  echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]"
-                fi
-              fi
-            env:
-              CP_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
-              CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID),
-              CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
-              CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
-              CP_ARM_OBJECT_ID:        $(CP_ARM_OBJECT_ID)
+          - task:                      Bash@3
             name:                      ParameterValidation
             displayName:               Parameter Validation
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            env:
+              CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
+              CHECK_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
+              CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
+              CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
+              CHECK_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
           - task: Bash@3
             inputs:
               targetType:              'filePath'
@@ -336,60 +284,72 @@ stages:
         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
       )
     jobs:
-      - job: Deploy_web_app
-        displayName: Deploy SAP configuration Web App
+      - job:                           Deploy_web_app
+        displayName:                   Deploy SAP configuration Web App
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - template: templates\download.yaml
-          - task: PostBuildCleanup@4
-          - task: DotNetCoreCLI@2
-            displayName: "Build the Configuration Web Application"
+          - template:                  templates\download.yaml
+          - task:                      PostBuildCleanup@4
+          - task:                      DotNetCoreCLI@2
+            displayName:               "Build the Configuration Web Application"
             inputs:
-              command: "build"
-              projects: "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/SDAF/*.csproj"
-          - task: DotNetCoreCLI@2
-            displayName: "Publish the Configuration Web Application"
+              command:                 "build"
+              projects:                "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/SDAF/*.csproj"
+          - task:                      DotNetCoreCLI@2
+            displayName:               "Publish the Configuration Web Application"
             inputs:
-              command: publish
-              projects: "**/Webapp/**/*.csproj"
-              publishWebProjects: false
-              arguments: "--output $(Build.ArtifactStagingDirectory)/WebApp"
-              zipAfterPublish: true
-              modifyOutputPath: true
+              command:                 publish
+              projects:                "**/Webapp/**/*.csproj"
+              publishWebProjects:      false
+              arguments:               "--output $(Build.ArtifactStagingDirectory)/WebApp"
+              zipAfterPublish:         true
+              modifyOutputPath:        true
 
-          - task: AzureWebApp@1
-            displayName: "Deploy the Configuration Web Application"
+          - task:                      Bash@3
             inputs:
-              azureSubscription: ${{parameters.connection_name}}
-              appType: "webApp"
-              appName: $(WEBAPP_URL_BASE)
-              package: "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
-              deploymentMethod: "auto"
-              appSettings: '-CollectionUri $(System.CollectionUri)
-                -ProjectName "$(System.TeamProject)"
-                -RepositoryId $(Build.Repository.ID)
-                -SourceBranch "$(Build.SourceBranchName)"
-                -WORKLOADZONE_PIPELINE_ID $(WORKLOADZONE_PIPELINE_ID)
-                -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)
-                -SAP_INSTALL_PIPELINE_ID $(SAP_INSTALL_PIPELINE_ID)
-                -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
-                -IS_PIPELINE_DEPLOYMENT true
-                -CONTROLPLANE_ENV $(ControlPlaneEnvironment)
-                -CONTROLPLANE_LOC $(ControlPlaneLocation)'
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
             env:
-              ARM_SUBSCRIPTION_ID: $(CP_ARM_SUBSCRIPTION_ID)
-              SYSTEM_PIPELINE_ID: $(SYSTEM_PIPELINE_ID)
-              WORKLOADZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
-              SAP_INSTALL_PIPELINE_ID: $(SAP_INSTALL_PIPELINE_ID)
-              SDAF_GENERAL_GROUP_ID: $(SDAF_GENERAL_GROUP_ID)
-              WEBAPP_URL_BASE: $(WEBAPP_URL_BASE)
-              WEBAPP_RESOURCE_GROUP: $(WEBAPP_RESOURCE_GROUP)
-              WEBAPP_ID: $(WEBAPP_ID)
-              APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
+              CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
+              CHECK_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
+              CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
+              CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
+              CHECK_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
+          - task:                      AzureWebApp@1
+            displayName:               "Deploy the Configuration Web Application"
+            inputs:
+              azureSubscription:       ${{parameters.connection_name}}
+              appType:                 "webApp"
+              appName:                 $(WEBAPP_URL_BASE)
+              package:                 "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
+              deploymentMethod:        "auto"
+              appSettings: '-CollectionUri $(System.CollectionUri)
+                            -ProjectName "$(System.TeamProject)"
+                            -RepositoryId $(Build.Repository.ID)
+                            -SourceBranch "$(Build.SourceBranchName)"
+                            -WORKLOADZONE_PIPELINE_ID $(WORKLOADZONE_PIPELINE_ID)
+                            -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)
+                            -SAP_INSTALL_PIPELINE_ID $(SAP_INSTALL_PIPELINE_ID)
+                            -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
+                            -IS_PIPELINE_DEPLOYMENT true
+                            -CONTROLPLANE_ENV $(ControlPlaneEnvironment)
+                            -CONTROLPLANE_LOC $(ControlPlaneLocation)'
+            env:
+              ARM_SUBSCRIPTION_ID:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
+              WORKLOADZONE_PIPELINE_ID:  $(WORKLOADZONE_PIPELINE_ID)
+              SAP_INSTALL_PIPELINE_ID:   $(SAP_INSTALL_PIPELINE_ID)
+              SDAF_GENERAL_GROUP_ID:     $(SDAF_GENERAL_GROUP_ID)
+              WEBAPP_URL_BASE:           $(WEBAPP_URL_BASE)
+              WEBAPP_RESOURCE_GROUP:     $(WEBAPP_RESOURCE_GROUP)
+              WEBAPP_ID:                 $(WEBAPP_ID)
+              APP_REGISTRATION_APP_ID:   $(APP_REGISTRATION_APP_ID)
               APP_REGISTRATION_OBJECTID: $(APP_REGISTRATION_OBJECTID)
-              APP_TENANT_ID: $(APP_TENANT_ID)
-              AZURE_CONNECTION_NAME: ${{variables.connection_name}}
+              APP_TENANT_ID:             $(ParameterValidation.ARM_TENANT_ID)
+              AZURE_CONNECTION_NAME:     ${{variables.connection_name}}
 
           - bash: |
               #!/bin/bash
