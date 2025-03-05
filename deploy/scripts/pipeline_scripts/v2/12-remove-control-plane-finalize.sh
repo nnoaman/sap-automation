@@ -141,6 +141,12 @@ if [ -n "${key_vault_id}" ]; then
 	fi
 fi
 
+app_config_name==$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
+app_config_resource_group=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f5)
+az appconfig update --name "$app_config_name" --resource-group "$app_config_resource_group" --output none --only-show-errors
+sleep 30
+
+
 cd "$CONFIG_REPO_PATH" || exit
 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
 
