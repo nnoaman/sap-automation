@@ -371,30 +371,47 @@ function remove_control_plane() {
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 
-	flags=""
 	if [ -f .terraform/terraform.tfstate ]; then
 		azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 		if [ -n "$azure_backend" ]; then
 			echo "Terraform state:                     remote"
-			flags=" -migrate-state "
+			if terraform -chdir="${terraform_module_directory}" init -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
+				return_value=$?
+				print_banner "Remove Control Plane" "Terraform init succeeded" "success"
+			else
+				return_value=$?
+				print_banner "Remove Control Plane" "Terraform init failed" "error"
+			fi
+
 		else
 			echo "Terraform state:                     local"
-			flags=" -reconfigure "
+			if terraform -chdir="${terraform_module_directory}" init --backend-config "path=${param_dirname}/terraform.tfstate"; then
+				return_value=$?
+				print_banner "Remove Control Plane" "Terraform init succeeded" "success"
+			else
+				return_value=$?
+				print_banner "Remove Control Plane" "Terraform init failed" "error"
+			fi
 
 		fi
 	else
 		echo "Terraform state:                     unknown"
-		flags=" -reconfigure "
+		if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			return_value=$?
+			print_banner "Remove Control Plane" "Terraform init succeeded" "success"
+		else
+			return_value=$?
+			print_banner "Remove Control Plane" "Terraform init failed" "error"
+		fi
+
 	fi
 
 	print_banner "Remove Control Plane" "Running Terraform init (deployer - local)" "info"
 
-	if terraform -chdir="${terraform_module_directory}" init "$flags" --backend-config "path=${param_dirname}/terraform.tfstate"; then
-		return_value=$?
-		print_banner "Remove Control Plane" "Terraform init succeeded" "success"
+	if [ 0 -ne $migrate ]; then
+		flags="-reconfigure"
 	else
-		return_value=$?
-		print_banner "Remove Control Plane" "Terraform init failed" "error"
+		flags="-force-copy -migrate-state"
 	fi
 
 	deployer_statefile_foldername_path="${param_dirname}"
