@@ -190,7 +190,7 @@ parse_arguments() {
 		exit 2 #No such file or directory
 	fi
 
-	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+	if [ "$ado_flag" == "--ado" ] || [ "$approve_parameter" == "--auto-approve" ]; then
 		echo "Approve:                             Automatically"
 		autoApproveParameter="--auto-approve"
 	else
