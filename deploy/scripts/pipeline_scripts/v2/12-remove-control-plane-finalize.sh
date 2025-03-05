@@ -129,14 +129,15 @@ az account set --subscription "$ARM_SUBSCRIPTION_ID"
 key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
 
 if [ -n "${key_vault_id}" ]; then
+	if [ "azure pipelines" = "$THIS_AGENT" ]; then
+		key_vault_resource_group=$(echo "$key_vault_id" | cut -d'/' -f5)
+		key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
 
-	key_vault_resource_group=$(echo "$key_vault_id" | cut -d'/' -f5)
-	key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
-
-	az keyvault update --name "$key_vault" --resource-group "$key_vault_resource_group" --public-network-access Enabled if [ "azure pipelines" = "$THIS_AGENT" ]
-	this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-	az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output
-	sleep 30
+		az keyvault update --name "$key_vault" --resource-group "$key_vault_resource_group" --public-network-access Enabled
+		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+		az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output
+		sleep 30
+	fi
 fi
 
 cd "$CONFIG_REPO_PATH" || exit
