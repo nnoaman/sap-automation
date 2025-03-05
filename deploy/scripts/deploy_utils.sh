@@ -499,6 +499,7 @@ function get_region_code() {
 	"westus") export region_code="WEUS" ;;
 	"westus2") export region_code="WUS2" ;;
 	"westus3") export region_code="WUS3" ;;
+	"newzealandnorth") export region_code="NZNO" ;;
 	*) export region_code="UNKN" ;;
 
 	esac

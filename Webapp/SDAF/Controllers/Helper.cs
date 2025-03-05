@@ -76,7 +76,8 @@ namespace SDAFWebApp.Controllers
                 {"westindia", "wein"},
                 {"westus", "weus"},
                 {"westus2", "wus2"},
-                {"westus3", "wus3"}
+                {"westus3", "wus3"},
+                {"newzealandnorth", "nzno"}
             };
         public static string ConvertToTerraform<T>(T model)
         {
