@@ -38,7 +38,6 @@ deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
-
 echo ""
 echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset"
 echo ""
@@ -65,16 +64,17 @@ export "CONTROL_PLANE_NAME"
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
+echo -e "$green--- Information ---$reset"
+
 echo ""
 echo "Control Plane Name:                  ${CONTROL_PLANE_NAME}"
 echo "Agent:                               $THIS_AGENT"
 echo "Organization:                        $SYSTEM_COLLECTIONURI"
 echo "Project:                             $SYSTEM_TEAMPROJECT"
+echo "Environment file:                    $deployer_environment_file_name"
 if [ -n "$POOL" ]; then
 	echo "Deployer Agent Pool:                 $POOL"
 fi
-
-echo "Environment file:                    $deployer_environment_file_name"
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
@@ -86,7 +86,6 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$PATH:$path
 fi
 
-echo -e "$green--- Information ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
 
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
@@ -98,8 +97,6 @@ if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
 	exit 2
 fi
-
-echo -e "$green--- Validations ---$reset"
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -129,17 +126,17 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault" || true)
-export key_vault
+key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
 
-echo "Deployer Key Vault:                  $key_vault"
-
-key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 if [ -n "${key_vault_id}" ]; then
-	if [ "azure pipelines" = "$THIS_AGENT" ]; then
-		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-		az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
-	fi
+
+	key_vault_resource_group=$(echo "$key_vault_id" | cut -d'/' -f5)
+	key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
+
+	az keyvault update --name "$key_vault" --resource-group "$key_vault_resource_group" --public-network-access Enabled if [ "azure pipelines" = "$THIS_AGENT" ]
+	this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+	az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output
+	sleep 30
 fi
 
 cd "$CONFIG_REPO_PATH" || exit
