@@ -470,7 +470,7 @@ function remove_control_plane() {
 
 	if [ 0 != $return_code ]; then
 		unset TF_DATA_DIR
-		exit 20
+		return 20
 	fi
 
 	extra_vars=""
@@ -494,6 +494,7 @@ function remove_control_plane() {
 		print_banner "Remove Control Plane " "Terraform destroy (library) failed" "error"
 		return 20
 	fi
+
 	if [ -f "${param_dirname}/terraform.tfstate" ]; then
 		rm "${param_dirname}/terraform.tfstate"
 	fi
