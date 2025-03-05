@@ -133,9 +133,10 @@ if [ -n "${key_vault_id}" ]; then
 		key_vault_resource_group=$(echo "$key_vault_id" | cut -d'/' -f5)
 		key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
 
-		az keyvault update --name "$key_vault" --resource-group "$key_vault_resource_group" --public-network-access Enabled
+		az keyvault update --name "$key_vault" --resource-group "$key_vault_resource_group" --public-network-access Enabled --output none --only-show-errors
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-		az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output
+		echo "Adding the IP to the keyvault firewall rule and sleep for 30 seconds"
+		az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
 		sleep 30
 	fi
 fi
