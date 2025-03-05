@@ -376,15 +376,15 @@ function remove_control_plane() {
 		azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 		if [ -n "$azure_backend" ]; then
 			echo "Terraform state:                     remote"
-			flags="-force-copy -migrate-state"
+			flags=" -force-copy -migrate-state "
 		else
 			echo "Terraform state:                     local"
-			flags="-reconfigure"
+			flags=" -reconfigure "
 
 		fi
 	else
 		echo "Terraform state:                     unknown"
-		flags="-reconfigure"
+		flags=" -reconfigure "
 	fi
 
 	print_banner "Remove Control Plane" "Running Terraform init (deployer - local)" "info"
