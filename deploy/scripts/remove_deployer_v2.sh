@@ -217,8 +217,9 @@ function sdaf_remove_deployer() {
 	parallelism=10
 
 	#Provide a way to limit the number of parallel tasks for Terraform
-	if [[ -n "$TF_PARALLELLISM" ]]; then
-		parallelism="$TF_PARALLELLISM"
+	#Provide a way to limit the number of parallel tasks for Terraform
+	if printenv "TF_PARALLELLISM"; then
+		parallelism=$TF_PARALLELLISM
 	fi
 
 	if terraform -chdir="${terraform_module_directory}" destroy "${approve}" -lock=false -parallelism="${parallelism}" -json -var-file="${var_file}" "$extra_vars" | tee -a destroy_output.json; then
