@@ -352,12 +352,6 @@ variable "create_privatelink_dns_zones"              {
                                                        type        = bool
                                                      }
 
-variable "additional_network_id"                     {
-                                                       description = "Agent Network resource ID"
-                                                       default     = ""
-                                                     }
-
-
 #########################################################################################
 #                                                                                       #
 #  Miscellaneous                                                                         #
