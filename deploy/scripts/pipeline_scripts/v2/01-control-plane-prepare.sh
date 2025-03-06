@@ -58,6 +58,10 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
 fi
 
+if [ -z "$step" ]; then
+	step=0
+fi
+
 echo "Step:                                $step"
 
 if [ 0 != "${step}" ]; then
