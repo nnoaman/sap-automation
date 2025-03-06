@@ -53,22 +53,16 @@ echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 
-if [ "$FORCE_RESET" == "True" ]; then
-	echo "##vso[task.logissue type=warning]Forcing a re-install"
-	echo -e "$bold_red--- Resetting the environment file ---$reset"
-	step=0
+if [ -f "${deployer_environment_file_name}" ]; then
+	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
 else
-	if [ -f "${deployer_environment_file_name}" ]; then
-		step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-	else
-		step=0
-	fi
+	step=0
 fi
 echo "Step:                                $step"
 
 if [ 0 != "${step}" ]; then
 	echo "##vso[task.logissue type=warning]Already prepared"
-	print_banner "Deployer" "The deployer is already prepared" "info"
+	print_banner "Deployer " "The deployer is already prepared " "info"
 	exit 0
 fi
 
