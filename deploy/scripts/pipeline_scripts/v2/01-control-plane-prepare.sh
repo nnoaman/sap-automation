@@ -163,8 +163,6 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-# Reset the account if sourcing was done
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
 export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
@@ -201,39 +199,6 @@ else
 	echo "Deployer Key Vault:                  undefined"
 fi
 
-if [ $FORCE_RESET == True ]; then
-	echo "##vso[task.logissue type=warning]Forcing a re-install"
-	echo "Running on:            $THIS_AGENT"
-	sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
-	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
-	sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
-
-	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
-	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_RG")
-
-	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
-		echo "Terraform Remote State Account:      ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
-	fi
-
-	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
-		echo "Terraform Remote State RG Name:      ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
-	fi
-
-	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ] && [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
-		tfstate_resource_id=$(az resource list --name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-		if [ -n "${tfstate_resource_id}" ]; then
-			this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-			az storage account network-rule add --account-name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --resource-group "$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" --ip-address "${this_ip}" --only-show-errors --output none
-		fi
-
-		REINSTALL_ACCOUNTNAME=$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME
-		export REINSTALL_ACCOUNTNAME
-		REINSTALL_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
-		export REINSTALL_SUBSCRIPTION
-		REINSTALL_RESOURCE_GROUP=$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME
-		export REINSTALL_RESOURCE_GROUP
-	fi
-fi
 
 echo -e "$green--- Variables ---$reset"
 
