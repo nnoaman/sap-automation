@@ -182,22 +182,10 @@ locals {
   private_key                          = local.enable_key ? try(file(var.authentication.path_to_private_key), tls_private_key.deployer[0].private_key_pem) : ( null )
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
-  prvt_key_vault_id                    = try(var.key_vault.kv_prvt_id, "")
-  automation_keyvault_exist            = length(local.prvt_key_vault_id) > 0
 
-  // If the user specifies the secret name of key pair/password in input, the secrets will be imported instead of creating new secrets
-  input_public_key_secret_name         = try(var.key_vault.kv_sshkey_pub, "")
-  input_private_key_secret_name        = try(var.key_vault.kv_sshkey_prvt, "")
-  input_password_secret_name           = try(var.key_vault.kv_pwd, "")
-  input_username_secret_name           = try(var.key_vault.kv_username, "")
+  automation_keyvault_exist            = var.key_vault.exists
 
-  // If public key secret name is provided, need to provide private key secret name as well, otherwise fail with error.
-  key_exist                            = try(length(local.input_public_key_secret_name) > 0, false)
-  pwd_exist                            = try(length(local.input_password_secret_name) > 0, false)
-  username_exist                       = try(length(local.input_username_secret_name) > 0, false)
-
-  ppk_secret_name                      = local.key_exist ? (
-                                           local.input_private_key_secret_name) : (
+  ppk_secret_name                      = coalesce(var.key_vault.input_sshkey_private_secret_name,
                                            replace(
                                              format("%s-sshkey",
                                                length(local.prefix) > 0 ? (
@@ -207,8 +195,7 @@ locals {
                                              "/[^A-Za-z0-9-]/"
                                            , "")
                                          )
-  pk_secret_name                       = local.key_exist ? (
-                                           local.input_public_key_secret_name) : (
+  pk_secret_name                       = coalesce(var.key_vault.sshkey_public_secret_name,
                                            replace(
                                              format("%s-sshkey-pub",
                                                length(local.prefix) > 0 ? (
@@ -220,8 +207,7 @@ locals {
                                              ""
                                            )
                                          )
-  pwd_secret_name                      = local.pwd_exist ? (
-                                           local.input_password_secret_name) : (
+  pwd_secret_name                      = coalesce(var.key_vault.password_secret_name,
                                            replace(
                                              format("%s-password",
                                                length(local.prefix) > 0 ? (
@@ -232,8 +218,7 @@ locals {
                                              "/[^A-Za-z0-9-]/"
                                            , "")
                                          )
-  username_secret_name                 = local.username_exist ? (
-                                           local.input_username_secret_name) : (
+  username_secret_name                 = coalesce(var.key_vault.username_secret_name,
                                            replace(
                                              format("%s-username",
                                                length(local.prefix) > 0 ? (
@@ -247,10 +232,6 @@ locals {
 
   // Extract information from the specified key vault arm ids
   user_keyvault_name                   = var.key_vault.exists ? split("/", var.key_vault.id)[8] : local.keyvault_names.user_access
-  # user_keyvault_resourcegroup_name     = var.key_vault.exists ? split("/", var.key_vault.id)[4] : ""
-
-  automation_keyvault_name             = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[8] : local.keyvault_names.private_access
-  # automation_keyvault_resourcegroup_name = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[4] : ""
 
   // Tags
   tags                                 = merge(var.infrastructure.tags,try(var.deployer.tags, { "Role" = "Deployer" }))
