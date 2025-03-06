@@ -195,7 +195,7 @@ function bootstrap_deployer() {
 	#                                                                                        #
 	##########################################################################################
 	if [ 0 == $step ]; then
-		print_banner "Bootstrap-Deployer" "Bootstrapping the deployer..." "info"
+		print_banner "Bootstrap Deployer " "Bootstrapping the deployer..." "info"
 
 		allParameters=$(printf " --parameter_file %s %s" "${deployer_parameter_file_name}" "${autoApproveParameter}")
 
@@ -207,17 +207,17 @@ function bootstrap_deployer() {
 			return_code=$?
 
 			if [ $return_code -eq 10 ]; then
-				print_banner "Bootstrap-Deployer" "Deployer is bootstrapped" "info"
+				print_banner "Bootstrap Deployer " "Deployer is bootstrapped" "info"
 				step=3
 				save_config_var "step" "${deployer_config_information}"
 				return 0
 			else
-				print_banner "Bootstrap-Deployer" "Bootstrapping the deployer failed" "error"
+				print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
 				return 10
 			fi
 		else
 			return_code=$?
-			print_banner "Bootstrap-Deployer" "Bootstrapping the deployer succeeded" "success"
+			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
 			echo "Return code from install_deployer:   ${return_code}"
 			step=1
 			save_config_var "step" "${deployer_config_information}"
@@ -235,7 +235,7 @@ function bootstrap_deployer() {
 
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	else
-		print_banner "Bootstrap-Deployer" "Deployer is bootstrapped" "info"
+		print_banner "Bootstrap Deployer " "Deployer is bootstrapped" "info"
 
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 		if [ 1 = "${only_deployer:-}" ]; then
@@ -705,7 +705,7 @@ function deploy_control_plane() {
 
 	if [ 0 -eq $step ]; then
 		if bootstrap_deployer; then
-			print_banner "Bootstrap-Deployer" "Bootstrapping the deployer failed" "error"
+			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
 			return 10
 		fi
 
