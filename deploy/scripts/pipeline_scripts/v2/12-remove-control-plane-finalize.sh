@@ -200,14 +200,15 @@ if [ 0 == $return_code ]; then
 		changed=1
 	fi
 
-	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}" ]; then
-		rm ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
-		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
+	if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
+		rm ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
 		changed=1
 	fi
-	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}.md" ]; then
-		rm ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}.md"
-		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}.md"
+
+	if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
+		rm ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
 		changed=1
 	fi
 
