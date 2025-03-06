@@ -185,7 +185,8 @@ locals {
 
   automation_keyvault_exist            = var.key_vault.exists
 
-  ppk_secret_name                      = coalesce(var.key_vault.input_sshkey_private_secret_name,
+  private_key_secret_name              = coalesce(
+                                           var.key_vault.input_sshkey_private_secret_name,
                                            replace(
                                              format("%s-sshkey",
                                                length(local.prefix) > 0 ? (
@@ -195,7 +196,8 @@ locals {
                                              "/[^A-Za-z0-9-]/"
                                            , "")
                                          )
-  pk_secret_name                       = coalesce(var.key_vault.sshkey_public_secret_name,
+  public_key_secret_name               = coalesce(
+                                           var.key_vault.sshkey_public_secret_name,
                                            replace(
                                              format("%s-sshkey-pub",
                                                length(local.prefix) > 0 ? (
