@@ -219,14 +219,14 @@ export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
 set +eu
 
 if [ "$USE_MSI" != "true" ]; then
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane_v2.sh" \
+	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_contro_plane_v2.sh" \
 		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
 		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
 		--subscription "$ARM_SUBSCRIPTION_ID" \
 		--auto-approve --ado --only_deployer
 
 else
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane_v2.sh" \
+	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_control_plane_v2.sh" \
 		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
 		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
@@ -311,7 +311,8 @@ fi
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
 
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$LOCATION"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"
 
 fi
 exit $return_code
