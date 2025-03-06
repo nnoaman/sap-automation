@@ -462,13 +462,13 @@ resource "azurerm_key_vault_secret" "pwd" {
 }
 
 data "azurerm_key_vault_secret" "pk" {
-  count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
+  count                                = (local.enable_key && (length(var.key_vault.private_key_secret_name) == 0 )) ? (1) : (0)
   name                                 = local.public_key_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
 data "azurerm_key_vault_secret" "ppk" {
-  count                                = (local.enable_key && local.key_exist) ? 1 : 0
+  count                                = (local.enable_key && (length(var.key_vault.public_key_secret_name) == 0 )) ? 1 : 0
   name                                 = local.public_key_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
@@ -480,7 +480,7 @@ data "azurerm_key_vault_secret" "username" {
 }
 
 data "azurerm_key_vault_secret" "pwd" {
-  count                                = (local.enable_password && local.pwd_exist) ? 1 : 0
+  count                                = (local.enable_password && length(var.key_vault.password_secret_name)) ? 1 : 0
   name                                 = local.pwd_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
