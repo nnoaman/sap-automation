@@ -177,7 +177,7 @@ function install_deployer() {
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
-	  print_banner "Deployer-bootstrap" "Validating parameters failed" "error"
+	  print_banner "Bootstrap Deployer " "Validating parameters failed" "error"
 		return $?
 	fi
 	param_dirname=$(dirname "${parameter_file_name}")
@@ -187,7 +187,7 @@ function install_deployer() {
 
 	key=$(echo "${parameter_file_name}" | cut -d. -f1)
 
-	print_banner "Deployer-bootstrap" "Deploying the deployer" "info"
+	print_banner "Bootstrap Deployer " "Deploying the deployer" "info"
 
 	#Persisting the parameters across executions
 	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
@@ -230,22 +230,22 @@ function install_deployer() {
 	allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
 	if [ ! -d ./.terraform/ ]; then
-		print_banner "Deployer-bootstrap" "New deployment" "info"
+		print_banner "Bootstrap Deployer " "New deployment" "info"
 		terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 		return_value=$?
 	else
 		if [ -f ./.terraform/terraform.tfstate ]; then
 			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 			if [ -n "$azure_backend" ]; then
-				print_banner "Deployer-bootstrap" "State already migrated to Azure" "warning"
+				print_banner "Bootstrap Deployer " "State already migrated to Azure" "warning"
 				unset TF_DATA_DIR
 				return 10
 			else
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
 					return_value=$?
-					print_banner "Deployer-bootstrap" "Terraform init succeeded." "success"
+					print_banner "Bootstrap Deployer " "Terraform init succeeded." "success"
 				else
-					print_banner "Deployer-bootstrap" "Terraform init failed." "error"
+					print_banner "Bootstrap Deployer " "Terraform init failed." "error"
 					unset TF_DATA_DIR
 					return $?
 				fi
@@ -256,12 +256,12 @@ function install_deployer() {
 	fi
 	return_value=$?
 	if [ 1 == $return_value ]; then
-		print_banner "Deployer-bootstrap" "Terraform init failed" "error"
+		print_banner "Bootstrap Deployer " "Terraform init failed" "error"
 		unset TF_DATA_DIR
 		return $return_value
 	fi
 
-	print_banner "Deployer-bootstrap" "Running Terraform plan" "info"
+	print_banner "Bootstrap Deployer " "Running Terraform plan" "info"
 
 	#########################################################################################"
 	#                                                                                       #
@@ -278,7 +278,7 @@ function install_deployer() {
 	fi
 
 	if [ 1 == $return_value ]; then
-	  print_banner "Deployer-bootstrap" "Terraform plan failed" "error"
+	  print_banner "Bootstrap Deployer " "Terraform plan failed" "error"
 		if [ -f plan_output.log ]; then
 			cat plan_output.log
 			rm plan_output.log
@@ -298,7 +298,7 @@ function install_deployer() {
 	#                                                                                       #"
 	#########################################################################################
 
-  print_banner "Deployer-bootstrap" "Running Terraform apply" "info"
+  print_banner "Bootstrap Deployer " "Running Terraform apply" "info"
 	parallelism=10
 
 	#Provide a way to limit the number of parallel tasks for Terraform
@@ -317,9 +317,9 @@ function install_deployer() {
 		return_value=${PIPESTATUS[0]}
 
 		if [ $return_value -eq 1 ]; then
-		  print_banner "Deployer-bootstrap" "Terraform apply failed." "error"
+		  print_banner "Bootstrap Deployer " "Terraform apply failed." "error"
 		else
-		  print_banner "Deployer-bootstrap" "Terraform apply succeeded." "success"
+		  print_banner "Bootstrap Deployer " "Terraform apply succeeded." "success"
 			# return code 2 is ok
 			return_value=0
 		fi
@@ -329,9 +329,9 @@ function install_deployer() {
 			$allParameters
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
-		  print_banner "Deployer-bootstrap" "Terraform apply failed." "error"
+		  print_banner "Bootstrap Deployer " "Terraform apply failed." "error"
 		else
-		  print_banner "Deployer-bootstrap" "Terraform apply succeeded." "success"
+		  print_banner "Bootstrap Deployer " "Terraform apply succeeded." "success"
 			# return code 2 is ok
 			return_value=0
 		fi
@@ -381,7 +381,7 @@ function install_deployer() {
 	echo "Terraform Apply return code:         $return_value"
 
 	if [ 0 != $return_value ]; then
-	  print_banner "Deployer-bootstrap" "!!! Error when creating the deployer !!!." "error"
+	  print_banner "Bootstrap Deployer " "!!! Error when creating the deployer !!!." "error"
 		return  $return_value
 	fi
 
@@ -394,7 +394,7 @@ function install_deployer() {
 			if [ -z "${temp}" ]; then
 				touch "${deployer_config_information}"
 				printf -v val %-.20s "$keyvault"
-				print_banner "Deployer-bootstrap" "Keyvault to use for SPN details: $val" "info"
+				print_banner "Bootstrap Deployer " "Keyvault to use for SPN details: $val" "info"
 				return_value=0
 			else
 				return_value=2

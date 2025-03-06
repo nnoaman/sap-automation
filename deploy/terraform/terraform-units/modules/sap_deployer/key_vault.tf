@@ -480,7 +480,7 @@ data "azurerm_key_vault_secret" "username" {
 }
 
 data "azurerm_key_vault_secret" "pwd" {
-  count                                = (local.enable_password && length(var.key_vault.password_secret_name)) ? 1 : 0
+  count                                = (local.enable_password && (length(var.key_vault.password_secret_name) == 0) ) ? 1 : 0
   name                                 = local.pwd_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
