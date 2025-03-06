@@ -311,7 +311,7 @@ resource "azurerm_key_vault_secret" "ppk" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer
                                          ]
-  name                                 = local.private_key_secret_name
+  name                                 = local.sshkey_private_secret_name
   value                                = local.private_key
   key_vault_id                         = var.key_vault.exists ? (
                                            var.key_vault.id) : (
@@ -332,7 +332,7 @@ resource "azurerm_key_vault_secret" "pk" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer
                                          ]
-  name                                 = local.public_key_secret_name
+  name                                 = local.sshkey_public_secret_name
   value                                = local.public_key
   key_vault_id                         = var.key_vault.exists ? (
                                            var.key_vault.id) : (
@@ -462,25 +462,25 @@ resource "azurerm_key_vault_secret" "pwd" {
 }
 
 data "azurerm_key_vault_secret" "pk" {
-  count                                = (local.enable_key && (length(var.key_vault.private_key_secret_name) == 0 )) ? (1) : (0)
-  name                                 = local.public_key_secret_name
+  count                                = (local.enable_key && (length(var.key_vault.sshkey_private_secret_name) > 0 )) ? (1) : (0)
+  name                                 = local.private_key_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
 data "azurerm_key_vault_secret" "ppk" {
-  count                                = (local.enable_key && (length(var.key_vault.public_key_secret_name) == 0 )) ? 1 : 0
+  count                                = (local.enable_key && (length(var.key_vault.sshkey_public_secret_name) > 0 )) ? 1 : 0
   name                                 = local.public_key_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
 data "azurerm_key_vault_secret" "username" {
-  count                                = length(var.key_vault.username_secret_name) ? 1 : 0
+  count                                = length(var.key_vault.username_secret_name) > 0 ? 1 : 0
   name                                 = var.key_vault.username_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
 data "azurerm_key_vault_secret" "pwd" {
-  count                                = (local.enable_password && (length(var.key_vault.password_secret_name) == 0) ) ? 1 : 0
+  count                                = (local.enable_password && (length(var.key_vault.password_secret_name) >  0) ) ? 1 : 0
   name                                 = local.pwd_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
