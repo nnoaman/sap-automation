@@ -208,6 +208,56 @@ function sdaf_remove_deployer() {
 	terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${current_directory}/terraform.tfstate"
 	extra_vars=""
 
+	if terraform -chdir="${terraform_module_directory}" state list; then
+
+		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_state_file_name"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_ppk' removed from state"
+			fi
+		fi
+
+		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_keyvault_name"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_ppk' removed from state"
+			fi
+		fi
+
+		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_keyvault_id"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_ppk' removed from state"
+			fi
+		fi
+		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_resourcegroup_name"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_ppk' removed from state"
+			fi
+		fi
+		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_subscription_id"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_ppk' removed from state"
+			fi
+		fi
+
+		moduleID="module.sap_deployer.azurerm_app_configuration_key.web_application_resource_id"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_ppk' removed from state"
+			fi
+		fi
+
+		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_msi_id"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_ppk' removed from state"
+			fi
+		fi
+
+	fi
 	if [ -f terraform.tfvars ]; then
 		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 	fi
