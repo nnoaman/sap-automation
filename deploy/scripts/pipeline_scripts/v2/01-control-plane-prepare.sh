@@ -32,6 +32,7 @@ export DEBUG
 set -eu
 file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+step=0
 
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
@@ -55,9 +56,8 @@ echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 
 if [ -f "${deployer_environment_file_name}" ]; then
 	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-else
-	step=0
 fi
+
 echo "Step:                                $step"
 
 if [ 0 != "${step}" ]; then
