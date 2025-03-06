@@ -73,7 +73,7 @@ data "azurerm_key_vault" "kv_user" {
 resource "tls_private_key" "deployer" {
   count                                = (
                                            local.enable_key
-                                           && !local.key_exist
+                                           && length(var.key_vault.sshkey_public_secret_name) == 0
                                            && (try(file(var.authentication.path_to_public_key), "") == "")
                                          ) ? 1 : 0
   algorithm                            = "RSA"

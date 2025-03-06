@@ -140,13 +140,13 @@ output "user_vault_name" {
 // output the secret name of private key
 output "ppk_secret_name" {
   description                          = "Private Key Secret Name"
-  value                                = local.enable_key ? local.ppk_secret_name : ""
+  value                                = local.enable_key ? local.private_key_secret_name : ""
 }
 
 // output the secret name of public key
 output "pk_secret_name" {
   description                          = "Public Key Secret Name"
-  value                                = local.enable_key ? local.pk_secret_name : ""
+  value                                = local.enable_key ? local.public_key_secret_name : ""
 }
 
 output "username_secret_name" {

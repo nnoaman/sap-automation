@@ -162,14 +162,14 @@ locals {
   enable_password                      = try(var.deployer.authentication.type, "key") == "password"
   enable_key                           = !local.enable_password
 
-  username                             = local.username_exist ? (
+  username                             = length(var.key_vault.username_secret_name) > 0 ? (
                                            data.azurerm_key_vault_secret.username[0].value) : (
                                            try(var.authentication.username, "azureadm")
                                          )
 
   // By default use generated password. Provide password under authentication overides it
   password                             = local.enable_password ? (
-                                           local.pwd_exist ? (
+                                           length(var.key_vault.password_secret_name) > 0 ? (
                                              data.azurerm_key_vault_secret.pwd[0].value) : (
                                              coalesce(var.authentication.password, random_password.deployer[0].result)
                                            )) : (
