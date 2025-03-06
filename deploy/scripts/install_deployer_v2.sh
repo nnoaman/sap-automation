@@ -129,8 +129,8 @@ function parse_arguments() {
 		return 2 #No such file or directory
 	fi
 
-  param_dirname=$(dirname "${parameter_file_name}")
-  export TF_DATA_DIR="${param_dirname}"/.terraform
+	param_dirname=$(dirname "${parameter_file_name}")
+	export TF_DATA_DIR="${param_dirname}"/.terraform
 	if [ "$param_dirname" != '.' ]; then
 		echo ""
 		echo "#########################################################################################"
@@ -177,7 +177,7 @@ function install_deployer() {
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
-	  print_banner "Bootstrap Deployer " "Validating parameters failed" "error"
+		print_banner "Bootstrap Deployer " "Validating parameters failed" "error"
 		return $?
 	fi
 	param_dirname=$(dirname "${parameter_file_name}")
@@ -193,7 +193,6 @@ function install_deployer() {
 	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 	generic_config_information="${automation_config_directory}"config
 	deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
-
 
 	if [ ! -f "$deployer_config_information" ]; then
 		if [ -f "${CONFIG_DIR}/${environment}${region_code}" ]; then
@@ -278,7 +277,7 @@ function install_deployer() {
 	fi
 
 	if [ 1 == $return_value ]; then
-	  print_banner "Bootstrap Deployer " "Terraform plan failed" "error"
+		print_banner "Bootstrap Deployer " "Terraform plan failed" "error"
 		if [ -f plan_output.log ]; then
 			cat plan_output.log
 			rm plan_output.log
@@ -291,18 +290,17 @@ function install_deployer() {
 		rm plan_output.log
 	fi
 
-
 	#########################################################################################
 	#                                                                                       #
 	#                             Running Terraform apply                                   #
 	#                                                                                       #"
 	#########################################################################################
 
-  print_banner "Bootstrap Deployer " "Running Terraform apply" "info"
+	print_banner "Bootstrap Deployer " "Running Terraform apply" "info"
 	parallelism=10
 
 	#Provide a way to limit the number of parallel tasks for Terraform
-	if printenv "TF_PARALLELLISM" ; then
+	if printenv "TF_PARALLELLISM"; then
 		parallelism=$TF_PARALLELLISM
 	fi
 
@@ -312,14 +310,17 @@ function install_deployer() {
 
 	if [ -n "${approve}" ]; then
 		# shellcheck disable=SC2086
-		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-			$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee -a apply_output.json
-		return_value=${PIPESTATUS[0]}
+		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
+			$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee -a apply_output.json; then
+			return_value=${PIPESTATUS[0]}
+		else
+			return_value=${PIPESTATUS[0]}
+		fi
 
 		if [ $return_value -eq 1 ]; then
-		  print_banner "Bootstrap Deployer " "Terraform apply failed." "error"
+			print_banner "Bootstrap Deployer " "Terraform apply failed." "error"
 		else
-		  print_banner "Bootstrap Deployer " "Terraform apply succeeded." "success"
+			print_banner "Bootstrap Deployer " "Terraform apply succeeded." "success"
 			# return code 2 is ok
 			return_value=0
 		fi
@@ -329,9 +330,9 @@ function install_deployer() {
 			$allParameters
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
-		  print_banner "Bootstrap Deployer " "Terraform apply failed." "error"
+			print_banner "Bootstrap Deployer " "Terraform apply failed." "error"
 		else
-		  print_banner "Bootstrap Deployer " "Terraform apply succeeded." "success"
+			print_banner "Bootstrap Deployer " "Terraform apply succeeded." "success"
 			# return code 2 is ok
 			return_value=0
 		fi
@@ -381,8 +382,8 @@ function install_deployer() {
 	echo "Terraform Apply return code:         $return_value"
 
 	if [ 0 != $return_value ]; then
-	  print_banner "Bootstrap Deployer " "!!! Error when creating the deployer !!!." "error"
-		return  $return_value
+		print_banner "Bootstrap Deployer " "!!! Error when creating the deployer !!!." "error"
+		return $return_value
 	fi
 
 	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
