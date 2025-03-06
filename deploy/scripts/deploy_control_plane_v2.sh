@@ -194,56 +194,45 @@ function bootstrap_deployer() {
 	#                           Bootstrapping the deployer                                   #
 	#                                                                                        #
 	##########################################################################################
-	if [ 0 == $step ]; then
-		print_banner "Bootstrap Deployer " "Bootstrapping the deployer..." "info"
+	print_banner "Bootstrap Deployer " "Bootstrapping the deployer..." "info"
 
-		allParameters=$(printf " --parameter_file %s %s" "${deployer_parameter_file_name}" "${autoApproveParameter}")
+	allParameters=$(printf " --parameter_file %s %s" "${deployer_parameter_file_name}" "${autoApproveParameter}")
 
-		cd "${deployer_dirname}" || exit
+	cd "${deployer_dirname}" || exit
 
-		echo "Calling install_deployer_v2.sh:         $allParameters"
+	echo "Calling install_deployer_v2.sh:         $allParameters"
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
-			return_code=$?
+	if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
+		return_code=$?
 
-			if [ $return_code -eq 10 ]; then
-				print_banner "Bootstrap Deployer " "Deployer is bootstrapped" "info"
-				step=3
-				save_config_var "step" "${deployer_config_information}"
-				return 0
-			else
-				print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
-				return 10
-			fi
-		else
-			return_code=$?
-			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
-			echo "Return code from install_deployer:   ${return_code}"
-			step=1
+		if [ $return_code -eq 10 ]; then
+			print_banner "Bootstrap Deployer " "Deployer is bootstrapped" "info"
+			step=3
 			save_config_var "step" "${deployer_config_information}"
-			if [ 1 = "${only_deployer:-}" ]; then
-				return 0
-			fi
+			return 0
+		else
+			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
+			return 10
 		fi
-
-		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
-		export APPLICATION_CONFIGURATION_ID
-		load_config_vars "${deployer_config_information}" "keyvault"
-
-		echo "Key vault:                           ${keyvault}"
-		echo "Application configuration Id         ${APPLICATION_CONFIGURATION_ID}"
-
-		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	else
-		print_banner "Bootstrap Deployer " "Deployer is bootstrapped" "info"
-
-		echo "##vso[task.setprogress value=20;]Progress Indicator"
+		return_code=$?
+		print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
+		echo "Return code from install_deployer:   ${return_code}"
+		step=1
+		save_config_var "step" "${deployer_config_information}"
 		if [ 1 = "${only_deployer:-}" ]; then
 			return 0
 		fi
-
 	fi
 
+	load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
+	export APPLICATION_CONFIGURATION_ID
+	load_config_vars "${deployer_config_information}" "keyvault"
+
+	echo "Key vault:                           ${keyvault}"
+	echo "Application configuration Id         ${APPLICATION_CONFIGURATION_ID}"
+
+	echo "##vso[task.setprogress value=20;]Progress Indicator"
 	cd "$root_dirname" || exit
 	return "$return_code"
 }
@@ -637,7 +626,7 @@ function deploy_control_plane() {
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo "validate_dependencies returned $return_code"
-		exit $return_code
+		return $return_code
 	fi
 	echo ""
 	echo "Control Plane Name:                  $CONTROL_PLANE_NAME"

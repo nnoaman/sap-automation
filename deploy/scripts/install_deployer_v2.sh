@@ -84,7 +84,7 @@ function source_helper_scripts() {
 # Function to parse command line arguments
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n install_deployer_v2 -o p:ih --longoptions parameter_file:,auto-approve,help -- "$@")
+	input_opts=$(getopt -n install_deployer_v2 -o p:c:ih --longoptions parameter_file:,control_plane_name:,auto-approve,help -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -97,6 +97,10 @@ function parse_arguments() {
 		case "$1" in
 		-p | --parameter_file)
 			parameter_file_name="$2"
+			shift 2
+			;;
+		-c | --control_plane_name)
+			CONTROL_PLANE_NAME="$2"
 			shift 2
 			;;
 		-i | --auto-approve)
@@ -181,6 +185,8 @@ function install_deployer() {
 	echo "Parameter file:                      ${parameter_file_name}"
 
 	key=$(echo "${parameter_file_name}" | cut -d. -f1)
+
+	print_banner "Deployer-bootstrap" "Deploying the deployer" "info"
 
 	#Persisting the parameters across executions
 	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
