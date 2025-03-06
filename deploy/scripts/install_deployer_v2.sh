@@ -124,7 +124,8 @@ function parse_arguments() {
 		echo "#########################################################################################"
 		return 2 #No such file or directory
 	fi
-
+  param_dirname=$(dirname "${parameterfile_name}")
+  export TF_DATA_DIR="${param_dirname}"/.terraform
 	if [ "$param_dirname" != '.' ]; then
 		echo ""
 		echo "#########################################################################################"

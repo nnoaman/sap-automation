@@ -201,7 +201,7 @@ function bootstrap_deployer() {
 
 		cd "${deployer_dirname}" || exit
 
-		echo "Calling install_deployer.sh:         $allParameters"
+		echo "Calling install_deployer_v2.sh:         $allParameters"
 
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
 			return_code=$?
