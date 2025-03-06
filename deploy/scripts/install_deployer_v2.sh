@@ -157,7 +157,7 @@ function parse_arguments() {
 
 	# Check that Terraform and Azure CLI is installed
 	if ! validate_dependencies; then
-		exit $?
+		return $?
 	fi
 
 	return 0
@@ -176,7 +176,8 @@ function install_deployer() {
 	source_helper_scripts "${helper_scripts[@]}"
 
 	# Parse command line arguments
-	if parse_arguments "$@"; then
+	if ! parse_arguments "$@"; then
+	  print_banner "Deployer-bootstrap" "Validating parameters failed" "error"
 		return $?
 	fi
 	param_dirname=$(dirname "${parameter_file_name}")
