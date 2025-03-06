@@ -311,7 +311,7 @@ resource "azurerm_key_vault_secret" "ppk" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer
                                          ]
-  name                                 = local.sshkey_private_secret_name
+  name                                 = local.private_key_secret_name
   value                                = local.private_key
   key_vault_id                         = var.key_vault.exists ? (
                                            var.key_vault.id) : (
@@ -332,7 +332,7 @@ resource "azurerm_key_vault_secret" "pk" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer
                                          ]
-  name                                 = local.sshkey_public_secret_name
+  name                                 = local.public_key_secret_name
   value                                = local.public_key
   key_vault_id                         = var.key_vault.exists ? (
                                            var.key_vault.id) : (
