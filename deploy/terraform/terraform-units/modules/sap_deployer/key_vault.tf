@@ -326,7 +326,7 @@ resource "azurerm_key_vault_secret" "ppk" {
 }
 
 resource "azurerm_key_vault_secret" "pk" {
-  count                                = (local.enable_key && (length(var.key_vault.sshkey_public_secret_name) > ==0 )) ? (1) : (0)
+  count                                = (local.enable_key && (length(var.key_vault.sshkey_public_secret_name)  == 0 )) ? (1) : (0)
   depends_on                           = [ azurerm_key_vault.kv_user,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,

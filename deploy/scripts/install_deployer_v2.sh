@@ -124,7 +124,8 @@ function parse_arguments() {
 		echo "#########################################################################################"
 		return 2 #No such file or directory
 	fi
-  param_dirname=$(dirname "${parameterfile_name}")
+
+  param_dirname=$(dirname "${parameter_file_name}")
   export TF_DATA_DIR="${param_dirname}"/.terraform
 	if [ "$param_dirname" != '.' ]; then
 		echo ""
@@ -241,9 +242,8 @@ function install_deployer() {
 	return_value=$?
 	if [ 1 == $return_value ]; then
 		print_banner "Deployer-bootstrap" "Terraform init failed" "error"
-		return $?
 		unset TF_DATA_DIR
-		exit $return_value
+		return $return_value
 	fi
 
 	print_banner "Deployer-bootstrap" "Running Terraform plan" "info"
