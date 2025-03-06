@@ -185,7 +185,15 @@ function install_deployer() {
 	#Persisting the parameters across executions
 	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 	generic_config_information="${automation_config_directory}"config
-	deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
+	deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
+
+
+	if [ ! -f "$deployer_config_information" ]; then
+		if [ -f "${CONFIG_DIR}/${environment}${region_code}" ]; then
+			echo "Move existing configuration file"
+			sudo mv "${CONFIG_DIR}/${environment}${region_code}" "${deployer_config_information}"
+		fi
+	fi
 
 	param_dirname=$(pwd)
 
