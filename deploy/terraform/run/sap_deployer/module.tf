@@ -51,16 +51,6 @@ module "sap_deployer" {
   spn_id                                        = var.spn_id
   ssh-timeout                                   = var.ssh-timeout
   state_filename_prefix                         = module.sap_namegenerator.naming.prefix.DEPLOYER
-  statefilename                                 = try(upper(
-                                                    format("%s-%s-%s-INFRASTRUCTURE.terraform.tfstate",
-                                                      var.environment,
-                                                      module.sap_namegenerator.naming_new.location_short,
-                                                      var.management_network_logical_name)),
-                                                    format("%s%s%s",
-                                                      module.sap_namegenerator.resource_prefixes.deployer_rg,
-                                                      module.sap_namegenerator.prefix,
-                                                      module.sap_namegenerator.resource_suffixes.deployer_rg
-                                                    ))
   subnets_to_add                                = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
   tf_version                                    = var.tf_version
   use_private_endpoint                          = var.use_private_endpoint

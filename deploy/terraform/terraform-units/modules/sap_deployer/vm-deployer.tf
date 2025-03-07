@@ -19,7 +19,7 @@ Description:
 data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "current" {}
 
-// Public IP addresse and nic for Deployer
+// Public IP address and nic for Deployer
 resource "azurerm_public_ip" "deployer" {
   count                                = local.enable_deployer_public_ip ? var.deployer_vm_count : 0
   name                                 = format("%s%s%s%s%s",
