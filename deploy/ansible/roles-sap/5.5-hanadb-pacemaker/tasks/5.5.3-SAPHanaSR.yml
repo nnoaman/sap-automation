@@ -270,6 +270,11 @@
       changed_when:                    false
       register:                        hana_system_started
 
+    - name:                            "5.5 HANA Pacemaker - Pause to give HANA time to stabilize"
+      ansible.builtin.wait_for:
+        timeout:                       110
+        delay:                         10
+
     - name:                           "5.5 HANA Pacemaker - Start HANA Database"
       ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
@@ -277,8 +282,9 @@
     #     awk '/ha_dr_SAPHanaSR.*crm_attribute/ { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
     # Verify that the hook script is working as expected.
     - name:                            "5.5 HANA Pacemaker - Pause to give HANA replication time to stabilize"
-      ansible.builtin.pause:
-        seconds:                       "{{ hsr_status_report_wait_in_s }}"
+      ansible.builtin.wait_for:
+        timeout:                       "{{ hsr_status_report_wait_in_s }}"
+
 
     - name:                            "5.5 HANA Pacemaker - Verify that the hook script is working as expected"
       when:                            inventory_hostname == primary_instance_name
