@@ -146,7 +146,7 @@ resource "azurerm_role_assignment" "role_assignment_systemidentity" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
   provider                             = azurerm.main
-  count                                = var.key_vault.exists && length(var.spn_id) != 36 ? 0 : !var.key_vault.enable_rbac_authorization
+  count                                = var.key_vault.exists && length(var.spn_id) != 36 && !var.key_vault.enable_rbac_authorization ? 0 : 1
 
   key_vault_id                         = azurerm_key_vault.kv_user[0].id
   tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
@@ -177,7 +177,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
 
 resource "azurerm_role_assignment" "role_assignment_pre_deployer" {
   provider                             = azurerm.main
-  count                                = var.key_vault.exists && length(var.spn_id) != 36 ? 0 :  var.key_vault.enable_rbac_authorization_for_keyvault
+  count                                = var.key_vault.exists && length(var.spn_id) != 36 ? 0 :  var.key_vault.enable_rbac_authorization_for_keyvault ? 1 :0
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Administrator"
   principal_id                         = coalesce(var.spn_id,
