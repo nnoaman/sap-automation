@@ -19,7 +19,16 @@
                                        - "hana_minor_version:                 {{ hana_minor_version }}"
                                        - "hana_sps_level:                     {{ hana_sps_level }}"
                                        - "saphanaSR_version:                  {{ saphanaSR_version }}"
+
+- name:                                "5.5 HANA Pacemaker - Display version numbers and package facts for SAPHanaSR-ANGI"
+  when:
+                                       - use_hanasr_angi | default(false)
+                                       - ansible_os_family | upper == 'SUSE'
+
+  ansible.builtin.debug:
+    msg: |
                                        - "saphanaSR_angi_version:             {{ saphanaSR_angi_version }}"
+
 
 # - name:                                "5.5 HANA Pacemaker - Can the SLES distribution be used with SAPHanaSR-angi"
 #   when:
