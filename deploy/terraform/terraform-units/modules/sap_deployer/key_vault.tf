@@ -181,7 +181,7 @@ resource "azurerm_role_assignment" "role_assignment_pre_deployer" {
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Administrator"
   principal_id                         = coalesce(var.spn_id,
-                                            data.azurerm_client_config.deployer.principal_id,
+                                            data.azurerm_client_config.deployer.object_id,
                                             var.arm_client_id
                                           )
 }
