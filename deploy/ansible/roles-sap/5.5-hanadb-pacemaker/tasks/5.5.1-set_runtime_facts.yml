@@ -98,13 +98,13 @@
                                        {% elif ansible_os_family | upper == 'REDHAT' %}
                                          {{ ansible_facts.packages['resource-agents-sap-hana'][0].version if 'resource-agents-sap-hana' in ansible_facts.packages else '0.0.0' }}
                                        {% else %}
-                                         0.0.0
+                                         '0.0.0'
                                        {% endif %}
         saphanaSR_angi_version: >-
                                        {% if ansible_os_family | upper == 'SUSE' %}
                                          "{{ ansible_facts.packages['SAPHanaSR-angi'][0].version if 'SAPHanaSR-angi' in ansible_facts.packages else '0.0.0' }}"
                                        {% else %}
-                                         0.0.0
+                                         '0.0.0'
                                        {% endif %}
 
     - name:                            "5.5 HANA Pacemaker - Install SAPHanaSR package if not installed - [SUSE]"
