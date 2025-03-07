@@ -378,6 +378,11 @@ variable "soft_delete_retention_days"                 {
                                                         default     = 7
                                                       }
 
+variable "enable_rbac_authorization_for_keyvault"    {
+                                                       description = "Enables RBAC authorization for Azure keyvault"
+                                                       default     = false
+                                                     }
+
 #######################################4#######################################8
 #                                                                              #
 #  Miscellaneous settings                                                      #

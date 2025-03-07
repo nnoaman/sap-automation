@@ -212,12 +212,13 @@ locals {
 
                                           }
   key_vault                            = {
-                                           id                          = var.user_keyvault_id
-                                           exists                      = length(var.user_keyvault_id) > 0 ? true : false
-                                           sshkey_private_secret_name  = var.deployer_private_key_secret_name
-                                           sshkey_public_secret_name   = var.deployer_public_key_secret_name
-                                           username_secret_name        = var.deployer_username_secret_name
-                                           password_secret_name        = var.deployer_password_secret_name
+                                           id                        = var.user_keyvault_id
+                                           exists                    = length(var.user_keyvault_id) > 0 ? true : false
+                                           private_key_secret_name   = var.deployer_private_key_secret_name
+                                           public_key_secret_name    = var.deployer_public_key_secret_name
+                                           username_secret_name      = var.deployer_username_secret_name
+                                           password_secret_name      = var.deployer_password_secret_name
+                                           enable_rbac_authorization = var.enable_rbac_authorization_for_keyvault
 
                                         }
   options                              = {

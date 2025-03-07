@@ -381,11 +381,16 @@ variable "additional_users_to_add_to_keyvault_policies" {
                                                           default     = [""]
                                                         }
 
-variable "set_secret_expiry"                          {
-                                                        description = "Set expiry date for secrets"
-                                                        default     = false
-                                                        type        = bool
-                                                      }
+variable "set_secret_expiry"                         {
+                                                       description = "Set expiry date for secrets"
+                                                       default     = false
+                                                       type        = bool
+                                                     }
+
+variable "enable_rbac_authorization_for_keyvault"    {
+                                                       description = "Enables RBAC authorization for Azure keyvault"
+                                                       default     = false
+                                                     }
 
 #######################################4#######################################8
 #                                                                              #
