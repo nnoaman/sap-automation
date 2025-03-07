@@ -94,7 +94,7 @@
       ansible.builtin.set_fact:
         saphanaSR_version: >-
                                        {% if ansible_os_family | upper == 'SUSE' %}
-                                       "{{ ansible_facts.packages['SAPHanaSR'][0].version if 'SAPHanaSR' in ansible_facts.packages else '0.0.0' }}""
+                                       "{{ ansible_facts.packages['SAPHanaSR'][0].version if 'SAPHanaSR' in ansible_facts.packages else '0.0.0' }}"
                                        {% elif ansible_os_family | upper == 'REDHAT' %}
                                        "{{ ansible_facts.packages['resource-agents-sap-hana'][0].version if 'resource-agents-sap-hana' in ansible_facts.packages else '0.0.0' }}"
                                        {% else %}

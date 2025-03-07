@@ -19,8 +19,6 @@
                                        - "hana_minor_version:                 {{ hana_minor_version }}"
                                        - "hana_sps_level:                     {{ hana_sps_level }}"
                                        - "saphanaSR_version:                  {{ saphanaSR_version }}"
-                                       - "saphanaSR_version_type:             {{ saphanaSR_version | type_debug }}"
-                                       - "min_saphanaSR_version_type:         {{ min_saphanaSR_version | type_debug }}"
 
 - name:                                "5.5 HANA Pacemaker - Display version numbers and package facts for SAPHanaSR-ANGI"
   when:
