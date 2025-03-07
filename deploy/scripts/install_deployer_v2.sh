@@ -396,9 +396,6 @@ function install_deployer() {
 				touch "${deployer_config_information}"
 				printf -v val %-.20s "$keyvault"
 				print_banner "Bootstrap Deployer " "Keyvault to use for SPN details: $val" "info"
-				return_value=0
-			else
-				return_value=2
 			fi
 		fi
 
