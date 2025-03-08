@@ -329,9 +329,9 @@ function bootstrap_library {
 		cd "${library_dirname}" || exit
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
 
-		echo "Calling install_library.sh with: --parameter_file ${library_parameter_file_name} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
+		echo "Calling install_library_v2.sh with: --parameter_file ${library_parameter_file_name} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library_v2.sh" \
 			--parameter_file "${library_parameter_file_name}" \
 			--deployer_statefile_foldername "${relative_path}" \
 			--keyvault "${keyvault}" "$autoApproveParameter"; then
