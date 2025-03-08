@@ -219,7 +219,7 @@ export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
 set +eu
 
 if [ "$USE_MSI" != "true" ]; then
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_contro_plane_v2.sh" \
+	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_control_plane_v2.sh" \
 		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
 		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
 		--subscription "$ARM_SUBSCRIPTION_ID" \
@@ -236,32 +236,17 @@ print_banner "Deploy Control Plane - Preparation" "Deploy_controlplane returned:
 
 set -eu
 
-if [ -f "${deployer_environment_file_name}" ]; then
-	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -z "$file_deployer_tfstate_key" ]; then
-		deployer_tfstate_key=$file_deployer_tfstate_key
-		export deployer_tfstate_key
-	fi
-	echo "Deployer State File:                 $deployer_tfstate_key"
-
-	file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Key Vault:                  ${file_key_vault}"
-	echo -e "$green--- Saving the deployment credentials ---$reset"
+if [ 0 = $return_code ]; then
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 	if [ "$USE_MSI" != "true" ]; then
-		"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --environment "${ENVIRONMENT}" --vault ${file_key_vault} \
+		"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --environment "${ENVIRONMENT}" --vault ${DEPLOYER_KEYVAULT} \
 			--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado
 	fi
 
-	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform Remote State Account:      ${file_REMOTE_STATE_SA}"
-	fi
-
-	file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform Remote State RG Name:      ${file_REMOTE_STATE_RG}"
-	fi
 fi
+
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
 cd "$CONFIG_REPO_PATH" || exit
@@ -309,10 +294,4 @@ if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" 
 	fi
 fi
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-if [ 0 = $return_code ]; then
-
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"
-
-fi
 exit $return_code

@@ -388,21 +388,18 @@ function install_deployer() {
 
 	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-		keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-		temp=$(echo "${keyvault}" | grep "Warning")
-		if [ -z "${temp}" ]; then
-			temp=$(echo "${keyvault}" | grep "Backend reinitialization required")
-			if [ -z "${temp}" ]; then
-				touch "${deployer_config_information}"
-				printf -v val %-.20s "$keyvault"
-				print_banner "Bootstrap Deployer " "Keyvault to use for SPN details: $val" "info"
-			fi
+		DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+		if [ -n "${DEPLOYER_KEYVAULT}" ]; then
+			printf -v val %-.20s "$DEPLOYER_KEYVAULT"
+			print_banner "Bootstrap Deployer " "Keyvault to use for deployment credentials: $val" "info"
+			export DEPLOYER_KEYVAULT
 		fi
 
 		APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
 		if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
 			save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
 		fi
+		export APPLICATION_CONFIGURATION_ID
 
 		deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 		if [ -n "${deployer_random_id}" ]; then
