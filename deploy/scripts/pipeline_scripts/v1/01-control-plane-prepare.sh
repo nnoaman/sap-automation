@@ -181,10 +181,12 @@ if [ 0 != $return_code ]; then
 fi
 
 # Reset the account if sourcing was done
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
+if printenv CP_ARM_SUBSCRIPTION_ID; then
+	ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+	export ARM_SUBSCRIPTION_ID
+	az account set --subscription "$ARM_SUBSCRIPTION_ID"
+	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
+fi
 
 echo -e "$green--- Convert config files to UX format ---$reset"
 dos2unix -q "$deployer_tfvars_file_name"
