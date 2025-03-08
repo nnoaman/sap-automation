@@ -45,7 +45,7 @@ echo "Network:                               $NETWORK"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
 
 echo "Variable group:                        $VARIABLE_GROUP_ID"
-variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CP_ARM_SUBSCRIPTION_ID.value" --out tsv)
+variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_SUBSCRIPTION_ID.value" --out tsv)
 if [ -z "$variable_value" ]; then
   subscription=$ARM_SUBSCRIPTION_ID
 else
@@ -151,6 +151,10 @@ if [ 0 == $return_code ]; then
         az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
       fi
 
+      variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --out tsv)
+      if [ ${#variable_value} != 0 ]; then
+        az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --yes --only-show-errors
+      fi
       variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Resource_Group_Name.value" --out tsv)
       if [ ${#variable_value} != 0 ]; then
         az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors
@@ -200,6 +204,17 @@ if [ 0 == $return_code ]; then
       if [ ${#variable_value} != 0 ]; then
         az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --yes --only-show-errors
       fi
+
+      variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --out tsv)
+      if [ ${#variable_value} != 0 ]; then
+        az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --yes --only-show-errors
+      fi
+
+      variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --out tsv)
+      if [ ${#variable_value} != 0 ]; then
+        az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --yes --only-show-errors
+      fi
+
 
     fi
 

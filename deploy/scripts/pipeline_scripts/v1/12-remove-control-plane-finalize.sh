@@ -335,6 +335,22 @@ if [ 0 == $return_code ]; then
 		if [ ${#variable_value} != 0 ]; then
 			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --yes --only-show-errors
 		fi
+
+		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --out tsv)
+		if [ ${#variable_value} != 0 ]; then
+			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --yes --only-show-errors
+		fi
+
+		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --out tsv)
+		if [ ${#variable_value} != 0 ]; then
+			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --yes --only-show-errors
+		fi
+
+		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --out tsv)
+		if [ ${#variable_value} != 0 ]; then
+			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --yes --only-show-errors
+		fi
+
 	fi
 
 fi
