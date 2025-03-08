@@ -140,7 +140,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	sudo rm -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 fi
 
-echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
+echo -e "$green--- Running the remove region script that destroys SAP library ---$reset"
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
 	--deployer_parameter_file "$deployerTFvarsFile" \

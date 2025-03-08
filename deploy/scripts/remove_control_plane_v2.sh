@@ -310,6 +310,12 @@ function remove_control_plane() {
 
 	key=$(echo "${deployer_parameter_file}" | cut -d. -f1)
 
+	if [ -f .terraform/terraform.tfstate ]; then
+		terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+	fi
+
 	echo ""
 	echo "Terraform details"
 	echo "-------------------------------------------------------------------------"
@@ -351,16 +357,6 @@ function remove_control_plane() {
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/sap_deployer/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
-
-	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --query allowSharedKeyAccess --subscription "${terraform_storage_account_subscription_id}" --out tsv)
-
-	if [ "$useSAS" = "true" ]; then
-		echo "Storage Account Authentication:        Key"
-		export ARM_USE_AZUREAD=false
-	else
-		echo "Storage Account Authentication:        Entra ID"
-		export ARM_USE_AZUREAD=true
-	fi
 
 	# Reinitialize
 	print_banner "Remove Control Plane " "Running Terraform init (deployer)" "info"
