@@ -720,9 +720,6 @@ else
 
     # Set env for MSI
     (echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
-
-    (echo export ARM_CLIENT_ID="$${client_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
-    (echo export ARM_SUBSCRIPTION_ID="$${subscription_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     (echo export ARM_TENANT_ID="$${tenant_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
 
     # if [[ -n $${TOKEN} ]]; then
@@ -734,10 +731,10 @@ else
     echo export "PATH=$${ansible_bin}:$${tf_bin}:$${PATH}":"$${DOTNET_ROOT}":"$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts" | sudo tee -a /etc/profile.d/deploy_server.sh
 
     # Ensure that the user's account is logged in to Azure with specified creds
-    (echo 'az login --identity --allow-no-subscriptions --output none --client-id $ARM_CLIENT_ID ' | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+    (echo 'az login --identity --allow-no-subscriptions --output none --client-id $${client_id} ' | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     echo 'echo $${USER} account ready for use with Azure SAP Automated Deployment' | sudo tee -a /etc/profile.d/deploy_server.sh
 
-    sudo runuser -l "$${local_user}" -c '/usr/bin/az login --identity --allow-no-subscriptions --output none'
+    sudo runuser -l "$${local_user}" -c '/usr/bin/az login --identity --client-id $${client_id} --allow-no-subscriptions --output none'
 
     #
     # Create Agent

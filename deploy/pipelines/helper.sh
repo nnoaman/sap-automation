@@ -9,14 +9,13 @@ function getVariableFromApplicationConfiguration() {
 	local label="$3"
 	local variable_value
 
-  application_configuration_name=$(echo "$application_configuration_id" | cut -d '/' -f 9)
-  application_configuration_subscription=$(echo "$application_configuration_id" | cut -d '/' -f 3)
+	application_configuration_name=$(echo "$application_configuration_id" | cut -d '/' -f 9)
+	application_configuration_subscription=$(echo "$application_configuration_id" | cut -d '/' -f 3)
 
-	variable_value=$(az appconfig kv list --name "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${variable_name}'].value | [0]" --label "${label}"  --output tsv)
+	variable_value=$(az appconfig kv list --name "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${variable_name}'].value | [0]" --label "${label}" --output tsv)
 	echo "$variable_value"
 
 }
-
 
 function getVariableFromVariableGroup() {
 	local variable_group_id="$1"
@@ -92,13 +91,13 @@ function LogonToAzure() {
 		az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
 	else
 		echo "Deployment credentials:              Managed Service Identity"
-		source "/etc/profile.d/deploy_server.sh"
-
-		# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
-		# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.
-		if [[ "$ARM_SUBSCRIPTION_ID" != "$subscriptionId" ]]; then
-			ARM_SUBSCRIPTION_ID=$subscriptionId
-			export ARM_SUBSCRIPTION_ID
+		if [ -f /etc/profile.d/deploy_server.sh ]; then
+			# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
+			# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.
+			if [[ "$ARM_SUBSCRIPTION_ID" != "$subscriptionId" ]]; then
+				ARM_SUBSCRIPTION_ID=$subscriptionId
+				export ARM_SUBSCRIPTION_ID
+			fi
 		fi
 	fi
 
