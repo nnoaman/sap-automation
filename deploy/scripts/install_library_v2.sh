@@ -38,7 +38,7 @@ function showhelp {
 	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo "#   Usage: install_library.sh                                                           #"
+	echo "#   Usage: install_library_v2.sh                                                        #"
 	echo "#    -p or --parameterfile                    library parameter file                    #"
 	echo "#    -v or --keyvault                         Name of key vault containing credentiols  #"
 	echo "#    -s or --deployer_statefile_foldername    relative path to deployer folder          #"
@@ -56,7 +56,7 @@ function showhelp {
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
-INPUT_ARGUMENTS=$(getopt -n install_library -o p:d:v:ih --longoptions parameterfile:,deployer_statefile_foldername:,keyvault:,auto-approve,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n install_library_v2 -o p:d:v:ih --longoptions parameter_file:,deployer_statefile_foldername:,keyvault:,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -67,7 +67,7 @@ fi
 eval set -- "$INPUT_ARGUMENTS"
 while :; do
 	case "$1" in
-	-p | --parameterfile)
+	-p | --parameter_file)
 		parameterfile_name="$2"
 		shift 2
 		;;
