@@ -2,7 +2,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
 print_banner() {
 	local title="$1"
 	local message="$2"
@@ -158,15 +157,18 @@ function LogonToAzure() {
 
 	else
 		echo "Deployment credentials:              Managed Service Identity"
-		source "/etc/profile.d/deploy_server.sh"
-		TF_VAR_use_spn=false
-		export TF_VAR_use_spn
+		if [ -f /etc/profile.d/deploy_server.sh ]; then
+			echo "Sourcing deploy_server.sh"
+			source "/etc/profile.d/deploy_server.sh"
+			TF_VAR_use_spn=false
+			export TF_VAR_use_spn
 
-		# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
-		# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.
-		if [[ "$ARM_SUBSCRIPTION_ID" != "$subscriptionId" ]]; then
-			ARM_SUBSCRIPTION_ID=$subscriptionId
-			export ARM_SUBSCRIPTION_ID
+			# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
+			# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.
+			if [[ "$ARM_SUBSCRIPTION_ID" != "$subscriptionId" ]]; then
+				ARM_SUBSCRIPTION_ID=$subscriptionId
+				export ARM_SUBSCRIPTION_ID
+			fi
 		fi
 	fi
 
