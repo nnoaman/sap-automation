@@ -456,6 +456,8 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
 	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
 		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
+		export APPLICATION_CONFIGURATION_ID
+		echo "APPLICATION_CONFIGURATION_ID:         $APPLICATION_CONFIGURATION_ID"
 	fi
 
 	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
