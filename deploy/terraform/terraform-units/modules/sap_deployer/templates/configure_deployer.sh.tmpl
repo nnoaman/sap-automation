@@ -734,7 +734,7 @@ else
     (echo 'az login --identity --allow-no-subscriptions --output none --client-id $${client_id} ' | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     echo 'echo $${USER} account ready for use with Azure SAP Automated Deployment' | sudo tee -a /etc/profile.d/deploy_server.sh
 
-    sudo runuser -l "$${local_user}" -c '/usr/bin/az login --identity --client-id $${client_id} --allow-no-subscriptions --output none'
+    sudo runuser -l "$${local_user}" -c '/usr/bin/az login --identity --allow-no-subscriptions --output none'
 
     #
     # Create Agent
