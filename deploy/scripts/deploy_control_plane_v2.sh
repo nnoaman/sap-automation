@@ -204,7 +204,7 @@ function bootstrap_deployer() {
 
 	if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
 		return_code=$?
-		echo "Return code from install_deployer:   ${return_code}"
+		echo "Return code from install_deployer_v2:   ${return_code}"
 
 		if [ $return_code -eq 10 ]; then
 			print_banner "Bootstrap Deployer " "Deployer is bootstrapped" "info"
@@ -218,7 +218,7 @@ function bootstrap_deployer() {
 	else
 		return_code=$?
 		print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
-		echo "Return code from install_deployer:   ${return_code}"
+		echo "Return code from install_deployer_v2:   ${return_code}"
 		step=1
 		save_config_var "step" "${deployer_config_information}"
 		if [ 1 = "${only_deployer:-}" ]; then

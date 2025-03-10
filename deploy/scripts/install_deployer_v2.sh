@@ -320,22 +320,21 @@ function install_deployer() {
 		if [ $return_value -eq 1 ]; then
 			print_banner "Bootstrap Deployer " "Terraform apply failed." "error"
 		else
-			print_banner "Bootstrap Deployer " "Terraform apply succeeded." "success"
+			print_banner "Bootstrap Deployer " "Terraform apply succeeded" "success"
 			# return code 2 is ok
 			return_value=0
 		fi
 	else
 		# shellcheck disable=SC2086
-		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-			$allParameters
-		return_value=$?
-		if [ $return_value -eq 1 ]; then
-			print_banner "Bootstrap Deployer " "Terraform apply failed." "error"
+		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
+			return_value=$?
+			print_banner "Bootstrap Deployer " "Terraform apply succeeded" "success"
 		else
-			print_banner "Bootstrap Deployer " "Terraform apply succeeded." "success"
-			# return code 2 is ok
-			return_value=0
+			return_value=$?
+
+			print_banner "Bootstrap Deployer " "Terraform apply failed." "error"
 		fi
+
 	fi
 
 	if [ -f apply_output.json ]; then
