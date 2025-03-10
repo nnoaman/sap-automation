@@ -57,9 +57,9 @@ set -o nounset
 #
 rg_name="${rg_name}"
 tfversion="${tfversion}"
-client_id="${client_id}"
-subscription_id="${subscription_id}"
-tenant_id="${tenant_id}"
+ARM_CLIENT_ID="${client_id}"
+ARM_SUBSCRIPTION_ID="${subscription_id}"
+ARM_TENANT_ID="${tenant_id}"
 local_user="${local_user}"
 use_webapp="${use_webapp}"
 ansible_version="${ansible_core_version}"
@@ -731,7 +731,7 @@ else
     echo export "PATH=$${ansible_bin}:$${tf_bin}:$${PATH}":"$${DOTNET_ROOT}":"$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts" | sudo tee -a /etc/profile.d/deploy_server.sh
 
     # Ensure that the user's account is logged in to Azure with specified creds
-    (echo 'az login --identity --allow-no-subscriptions --output none --client-id $${client_id} ' | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+    echo 'az login --identity --allow-no-subscriptions --output none  ' | sudo tee -a /etc/profile.d/deploy_server.sh > /dev/null 2>&1
     echo 'echo $${USER} account ready for use with Azure SAP Automated Deployment' | sudo tee -a /etc/profile.d/deploy_server.sh
 
     sudo runuser -l "$${local_user}" -c '/usr/bin/az login --identity --allow-no-subscriptions --output none'
