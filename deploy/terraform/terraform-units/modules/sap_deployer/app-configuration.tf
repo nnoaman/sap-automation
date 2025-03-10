@@ -286,9 +286,11 @@ resource "azurerm_private_endpoint" "app_config" {
 
 data "azurerm_private_dns_zone" "appconfig" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = !var.bootstrap && !local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = !var.bootstrap && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
-  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name,var.dns_settings.local_dns_resourcegroup_name)
+  resource_group_name                  = coalesce(
+                                           var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,
+                                           var.dns_settings.local_dns_resourcegroup_name)
 
 }
