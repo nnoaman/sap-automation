@@ -133,13 +133,26 @@ printf -v val '%-20s' "${tempval}"
 echo "$val                 $VARIABLE_GROUP_ID"
 
 # Set logon variables
-ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$CP_ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+if printenv CP_ARM_CLIENT_ID; then
+	ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
+	export ARM_CLIENT_ID
+	TF_VAR_spn_id=$CP_ARM_CLIENT_ID
+	export TF_VAR_spn_id
+fi
+if printenv CP_ARM_CLIENT_SECRET; then
+	ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
+	export ARM_CLIENT_SECRET
+fi
+if printenv CP_ARM_TENANT_ID; then
+	ARM_TENANT_ID="$CP_ARM_TENANT_ID"
+	export ARM_TENANT_ID
+fi
+
+if printenv CP_ARM_SUBSCRIPTION_ID; then
+	ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+	export ARM_SUBSCRIPTION_ID
+fi
+
 export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
@@ -156,7 +169,10 @@ if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]az login failed."
 	exit $return_code
 fi
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+if printenv CP_ARM_SUBSCRIPTION_ID; then
+	ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+	export ARM_SUBSCRIPTION_ID
+fi
 export ARM_SUBSCRIPTION_ID
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id
