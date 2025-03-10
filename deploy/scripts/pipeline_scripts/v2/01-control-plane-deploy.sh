@@ -48,11 +48,6 @@ if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILEN
 	exit 2
 fi
 
-
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-
 if [ -z $CONTROL_PLANE_NAME ]; then
 	CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
 	export $CONTROL_PLANE_NAME
@@ -63,7 +58,6 @@ application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 if [ -f "${deployer_environment_file_name}" ]; then
 	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
 	echo "Step:                                $step"
@@ -449,62 +443,8 @@ if [ 1 = $added ]; then
 	fi
 fi
 
-# if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
-#   echo "##vso[task.uploadsummary].sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
-# fi
-
-if [ -f "${deployer_environment_file_name}" ]; then
-
-	file_deployer_tfstate_key=$(grep "^deployer_tfstate_key=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer State:       ${file_deployer_tfstate_key}"
-
-	file_key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Keyvault:    ${file_key_vault}"
-
-	file_terraform_storage_account_name=$(grep "^terraform_storage_account_name=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_terraform_storage_account_name}" ]; then
-		echo "Terraform account:    ${file_terraform_storage_account_name}"
-	fi
-
-	file_terraform_storage_account_resource_group_name=$(grep "^terraform_storage_account_resource_group_name=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_terraform_storage_account_resource_group_name}" ]; then
-		echo "Terraform rgname:     ${file_terraform_storage_account_resource_group_name}"
-	fi
-fi
-
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
-	if [ -n "${file_terraform_storage_account_name}" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${file_terraform_storage_account_name}"; then
-			echo "Variable Terraform_Remote_Storage_Account_Name was added to the $VARIABLE_GROUP variable group."
-		else
-			echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Account_Name was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable Terraform_Remote_Storage_Account_Name was not added to the $VARIABLE_GROUP variable group."
-		fi
-	fi
-
-	if [ -n "${file_terraform_storage_account_resource_group_name}" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${file_terraform_storage_account_resource_group_name}"; then
-			echo "Variable Terraform_Remote_Storage_Resource_Group_Name was added to the $VARIABLE_GROUP variable group."
-		else
-			echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Resource_Group_Name was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable Terraform_Remote_Storage_Resource_Group_Name was not added to the $VARIABLE_GROUP variable group."
-		fi
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "$ARM_SUBSCRIPTION_ID"; then
-		echo "Variable Terraform_Remote_Storage_Subscription was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Subscription was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Terraform_Remote_Storage_Subscription was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"; then
-		echo "Variable Deployer_State_FileName was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
-	fi
 
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"; then
 		echo "Variable Deployer_Key_Vault was added to the $VARIABLE_GROUP variable group."
@@ -513,19 +453,13 @@ if [ 0 = $return_code ]; then
 		echo "Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"; then
-		echo "Variable ControlPlaneEnvironment was added to the $VARIABLE_GROUP variable group."
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
+		echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
 	else
-		echo "##vso[task.logissue type=error]Variable ControlPlaneEnvironment was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable ControlPlaneEnvironment was not added to the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"; then
-		echo "Variable ControlPlaneLocation was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable ControlPlaneLocation was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable ControlPlaneLocation was not added to the $VARIABLE_GROUP variable group."
-	fi
 
 fi
 exit $return_code

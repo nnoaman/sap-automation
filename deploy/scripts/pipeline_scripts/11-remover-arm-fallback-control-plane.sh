@@ -22,6 +22,7 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
 	debug=true
 	export debug
+	printenv | sort
 fi
 
 if [ "${#PAT}" -gt 0 ]; then
