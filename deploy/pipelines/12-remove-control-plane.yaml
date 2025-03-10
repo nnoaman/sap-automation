@@ -9,15 +9,6 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           MGMT-WEEU-DEP01-INFRASTRUCTURE
-
-  - name:                              library
-    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
 
   - name:                              control_plane_name
     displayName:                       "Control Plane configuration name, use this format: ENV-LOCA-VNET"
@@ -47,9 +38,7 @@ stages:
     variables:
       - template:                      variables/12-remove-control-plane-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
           control_plane_name:          ${{ parameters.control_plane_name }}
-          library:                     ${{ parameters.library }}
           use_deployer:                ${{ parameters.use_deployer }}
     pool:
       name:                            $(POOL)
@@ -72,11 +61,7 @@ stages:
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             env:
-              CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
-              CHECK_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
-              CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
-              CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
-              CHECK_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -105,9 +90,7 @@ stages:
     variables:
       - template:                       variables/12-remove-control-plane-variables.yaml
         parameters:
-          deployer:                     ${{ parameters.deployer }}
-          control_plane_name:         ${{ parameters.control_plane_name }}
-          library:                      ${{ parameters.library }}
+          control_plane_name:           ${{ parameters.control_plane_name }}
           use_deployer:                 ${{ parameters.use_deployer }}
     pool:
       name:                             $(Agent)
