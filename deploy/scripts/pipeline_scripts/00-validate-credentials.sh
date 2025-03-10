@@ -2,6 +2,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+printenv | sort
+
 # Description: This script validates the credentials and sets the output variables for the pipeline.
 if [ "${CHECK_ARM_SUBSCRIPTION_ID:0:2}" != '$(' ]; then
 	echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$CHECK_ARM_SUBSCRIPTION_ID"
