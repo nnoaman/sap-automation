@@ -63,6 +63,8 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             env:
               AZURE_DEVOPS_EXT_PAT:    $(PAT)
+              SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
+              SYSTEM_TEAMPROJECT:      $(System.TeamProject)
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
@@ -138,6 +140,9 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             env:
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
+              SYSTEM_TEAMPROJECT:      $(System.TeamProject)
+
           - task: Bash@3
             inputs:
               targetType:              'filePath'
