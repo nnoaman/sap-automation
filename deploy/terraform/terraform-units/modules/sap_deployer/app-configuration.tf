@@ -233,3 +233,53 @@ resource "azurerm_app_configuration_key" "deployer_msi_id" {
             }
 }
 
+resource "azurerm_private_endpoint" "app_config" {
+  provider                             = azurerm.main
+  count                                = !var.bootstrap && var.use_private_endpoint ? 1 : 0
+  name                                 = format("%s%s%s",
+                                          var.naming.resource_prefixes.appconfig_private_link,
+                                          local.prefix,
+                                          var.naming.resource_suffixes.appconfig_private_link
+                                        )
+  resource_group_name                  = var.deployer_tfstate.created_resource_group_name
+  location                             = var.deployer_tfstate.created_resource_group_location
+  subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
+  custom_network_interface_name        = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.appconfig_private_link,
+                                           local.prefix,
+                                           var.naming.resource_suffixes.appconfig_private_link,
+                                           var.naming.resource_suffixes.nic
+                                         )
+
+  private_service_connection {
+                               name                           = format("%s%s%s",
+                                                                  var.naming.resource_prefixes.appconfig_private_svc,
+                                                                  local.prefix,
+                                                                  var.naming.resource_suffixes.appconfig_private_svc
+                                                                )
+                               is_manual_connection           = false
+                               private_connection_resource_id = var.deployer_tfstate.deployer_app_config_id
+                               subresource_names              = [
+                                                                  "configurationStores"
+                                                                ]
+                             }
+
+  dynamic "private_dns_zone_group" {
+                                     for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
+                                     content {
+                                               name                 = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
+                                               private_dns_zone_ids = [data.azurerm_private_dns_zone.appconfig[0].id]
+                                             }
+                                   }
+
+}
+
+
+data "azurerm_private_dns_zone" "appconfig" {
+  provider                             = azurerm.privatelinkdnsmanagement
+  count                                = !var.bootstrap && !local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  name                                 = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
+  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,var.dns_settings.local_dns_resourcegroup_name)
+
+}
