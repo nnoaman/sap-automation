@@ -267,7 +267,7 @@ resource "azurerm_private_endpoint" "app_config" {
                                                                   var.naming.resource_suffixes.appconfig_private_svc
                                                                 )
                                is_manual_connection           = false
-                               private_connection_resource_id = var.deployer_tfstate.deployer_app_config_id
+                               private_connection_resource_id = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
                                subresource_names              = [
                                                                   "configurationStores"
                                                                 ]
