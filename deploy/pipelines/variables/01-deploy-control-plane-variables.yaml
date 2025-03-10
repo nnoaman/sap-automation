@@ -88,4 +88,4 @@ variables:
     value:                             ${{ parameters.force_reset }}
 
   - name:                              tester
-    value:                             $[format('{0}-{1}-SAP_LIBRARY', split(parameters.control_plane_name, '-')[0], split(parameters.control_plane_name, '-')[1])]
+    value:                             $[format('{0}-{1}-SAP_LIBRARY', split({{ parameters.control_plane_name }}, '-')[0], split({{ parameters.control_plane_name }}, '-')[1])]
