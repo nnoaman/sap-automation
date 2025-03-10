@@ -24,7 +24,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 
 	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_CLIENT_SECRET.value")
 	if [ -n "${az_var}" ]; then
-		echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$az_var"
+		echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true;issecret=true]$az_var"
 	fi
 
 	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_TENANT_ID.value")
