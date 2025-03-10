@@ -61,12 +61,6 @@ stages:
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            env:
-              CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
-              CHECK_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
-              CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
-              CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
-              CHECK_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
@@ -140,12 +134,6 @@ stages:
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            env:
-              CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
-              CHECK_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
-              CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
-              CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
-              CHECK_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
           - task: Bash@3
             inputs:
               targetType:              'filePath'
@@ -167,7 +155,6 @@ stages:
               DEPLOYER_TFSTATE_KEY:         "${{ parameters.control_plane_name }}-INFRASTRUCTURE.terraform.tfstate"
               FORCE_RESET:                  ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:       true
-              LOGON_USING_SPN:              $(Logon_Using_SPN)
               POOL:                         $(POOL)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
@@ -222,18 +209,6 @@ stages:
               zipAfterPublish:         true
               modifyOutputPath:        true
 
-          - task:                      Bash@3
-            inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            env:
-              CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
-              CHECK_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
-              CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
-              CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
-              CHECK_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
           - task:                      AzureWebApp@1
             displayName:               "Deploy the Configuration Web Application"
             inputs:
@@ -252,7 +227,8 @@ stages:
                             -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
                             -IS_PIPELINE_DEPLOYMENT true
                             -CONTROLPLANE_ENV $(ControlPlaneEnvironment)
-                            -CONTROLPLANE_LOC $(ControlPlaneLocation)'
+                            -CONTROLPLANE_LOC $(ControlPlaneLocation)
+                            -CONTROLPLANE_NAME $(CONTROLPLANE_NAME)'
             env:
               ARM_SUBSCRIPTION_ID:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
               SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
@@ -266,6 +242,7 @@ stages:
               APP_REGISTRATION_OBJECTID: $(APP_REGISTRATION_OBJECTID)
               APP_TENANT_ID:             $(ParameterValidation.ARM_TENANT_ID)
               AZURE_CONNECTION_NAME:     ${{variables.connection_name}}
+              CONTROLPLANE_NAME:         ${{ parameters.control_plane_name }}
 
           - bash: |
               #!/bin/bash
