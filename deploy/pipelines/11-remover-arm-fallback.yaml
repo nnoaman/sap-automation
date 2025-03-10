@@ -75,7 +75,7 @@ stages:
       - job:                           Remove_SAP_system_RG
         displayName:                   Remove SAP System ${{ parameters.cleanup_sap }}
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment }}
+          - group:                     SDAF-${{ parameters.workload_zone_name }}
         steps:
           - task:                      AzureResourceManagerTemplateDeployment@3
             displayName:               Remove Resource Group $(sap_system_foldername)
@@ -89,7 +89,7 @@ stages:
       - job:                           Remove_sap_deployment_artifacts_in_WORKSPACES
         displayName:                   Remove SAP System deployment artifacts from WORKSPACES
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment }}
+          - group:                     SDAF-${{ parameters.workload_zone_name }}
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
@@ -121,7 +121,7 @@ stages:
       - job:                           Remove_SAP_workload_zone
         displayName:                   Remove SAP workload zone ${{ parameters.cleanup_workload_zone }}
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment }}
+          - group:                     SDAF-${{ parameters.workload_zone_name }}
         steps:
           - task:                      AzureResourceManagerTemplateDeployment@3
             displayName:               Remove Resource Group
@@ -135,7 +135,7 @@ stages:
       - job:                           Remove_zone_deployment_artifacts_in_WORKSPACES
         displayName:                   Remove Workload Zone deployment artifacts
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment }}
+          - group:                     SDAF-${{ parameters.workload_zone_name }}
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
@@ -166,7 +166,7 @@ stages:
       - job:                           Remove_control_plane_deployment
         displayName:                   Remove Control Plane deployment
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment }}
+          - group:                     SDAF-${{ parameters.control_plane_name }}
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
