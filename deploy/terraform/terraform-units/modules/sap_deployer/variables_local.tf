@@ -244,5 +244,5 @@ locals {
   app_config_name                      = length(var.infrastructure.application_configuration_id) > 0 ? local.parsed_id["resource_name"] : ""
   app_config_resource_group_name       = length(var.infrastructure.application_configuration_id) > 0 ? local.parsed_id["resource_group_name"] : ""
 
-
+  use_local_privatelink_dns            = var.dns_settings.create_privatelink_dns_zones && !var.dns_settings.use_custom_dns_a_registration && length(trimspace(var.dns_settings.privatelink_dns_resourcegroup_name)) == 0
 }

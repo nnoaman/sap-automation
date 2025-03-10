@@ -241,13 +241,15 @@ locals {
                                          }
 
   dns_settings                         = {
-                                           use_custom_dns_a_registration = var.use_custom_dns_a_registration
-                                           dns_zone_names = var.dns_zone_names
+                                           use_custom_dns_a_registration      = var.use_custom_dns_a_registration
+                                           dns_zone_names                     = var.dns_zone_names
 
-                                           management_dns_resourcegroup_name = trimspace(var.management_dns_resourcegroup_name)
-                                           management_dns_subscription_id = var.management_dns_subscription_id
+                                           local_dns_resourcegroup_name       = local.SAPLibrary_resource_group_name
 
-                                           privatelink_dns_subscription_id = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
+                                           management_dns_resourcegroup_name  = trimspace(var.management_dns_resourcegroup_name)
+                                           management_dns_subscription_id     = var.management_dns_subscription_id
+
+                                           privatelink_dns_subscription_id    = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
                                            privatelink_dns_resourcegroup_name = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
                                          }
 
