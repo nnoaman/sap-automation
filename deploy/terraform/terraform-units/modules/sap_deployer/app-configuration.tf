@@ -241,9 +241,18 @@ resource "azurerm_private_endpoint" "app_config" {
                                           local.prefix,
                                           var.naming.resource_suffixes.appconfig_private_link
                                         )
-  resource_group_name                  = var.deployer_tfstate.created_resource_group_name
-  location                             = var.deployer_tfstate.created_resource_group_location
-  subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
+  resource_group_name                  = local.resource_group_exists ? (
+                                           data.azurerm_resource_group.deployer[0].name) : (
+                                           azurerm_resource_group.deployer[0].name
+                                         )
+  location                             = local.resource_group_exists ? (
+                                           data.azurerm_resource_group.deployer[0].location) : (
+                                           azurerm_resource_group.deployer[0].location
+                                         )
+  subnet_id                            = local.management_subnet_exists ? (
+                                           data.azurerm_subnet.subnet_mgmt[0].id) : (
+                                           azurerm_subnet.subnet_mgmt[0].id
+                                                                          )
   custom_network_interface_name        = format("%s%s%s%s",
                                            var.naming.resource_prefixes.appconfig_private_link,
                                            local.prefix,
