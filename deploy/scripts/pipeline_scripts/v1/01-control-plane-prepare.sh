@@ -92,14 +92,6 @@ if [ -n "$POOL" ]; then
 	echo "Deployer Agent Pool:                 $POOL"
 fi
 echo ""
-if [ "$USE_WEBAPP" = "true" ]; then
-	echo "Deploy Web App:                      true"
-else
-	echo "Deploy Web App:                      false"
-fi
-
-TF_VAR_use_webapp=$USE_WEBAPP
-export TF_VAR_use_webapp
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
