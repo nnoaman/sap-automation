@@ -721,6 +721,7 @@ else
     # Set env for MSI
     (echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     (echo export ARM_TENANT_ID="$${ARM_TENANT_ID}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+    (echo export ARM_CLIENT_ID="$${ARM_CLIENT_ID}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
 
     # if [[ -n $${TOKEN} ]]; then
     #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
