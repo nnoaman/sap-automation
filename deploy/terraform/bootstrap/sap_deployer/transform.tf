@@ -245,7 +245,7 @@ locals {
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns
                                            dns_zone_names                               = var.dns_zone_names
 
-                                           local_dns_resourcegroup_name                 = local.SAPLibrary_resource_group_name
+                                           local_dns_resourcegroup_name                 = ""
 
                                            management_dns_resourcegroup_name            = trimspace(var.management_dns_resourcegroup_name)
                                            management_dns_subscription_id               = var.management_dns_subscription_id
