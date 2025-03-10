@@ -19,9 +19,9 @@ parameters:
     default:                           true
 
   - name:                              sap_system
-    displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
+    displayName:                       "SAP System SID"
     type:                              string
-    default:                           DEV-WEEU-SAP01-X00
+    default:                           X00
 
   - name:                              cleanup_workload_zone
     displayName:                       Remove the SAP workload zone
@@ -29,7 +29,7 @@ parameters:
     default:                           true
 
   - name:                              workload_zone_name
-    displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET
+    displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET"
     type:                              string
     default:                           DEV-WEEU-SAP01
 
@@ -37,16 +37,6 @@ parameters:
     displayName:                       Remove the control plane
     type:                              boolean
     default:                           true
-
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
-
-  - name:                              library
-    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
 
   - name:                              control_plane_name
     displayName:                       Environment (MGMT, ...)
