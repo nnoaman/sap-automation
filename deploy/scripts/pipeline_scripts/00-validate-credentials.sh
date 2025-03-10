@@ -6,9 +6,6 @@ if ! az extension list --query "[?contains(name, 'azure-devops')].name" --output
 	az extension add --name azure-devops --output none --only-show-errors
 fi
 
-az account show
-az ad signed-in-user show
-
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
