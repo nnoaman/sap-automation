@@ -73,8 +73,6 @@ fi
 
 
 echo -e "$green--- Information ---$reset"
-echo "Environment:                         ${ENVIRONMENT}"
-echo "Location:                            ${LOCATION}"
 echo "Agent:                               $THIS_AGENT"
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo "Organization:                        $SYSTEM_COLLECTIONURI"
