@@ -294,6 +294,10 @@ echo ""
 set -eu
 
 if [ -f "${deployer_environment_file_name}" ]; then
+
+  APPLICATION_CONFIGURATION_ID=$(grep -m1 "^APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	export APPLICATION_CONFIGURATION_ID
+
 	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -z "$file_deployer_tfstate_key" ]; then
 		deployer_tfstate_key=$file_deployer_tfstate_key
