@@ -2,19 +2,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-printenv | sort
+if ! az extension list --query "[?contains(name, 'azure-devops')].name" --output tsv; then
+	az extension add --name azure-devops --output none --only-show-errors
+fi
 
-az extension list --query "[].name"
-
-az extension add --name azure-devops --output none --only-show-errors
-
-echo $SYSTEM_COLLECTIONURI
-echo $SYSTEM_TEAMPROJECT
-
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI
-
-az devops project list
-#"project='$SYSTEM_TEAMPROJECT'" --output none --only-show-errors
+az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID
 
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
