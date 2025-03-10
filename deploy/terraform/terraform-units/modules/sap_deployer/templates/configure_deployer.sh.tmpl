@@ -64,7 +64,7 @@ local_user="${local_user}"
 use_webapp="${use_webapp}"
 ansible_version="${ansible_core_version}"
 
-TOKEN="${pat}"
+PAT="${pat}"
 DEVURL="${ado_repo}"
 POOL="${pool}"
 AGENTNAME=$(hostname)
@@ -541,7 +541,7 @@ else
     # If the deployer will be an ADO agent install the devops cli
     # turn tracing off when you are here
     set +o xtrace
-    if [[ -n "$${TOKEN}" ]];
+    if [[ -n "$${PAT}" ]];
     then
         az extension add -n azure-devops > /dev/null
     fi
@@ -720,7 +720,7 @@ else
 
     # Set env for MSI
     (echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
-    (echo export ARM_TENANT_ID="$${tenant_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+    (echo export ARM_TENANT_ID="$${ARM_TENANT_ID}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
 
     # if [[ -n $${TOKEN} ]]; then
     #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
@@ -758,7 +758,7 @@ else
     # turn tracing off when you are here
     set +o xtrace
 
-    if [ -n "$${TOKEN}" ]; then
+    if [ -n "$${PAT}" ]; then
       echo "Token specified and using it"
       sudo touch "$${agent_home}/tok"
     else
@@ -769,7 +769,7 @@ else
     if [ -f "$${agent_home}/agent_configured" ]; then
       echo "Agent already configured"
     else
-      if [[ -n "$${TOKEN}" ]]; then
+      if [[ -n "$${PAT}" ]]; then
         echo "Configuring Agent"
         sudo chmod -R 744 "$${agent_home}"
 
@@ -780,7 +780,7 @@ else
           sudo rm "$${agent_home}/config_fixed_params.sh"
         fi
 
-        (echo "$${agent_home}/config.sh"  --unattended --url "$${DEVURL}" --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a "$${agent_home}/config_fixed_params.sh") > /dev/null 2>&1
+        (echo "$${agent_home}/config.sh"  --unattended --url "$${DEVURL}" --auth pat --token "$${PAT}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a "$${agent_home}/config_fixed_params.sh") > /dev/null 2>&1
         sudo chown "$${local_user}" "$${agent_home}/config_fixed_params.sh"
         sudo chmod +x "$${agent_home}/config_fixed_params.sh"
 
@@ -822,7 +822,7 @@ else
             ;;
         esac
       else
-        echo "NO TOKEN specified"
+        echo "NO PAT specified"
         echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
         sudo chmod 775 /etc/profile.d/deploy_server.sh
 
