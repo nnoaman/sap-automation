@@ -8,15 +8,6 @@
 # -------------------------------------+---------------------------------------8
 
 parameters:
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           CTL-SECE-DEP02-INFRASTRUCTURE
-
-  - name:                              library
-    displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
-    default:                           CTL-SECE-SAP_LIBRARY
 
   - name:                              control_plane_name
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
@@ -57,18 +48,6 @@ variables:
   - name:                              use_webapp
     value:                             ${{ lower(parameters.use_webapp_param) }}
 
-  - name:                              deployer_foldername
-    value:                             ${{ parameters.deployer }}
-
-  - name:                              deployer_tfvars_filename
-    value:                             ${{ parameters.deployer }}.tfvars
-
-  - name:                              library_foldername
-    value:                             ${{ parameters.library }}
-
-  - name:                              library_tfvars_filename
-    value:                             ${{ parameters.library }}.tfvars
-
   - name:                              log
     value:                             logfile_$(Build.BuildId)
 
@@ -87,8 +66,15 @@ variables:
   - name:                              force_reset
     value:                             ${{ parameters.force_reset }}
 
-  - name:                              tester
+  - name:                              library_foldername
     value:                             $[format('{0}-{1}-SAP_LIBRARY', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
 
-  - name:                              tester2
+  - name:                              library_tfvars_filename
+    value:                             $[format('{0}-{1}-SAP_LIBRARY.tfvars', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
+
+  - name:                              deployer_foldername
     value:                             $[format('{0}-INFRASTRUCTURE', '${{ parameters.control_plane_name }}')]
+
+  - name:                              deployer_tfvars_filename
+    value:                             $[format('{0}-INFRASTRUCTURE.tfvars', '${{ parameters.control_plane_name }}')]
+

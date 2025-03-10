@@ -6,30 +6,11 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           MGMT-WEEU-DEP01-INFRASTRUCTURE
-
-  - name:                              library
-    displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
 
   - name:                              control_plane_name
-    displayName:                       "Environment name, MGMT, DEV, QA, etc"
+    displayName:                       "Environment name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
     default:                           MGMT-WEEU-DEP01
-
-  - name:                              use_webapp_param
-    displayName:                       "Deploy the configuration web application infrastructure"
-    type:                              boolean
-    default:                           true
-
-  - name:                              deploy_webapp_software
-    displayName:                       "Deploy the configuration web application software"
-    type:                              boolean
-    default:                           true
 
   - name:                              use_deployer
     displayName:                       Run on self hosted agent
