@@ -84,16 +84,6 @@ if [ -n "$POOL" ]; then
 	echo "Deployer Agent Pool:                 $POOL"
 fi
 echo ""
-if [ "$USE_WEBAPP" = "true" ]; then
-	echo "Deploy Web App:                      true"
-else
-	echo "Deploy Web App:                      false"
-fi
-
-TF_VAR_use_webapp=$USE_WEBAPP
-export TF_VAR_use_webapp
-
-echo ""
 echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
 echo "Deployer TFvars:                     $DEPLOYER_TFVARS_FILENAME"
 echo "Library Folder:                      $LIBRARY_FOLDERNAME"
