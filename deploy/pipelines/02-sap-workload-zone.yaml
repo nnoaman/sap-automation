@@ -9,10 +9,6 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              workload_zone
-    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
   - name:                              workload_zone_name
     displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
@@ -48,7 +44,6 @@ stages:
     variables:
       - template:                      variables/02-sap-workload-zone-variables.yaml
         parameters:
-          workload_zone:               ${{ parameters.workload_zone }}
           workload_zone_name:          ${{ parameters.workload_zone_name }}
           control_plane_name:          ${{ parameters.control_plane_name }}
           inherit_settings:            ${{ parameters.inherit_settings }}
@@ -68,12 +63,6 @@ stages:
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            env:
-              CHECK_ARM_SUBSCRIPTION_ID:  $(WL_ARM_SUBSCRIPTION_ID)
-              CHECK_ARM_CLIENT_ID:        $(WL_ARM_CLIENT_ID),
-              CHECK_ARM_CLIENT_SECRET:    $(WL_ARM_CLIENT_SECRET)
-              CHECK_ARM_TENANT_ID:        $(WL_ARM_TENANT_ID)
-              CHECK_ARM_OBJECT_ID:        $(WL_ARM_OBJECT_ID)
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -92,11 +81,6 @@ stages:
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
-              WL_ARM_CLIENT_ID:             $(WL_ARM_CLIENT_ID)
-              WL_ARM_CLIENT_SECRET:         $(WL_ARM_CLIENT_SECRET)
-              WL_ARM_OBJECT_ID:             $(WL_ARM_OBJECT_ID)
-              WL_ARM_TENANT_ID:             $(WL_ARM_TENANT_ID)
-              FENCING_SPN_PWD:              $(FENCING_SPN_PWD)
               LOGON_USING_SPN:              $(Logon_Using_SPN)
               SAPBITS:                      $(INSTALLATION_MEDIA_ACCOUNT)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}

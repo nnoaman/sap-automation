@@ -8,7 +8,7 @@
 parameters:
 
   - name:                              control_plane_name
-    displayName:                       "Environment name, use the following syntax: ENV-LOCA-VNET"
+    displayName:                       "Control Plane Name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
     default:                           MGMT-WEEU-DEP01
 
