@@ -4,6 +4,8 @@
 
 printenv | sort
 
+az extension add --name azure-devops --output none --only-show-errors
+
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI "project='$SYSTEM_TEAMPROJECT'" --output none --only-show-errors
 
 
