@@ -17,12 +17,12 @@ module "sap_deployer" {
                                                    local.custom_names) : (
                                                     module.sap_namegenerator.naming
                                                  )
+  Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
+  additional_network_id                        = var.additional_network_id
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
   agent_ado_url                                = var.agent_ado_url
-  Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
   agent_pat                                    = var.agent_pat
   agent_pool                                   = var.agent_pool
-  additional_network_id                        = var.additional_network_id
   ansible_core_version                         = var.ansible_core_version
   app_config_service_name                      = try(module.sap_namegenerator.naming_new.appconfig_names.DEPLOYER, format("%s-APC",module.sap_namegenerator.naming.prefix.DEPLOYER))
   app_registration_app_id                      = var.use_webapp ? var.app_registration_app_id : ""
@@ -37,6 +37,7 @@ module "sap_deployer" {
   configure                                    = false
   deployer                                     = local.deployer
   deployer_vm_count                            = var.deployer_count
+  dns_settings                                 = local.dns_settings
   enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults           = var.enable_purge_control_for_keyvaults
   firewall                                     = local.firewall
@@ -47,18 +48,17 @@ module "sap_deployer" {
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
   public_network_access_enabled                = true # This can only be set once we have private DNS in place var.public_network_access_enabled
   sa_connection_string                         = var.sa_connection_string
-  soft_delete_retention_days                   = var.soft_delete_retention_days
   set_secret_expiry                            = var.set_secret_expiry
+  soft_delete_retention_days                   = var.soft_delete_retention_days
   spn_id                                       = var.spn_id
-  state_filename_prefix                        = module.sap_namegenerator.naming.prefix.DEPLOYER
   ssh-timeout                                  = var.ssh-timeout
+  state_filename_prefix                        = module.sap_namegenerator.naming.prefix.DEPLOYER
   subnets_to_add                               = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
   tf_version                                   = var.tf_version
   use_private_endpoint                         = var.use_private_endpoint
   use_service_endpoint                         = var.use_service_endpoint
   use_webapp                                   = var.use_webapp
   webapp_client_secret                         = var.webapp_client_secret
-
 }
 
 module "sap_namegenerator" {

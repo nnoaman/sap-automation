@@ -17,12 +17,13 @@ module "sap_deployer" {
                                                      local.custom_names) : (
                                                      module.sap_namegenerator.naming
                                                    )
+
+  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
+  additional_network_id                         = var.additional_network_id
   additional_users_to_add_to_keyvault_policies  = var.additional_users_to_add_to_keyvault_policies
   agent_ado_url                                 = var.agent_ado_url
-  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   agent_pat                                     = var.agent_pat
   agent_pool                                    = var.agent_pool
-  additional_network_id                         = var.additional_network_id
   ansible_core_version                          = var.ansible_core_version
   app_config_service_name                       = module.sap_namegenerator.naming_new.appconfig_names.DEPLOYER
   app_registration_app_id                       = var.use_webapp ? var.app_registration_app_id : ""
@@ -37,6 +38,7 @@ module "sap_deployer" {
   configure                                     = true
   deployer                                      = local.deployer
   deployer_vm_count                             = var.deployer_count
+  dns_settings                                  = local.dns_settings
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults            = var.enable_purge_control_for_keyvaults
   firewall                                      = local.firewall
@@ -58,8 +60,6 @@ module "sap_deployer" {
   use_service_endpoint                          = var.use_service_endpoint
   use_webapp                                    = var.use_webapp
   webapp_client_secret                          = var.webapp_client_secret
-  dns_settings                                  = local.dns_settings
-
 }
 
 module "sap_namegenerator" {
