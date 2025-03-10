@@ -360,15 +360,8 @@ function bootstrap_library {
 
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-			if [ -z "$terraform_storage_account_name" ]; then
-				terraform_storage_account_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
-			fi
-			if [ -z "$terraform_storage_account_name" ]; then
-				terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-			fi
-			if [ -z "$terraform_storage_account_subscription_id" ]; then
-				terraform_storage_account_subscription_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
-			fi
+			terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+			terraform_storage_account_subscription_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
 
 			if [ "${ado_flag}" != "--ado" ]; then
 				az storage account network-rule add -g "${terraform_storage_account_resource_group_name}" --account-name "${terraform_storage_account_name}" --ip-address "${this_ip}" --output none
