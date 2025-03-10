@@ -69,4 +69,3 @@ variables:
 
   - name:                              deployer_tfvars_filename
     value:                             $[format('{0}-INFRASTRUCTURE.tfvars', '${{ parameters.control_plane_name }}')]
-
