@@ -290,13 +290,13 @@ cd "${CONFIG_REPO_PATH}" || exit
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
-if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
-	git add .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
+	git add ".sap_deployment_automation/$CONTROL_PLANE_NAME"
 	added=1
 fi
 
-if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
-	git add .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md
+if [ -f .".sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
+	git add .".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
 	added=1
 fi
 
