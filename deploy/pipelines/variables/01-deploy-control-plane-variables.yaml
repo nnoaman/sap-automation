@@ -14,11 +14,6 @@ parameters:
     type:                              string
     default:                           CTL-SECE-DEP02
 
-  - name:                              use_webapp_param
-    displayName:                       "Deploy the configuration web application"
-    type:                              boolean
-    default:                           true
-
   - name:                              use_deployer
     displayName:                       Run on self hosted agent
     type:                              boolean
@@ -44,9 +39,6 @@ variables:
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.control_plane_name }}
-
-  - name:                              use_webapp
-    value:                             ${{ lower(parameters.use_webapp_param) }}
 
   - name:                              log
     value:                             logfile_$(Build.BuildId)
