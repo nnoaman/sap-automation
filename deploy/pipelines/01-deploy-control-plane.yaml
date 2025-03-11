@@ -170,6 +170,7 @@ stages:
       - template:                      variables/01-app-service-variables.yaml
         parameters:
           control_plane_name:          ${{ parameters.control_plane_name }}
+          use_deployer:                ${{ parameters.use_deployer }}
     displayName:                       Deploy SAP configuration Web App
     dependsOn:
       - Prepare_Deployer

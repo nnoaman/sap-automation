@@ -19,6 +19,10 @@ parameters:
     type:                              string
     default:                           Control_Plane_Service_Connection
 
+  - name:                              use_deployer
+    displayName:                       Run on self hosted agent
+    type:                              boolean
+    default:                           false
 
 variables:
   - group:                             "SDAF-General"
