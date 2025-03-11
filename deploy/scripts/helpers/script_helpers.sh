@@ -9,7 +9,6 @@ bold_red="\e[1;31m"
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
-
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
@@ -430,7 +429,7 @@ function validate_dependencies {
 	fi
 
 	if [ -z "$tf" ]; then
-	  print_banner "Installer" "Terraform not found" "error"
+		print_banner "Installer" "Terraform not found" "error"
 		return 2 #No such file or directory
 	fi
 
@@ -447,12 +446,12 @@ function validate_dependencies {
 
 	az_version=$(az --version | grep "azure-cli")
 	if [ -z "${az_version}" ]; then
-	  print_banner "Installer" "Azure CLI not found" "error"
+		print_banner "Installer" "Azure CLI not found" "error"
 		return 2 #No such file or directory
 	fi
 	cloudIDUsed=$(az account show | grep "cloudShellID" || true)
 	if [ -n "${cloudIDUsed}" ]; then
-    print_banner "Installer" "Please login using your credentials or service principal credentials" "error"
+		print_banner "Installer" "Please login using your credentials or service principal credentials" "error"
 		exit 67 #addressee unknown
 	fi
 
@@ -468,7 +467,7 @@ function validate_key_parameters {
 	export environment
 
 	if [ -z "${environment}" ]; then
-	  print_banner "Installer" "Incorrect parameter file" "error" "The file must contain the environment attribute"
+		print_banner "Installer" "Incorrect parameter file" "error" "The file must contain the environment attribute"
 		return 64 #script usage wrong
 	fi
 
@@ -477,7 +476,7 @@ function validate_key_parameters {
 	export region
 
 	if [ -z "${region}" ]; then
-	  print_banner "Installer" "Incorrect parameter file" "error" "The file must contain the location attribute"
+		print_banner "Installer" "Incorrect parameter file" "error" "The file must contain the location attribute"
 		return 64 #script usage wrong
 	fi
 
@@ -602,8 +601,11 @@ function ImportAndReRunApply {
 
 				echo terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters
 				# shellcheck disable=SC2086
-				terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee -a "$fileName"
-				return_value=${PIPESTATUS[0]}
+				if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee -a "$fileName"; then
+					return_value=${PIPESTATUS[0]}
+				else
+					return_value=${PIPESTATUS[0]}
+				fi
 				if [ $return_value -eq 1 ]; then
 					print_banner "Installer" "Errors during the apply phase" "error"
 				else
@@ -619,14 +621,16 @@ function ImportAndReRunApply {
 				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
 				if [[ -n ${existing} ]]; then
 					return_value=0
-				else
-					rm "$fileName"
+
 				fi
 			fi
 		else
 			print_banner "Installer" "No resources to import" "info"
-			rm "$fileName"
 			return_value=10
+		fi
+
+		if [ -f "$fileName" ]; then
+			rm "$fileName"
 		fi
 	fi
 
@@ -642,7 +646,7 @@ function testIfResourceWouldBeRecreated {
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
 	willResourceWouldBeRecreated=$(grep "$moduleId" "$fileName" | grep -m1 "must be replaced" || true)
 	if [ -n "${willResourceWouldBeRecreated}" ]; then
-		print_banner "Installer" "Risk for dataloss" "error"  "${val} will be removed"
+		print_banner "Installer" "Risk for dataloss" "error" "${val} will be removed"
 		echo "##vso[task.logissue type=error]Resource will be removed: $shortName"
 		return_value=1
 	fi

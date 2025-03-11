@@ -208,6 +208,32 @@ resource "azurerm_app_configuration_key" "web_application_resource_id" {
             }
 }
 
+resource "azurerm_app_configuration_key" "web_application_identity_id" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_application_configuration ? var.use_webapp ? 1 :0 : 0
+  depends_on                           = [
+                                            time_sleep.wait_for_appconf_dataowner_assignment
+                                         ]
+
+  configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
+  key                                  = format("%s_AppServiceIdentityId", var.state_filename_prefix)
+  label                                = var.state_filename_prefix
+  value                                = try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "")
+  content_type                         = "text/id"
+  type                                 = "kv"
+  tags                                 = {
+                                           "source" = "Deployer"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
+}
+
+
 resource "azurerm_app_configuration_key" "deployer_msi_id" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0

@@ -402,7 +402,7 @@ function migrate_deployer_state() {
 	#                                                                                        #
 	#                                                                                        #
 	##########################################################################################
-	print_banner "Migrate-Deployer" "Migrating the deployer state..." "info"
+	print_banner "Deployer" "Migrating the deployer state..." "info"
 
 	cd "${deployer_dirname}" || exit
 
@@ -423,7 +423,7 @@ function migrate_deployer_state() {
 		export step=2
 		save_config_var "step" "${deployer_config_information}"
 		echo "##vso[task.setprogress value=40;]Progress Indicator"
-		print_banner "Migrate-Deployer" "Could not find the SAP Library, please re-run!" "error"
+		print_banner "Deployer" "Could not find the SAP Library, please re-run!" "error"
 		exit 11
 	fi
 
@@ -434,10 +434,10 @@ function migrate_deployer_state() {
 		echo ""
 		step=3
 		save_config_var "step" "${deployer_config_information}"
-		print_banner "Migrate-Deployer" "Migrating the Deployer state failed." "error"
+		print_banner "Deployer" "Migrating the Deployer state failed." "error"
 		exit 30
 	else
-		print_banner "Migrate-Deployer" "Migrating the Deployer state succeeded." "success"
+		print_banner "Deployer" "Migrating the Deployer state succeeded." "success"
 	fi
 
 	cd "$root_dirname" || exit
@@ -458,7 +458,7 @@ function migrate_library_state() {
 	#                                                                                        #
 	##########################################################################################
 
-	print_banner "Migrate-Library" "Migrating the library state..." "info"
+	print_banner "Library" "Migrating the library state..." "info"
 
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
 	cd "${library_dirname}" || exit
@@ -468,13 +468,13 @@ function migrate_library_state() {
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 		$ado_flag $autoApproveParameter; then
 
-		print_banner "Migrate-Library" "Migrating the Library state failed." "error"
+		print_banner "Library" "Migrating the Library state failed." "error"
 		step=4
 		save_config_var "step" "${deployer_config_information}"
 		return 40
 	else
 		return_code=$?
-		print_banner "Migrate-Library" "Migrating the Library state succeeded." "success"
+		print_banner "Library" "Migrating the Library state succeeded." "success"
 	fi
 
 	cd "$root_dirname" || exit
@@ -580,7 +580,7 @@ function execute_deployment_steps() {
 
 	if [ 3 -eq "${step}" ]; then
 		if ! migrate_deployer_state; then
-			print_banner "Migrate-Deployer" "Migration of deployer state failed" "error"
+			print_banner "Deployer" "Migration of deployer state failed" "error"
 			return $?
 		else
 			step=4
@@ -589,7 +589,7 @@ function execute_deployment_steps() {
 	fi
 	if [ 4 -eq "${step}" ]; then
 		if ! migrate_library_state; then
-			print_banner "Migrate-Library" "Migration of library state failed" "error"
+			print_banner "Library" "Migration of library state failed" "error"
 			return $?
 		else
 			step=5
@@ -599,7 +599,7 @@ function execute_deployment_steps() {
 	if [ 5 -eq "${step}" ]; then
 		if [ "${ado_flag}" != "--ado" ]; then
 			if ! copy_files_to_public_deployer; then
-				print_banner "Migrate-Library" "Copying files failed" "error"
+				print_banner "Library" "Copying files failed" "error"
 				return $?
 			else
 				step=3

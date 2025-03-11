@@ -84,7 +84,7 @@ stages:
               TF_VAR_tf_version:              $(tf_version)
               TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               USE_MSI:                        $(Use_MSI)
-  - stage:                             Deploy_controlplane
+  - stage:                             DeployControlplaneStage
     dependsOn:
                                        - Prepare_Deployer
     condition:                         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
@@ -98,7 +98,7 @@ stages:
     displayName:                       Deploy the control plane
 
     jobs:
-      - job:                           Deploy_controlplane
+      - job:                           DeployControlplaneJob
         displayName:                   Deploy the control plane
         workspace:
           clean:                       all
@@ -167,22 +167,25 @@ stages:
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
     variables:
-      control_plane_name:              ${{ parameters.control_plane_name }}
-
+      - template:                      variables/01-app-service-variables.yaml
+        parameters:
+          control_plane_name:          ${{ parameters.control_plane_name }}
+          use_deployer:                ${{ parameters.use_deployer }}
     displayName:                       Deploy SAP configuration Web App
-
     dependsOn:
-      - Deploy_controlplane
       - Prepare_Deployer
+      - DeployControlplaneStage
     condition: |
       and
       (
-        eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
-        eq(dependencies.Prepare_Deployer.result, 'Succeeded'),
-        eq(stageDependencies.Deploy_controlplane.Deploy_controlplane.outputs['GetWebAppVariables.HAS_WEBAPP'], 'true')
+        eq(dependencies.DeployControlplaneStage.result, 'Succeeded'),
+        eq(dependencies.Prepare_Deployer.result, 'Succeeded')
+
       )
     jobs:
       - job:                           Deploy_web_app
+        variables:
+          APPSERVICE_NAME:             $[ stageDependencies.DeployControlplaneStage.DeployControlplaneJob.outputs['GetWebAppVariables.APPSERVICE_NAME']]
         displayName:                   Deploy SAP configuration Web App
         workspace:
           clean:                       all
@@ -263,9 +266,7 @@ stages:
 
             displayName: "Documentation"
             env:
-              ARM_SUBSCRIPTION_ID: $(CP_ARM_SUBSCRIPTION_ID)
-              SYSTEM_PIPELINE_ID: $(SYSTEM_PIPELINE_ID)
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-              WEBAPP_URL_BASE: $(APPSERVICE_NAME)
-              WEBAPP_ID: $(WEBAPP_ID)
-              WEBAPP_IDENTITY: $(WEBAPP_IDENTITY)
+              WEBAPP_URL_BASE:         $(APPSERVICE_NAME)
+              WEBAPP_ID:               $(WEBAPP_ID)
+              WEBAPP_IDENTITY:         $(WEBAPP_IDENTITY)

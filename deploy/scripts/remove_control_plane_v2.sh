@@ -406,33 +406,21 @@ function remove_control_plane() {
 		diagnostics_account_name=$(echo "${diagnostics_account_id}" | cut -d'/' -f9)
 		diagnostics_account_resource_group_name=$(echo "${diagnostics_account_id}" | cut -d'/' -f5)
 		diagnostics_account_subscription_id=$(echo "${diagnostics_account_id}" | cut -d'/' -f3)
-		az storage account update --name "$diagnostics_account_name" --resource-group "$diagnostics_account_resource_group_name" --subscription "$diagnostics_account_subscription_id" --allow-shared-key-access
+		az storage account update --name "$diagnostics_account_name" --resource-group "$diagnostics_account_resource_group_name" --subscription "$diagnostics_account_subscription_id" --allow-shared-key-access --output none
 	fi
 
 	if terraform -chdir="${terraform_module_directory}" apply -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
 	else
-		return_value=$?
+		return_value=0
 		print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
-		return 20
-	fi
-
-	if ! terraform -chdir="${terraform_module_directory}" output testing; then
-		echo "not found"
-	else
-		echo "found"
 	fi
 
 	print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
 
 	deployer_statefile_foldername_path="${param_dirname}"
 	export TF_VAR_deployer_statefile_foldername="${deployer_statefile_foldername_path}"
-
-	if [ 0 != $return_value ]; then
-		unset TF_DATA_DIR
-		exit 10
-	fi
 
 	if [ -z $TF_VAR_spn_keyvault_id ]; then
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then

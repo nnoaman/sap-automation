@@ -14,16 +14,15 @@ parameters:
     type:                              string
     default:                           CTL-SECE-DEP02
 
-  - name:                              use_app_service
-    displayName:                       Has App Service been deployed?
-    type:                              boolean
-    default:                           false
-
   - name:                              connection_name
     displayName:                       Service Connection Name
     type:                              string
     default:                           Control_Plane_Service_Connection
 
+  - name:                              use_deployer
+    displayName:                       Run on self hosted agent
+    type:                              boolean
+    default:                           false
 
 variables:
   - group:                             "SDAF-General"
@@ -44,6 +43,3 @@ variables:
 
   - name:                              control_plane_name
     value:                             ${{ parameters.control_plane_name }}
-
-  - name:                              use_app_service
-    value:                             ${{ parameters.use_app_service }}
