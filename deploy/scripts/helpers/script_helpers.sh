@@ -25,8 +25,23 @@ function print_banner() {
 	else
 		message="$2"
 	fi
+
+	length=${#title}
+	if ((length % 2 == 0)); then
+		title="$2 "
+	else
+		title="$2"
+	fi
+
 	local type="${3:-info}"
 	local secondary_message="${4:-''}"
+
+	length=${#secondary_message}
+	if ((length % 2 == 0)); then
+		secondary_message="$2 "
+	else
+		secondary_message="$2"
+	fi
 
 	local boldred="\e[1;31m"
 	local cyan="\e[1;36m"
@@ -71,7 +86,7 @@ function print_banner() {
 	echo "#                                                                               #"
 	echo -e "#${color}${centered_message}${reset}#"
 	echo "#                                                                               #"
-	if [ ${#secondary_message} -gt 2 ]; then
+	if [ ${#secondary_message} -gt 3 ]; then
 		local centered_secondary_message
 		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
 		echo -e "#${color}${centered_secondary_message}${reset}#"
@@ -81,7 +96,6 @@ function print_banner() {
 	echo -e "${reset}"
 	echo ""
 }
-
 
 function control_plane_showhelp {
 	echo ""
