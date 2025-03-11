@@ -549,28 +549,16 @@ if [ "$DEBUG" = True ]; then
 	terraform -chdir="${terraform_module_directory}" output
 fi
 
-if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
+export tfstate_resource_id
 
-	tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
-	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
+library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+if [ -n "${library_random_id}" ]; then
+	save_config_var "library_random_id" "${library_config_information}"
+	custom_random_id="${library_random_id:0:3}"
+	sed -i -e /"custom_random_id"/d "${var_file}"
+	printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
-	az account set --sub "$STATE_SUBSCRIPTION"
-
-	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-	export REMOTE_STATE_SA
-
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${library_config_information}"
-
-	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-	if [ -n "${library_random_id}" ]; then
-		save_config_var "library_random_id" "${library_config_information}"
-		custom_random_id="${library_random_id:0:3}"
-		sed -i -e /"custom_random_id"/d "${var_file}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-
-	fi
-else
-	return_value=20
 fi
 
 exit $return_value
