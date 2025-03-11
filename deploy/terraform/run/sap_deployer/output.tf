@@ -47,6 +47,13 @@ output "random_id"                               {
                                                    value       = substr(coalesce(var.custom_random_id, module.sap_deployer.random_id), 0, 3)
                                                  }
 
+
+output "diagnostics_account_id"                  {
+                                                    description = "Diagnostics Storage Account ID"
+                                                    value       = module.sap_deployer.diagnostics_account_id
+                                                 }
+
+
 ###############################################################################
 #                                                                             #
 #                                 Deployer                                    #

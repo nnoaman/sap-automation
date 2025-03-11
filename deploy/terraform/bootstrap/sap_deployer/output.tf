@@ -46,6 +46,10 @@ output "random_id"                               {
                                                    description = "Random ID for deployer"
                                                    value       = substr(coalesce(var.custom_random_id, module.sap_deployer.random_id), 0, 3)
                                                  }
+output "diagnostics_account_id"                  {
+                                                    description = "Diagnostics Storage Account ID"
+                                                    value       = module.sap_deployer.diagnostics_account_id
+                                                 }
 
 ###############################################################################
 #                                                                             #
@@ -218,6 +222,12 @@ output "webapp_id"                               {
                                                    description = "The Azure resource ID of the configuration Web Application"
                                                    value       = var.use_webapp ? module.sap_deployer.webapp_id : ""
                                                  }
+
+output "use_webapp"                             {
+                                                   description = "Is the App Service deployed"
+                                                   value       = var.use_webapp
+                                                 }
+
 
 ###############################################################################
 #                                                                             #

@@ -260,3 +260,9 @@ output "deployer_app_config_id"                  {
                                                     value       = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
                                                  }
 
+
+output "diagnostics_account_id "                 {
+                                                    description = "Diagnostics Storage Account ID"
+                                                    value       = length(var.diagnostics.storage_account_id) == 0 ? azurerm_storage_account.diagnostics[0].id : data.azurerm_storage_account.diagnostics[0].id
+                                                 }
+
