@@ -261,7 +261,7 @@ output "deployer_app_config_id"                  {
                                                  }
 
 
-output "diagnostics_account_id "                 {
+output "diagnostics_account_id"                  {
                                                     description = "Diagnostics Storage Account ID"
                                                     value       = length(var.diagnostics.storage_account_id) == 0 ? azurerm_storage_account.diagnostics[0].id : data.azurerm_storage_account.diagnostics[0].id
                                                  }
