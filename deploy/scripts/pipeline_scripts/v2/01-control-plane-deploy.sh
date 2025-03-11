@@ -410,13 +410,6 @@ fi
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"; then
-		echo "Variable Deployer_Key_Vault was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
-	fi
-
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
 		echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
 	else
