@@ -73,6 +73,18 @@ provider "azurerm"                     {
                                          use_msi                    = var.use_spn ? false : true
                                        }
 
+provider "azurerm"                     {
+                                         features {}
+                                         subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id), null)
+                                         alias                      = "privatelinkdnsmanagement"
+                                         client_id                  = var.use_spn ? local.spn.client_id : null
+                                         client_secret              = var.use_spn ? local.spn.client_secret: null
+                                         tenant_id                  = var.use_spn ? local.spn.tenant_id: null
+                                         storage_use_azuread        = !var.shared_access_key_enabled
+                                         use_msi                    = var.use_spn ? false : true
+                                       }
+
+
 terraform                              {
                                          required_version = ">= 1.0"
                                          required_providers {
