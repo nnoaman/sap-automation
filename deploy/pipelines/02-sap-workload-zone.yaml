@@ -38,9 +38,9 @@ parameters:
     default:                           false
 
 stages:
-  - stage: Deploy_SAP_workload_zone
-    condition: and(not(failed()), not(canceled()))
-    displayName: Deploy SAP workload zone
+  - stage:                             Deploy_SAP_workload_zone
+    condition:                         and(not(failed()), not(canceled()))
+    displayName:                       Deploy SAP workload zone
     variables:
       - template:                      variables/02-sap-workload-zone-variables.yaml
         parameters:
