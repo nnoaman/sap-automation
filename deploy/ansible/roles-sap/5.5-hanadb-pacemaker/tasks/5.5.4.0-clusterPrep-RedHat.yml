@@ -44,6 +44,10 @@
     #   when: >-
     #     get_status_maintenance_mode.stdout is not search('maintenance-mode') or
     #     get_status_maintenance_mode.stdout is search('maintenance-mode: false')
+    - name: Debug hostname and variables
+      ansible.builtin.debug:
+        msg: "Host: {{ ansible_hostname }}, primary: {{ primary_instance_name }}, secondary: {{ secondary_instance_name }}"
+
     - name:                            Stop HANA System on both nodes
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
@@ -146,7 +150,7 @@
                                          hostvars[secondary_instance_name]['chk_nfs_mounts_node2'] is defined and
                                          hostvars[secondary_instance_name]['chk_nfs_mounts_node2'] | length == 0 | default(false)
                                        }}"
-          retries:                     30
+          retries:                     10
           delay:                       60
           until:                       is_nfs_secondary_configured
 
