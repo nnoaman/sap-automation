@@ -210,52 +210,52 @@ function sdaf_remove_deployer() {
 
 	if terraform -chdir="${terraform_module_directory}" state list; then
 
-		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_state_file_name"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Setting 'deployer_state_file_name' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_state_file_name"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Setting 'deployer_state_file_name' removed from state"
+		# 	fi
+		# fi
 
-		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_keyvault_name"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Setting 'deployer_keyvault_name' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_keyvault_name"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Setting 'deployer_keyvault_name' removed from state"
+		# 	fi
+		# fi
 
-		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_keyvault_id"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Setting 'deployer_keyvault_id' removed from state"
-			fi
-		fi
-		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_resourcegroup_name"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Setting 'deployer_resourcegroup_name' removed from state"
-			fi
-		fi
-		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_subscription_id"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Setting 'deployer_subscription_id' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_keyvault_id"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Setting 'deployer_keyvault_id' removed from state"
+		# 	fi
+		# fi
+		# moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_resourcegroup_name"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Setting 'deployer_resourcegroup_name' removed from state"
+		# 	fi
+		# fi
+		# moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_subscription_id"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Setting 'deployer_subscription_id' removed from state"
+		# 	fi
+		# fi
 
-		moduleID="module.sap_deployer.azurerm_app_configuration_key.web_application_resource_id"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Setting 'web_application_resource_id' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_deployer.azurerm_app_configuration_key.web_application_resource_id"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Setting 'web_application_resource_id' removed from state"
+		# 	fi
+		# fi
 
-		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_msi_id"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Setting 'deployer_msi_id' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_msi_id"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Setting 'deployer_msi_id' removed from state"
+		# 	fi
+		# fi
 
 	fi
 	if [ -f terraform.tfvars ]; then
