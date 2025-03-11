@@ -42,10 +42,10 @@ variables:
     value:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              workload_zone_foldername
-    value:                             ${{ parameters.workload_zone }}-INFRASTRUCTURE
+    value:                             ${{ parameters.workload_zone_name }}-INFRASTRUCTURE
 
   - name:                              workload_zone_tfvars_filename
-    value:                             ${{ parameters.workload_zone }}-INFRASTRUCTURE.tfvars
+    value:                             ${{ parameters.workload_zone_name }}-INFRASTRUCTURE.tfvars
 
   - name:                              inherit
     value:                             $[lower(${{ parameters.inherit_settings }})]
