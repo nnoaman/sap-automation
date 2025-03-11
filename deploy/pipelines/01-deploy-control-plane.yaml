@@ -167,10 +167,10 @@ stages:
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
     variables:
-      control_plane_name:              ${{ parameters.control_plane_name }}
-
+      - template:                      variables/01-app-service-variables.yaml
+        parameters:
+          control_plane_name:          ${{ parameters.control_plane_name }}
     displayName:                       Deploy SAP configuration Web App
-
     dependsOn:
       - Prepare_Deployer
       - DeployControlplaneStage
