@@ -26,7 +26,7 @@ app_service_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURA
 app_service_identity_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceIdentityId" "${CONTROL_PLANE_NAME}")
 deployer_msi_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_Deployer_MSI_Id" "${CONTROL_PLANE_NAME}")
 app_service_name=$(echo "$app_service_id" | cut -d '/' -f 9)
-tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_TerraformRemoteStateStorageAccountId" "${deployer_environment}")
+tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 Terraform_Remote_Storage_Resource_Group_Name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 
 printf "Configure the Web Application authentication using the following script.\n" >"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
