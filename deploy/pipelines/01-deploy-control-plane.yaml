@@ -84,7 +84,7 @@ stages:
               TF_VAR_tf_version:              $(tf_version)
               TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               USE_MSI:                        $(Use_MSI)
-  - stage:                             Deploy_controlplane
+  - stage:                             DeployControlplaneStage
     dependsOn:
                                        - Prepare_Deployer
     condition:                         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
@@ -98,7 +98,7 @@ stages:
     displayName:                       Deploy the control plane
 
     jobs:
-      - job:                           Deploy_controlplane
+      - job:                           DeployControlplaneJob
         displayName:                   Deploy the control plane
         workspace:
           clean:                       all
@@ -177,9 +177,9 @@ stages:
     condition: |
       and
       (
-        eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
+        eq(dependencies.DeployControlplaneStage.result, 'Succeeded'),
         eq(dependencies.Prepare_Deployer.result, 'Succeeded'),
-        eq(stageDependencies.Deploy_controlplane.Deploy_controlplane.outputs['GetWebAppVariables.HAS_WEBAPP'], 'true')
+        eq(stageDependencies.DeployControlplaneStage.DeployControlplaneJob.outputs['GetWebAppVariables.HAS_WEBAPP'], 'true')
       )
     jobs:
       - job:                           Deploy_web_app
