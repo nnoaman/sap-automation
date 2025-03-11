@@ -85,9 +85,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                            azurerm_storage_account.storage_tfstate,
-                                           azurerm_private_dns_zone.blob
+                                           azurerm_private_dns_zone.appconfig
                                          ]
-  name                                 = format("%s%s%s%s-blob",
+  name                                 = format("%s%s%s%s-appconfig",
                                            try(var.naming.resource_prefixes.appconfig_link, ""),
                                            local.prefix,
                                            var.naming.separator,

@@ -25,11 +25,6 @@ parameters:
     type:                              boolean
     default:                           true
 
-  - name:                              workload_zone
-    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           TEST-SECE-SAP02-INFRASTRUCTURE
-
   - name:                              workload_zone_name
     displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
     type:                              string

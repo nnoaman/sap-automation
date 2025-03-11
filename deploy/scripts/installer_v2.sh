@@ -1010,6 +1010,8 @@ function sdaf_installer() {
 
 		app_service_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 
+		use_webapp=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw use_webapp | tr -d \")
+
 		echo ""
 		return_value=0
 		if [ 1 == $called_from_ado ]; then
@@ -1029,6 +1031,16 @@ function sdaf_installer() {
 					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name APPSERVICE_NAME --value "${app_service_name}" --output none --only-show-errors
 				fi
 			fi
+
+			if [ -n "${use_webapp}" ]; then
+				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "HAS_APPSERVICE_DEPLOYED.value")
+				if [ -z "${az_var}" ]; then
+					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name HAS_APPSERVICE_DEPLOYED --value "${use_webapp}" --output none --only-show-errors
+				else
+					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name HAS_APPSERVICE_DEPLOYED --value "${use_webapp}" --output none --only-show-errors
+				fi
+			fi
+
 		fi
 
 	fi

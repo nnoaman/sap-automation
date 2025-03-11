@@ -75,7 +75,6 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy SAP Workload Zone
             env:
-
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
               ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
@@ -86,7 +85,6 @@ stages:
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
               LOGON_USING_SPN:              $(Logon_Using_SPN)
-              SAPBITS:                      $(INSTALLATION_MEDIA_ACCOUNT)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               TEST_ONLY:                    ${{ parameters.test }}
