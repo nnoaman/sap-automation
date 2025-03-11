@@ -406,7 +406,7 @@ function remove_control_plane() {
 		diagnostics_account_name=$(echo "${diagnostics_account_id}" | cut -d'/' -f9)
 		diagnostics_account_resource_group_name=$(echo "${diagnostics_account_id}" | cut -d'/' -f5)
 		diagnostics_account_subscription_id=$(echo "${diagnostics_account_id}" | cut -d'/' -f3)
-		az storage account update --name "$diagnostics_account_name" --resource-group "$diagnostics_account_resource_group_name" --subscription "$diagnostics_account_subscription_id" --allow-shared-key-access
+		az storage account update --name "$diagnostics_account_name" --resource-group "$diagnostics_account_resource_group_name" --subscription "$diagnostics_account_subscription_id" --allow-shared-key-access --output none
 	fi
 
 	if terraform -chdir="${terraform_module_directory}" apply -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
