@@ -152,12 +152,11 @@ stages:
               TF_VAR_spn_id:                $(ParameterValidation.ARM_OBJECT_ID)
               TF_VAR_tf_version:            $(tf_version)
               USE_MSI:                      $(Use_MSI)
-          - bash: |
+          - task: Bash@3
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-webapp-variables.sh"
               failOnStderr:            false
-
             displayName:               "Get Web App Variables"
             name:                      GetWebAppVariables
             env:
