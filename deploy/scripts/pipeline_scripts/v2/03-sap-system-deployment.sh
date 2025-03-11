@@ -64,8 +64,6 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read deployment details ---$reset"
