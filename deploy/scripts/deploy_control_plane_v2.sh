@@ -526,6 +526,29 @@ function copy_files_to_public_deployer() {
 
 }
 
+# Function to retrieve data from Azure App Configuration
+function retrieve_parameters() {
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
+	TF_VAR_tfstate_resource_id=$tfstate_resource_id
+	export TF_VAR_tfstate_resource_id
+
+	terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+	export terraform_storage_account_name
+
+	terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+	export terraform_storage_account_resource_group_name
+
+	terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+	export terraform_storage_account_subscription_id
+
+	TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+
+	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+	export keyvault
+
+}
+
 # Function to execute deployment steps
 function execute_deployment_steps() {
 	local step=$1
@@ -615,8 +638,13 @@ function deploy_control_plane() {
 		echo "validate_dependencies returned $return_code"
 		return $return_code
 	fi
+
+	environment=$(echo $CONTROL_PLANE_NAME | cut -d"-" -f1)
+	region_code=$(echo $CONTROL_PLANE_NAME | cut -d"-" -f2)
 	echo ""
+
 	echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
+	echo "Environment:                         $environment"
 	echo "Region code:                         ${region_code}"
 	echo "Deployer State File:                 ${deployer_tfstate_key}"
 	echo "Library State File:                  ${library_tfstate_key}"
@@ -689,6 +717,13 @@ function deploy_control_plane() {
 			return 0
 		fi
 	else
+
+		if [ 3 -le $step ]; then
+			if ! retrieve_parameters; then
+				print_banner "Retrieve Parameters" "Retrieving parameters failed" "warning"
+			fi
+		fi
+
 		execute_deployment_steps $step
 	fi
 
