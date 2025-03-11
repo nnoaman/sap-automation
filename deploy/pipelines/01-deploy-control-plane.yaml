@@ -172,8 +172,8 @@ stages:
     displayName:                       Deploy SAP configuration Web App
 
     dependsOn:
-      - Deploy_controlplane
       - Prepare_Deployer
+      - DeployControlplaneStage
     condition: |
       and
       (
