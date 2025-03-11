@@ -2,6 +2,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+
+if [ "$SYSTEM_DEBUG" = True ]; then
+	set -x
+	DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
+
+fi
+export DEBUG
+set -euo pipefail
+
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
