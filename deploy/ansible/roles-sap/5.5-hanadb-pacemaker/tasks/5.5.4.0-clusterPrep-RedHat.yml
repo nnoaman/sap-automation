@@ -33,17 +33,17 @@
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1
   block:
+    # - name:                            "Get the cluster maintenance mode status"
+    #   ansible.builtin.shell:           pcs property show maintenance-mode
+    #   register:                        get_status_maintenance_mode
+    #   changed_when:                    false
+    #   ignore_errors:                   true
 
-    - name:                            "Debug hostname and variables"
-      ansible.builtin.debug:
-        msg:
-                                       - "Host: {{ ansible_hostname }}"
-                                       - "Primary: {{ primary_instance_name }}"
-                                       - "Secondary: {{ secondary_instance_name }}"
-                                       - "PlayHosts: {{ ansible_play_hosts }}"
-                                       - "PlayHost[0]: {{ ansible_play_hosts[0] }}"
-                                       - "PlayHost[1]: {{ ansible_play_hosts[1] }}"
-
+    # - name:                            "Set the cluster maintenance mode if not already in maintenance mode"
+    #   ansible.builtin.shell:           pcs property set maintenance-mode=true
+    #   when: >-
+    #     get_status_maintenance_mode.stdout is not search('maintenance-mode') or
+    #     get_status_maintenance_mode.stdout is search('maintenance-mode: false')
     - name:                            Stop HANA System on both nodes
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
@@ -51,6 +51,9 @@
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_stopped
+
+    # - name:                            Stop HANA Database
+    #   ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-stop_hana.yml
 
     - name:                            "Configure ANF hana mounts on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
@@ -139,11 +142,8 @@
       block:
         - name:                        "Wait for NFS mount configuration on {{ secondary_instance_name }} to finish"
           ansible.builtin.set_fact:
-            is_nfs_secondary_configured:   "{{
-                                         hostvars[secondary_instance_name]['chk_nfs_mounts_node2'] is defined and
-                                         hostvars[secondary_instance_name]['chk_nfs_mounts_node2'] | length == 0
-                                       }}"
-          retries:                     10
+            is_nfs_secondary_configured:   "{{ hostvars[secondary_instance_name].chk_nfs_mounts_node2 | length == 0 }}"
+          retries:                     30
           delay:                       60
           until:                       is_nfs_secondary_configured
 
