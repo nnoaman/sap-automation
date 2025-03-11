@@ -34,9 +34,15 @@
     - hana_shared_mountpoint | length > 1
   block:
 
-    - name: Debug hostname and variables
+    - name:                            "Debug hostname and variables"
       ansible.builtin.debug:
-        msg: "Host: {{ ansible_hostname }}, primary: {{ primary_instance_name }}, secondary: {{ secondary_instance_name }}"
+        msg:
+                                       - "Host: {{ ansible_hostname }}"
+                                       - "Primary: {{ primary_instance_name }}"
+                                       - "Secondary: {{ secondary_instance_name }}"
+                                       - "PlayHosts: {{ ansible_play_hosts }}"
+                                       - "PlayHost[0]: {{ ansible_play_hosts[0] }}"
+                                       - "PlayHost[1]: {{ ansible_play_hosts[1] }}"
 
     - name:                            Stop HANA System on both nodes
       become_user:                     "{{ db_sid | lower }}adm"
