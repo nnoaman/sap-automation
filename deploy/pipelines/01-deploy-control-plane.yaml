@@ -248,3 +248,4 @@ stages:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
               CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
               APP_REGISTRATION_APP_ID:      $(APP_REGISTRATION_APP_ID)
+              APP_REGISTRATION_OBJECT_ID:   $(APP_REGISTRATION_OBJECT_ID)

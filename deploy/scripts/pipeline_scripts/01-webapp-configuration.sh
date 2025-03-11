@@ -20,10 +20,14 @@ parent_directory="$(dirname "$script_directory")"
 source "${parent_directory}/deploy_utils.sh"
 source "${script_directory}/helper.sh"
 
+ARM_TENANT_ID=$(az account show --query homeTenantId -o tsv)
+
 app_service_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceId" "${CONTROL_PLANE_NAME}")
 app_service_identity_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceIdentityId" "${CONTROL_PLANE_NAME}")
 deployer_msi_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_Deployer_MSI_Id" "${CONTROL_PLANE_NAME}")
 app_service_name=$(echo "$app_service_id" | cut -d '/' -f 9)
+tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${deployer_environment}_TerraformRemoteStateStorageAccountId" "${deployer_environment}")
+Terraform_Remote_Storage_Resource_Group_Name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 
 printf "Configure the Web Application authentication using the following script.\n" >"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "\n\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
@@ -35,12 +39,12 @@ printf "az role assignment create --assignee %s --role reader --subscription %s 
 printf "Run the above command for all subscriptions you want to use in the Web Application\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
-printf "az role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s\n" "$app_service_identity_id" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
-printf "az role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s \n\n" "$app_service_identity_id" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "az role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s\n" "$app_service_identity_id" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$Terraform_Remote_Storage_Resource_Group_Name" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "az role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s \n\n" "$app_service_identity_id" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$Terraform_Remote_Storage_Resource_Group_Name" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
-printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" "$(APP_REGISTRATION_OBJECTID)" "$ARM_TENANT_ID" "$deployer_msi_id" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" "$APP_REGISTRATION_OBJECT_ID" "$ARM_TENANT_ID" "$deployer_msi_id" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
 printf "az webapp restart --ids %s\n\n $(WEBAPP_ID)" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
