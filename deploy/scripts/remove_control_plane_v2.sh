@@ -413,25 +413,14 @@ function remove_control_plane() {
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
 	else
-		return_value=$?
+		return_value=0
 		print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
-	fi
-
-	if ! terraform -chdir="${terraform_module_directory}" output testing; then
-		echo "not found"
-	else
-		echo "found"
 	fi
 
 	print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
 
 	deployer_statefile_foldername_path="${param_dirname}"
 	export TF_VAR_deployer_statefile_foldername="${deployer_statefile_foldername_path}"
-
-	if [ 0 != $return_value ]; then
-		unset TF_DATA_DIR
-		exit 10
-	fi
 
 	if [ -z $TF_VAR_spn_keyvault_id ]; then
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
