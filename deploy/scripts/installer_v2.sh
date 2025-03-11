@@ -345,6 +345,7 @@ function retrieve_parameters() {
 	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
 	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+	export keyvault
 
 }
 
