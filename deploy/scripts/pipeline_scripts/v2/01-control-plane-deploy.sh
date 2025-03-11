@@ -266,6 +266,11 @@ if [ "$USE_MSI" != "true" ]; then
 		return_code=$?
 		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
 		echo "Return code from deploy_control_plane_v2 $return_code."
+	else
+		return_code=$?
+		echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
+		echo "Return code from deploy_control_plane_v2 $return_code."
+
 	fi
 else
 	export TF_VAR_use_spn=false
@@ -277,6 +282,10 @@ else
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
 		return_code=$?
 		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
+		echo "Return code from deploy_control_plane_v2 $return_code."
+	else
+		return_code=$?
+		echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
 		echo "Return code from deploy_control_plane_v2 $return_code."
 	fi
 
