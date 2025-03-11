@@ -73,6 +73,7 @@ stages:
             displayName:               Remove control plane
             env:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
+              APP_REGISTRATION_APP_ID:      $(APP_REGISTRATION_APP_ID)
               ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
               ARM_OBJECT_ID:                $(ParameterValidation.ARM_OBJECT_ID)
