@@ -69,7 +69,7 @@ stages:
             displayName:               Deploy_SAP_infrastructure
             env:
 
-              APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
+              APPLICATION_CONFIGURATION_ID: $(ParameterValidation.APPLICATION_CONFIGURATION_ID)
               ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
               ARM_OBJECT_ID:                $(ParameterValidation.ARM_OBJECT_ID)
@@ -77,7 +77,7 @@ stages:
               ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
+              CONTROL_PLANE_NAME:           $(ParameterValidation.CONTROL_PLANE_NAME)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               TEST_ONLY:                    ${{ parameters.test }}
