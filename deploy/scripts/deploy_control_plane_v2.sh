@@ -572,7 +572,7 @@ function execute_deployment_steps() {
 	if [ 5 -eq "${step}" ]; then
 		if [ "${ado_flag}" != "--ado" ]; then
 			if ! copy_files_to_public_deployer; then
-				print_banner "Migrate-Library" "Migration of library state failed" "error"
+				print_banner "Migrate-Library" "Copying files failed" "error"
 				return $?
 			else
 				step=3
