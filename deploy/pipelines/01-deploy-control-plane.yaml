@@ -183,7 +183,6 @@ stages:
       )
     jobs:
       - job:                           Deploy_web_app
-        condition:                     eq(stageDependencies.DeployControlplaneStage.DeployControlplaneJob.outputs['GetWebAppVariables.HAS_WEBAPP'], 'true')
         variables:
           APPSERVICE_NAME:             $[ stageDependencies.DeployControlplaneStage.DeployControlplaneJob.outputs['GetWebAppVariables.APPSERVICE_NAME']]
         displayName:                   Deploy SAP configuration Web App
