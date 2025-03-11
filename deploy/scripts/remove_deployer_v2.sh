@@ -210,7 +210,7 @@ function sdaf_remove_deployer() {
 
 	if terraform -chdir="${terraform_module_directory}" state list; then
 
-		# moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_state_file_name"
+		moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_state_file_name"
 		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
 		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
 		# 		echo "Setting 'deployer_state_file_name' removed from state"
