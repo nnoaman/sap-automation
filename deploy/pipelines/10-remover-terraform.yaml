@@ -30,11 +30,6 @@ parameters:
     type:                              string
     default:                           TEST-SECE-SAP02
 
-  - name:                              control_plane_name
-    displayName:                       "Control plane name, use the following syntax: ENV-LOCA-VNET"
-    type:                              string
-    default:                           CPLN-NOEU-DEP01
-
   - name:                              use_deployer
     displayName:                       Run removal on self hosted agent
     type:                              boolean
@@ -57,7 +52,6 @@ stages:
         parameters:
           control_plane_name:          ${{ parameters.control_plane_name }}
           workload_zone_name:          ${{ parameters.workload_zone_name }}
-          workload_zone:               ${{ parameters.workload_zone }}
           sap_system:                  ${{ parameters.sap_system }}
     jobs:
       - job:                           Remove_SAP_systems
@@ -78,11 +72,9 @@ stages:
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             env:
-              CHECK_ARM_SUBSCRIPTION_ID:  $(WL_ARM_SUBSCRIPTION_ID)
-              CHECK_ARM_CLIENT_ID:        $(WL_ARM_CLIENT_ID),
-              CHECK_ARM_CLIENT_SECRET:    $(WL_ARM_CLIENT_SECRET)
-              CHECK_ARM_TENANT_ID:        $(WL_ARM_TENANT_ID)
-              CHECK_ARM_OBJECT_ID:        $(WL_ARM_OBJECT_ID)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
+              SYSTEM_TEAMPROJECT:      $(System.TeamProject)
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -100,7 +92,7 @@ stages:
               ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
+              CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               USE_MSI:                      $(Use_MSI)
@@ -113,7 +105,6 @@ stages:
         parameters:
           control_plane_name:          ${{ parameters.control_plane_name }}
           workload_zone_name:          ${{ parameters.workload_zone_name }}
-          workload_zone:               ${{ parameters.workload_zone }}
           sap_system:                  ${{ parameters.sap_system }}
 
     jobs:
@@ -135,11 +126,9 @@ stages:
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             env:
-              CHECK_ARM_SUBSCRIPTION_ID:  $(WL_ARM_SUBSCRIPTION_ID)
-              CHECK_ARM_CLIENT_ID:        $(WL_ARM_CLIENT_ID),
-              CHECK_ARM_CLIENT_SECRET:    $(WL_ARM_CLIENT_SECRET)
-              CHECK_ARM_TENANT_ID:        $(WL_ARM_TENANT_ID)
-              CHECK_ARM_OBJECT_ID:        $(WL_ARM_OBJECT_ID)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
+              SYSTEM_TEAMPROJECT:      $(System.TeamProject)
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -156,7 +145,7 @@ stages:
               ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
+              CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
