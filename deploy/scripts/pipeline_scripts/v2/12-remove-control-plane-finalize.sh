@@ -199,6 +199,15 @@ if [ 0 == $return_code ]; then
 		changed=1
 	fi
 
+	environment=$(echo $CONTROL_PLANE_NAME | cut -d"-" -f1)
+	region_code=$(echo $CONTROL_PLANE_NAME | cut -d"-" -f2)
+
+	if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
+		rm ".sap_deployment_automation/${environment}${region_code}"
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}"
+		changed=1
+	fi
+
 	if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 		rm ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
 		git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
