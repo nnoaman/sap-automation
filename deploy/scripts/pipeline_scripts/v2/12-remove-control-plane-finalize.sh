@@ -146,7 +146,6 @@ app_config_resource_group=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f5
 az appconfig update --name "$app_config_name" --resource-group "$app_config_resource_group" --enable-public-network true --output none --only-show-errors
 sleep 30
 
-
 cd "$CONFIG_REPO_PATH" || exit
 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
 
@@ -292,7 +291,8 @@ if [ 0 == $return_code ]; then
 		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --out tsv)
 		if [ ${#variable_value} != 0 ]; then
 			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --yes --only-show-errors
-		fi	fi
+		fi
+	fi
 
 fi
 

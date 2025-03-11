@@ -216,9 +216,6 @@ if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]Return code from remover $return_code."
 else
 	if [ 0 == $return_code ]; then
-		if [ -d .terraform ]; then
-			rm -r .terraform
-		fi
 		# Pull changes
 		git checkout -q "$BUILD_SOURCEBRANCHNAME"
 		git pull origin "$BUILD_SOURCEBRANCHNAME"
@@ -257,6 +254,22 @@ else
 				fi
 			fi
 		fi
+
+	echo -e "$green--- Deleting variables ---$reset"
+	if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
+		print_banner "Remove workload zone" "Deleting variables" "info"
+
+		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --out tsv)
+		if [ ${#variable_value} != 0 ]; then
+			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --yes --only-show-errors
+		fi
+
+		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --out tsv)
+		if [ ${#variable_value} != 0 ]; then
+			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --yes --only-show-errors
+		fi
+	fi
+
 	fi
 fi
 exit $return_code
