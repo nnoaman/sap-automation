@@ -51,22 +51,22 @@ echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
 	if ! printenv ARM_SUBSCRIPTION_ID; then
-		echo "##vso[task.logissue type=error]Variable WL_ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
 	if ! printenv ARM_CLIENT_ID; then
-		echo "##vso[task.logissue type=error]Variable WL_ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
 	if ! printenv ARM_CLIENT_SECRET; then
-		echo "##vso[task.logissue type=error]Variable WL_ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
 	if ! printenv ARM_TENANT_ID; then
-		echo "##vso[task.logissue type=error]Variable WL_ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 fi
@@ -230,7 +230,7 @@ echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
 
-echo "Target subscription                  $WL_ARM_SUBSCRIPTION_ID"
+echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 
 echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
 echo "Terraform state file storage account:$terraform_storage_account_name"
