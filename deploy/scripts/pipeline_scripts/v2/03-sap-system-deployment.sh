@@ -51,7 +51,7 @@ echo -e "$green--- Validations ---$reset"
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)" || true
+	configureNonDeployer "$TF_VERSION" || true
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure false || true
 else
