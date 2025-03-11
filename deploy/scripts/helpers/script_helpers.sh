@@ -21,16 +21,16 @@ function print_banner() {
 
 	local length=${#message}
 	if ((length % 2 == 0)); then
-		message="$2 "
+		message="$message "
 	else
-		message="$2"
+		message="$message"
 	fi
 
 	length=${#title}
 	if ((length % 2 == 0)); then
-		title="$2 "
+		title="$title "
 	else
-		title="$2"
+		title="$title"
 	fi
 
 	local type="${3:-info}"
@@ -38,9 +38,9 @@ function print_banner() {
 
 	length=${#secondary_message}
 	if ((length % 2 == 0)); then
-		secondary_message="$2 "
+		secondary_message="$secondary_message "
 	else
-		secondary_message="$2"
+		secondary_message="$secondary_message"
 	fi
 
 	local boldred="\e[1;31m"
