@@ -724,7 +724,7 @@ function sdaf_installer() {
 
 	if [ 1 -eq $return_value ]; then
 		print_banner "Installer" "Error when running plan" "error"
-		exit $return_value
+		return $return_value
 	else
 		print_banner "Installer" "Terraform plan succeeded." "success"
 	fi

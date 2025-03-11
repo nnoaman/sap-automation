@@ -728,7 +728,10 @@ function deploy_control_plane() {
 			fi
 		fi
 
-		execute_deployment_steps $step
+		if ! execute_deployment_steps $step ; then
+			print_banner "Control Plane Deployment" "Executing deployment steps failed" "error"
+			return 20
+		fi
 	fi
 
 	printf -v kvname '%-40s' "${keyvault}"
