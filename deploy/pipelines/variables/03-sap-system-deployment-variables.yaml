@@ -15,8 +15,6 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-$$[format('{0}-{1}-{2}', split('${{ parameters.sap_system }}', '-')[0], split('${{ parameters.sap_system }}', '-')[1],, split('${{ parameters.sap_system }}', '-')[2])]
-
   - name:                              sap_system_foldername
     value:                             ${{ parameters.sap_system }}
 
