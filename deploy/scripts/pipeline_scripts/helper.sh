@@ -2,9 +2,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-print_banner() {
+function print_banner() {
 	local title="$1"
 	local message="$2"
+
+	local length=${#message}
+	if ((length % 2 == 0)); then
+		message="$2"
+	else
+		message="$2 "
+	fi
+
 	local type="${3:-info}"
 	local secondary_message="${4:-''}"
 
