@@ -18,6 +18,7 @@ az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$
 app_service_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceId" "${CONTROL_PLANE_NAME}")
 if [ -n "$app_service_id" ]; then
   app_service_name=$(echo $app_service_id | cut -d'/' -f9)
+	echo "Setting the output variables"
   echo "##vso[task.setvariable variable=APPSERVICE_NAME;isOutput=true]$app_service_name"
   echo "##vso[task.setvariable variable=HAS_WEBAPP;isOutput=true]true"
 else
