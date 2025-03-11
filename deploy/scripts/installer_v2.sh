@@ -347,6 +347,9 @@ function retrieve_parameters() {
 	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 	export keyvault
 
+	management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+	TF_VAR_management_subscription_id=${management_subscription_id}
+	export TF_VAR_management_subscription_id
 
 }
 
