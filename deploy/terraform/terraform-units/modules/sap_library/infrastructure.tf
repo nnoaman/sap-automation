@@ -80,6 +80,32 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
   registration_enabled                 = false
 }
 
+resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
+  provider                             = azurerm.dnsmanagement
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  depends_on                           = [
+                                           azurerm_storage_account.storage_tfstate,
+                                           azurerm_private_dns_zone.blob
+                                         ]
+  name                                 = format("%s%s%s%s-blob",
+                                           try(var.naming.resource_prefixes.appconfig_link, ""),
+                                           local.prefix,
+                                           var.naming.separator,
+                                           try(var.naming.resource_suffixes.appconfig_link, "appconfig-link")
+                                         )
+
+  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,
+                                           local.resource_group_exists ? (
+                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                             azurerm_resource_group.library[0].name
+                                         ))
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
+  virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
+  registration_enabled                 = false
+
+}
+
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider                             = azurerm.dnsmanagement
@@ -105,6 +131,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = false
 }
+
 
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault_agent" {
