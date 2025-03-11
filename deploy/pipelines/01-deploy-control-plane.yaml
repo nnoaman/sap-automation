@@ -82,6 +82,7 @@ stages:
               TF_VAR_agent_pool:              $(POOL)
               TF_VAR_ansible_core_version:    $(ansible_core_version)
               TF_VAR_tf_version:              $(tf_version)
+              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               USE_MSI:                        $(Use_MSI)
   - stage:                             Deploy_controlplane
     dependsOn:
