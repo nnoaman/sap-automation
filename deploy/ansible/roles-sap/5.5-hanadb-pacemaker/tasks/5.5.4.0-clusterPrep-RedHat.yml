@@ -144,7 +144,7 @@
           ansible.builtin.set_fact:
             is_nfs_secondary_configured:   "{{
                                          hostvars[secondary_instance_name]['chk_nfs_mounts_node2'] is defined and
-                                         hostvars[secondary_instance_name]['chk_nfs_mounts_node2'] | length == 0
+                                         hostvars[secondary_instance_name]['chk_nfs_mounts_node2'] | length == 0 | default(false)
                                        }}"
           retries:                     30
           delay:                       60
