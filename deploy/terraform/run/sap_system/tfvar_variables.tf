@@ -1420,6 +1420,11 @@ variable "subscription_id"                      {
                                                   default     = ""
                                                 }
 
+variable "management_subscription_id"           {
+                                                  description = "This is the management subscription used by the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
 #########################################################################################
 #                                                                                       #
 #  Azure Monitor for SAP variables                                                      #
