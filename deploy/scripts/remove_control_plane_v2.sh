@@ -415,7 +415,6 @@ function remove_control_plane() {
 	else
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
-		return 20
 	fi
 
 	if ! terraform -chdir="${terraform_module_directory}" output testing; then
