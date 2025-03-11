@@ -236,37 +236,14 @@ stages:
               AZURE_CONNECTION_NAME:     ${{variables.connection_name}}
               CONTROLPLANE_NAME:         ${{ parameters.control_plane_name }}
 
-          - bash: |
-              #!/bin/bash
-              printf "Configure the Web Application authentication using the following script.\n" >"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "\n\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" "$(APP_REGISTRATION_APP_ID)" "$(WEBAPP_URL_BASE)" "$(WEBAPP_URL_BASE)" "$(WEBAPP_URL_BASE)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "Run the above command for all subscriptions you want to use in the Web Application\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s \n\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" $(APP_REGISTRATION_OBJECTID) $(APP_TENANT_ID) $(MSI_ID) >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "az webapp restart --ids %s\n\n $(WEBAPP_ID)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "\n\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "[Access the Web App](https://%s.azurewebsites.net) \n\n" $(WEBAPP_URL_BASE) >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              exit 0
-
-            displayName: "Documentation"
+          - task: Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-webapp-configuration.sh"
+              failOnStderr:            false
+            displayName:               "Document the Web App configuration steps"
+            name:                      Document
             env:
-              APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-              WEBAPP_URL_BASE:         $(APPSERVICE_NAME)
-              WEBAPP_ID:               $(WEBAPP_ID)
-              WEBAPP_IDENTITY:         $(WEBAPP_IDENTITY)
+              APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
+              CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
+              APP_REGISTRATION_APP_ID:      $(APP_REGISTRATION_APP_ID)
