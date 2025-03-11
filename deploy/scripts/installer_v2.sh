@@ -916,7 +916,6 @@ function sdaf_installer() {
 
 		if [ $return_value -eq 1 ]; then
 			print_banner "Installer" "Terraform apply failed" "error"
-			exit $return_value
 		elif [ $return_value -eq 2 ]; then
 			# return code 2 is ok
 			print_banner "Installer" "Terraform apply succeeded" "success"
