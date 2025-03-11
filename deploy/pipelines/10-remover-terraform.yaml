@@ -50,7 +50,6 @@ stages:
     variables:
       - template:                      variables/10-remover-terraform-variables.yaml
         parameters:
-          control_plane_name:          ${{ parameters.control_plane_name }}
           workload_zone_name:          ${{ parameters.workload_zone_name }}
           sap_system:                  ${{ parameters.sap_system }}
     jobs:
@@ -103,7 +102,6 @@ stages:
     variables:
       - template:                      variables/10-remover-terraform-variables.yaml
         parameters:
-          control_plane_name:          ${{ parameters.control_plane_name }}
           workload_zone_name:          ${{ parameters.workload_zone_name }}
           sap_system:                  ${{ parameters.sap_system }}
 
