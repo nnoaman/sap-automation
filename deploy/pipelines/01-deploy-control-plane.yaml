@@ -155,10 +155,10 @@ stages:
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
     variables:
-      - template:                      variables/01-deploy-control-plane-variables.yaml
+      - template:                      variables/01-app-service-variables.yaml
         parameters:
           control_plane_name:          ${{ parameters.control_plane_name }}
-          use_deployer:                ${{ parameters.use_deployer }}
+          use_app_service:             $(HAS_APPSERVICE_DEPLOYED)
     displayName:                       Deploy SAP configuration Web App
 
     dependsOn:
@@ -168,7 +168,8 @@ stages:
       and
       (
         eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
-        eq(dependencies.Prepare_Deployer.result, 'Succeeded')
+        eq(dependencies.Prepare_Deployer.result, 'Succeeded'),
+        eq(variables['use_app_service'], 'true')
       )
     jobs:
       - job:                           Deploy_web_app
