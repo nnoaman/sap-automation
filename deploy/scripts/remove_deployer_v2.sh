@@ -256,6 +256,12 @@ function sdaf_remove_deployer() {
 				echo "Setting 'deployer_msi_id' removed from state"
 			fi
 		fi
+		moduleID="module.sap_deployer.azurerm_app_configuration_key.web_application_identity_id"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Setting 'deployer_msi_id' removed from state"
+			fi
+		fi
 
 	fi
 	if [ -f terraform.tfvars ]; then
