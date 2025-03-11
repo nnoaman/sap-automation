@@ -219,6 +219,11 @@ output "webapp_id"                               {
                                                    value       = var.use_webapp ? module.sap_deployer.webapp_id : ""
                                                  }
 
+output "use_webapp"                             {
+                                                   description = "Is the App Service deployed"
+                                                   value       = var.use_webapp
+                                                 }
+
 ###############################################################################
 #                                                                             #
 #                                VM Extension                                 #

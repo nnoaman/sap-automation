@@ -347,6 +347,7 @@ function retrieve_parameters() {
 	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 	export keyvault
 
+
 }
 
 function persist_files() {
@@ -1007,6 +1008,8 @@ function sdaf_installer() {
 
 		app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
 
+		app_service_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+
 		echo ""
 		return_value=0
 		if [ 1 == $called_from_ado ]; then
@@ -1016,6 +1019,14 @@ function sdaf_installer() {
 					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${app_config_id}" --output none --only-show-errors
 				else
 					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${app_config_id}" --output none --only-show-errors
+				fi
+			fi
+			if [ -n "${app_service_name}" ]; then
+				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPSERVICE_NAME.value")
+				if [ -z "${az_var}" ]; then
+					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name APPSERVICE_NAME --value "${app_service_name}" --output none --only-show-errors
+				else
+					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name APPSERVICE_NAME --value "${app_service_name}" --output none --only-show-errors
 				fi
 			fi
 		fi
