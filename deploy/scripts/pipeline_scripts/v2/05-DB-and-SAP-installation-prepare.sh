@@ -39,6 +39,7 @@ export DEBUG
 set -eu
 
 WORKLOAD_ZONE_NAME=$(basename "${SAP_SYSTEM_CONFIGURATION_NAME}" | cut -d'-' -f1-3)
+SID=$(basename "${SAP_SYSTEM_CONFIGURATION_NAME}" | cut -d'-' -f4)
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
@@ -46,8 +47,6 @@ echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-
-	management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
 	key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
@@ -57,7 +56,6 @@ fi
 
 cd "$CONFIG_REPO_PATH" || exit
 
-environment_file_name=".sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
