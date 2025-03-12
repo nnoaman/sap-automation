@@ -94,7 +94,6 @@ parameters:
     default:                           false
 
 
-
 # 20220929 MKD - ACSS Registration <BEGIN>
   - name:                              acss_registration
     displayName:                       Register System in ACSS
@@ -145,6 +144,18 @@ stages:
               getLatestFromBranch: true
           - task:                      PostBuildCleanup@4
           - task:                      Bash@3
+            name:                      ParameterValidation
+            displayName:               Parameter Validation
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            env:
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
+              SYSTEM_TEAMPROJECT:      $(System.TeamProject)
+          - task:                      Bash@3
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-DB-and-SAP-installation-prepare.sh"
@@ -157,10 +168,11 @@ stages:
               SYSTEM_ACCESSTOKEN:            $(System.AccessToken)
               AZURE_DEVOPS_EXT_PAT:          $(System.AccessToken)
               ANSIBLE_HOST_KEY_CHECKING:     false
-              AZURE_CLIENT_ID:               $(ARM_CLIENT_ID)
-              AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
-              AZURE_TENANT_ID:               $(ARM_TENANT_ID)
-              AZURE_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
+              AZURE_CLIENT_ID:               $(ParameterValidation.ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:           $(ParameterValidation.ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:               $(ParameterValidation.ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:         $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              AZURE_OBJECT_ID:               $(ParameterValidation.ARM_OBJECT_ID)
               ANSIBLE_COLLECTIONS_PATH:      /opt/ansible/collections
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
@@ -187,7 +199,7 @@ stages:
               azureTenantId:                 $(ARM_TENANT_ID)
               azureSubscriptionId:           $(ARM_SUBSCRIPTION_ID)
               USE_MSI:                       $(USE_MSI)
-              CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+              CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.base_os_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -202,12 +214,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -222,12 +234,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.bom_processing, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -242,12 +254,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.scs_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -262,12 +274,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.database_install, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -282,12 +294,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.db_load, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -302,12 +314,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -322,12 +334,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.pas_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -342,12 +354,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.application_server_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -362,12 +374,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.webdispatcher_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -382,12 +394,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.post_configuration_actions, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -402,12 +414,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -422,12 +434,12 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.acss_registration, true) }}:
               - template:                    templates\acss-registration.yaml
                 parameters:
@@ -442,14 +454,14 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
                   acssEnvironment:           ${{ parameters.acss_environment }}
                   acssSapProduct:            ${{ parameters.acss_sap_product }}
                   USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - ${{ if eq(parameters.ams_provider, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -464,11 +476,11 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               ${{ parameters.extra_params }}
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  azureClientId:             $(ParameterValidation.ARM_CLIENT_ID)
+                  azureClientSecret:         $(ParameterValidation.ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ParameterValidation.ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - template:                        templates\collect-log-files.yaml
             parameters:
               logPath:                       ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs

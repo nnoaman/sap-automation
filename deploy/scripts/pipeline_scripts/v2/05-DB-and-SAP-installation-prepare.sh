@@ -90,12 +90,6 @@ fi
 
 echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
 
-echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
-echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
-echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
-echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
-echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
-
 echo "Workload Zone Name:                  $WORKLOAD_ZONE_NAME"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
@@ -125,12 +119,18 @@ else
 	new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
 fi
 
-echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-sshkey"
-echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$key_vault"
-echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-password"
-echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-username"
-echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
+
 echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${key_vault_subscription_id}"
+echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
+echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
+echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
+echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
+echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-password"
+echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
+echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
+echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-sshkey"
+echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-username"
+echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$key_vault"
 
 az keyvault secret show --name "${WORKLOAD_ZONE_NAME}-sid-sshkey" --vault-name "$key_vault" --subscription "$key_vault_subscription_id" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
