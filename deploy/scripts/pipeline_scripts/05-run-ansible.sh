@@ -2,15 +2,43 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# Exit immediately if a command exits with a non-zero status.
-# Treat unset variables as an error when substituting.
-if [ "$DEBUG" = True ]; then
-	cyan="\e[1;36m"
-	reset_formatting="\e[0m"
-	echo -e "$cyanEnabling debug mode$reset_formatting"
+echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+green="\e[1;32m"
+reset="\e[0m"
+bold_red="\e[1;31m"
+cyan="\e[1;36m"
+
+# External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
+banner_title="SAP Configuration and Installation - Ansible"
+
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${grand_parent_directory}/deploy_utils.sh"
+
+#call stack has full script name when using source
+source "${parent_directory}/helper.sh"
+
+DEBUG=False
+
+if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
-	set -o errexit
+	DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
+
 fi
+export DEBUG
+set -eu
+
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 #Stage could be executed on a different machine by default, need to login again for ansible
 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 control_plane_subscription=$CONTROL_PLANE_SUBSCRIPTION_ID
