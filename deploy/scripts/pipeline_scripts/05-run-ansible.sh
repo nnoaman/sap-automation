@@ -53,7 +53,7 @@ deployer_file=/etc/profile.d/deploy_server.sh
 if [ $USE_MSI != "true" ]; then
 	echo "##[section]Running on a deployer..."
 	source /etc/profile.d/deploy_server.sh
-	noAccess=$(az account show --query name | grep "N/A(tenant level account)")
+	noAccess=$(az account show --query name | grep "N/A(tenant level account) || true")
 
 	if [ -z "$noAccess" ]; then
 		az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
@@ -63,7 +63,7 @@ else
 
 	if [ '$(ARM_CLIENT_ID)' == $AZURE_CLIENT_ID ]; then
 		source /etc/profile.d/deploy_server.sh
-		noAccess=$(az account show --query name | grep "N/A(tenant level account)")
+		noAccess=$(az account show --query name | grep "N/A(tenant level account)  || true")
 
 		if [ -z "$noAccess" ]; then
 			az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
