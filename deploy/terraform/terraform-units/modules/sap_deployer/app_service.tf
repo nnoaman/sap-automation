@@ -172,8 +172,8 @@ resource "azurerm_windows_web_app" "webapp" {
     name                                        = "tfstate"
     type                                        = "Custom"
     value                                       = var.use_private_endpoint ? (
-                                                    format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/tfstate/)", local.user_keyvault_name)) : (
-                                                    format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/tfstate/)", local.user_keyvault_name)
+                                                    format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/terraform-state/)", local.user_keyvault_name)) : (
+                                                    format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/terraform-state/)", local.user_keyvault_name)
                                                   )
                                              }
 

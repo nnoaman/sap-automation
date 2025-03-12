@@ -70,6 +70,11 @@ variable "deployer_prefix"                       {
                                                     default     = ""
                                                  }
 
+variable "assign_permissions"                    {
+                                                    description = "Boolean value indicating if permissions should be assigned to the storage accounts"
+                                                    default     = true
+                                                    type        = bool
+                                                  }
 
 #######################################4#######################################8
 #                                                                              #

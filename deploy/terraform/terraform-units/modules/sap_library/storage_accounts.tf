@@ -532,3 +532,19 @@ resource "azurerm_management_lock" "storage_tfstate" {
     prevent_destroy = false
   }
 }
+
+resource "azurerm_role_assignment" "webapp_blob" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.assign_permissions && length(var.deployer_tfstate.webapp_identity) > 0 && !local.sa_tfstate_exists ? 1 : 0
+  scope                                = azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name                 = "Storage Blob Data Contributor"
+  principal_id                         = var.deployer_tfstate.webapp_identity
+}
+
+resource "azurerm_role_assignment" "webapp_table" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.assign_permissions && length(var.deployer_tfstate.webapp_identity) > 0 && !local.sa_tfstate_exists ? 1 : 0
+  scope                                = azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name                 = "Storage Table Data Contributor"
+  principal_id                         = var.deployer_tfstate.webapp_identity
+}

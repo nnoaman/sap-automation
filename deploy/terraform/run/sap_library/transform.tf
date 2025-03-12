@@ -4,14 +4,15 @@
 
 locals {
   infrastructure                       = {
-                                           environment = var.environment
-                                           region      = var.location
-                                           codename    = var.codename
-                                           resource_group = {
-                                             name   = var.resourcegroup_name
-                                             arm_id = var.resourcegroup_arm_id
-                                           }
-                                           tags = try(coalesce(var.resourcegroup_tags, var.tags, {}), {})
+                                           environment        = var.environment
+                                           region             = var.location
+                                           codename           = var.codename
+                                           resource_group     = {
+                                             name             = var.resourcegroup_name
+                                             arm_id           = var.resourcegroup_arm_id
+                                               }
+                                           tags               = try(coalesce(var.resourcegroup_tags, var.tags, {}), {})
+                                           assign_permissions = var.assign_permissions
                                          }
   deployer                             = {
                                            use                          = var.use_deployer
