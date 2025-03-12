@@ -145,7 +145,7 @@ stages:
           - task:                      PostBuildCleanup@4
           - task:                      Bash@3
             name:                      ParameterValidation
-            displayName:               Parameter Validation
+            displayName:               Parameter Pre Validation
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
@@ -184,7 +184,7 @@ stages:
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"
-              name:                          ParameterValidation
+              name:                          SAPParameterValidation
               ansibleFilePath:               ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
               ansibleConfigPath:             ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
               secretName:                    "$(Preparation.SSH_KEY_NAME)"
