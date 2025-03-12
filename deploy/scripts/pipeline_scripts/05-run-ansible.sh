@@ -13,7 +13,6 @@ cyan="\e[1;36m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
-grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_NAME
@@ -21,10 +20,10 @@ banner_title="SAP Configuration and Installation - Ansible"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
-source "${grand_parent_directory}/deploy_utils.sh"
+source "${parent_directory}/deploy_utils.sh"
 
 #call stack has full script name when using source
-source "${parent_directory}/helper.sh"
+source "${script_directory}/helper.sh"
 
 DEBUG=False
 
@@ -167,5 +166,7 @@ if [ -f ${filename} ]; then
 	echo "##[endgroup]"
 
 fi
+
+print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
 exit $return_code
