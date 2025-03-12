@@ -90,18 +90,14 @@ fi
 
 echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
 
+echo "SID:                                 ${SID}"
 echo "Workload Zone Name:                  $WORKLOAD_ZONE_NAME"
-echo "Environment:                         $ENVIRONMENT"
-echo "Location:                            $LOCATION"
-echo "Virtual network logical name:        $NETWORK"
 echo "Keyvault:                            $key_vault"
 echo "SAP Application BoM:                 $BOM_BASE_NAME"
 
-echo "SID:                                 ${SID}"
 echo "Folder:                              $CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 echo "Hosts file:                          ${SID}_hosts.yaml"
 echo "sap_parameters_file:                 $parameters_filename"
-echo "Configuration file:                  $environment_file_name"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 
