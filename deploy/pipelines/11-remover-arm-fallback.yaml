@@ -73,7 +73,7 @@ stages:
           connection_name:             ${{ parameters.workload_zone_connection }}
     jobs:
       - job:                           Remove_SAP_system_RG
-        displayName:                   Remove SAP System ${{ parameters.cleanup_sap }}
+        displayName:                   Remove SAP System ${{ parameters.sap_system }}
         variables:
           - group:                     SDAF-${{ parameters.workload_zone_name }}
         steps:
@@ -82,7 +82,7 @@ stages:
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(WL_ARM_SUBSCRIPTION_ID)"
+              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
               resourceGroupName:              "$(sap_system_foldername)"
 
@@ -104,6 +104,7 @@ stages:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_SYSTEM_FOLDERNAME:    ${{ parameters.sap_system }}
 
   - stage:                             Remove_SAP_workload_zone
     displayName:                       Remove SAP workload zone
@@ -119,7 +120,7 @@ stages:
           CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
     jobs:
       - job:                           Remove_SAP_workload_zone
-        displayName:                   Remove SAP workload zone ${{ parameters.cleanup_workload_zone }}
+        displayName:                   Remove SAP workload zone ${{ parameters.workload_zone_name }}
         variables:
           - group:                     SDAF-${{ parameters.workload_zone_name }}
         steps:
@@ -128,7 +129,7 @@ stages:
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(WL_ARM_SUBSCRIPTION_ID)"
+              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
               resourceGroupName:              "$(workload_zone_foldername)"
 
@@ -149,7 +150,8 @@ stages:
             env:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              WORKLOAD_ZONE_FOLDERNAME: ${{ parameters.workload_zone_name }}
 
   - stage:                             Remove_Control_plane
     displayName:                       Remove Control Plane
