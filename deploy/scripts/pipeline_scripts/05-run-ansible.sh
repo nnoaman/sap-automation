@@ -62,15 +62,9 @@ else
 	echo "##[section]Running on an Azure DevOps agent..."
 
 	if [ '$(ARM_CLIENT_ID)' == $AZURE_CLIENT_ID ]; then
-		source /etc/profile.d/deploy_server.sh
-		noAccess=$(az account show --query name | grep "N/A(tenant level account)  || true")
-
-		if [ -z "$noAccess" ]; then
-			az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
-		fi
+		source "$deployer_file"
 	else
 		az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
-		az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
 	fi
 
 	az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
