@@ -40,7 +40,12 @@ set -eu
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 #Stage could be executed on a different machine by default, need to login again for ansible
 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
-control_plane_subscription=$CONTROL_PLANE_SUBSCRIPTION_ID
+
+if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+
+	control_plane_subscription=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+
+fi
 export control_plane_subscription
 
 deployer_file=/etc/profile.d/deploy_server.sh
