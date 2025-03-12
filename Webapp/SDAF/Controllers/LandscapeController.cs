@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SDAFWebApp.Models;
 using SDAFWebApp.Services;
 using System;
@@ -28,9 +29,7 @@ namespace SDAFWebApp.Controllers
         private readonly ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
-        private readonly string sdafControlPlaneEnvironment;
-        private readonly string sdafControlPlaneLocation;
-
+        
         public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
             _landscapeService = landscapeService;
@@ -40,8 +39,7 @@ namespace SDAFWebApp.Controllers
             landscapeView = SetViewData();
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
             InitializeImageOptionsAndMapping();
-            sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
-            sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
+                       
         }
         private FormViewModel<LandscapeModel> SetViewData()
         {
@@ -146,8 +144,8 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<ActionResult> GetByIdJson(string id)
         {
-            string environment = id[..id.IndexOf('-')];
-            LandscapeEntity landscape = await _landscapeService.GetByIdAsync(id, environment);
+            string workload_zone_name = id[..id.IndexOf('-')];
+            LandscapeEntity landscape = await _landscapeService.GetByIdAsync(id, workload_zone_name);
             if (landscape == null || landscape.Landscape == null) return NotFound();
             return Json(landscape.Landscape);
         }
@@ -193,6 +191,11 @@ namespace SDAFWebApp.Controllers
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
                     landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                    landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
+
+                    string locationCode = Helper.MapRegion(landscape.location.ToLower());
+
+                    landscape.environment = landscape.workloadZoneName.Split('-')[0];
 
                     await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
@@ -208,6 +211,7 @@ namespace SDAFWebApp.Controllers
                 }
             }
 
+            landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
             landscapeView.SapObject = landscape;
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
@@ -221,12 +225,12 @@ namespace SDAFWebApp.Controllers
             try
             {
                 LandscapeModel landscape = await GetById(id, partitionKey);
-                landscape.controlPlaneEnvironment = sdafControlPlaneEnvironment;
-                landscape.controlPlaneLocation = sdafControlPlaneLocation;
+                landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
+
                 landscapeView.SapObject = landscape;
 
-                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
-                ViewBag.Environments = environments;
+                List<SelectListItem> workloadZoneNames = restHelper.GetEnvironmentsList().Result;
+                ViewBag.WorkloadZoneNames = workloadZoneNames;
 
 
                 return View(landscapeView);
@@ -245,16 +249,18 @@ namespace SDAFWebApp.Controllers
             try
             {
                 LandscapeModel landscape = await GetById(id, partitionKey);
+                
 
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
-                landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                landscape.subscription_id = landscape.subscription_id.Replace("/subscriptions/", "");
                 string content = Helper.ConvertToTerraform(landscape);
 
                 await restHelper.UpdateRepo(path, content);
 
                 string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
                 string branch = _configuration["SourceBranch"];
-                parameters.workload_zone = id;
+                parameters.workload_zone_name = landscape.workloadZoneName;
+                parameters.control_plane_name = _configuration["CONTROL_PLANE_NAME"];
                 PipelineRequestBody requestBody = new()
                 {
                     resources = new Resources
@@ -290,6 +296,7 @@ namespace SDAFWebApp.Controllers
             }
 
             LandscapeModel landscape = await GetById(id, partitionKey);
+            landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
             landscapeView.SapObject = landscape;
             if (landscape == null)
             {
@@ -316,6 +323,7 @@ namespace SDAFWebApp.Controllers
             {
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
+                landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
                 landscapeView.SapObject = landscape;
                 ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
                 ViewBag.ImageOptions = imageOptions;
@@ -369,6 +377,10 @@ namespace SDAFWebApp.Controllers
                         }
                         DateTime currentDateAndTime = DateTime.Now;
                         landscape.LastModified = currentDateAndTime.ToShortDateString();
+                        string locationCode = Helper.MapRegion(landscape.location.ToLower());
+
+                        landscape.environment = landscape.workloadZoneName.Split('-')[0];
+                        landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
 
                         await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
                         TempData["success"] = "Successfully updated workload zone " + landscape.Id;
@@ -398,6 +410,7 @@ namespace SDAFWebApp.Controllers
                 }
             }
 
+            landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
             landscapeView.SapObject = landscape;
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
@@ -421,6 +434,9 @@ namespace SDAFWebApp.Controllers
                     landscape.Id = Helper.GenerateId(landscape);
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
+                    string locationCode = Helper.MapRegion(landscape.location.ToLower());
+
+                    landscape.environment = landscape.workloadZoneName.Split('-')[0];
 
                     await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
@@ -449,7 +465,7 @@ namespace SDAFWebApp.Controllers
                     ModelState.AddModelError("LandscapeId", "Error creating workload zone: " + e.Message);
                 }
             }
-
+            landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
             landscapeView.SapObject = landscape;
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
@@ -464,7 +480,9 @@ namespace SDAFWebApp.Controllers
             {
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
+                landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
                 landscapeView.SapObject = landscape;
+                
                 return View(landscapeView);
             }
             catch (Exception e)

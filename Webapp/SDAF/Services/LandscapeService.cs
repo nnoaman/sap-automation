@@ -20,9 +20,16 @@ namespace SDAFWebApp.Services
 
         public LandscapeService(TableStorageService tableStorageService, IDatabaseSettings settings)
         {
-            client = tableStorageService.GetTableClient(settings.LandscapeCollectionName).Result;
-            tfvarsBlobContainerClient = tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName).Result;
+            try
+            {
+                client = tableStorageService.GetTableClient(settings.LandscapeCollectionName).Result;
+                tfvarsBlobContainerClient = tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName).Result;
+            }
+            catch (RequestFailedException ex)
+            {
+                throw new Exception($"Error initializing LandscapeService: {ex.Message}", ex);
 
+            }
         }
 
         public async Task<List<LandscapeEntity>> GetNAsync(int n)

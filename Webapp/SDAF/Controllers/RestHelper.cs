@@ -35,8 +35,7 @@ namespace SDAFWebApp.Controllers
         private readonly string PAT;
         private readonly string branch;
         private readonly string sdafGeneralId;
-        private readonly string sdafControlPlaneEnvironment;
-        private readonly string sdafControlPlaneLocation;
+        private readonly string sdafControlPlaneName;
         private readonly string tenantId;
         private readonly string managedIdentityClientId;
 
@@ -57,8 +56,8 @@ namespace SDAFWebApp.Controllers
             string devops_authentication = configuration["AUTHENTICATION_TYPE"];
             branch = configuration["SourceBranch"];
             sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
-            sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
-            sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
+            sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
+            
             tenantId = configuration["AZURE_TENANT_ID"];
             managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
 
@@ -76,17 +75,20 @@ namespace SDAFWebApp.Controllers
                 }
                 else
                 {
-                    if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(managedIdentityClientId))
+                    if (string.IsNullOrEmpty(managedIdentityClientId))
                     {
-                        throw new ArgumentNullException("TenantId and ManagedIdentityClientId must be provided for Managed Identity authentication.");
+                        credential = new DefaultAzureCredential();
+                    }
+                    else
+                    {
+                        credential = new DefaultAzureCredential(
+                          new DefaultAzureCredentialOptions
+                          {
+                              ManagedIdentityClientId = managedIdentityClientId
+                          });
+
                     }
 
-                    credential = new DefaultAzureCredential(
-                        new DefaultAzureCredentialOptions
-                        {
-                            TenantId = tenantId,
-                            ManagedIdentityClientId = managedIdentityClientId
-                        });
 
                     //var tokenRequestContext = new TokenRequestContext(new[] { "https://management.azure.com/.default", "499b84ac-1321-427f-aa17-267ca6975798/.default" });
 
@@ -258,14 +260,24 @@ namespace SDAFWebApp.Controllers
             {
                 EnvironmentModel environment = JsonSerializer.Deserialize<EnvironmentModel>(value.ToString());
 
-                environment.sdafControlPlaneEnvironment = sdafControlPlaneEnvironment;
-                if (!environment.name.EndsWith("-" + sdafControlPlaneEnvironment))
+                environment.sdafControlPlaneEnvironment = sdafControlPlaneName;
+                if (!environment.name.Contains("-" + sdafControlPlaneName))
                 {
                     if (environment.name.StartsWith("SDAF-"))
                     {
                         environment.name = environment.name.Replace("SDAF-", "");
+                        environment.isControlPlane = false;
+                        environment.sdafControlPlaneEnvironment = sdafControlPlaneName;
                         variableGroups.Add(environment);
                     }
+                }
+                else
+                {
+                    environment.name = environment.name.Replace("SDAF-", "");
+                    environment.isControlPlane = true;
+                    environment.sdafControlPlaneEnvironment = sdafControlPlaneName;
+
+                    variableGroups.Add(environment);
                 }
 
             }
@@ -431,8 +443,11 @@ namespace SDAFWebApp.Controllers
             dynamicVariables.ARM_CLIENT_SECRET = JToken.FromObject(environment.variables.ARM_CLIENT_SECRET);
             dynamicVariables.ARM_TENANT_ID = JToken.FromObject(environment.variables.ARM_TENANT_ID);
             dynamicVariables.ARM_SUBSCRIPTION_ID = JToken.FromObject(environment.variables.ARM_SUBSCRIPTION_ID);
-            dynamicVariables.sap_fqdn = JToken.FromObject(environment.variables.sap_fqdn);
             dynamicVariables.POOL = JToken.FromObject(environment.variables.POOL);
+            dynamicVariables.APPLICATION_CONFIGURATION_ID = JToken.FromObject(environment.variables.APPLICATION_CONFIGURATION_ID);
+            dynamicVariables.CONTROL_PLANE_NAME = JToken.FromObject(environment.variables.CONTROL_PLANE_NAME);
+            dynamicVariables.APP_REGISTRATION_APP_ID = JToken.FromObject(environment.variables.APP_REGISTRATION_APP_ID);
+            dynamicVariables.APP_REGISTRATION_OBJECT_ID = JToken.FromObject(environment.variables.APP_REGISTRATION_OBJECT_ID);
 
             dynamicEnvironment.variables = dynamicVariables;
 

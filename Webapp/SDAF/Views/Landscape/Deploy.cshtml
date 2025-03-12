@@ -45,33 +45,22 @@
 
         <div class="ms-TextField">                    
             <div class="left-input">
-                @Html.Label("environment", "Control plane environment", new { @class = $"ms-Label" })
-                <p>Deployer environment name</p>
+                @Html.Label("environment", "Control plane name", new { @class = $"ms-Label" })
+                <p>Control Plane Name</p>
             </div>
             <div class="right-input">
-                @Html.TextBox("deployer_environment_parameter", Model.SapObject.controlPlaneEnvironment , new { @class = "ms-TextField-field" })
+                @Html.TextBox("control_plane_name", Model.SapObject.controlPlaneName, new { @class = "ms-TextField-field" })
             </div>
         </div>
 
         <div class="ms-TextField">                    
             <div class="left-input">
-                @Html.Label("deployer_region_parameter", "Control plane location code", new { @class = $"ms-Label" })
-                <p>Deployer Control plane location code</p>
+                @Html.Label("workload_zone_name", "Workload Zone Name", new { @class = $"ms-Label" })
+                <p>Workload zone to deploy to</p>
             </div>
 
             <div class="right-input">
-                @Html.TextBox("deployer_region_parameter", Model.SapObject.controlPlaneLocation , new { @class = "ms-TextField-field" })
-            </div>
-        </div>
-
-        <div class="ms-TextField">                    
-            <div class="left-input">
-                @Html.Label("workload_environment_parameter", "Workload Zone Environment", new { @class = $"ms-Label" })
-                <p>Workload environment to deploy to</p>
-            </div>
-
-            <div class="right-input">
-                @Html.TextBox("workload_environment_parameter", Model.SapObject.environment, new { @class = "ms-TextField-field" })
+                @Html.TextBox("workload_zone_name", Model.SapObject.workloadZoneName, new { @class = "ms-TextField-field" })
             </div>
         </div>
 

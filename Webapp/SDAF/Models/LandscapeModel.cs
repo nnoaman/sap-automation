@@ -39,6 +39,11 @@ namespace SDAFWebApp.Models
         public string environment { get; set; }
 
         [RequiredIfNotDefault]
+        [DisplayName("Workload Zone Name")]
+        public string workloadZoneName { get; set; }
+
+
+        [RequiredIfNotDefault]
         [DisplayName("Location")]
         [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
         public string location { get; set; }
@@ -51,7 +56,7 @@ namespace SDAFWebApp.Models
 
         public bool? place_delete_lock_on_resources { get; set; } = false;
 
-        public string controlPlaneLocation { get; set; }
+        public string? controlPlaneName { get; set; }
 
         public Tag[] tags { get; set; }
 
@@ -215,9 +220,9 @@ namespace SDAFWebApp.Models
 
         public string tfstate_resource_id { get; set; }
 
-        [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
-        public string subscription { get; set; }
+        public string? subscription { get; set; }
 
+        [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
         public string subscription_id { get; set; }
 
         /*---------------------------------------------------------------------------8

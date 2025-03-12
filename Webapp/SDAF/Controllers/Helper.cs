@@ -52,6 +52,7 @@ namespace SDAFWebApp.Controllers
                 {"jioindiawest", "jinw"},
                 {"koreacentral", "koce"},
                 {"koreasouth", "koso"},
+                {"newzealandnorth", "nzno"},
                 {"northcentralus", "ncus"},
                 {"northeurope", "noeu"},
                 {"norwayeast", "noea"},
@@ -76,8 +77,7 @@ namespace SDAFWebApp.Controllers
                 {"westindia", "wein"},
                 {"westus", "weus"},
                 {"westus2", "wus2"},
-                {"westus3", "wus3"},
-                {"newzealandnorth", "nzno"}
+                {"westus3", "wus3"}
             };
         public static string ConvertToTerraform<T>(T model)
         {
@@ -230,12 +230,12 @@ namespace SDAFWebApp.Controllers
             if (model.GetType() == typeof(LandscapeModel))
             {
                 LandscapeModel landscape = (LandscapeModel)Convert.ChangeType(model, typeof(LandscapeModel));
-                id = (landscape.environment + "-" + MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+                id = (landscape.workloadZoneName+ "-infrastructure").ToUpper();
             }
             else if (model.GetType() == typeof(SystemModel))
             {
                 SystemModel system = (SystemModel)Convert.ChangeType(model, typeof(SystemModel));
-                id = (system.environment + "-" + MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
+                id = (system.workloadZoneName + "-" + system.sid).ToUpper();
             }
             else
             {
