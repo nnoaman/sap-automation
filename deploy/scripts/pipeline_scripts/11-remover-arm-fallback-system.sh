@@ -17,12 +17,10 @@ ENVIRONMENT=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 echo "Environment:                           $ENVIRONMENT"
 
 LOCATION=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-echo
 echo "Location:                              $LOCATION"
 
 NETWORK=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 echo "Network:                               $NETWORK"
-
 
 SID=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $4}' | xargs)
 echo "SID:                                   $SID"
