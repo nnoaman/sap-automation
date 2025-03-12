@@ -45,7 +45,6 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 
-
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
 	management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
@@ -62,11 +61,6 @@ parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/s
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
 
 echo -e "$green--- Validations ---$reset"
-if [ ! -f "${environment_file_name}" ]; then
-	echo -e "$bold_red--- ${environment_file_name} was not found ---$reset"
-	echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
-	exit 2
-fi
 
 if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
 	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
@@ -93,8 +87,6 @@ if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]az login failed."
 	exit $return_code
 fi
-
-az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 
 echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
 
