@@ -75,7 +75,7 @@ set -eu
 
 if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$VAULT_NAME" --subscription "$CONTROL_PLANE_SUBSCRIPTION_ID" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$VAULT_NAME" --subscription "$control_plane_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
 	sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
 fi
 
