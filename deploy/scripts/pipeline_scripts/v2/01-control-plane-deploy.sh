@@ -15,6 +15,9 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
+
 #call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
@@ -33,6 +36,8 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 export DEBUG
 set -eu
+
+print_banner "Deploy Control Plane" "Starting $SCRIPT_NAME" "info"
 
 echo -e "$green--- File Validations ---$reset"
 

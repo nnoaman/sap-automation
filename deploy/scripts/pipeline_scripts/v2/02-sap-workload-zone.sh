@@ -7,21 +7,29 @@ reset="\e[0m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
-#External helper functions
+# External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
+
+banner_title="Deploy Workload Zone"
+
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${grand_parent_directory}/deploy_utils.sh"
+
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
-source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
-	set -o errexit
 	DEBUG=True
 	echo "Environment variables:"
 	printenv | sort
@@ -29,6 +37,10 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 export DEBUG
 set -eu
+
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+
+WORKLOAD_ZONE=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
 
 echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
 
@@ -241,14 +253,19 @@ fi
 
 echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
-"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_landscape \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
-	--ado --auto-approve
-return_code=$?
-echo "Return code from deployment:         ${return_code}"
-if [ 0 != $return_code ]; then
-	echo "##vso[task.logissue type=error]Return code from installer $return_code."
+	--ado --auto-approve; then
+	return_code=$?
+	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE succeeded" "success"
+
+else
+	return_code=$?
+	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE  failed" "error"
+
+	echo "##vso[task.logissue type=error]Terraform apply failed."
 fi
+echo "Return code from deployment:         ${return_code}"
 
 set +o errexit
 
@@ -301,5 +318,7 @@ else
 	echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
 	echo "Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
 fi
+
+print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
 exit $return_code

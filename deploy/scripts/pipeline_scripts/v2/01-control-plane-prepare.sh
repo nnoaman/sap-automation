@@ -8,30 +8,38 @@ reset="\e[0m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
-#External helper functions
+# External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
+banner_title="Deploy Control Plane"
+
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${grand_parent_directory}/deploy_utils.sh"
 
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
-DEBUG=false
+DEBUG=False
+
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
-	DEBUG=true
+	DEBUG=True
 	echo "Environment variables:"
 	printenv | sort
 
-	set -o errexit
-	set -o pipefail
 fi
-
 export DEBUG
 set -eu
-file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+
 step=0
 
 cd "$CONFIG_REPO_PATH" || exit
@@ -224,7 +232,7 @@ else
 		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
 fi
 return_code=$?
-print_banner "Deploy Control Plane - Preparation" "Deploy_controlplane returned: $return_code" "info"
+print_banner "$banner_title - Preparation" "Deploy_controlplane returned: $return_code" "info"
 
 set -eu
 
@@ -285,5 +293,7 @@ if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" 
 		echo ""
 	fi
 fi
-echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+
+print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
+
 exit $return_code

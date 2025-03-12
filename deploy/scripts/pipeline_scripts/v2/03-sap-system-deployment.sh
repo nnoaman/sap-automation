@@ -5,7 +5,6 @@
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
-cyan="\e[1;36m"
 
 
 #External helper functions
@@ -14,15 +13,21 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
+banner_title="Deploy SAP System"
+
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${grand_parent_directory}/deploy_utils.sh"
+
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
-source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
-	set -o errexit
 	DEBUG=True
 	echo "Environment variables:"
 	printenv | sort
@@ -31,23 +36,22 @@ fi
 export DEBUG
 set -eu
 
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+
 echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYSTEM_FOLDERNAME"
 
 tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME"
 
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
-if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME" ]; then
+if [ ! -f "$CONFIG_REPO_PATH/$tfvarsFile" ]; then
 	echo -e "$bold_red--- $SAP_SYSTEM_TFVARS_FILENAME was not found ---$reset"
 	echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
 	exit 2
 fi
-
-echo -e "$green--- Validations ---$reset"
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -66,21 +70,15 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-echo -e "$green--- Read deployment details ---$reset"
-dos2unix -q tfvarsFile
-
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 SID=$(grep -m1 "^sid" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
 ENVIRONMENT_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $1}')
-
 LOCATION_CODE_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
-
 NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $3}')
-
 SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
 
 WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
@@ -154,10 +152,6 @@ echo "$val                 $VARIABLE_GROUP_ID"
 
 echo -e "$green--- Read parameter values ---$reset"
 
-dos2unix -q "${workload_environment_file_name}"
-
-prefix="${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
-
 deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
 
@@ -222,11 +216,18 @@ export tfstate_resource_id
 
 echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
-	--ado --auto-approve
-
+	--ado --auto-approve ; then
+	return_code=$?
+	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success"
+else
+	return_code=$?
+	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME failed" "error"
+	echo -e "$bold_red--- Deployment failed ---$reset"
+	echo "##vso[task.logissue type=error]Deployment failed."
+fi
 return_code=$?
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
@@ -324,5 +325,7 @@ fi
 #   #   fi
 #   # fi
 # fi
+
+print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
 exit $return_code

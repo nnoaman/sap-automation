@@ -5,12 +5,13 @@
 
 green="\e[1;32m"
 reset="\e[0m"
-yellow="\e[0;33m"
+
 
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 source "${script_directory}/helper.sh"
+
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors --output none
@@ -43,7 +44,6 @@ ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 echo "Environment:                           $ENVIRONMENT"
 
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-echo
 echo "Location:                              $LOCATION"
 
 NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
