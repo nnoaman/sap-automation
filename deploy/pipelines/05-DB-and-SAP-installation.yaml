@@ -181,6 +181,7 @@ stages:
               PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
               USE_MSI:                       $(USE_MSI)
               CONTROL_PLANE_NAME:            $(CONTROL_PLANE_NAME)
+              CONTROL_PLANE_SUBSCRIPTION_ID: $(Preparation.CP_SUBSCRIPTION)
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"
