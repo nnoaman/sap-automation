@@ -1,12 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static SDAFWebApp.Models.CustomValidators;
 
 namespace SDAFWebApp.Models
 {
+#nullable enable
     public class LandscapeModel
     {
         public bool IsValid()
@@ -17,12 +19,12 @@ namespace SDAFWebApp.Models
                 network_logical_name != null
                 ;
         }
-        #pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable IDE1006 // Naming Styles
 
         [DisplayName("Workload zone ID")]
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
-        public string LastModified { get; set; }
+        public string LastModified { get; set; } = DateTime.Now.ToShortDateString();
 
         // BASIC
 
@@ -219,8 +221,6 @@ namespace SDAFWebApp.Models
         public string deployer_tfstate_key { get; set; }
 
         public string tfstate_resource_id { get; set; }
-
-        public string? subscription { get; set; }
 
         [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
         public string subscription_id { get; set; }

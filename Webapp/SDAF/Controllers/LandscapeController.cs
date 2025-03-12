@@ -190,7 +190,7 @@ namespace SDAFWebApp.Controllers
                     landscape.Id = Helper.GenerateId(landscape);
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
-                    landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                    landscape.subscription_id = landscape.subscription_id.Replace("/subscriptions/", "");
                     landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
 
                     string locationCode = Helper.MapRegion(landscape.location.ToLower());

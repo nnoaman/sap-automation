@@ -62,7 +62,6 @@ namespace SDAFWebApp.Models
         // Common Infrastructure
 
         [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
-        public string subscription { get; set; }
 
         public string subscription_id { get; set; }
 
