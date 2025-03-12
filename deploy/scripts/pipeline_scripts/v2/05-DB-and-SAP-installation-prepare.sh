@@ -49,7 +49,9 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 
 	management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 
-	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultName" "${WORKLOAD_ZONE_NAME}")
+	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
+	key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
+	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
 
 fi
 
@@ -130,9 +132,9 @@ echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$key_vault"
 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-password"
 echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-username"
 echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
-echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${management_subscription_id}"
+echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${key_vault_subscription_id}"
 
-az keyvault secret show --name "${WORKLOAD_ZONE_NAME}-sid-sshkey" --vault-name "$key_vault" --subscription "$management_subscription_id" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
+az keyvault secret show --name "${WORKLOAD_ZONE_NAME}-sid-sshkey" --vault-name "$key_vault" --subscription "$key_vault_subscription_id" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.
 
