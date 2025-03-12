@@ -87,6 +87,7 @@ stages:
               resourceGroupName:              ${{ parameters.sap_system }}
 
       - job:                           Remove_sap_deployment_artifacts_in_WORKSPACES
+        dependsOn:                     Remove_SAP_system_RG
         displayName:                   Remove SAP System deployment artifacts from WORKSPACES
         variables:
           - group:                     SDAF-${{ parameters.workload_zone_name }}
@@ -134,6 +135,7 @@ stages:
               resourceGroupName:              "$(workload_zone_foldername)"
 
       - job:                           Remove_zone_deployment_artifacts_in_WORKSPACES
+        dependsOn:                     Remove_SAP_workload_zone
         displayName:                   Remove Workload Zone deployment artifacts
         variables:
           - group:                     SDAF-${{ parameters.workload_zone_name }}

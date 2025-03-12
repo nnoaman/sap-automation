@@ -2,13 +2,11 @@
 # Licensed under the MIT License.
 
 parameters:
-  control_plane_name:                  ""
-  library:                             ""
   sap_system:                          ""
-  workload_zone_name:                  ""
-  workload_zone:                       ""
   cleanup_workload_zone:               false
+  workload_zone_name:                  ""
   cleanup_control_plane:               false
+  control_plane_name:                  ""
   connection_name:                     ""
 
 variables:
@@ -25,10 +23,10 @@ variables:
     value:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              workload_zone_foldername
-    value:                             ${{ parameters.workload_zone }}-INFRASTRUCTURE
+    value:                             ${{ parameters.workload_zone_name }}-INFRASTRUCTURE
 
   - name:                              workload_zone_config
-    value:                             ${{ parameters.workload_zone }}-INFRASTRUCTURE.tfvars
+    value:                             ${{ parameters.workload_zone_name }}-INFRASTRUCTURE.tfvars
 
   - name:                              sap_system_foldername
     value:                             ${{ parameters.sap_system }}
