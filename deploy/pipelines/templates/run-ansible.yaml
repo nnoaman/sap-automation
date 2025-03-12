@@ -22,7 +22,7 @@ parameters:
 
 steps:
 - task:                             Bash@3
-  name:                             RunAnsible
+  name:                             ${{ parameters.name }}
   displayName:                      ${{ parameters.displayName }}
   inputs:
     targetType:                     'filePath'
