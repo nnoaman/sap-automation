@@ -55,6 +55,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 	tfstate_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
+
 fi
 
 cd "$CONFIG_REPO_PATH" || exit
