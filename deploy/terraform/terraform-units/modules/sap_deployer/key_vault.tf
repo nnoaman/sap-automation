@@ -204,26 +204,30 @@ resource "azurerm_role_assignment" "role_assignment_additional_users" {
   principal_id                         = var.additional_users_to_add_to_keyvault_policies[count.index]
 }
 
+resource "azurerm_role_assignment" "role_assignment_webapp" {
+  provider                             = azurerm.main
+  count                                = !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.use_webapp ? 1 : 0
+  scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  role_definition_name                 = "Key Vault Secrets Officer"
+  principal_id                         = azurerm_windows_web_app.webapp[0].identity[0].principal_id
 
-# resource "azurerm_key_vault_access_policy" "webapp" {
-#   provider = azurerm.main
-#   count = var.use_webapp ? 1 : 0
+}
+resource "azurerm_key_vault_access_policy" "webapp" {
+  provider                             = azurerm.main
+  count                                = !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.use_webapp ? 1 : 0
 
-#   key_vault_id = var.key_vault.exists ? (
-#     var.key_vault.id) : (
-#     azurerm_key_vault.kv_user[0].id
-#   )
+  key_vault_id                         = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 
-#   tenant_id = azurerm_windows_web_app.webapp[0].identity[0].tenant_id
-#   object_id = azurerm_windows_web_app.webapp[0].identity[0].principal_id
-#   secret_permissions = [
-#     "Get",
-#     "List",
-#     "Set",
-#     "Recover"
-#   ]
+  tenant_id                            = azurerm_windows_web_app.webapp[0].identity[0].tenant_id
+  object_id                            = azurerm_windows_web_app.webapp[0].identity[0].principal_id
+  secret_permissions                   = [
+                                            "Get",
+                                            "List",
+                                            "Set",
+                                            "Recover"
+                                          ]
 
-# }
+}
 
 
 
