@@ -52,6 +52,9 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
 	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
 
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	tfstate_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
+
 fi
 
 cd "$CONFIG_REPO_PATH" || exit
@@ -115,8 +118,9 @@ else
 	new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
 fi
 
+az account set --subscription "$tfstate_subscription_id" --output none --only-show-errors
 
-echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${key_vault_subscription_id}"
+echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${tfstate_subscription_id}"
 echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
