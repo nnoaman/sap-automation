@@ -11,12 +11,10 @@ parameters:
   - name:                              sap_system
     displayName:                       "SAP System SID"
     type:                              string
-    default:                           X00
 
   - name:                              workload_zone_name
     displayName:                       "Workload Environment, use the following syntax: ENV-LOCA-VNET"
     type:                              string
-    default:                           TEST-SECE-SAP02
 
   - name:                              sap_automation_repo_path
     displayName:                       The local path on the agent where the sap_automation repo can be found
