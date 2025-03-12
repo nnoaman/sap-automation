@@ -160,7 +160,6 @@ stages:
               AZURE_CLIENT_ID:               $(ARM_CLIENT_ID)
               AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
               AZURE_TENANT_ID:               $(ARM_TENANT_ID)
-              AZURE_SUBSCRIPTION_ID:         $(Terraform_Remote_Storage_Subscription)
               ANSIBLE_COLLECTIONS_PATH:      /opt/ansible/collections
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
@@ -168,7 +167,7 @@ stages:
               EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
               PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
               USE_MSI:                       $(USE_MSI)
-              CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+              CONTROL_PLANE_NAME:            $(CONTROL_PLANE_NAME)
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"
