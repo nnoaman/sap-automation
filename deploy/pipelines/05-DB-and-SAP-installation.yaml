@@ -14,12 +14,10 @@ parameters:
   - name:                              sap_system_configuration_name
     displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
     type:                              string
-    default:                           DEV-WEEU-SAP01-X00
 
-  - name:                              environment
+  - name:                              workload_zone_name
     displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
-    default:                           DEV
 
   - name:                              bom_base_name
     displayName:                       Bill of Materials name
@@ -128,12 +126,12 @@ parameters:
     type:                              string
 
 stages:
-  - stage: Preparation_for_Ansible
-    condition: and(not(failed()), not(canceled()))
+  - stage:                             Preparation_for_Ansible
+    condition:                         and(not(failed()), not(canceled()))
     variables:
       - template:                      variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          environment:                 ${{ parameters.environment }}
+          workload_zone_name:          ${{ parameters.workload_zone_name }}
     displayName:                       OS Configuration and SAP Installation
     jobs:
       - job:                           Installation_step

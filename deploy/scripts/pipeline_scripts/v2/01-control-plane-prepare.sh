@@ -74,7 +74,7 @@ echo "Step:                                $step"
 
 if [ 0 != "${step}" ]; then
 	echo "##vso[task.logissue type=warning]Already prepared"
-	print_banner "Deployer " "The deployer is already prepared " "info"
+	print_banner "Deployer " "The deployer is already bootstrapped" "info"
 	exit 0
 fi
 
@@ -232,7 +232,7 @@ else
 		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
 fi
 return_code=$?
-print_banner "$banner_title - Preparation" "Deploy_controlplane returned: $return_code" "info"
+print_banner "$banner_title - Preparation" "Deploy_control_plane_v2 returned: $return_code" "info"
 
 set -eu
 
