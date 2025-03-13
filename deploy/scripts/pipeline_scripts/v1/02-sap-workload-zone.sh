@@ -171,8 +171,9 @@ workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$wo
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --output none
 
-az extension add --name azure-devops --output none --only-show-errors
-
+if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
+	az extension add --name azure-devops --output none --only-show-errors
+fi
 az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
 
 PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")

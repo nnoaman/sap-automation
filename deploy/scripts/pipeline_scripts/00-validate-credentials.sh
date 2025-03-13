@@ -39,7 +39,7 @@ set -eu
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-if ! az extension list --query "[?contains(name, 'azure-devops')].name" --output tsv; then
+if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
 	az extension add --name azure-devops --output none --only-show-errors
 fi
 

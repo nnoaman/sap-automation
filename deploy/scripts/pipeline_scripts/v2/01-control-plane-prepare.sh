@@ -83,7 +83,9 @@ git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
-az extension add --name azure-devops --output none --only-show-errors
+if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
+	az extension add --name azure-devops --output none --only-show-errors
+fi
 az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
 
 echo -e "$green--- File Validations ---$reset"
