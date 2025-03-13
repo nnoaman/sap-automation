@@ -76,20 +76,15 @@ if [ "azure pipelines" == "$THIS_AGENT" ]; then
 	exit 2
 fi
 
-echo -e "$green--- az login ---$reset"
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure false
-else
-	LogonToAzure "$USE_MSI"
-fi
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
+	if ! LogonToAzure false; then
+		print_banner "$banner_title" "Login to Azure failed" "error"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit 2
+	fi
 fi
 
 echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"

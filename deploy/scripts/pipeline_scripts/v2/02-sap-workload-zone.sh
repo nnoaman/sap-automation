@@ -85,18 +85,15 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)" || true
+	configureNonDeployer "$(tf_version)"
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure false || true
-else
-	LogonToAzure "$USE_MSI" || true
+	if ! LogonToAzure false; then
+		print_banner "$banner_title" "Login to Azure failed" "error"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit 2
+	fi
 fi
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
-fi
+
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read deployment details ---$reset"

@@ -121,9 +121,6 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	unset ARM_CLIENT_SECRET
 
-else
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure "$USE_MSI"
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
