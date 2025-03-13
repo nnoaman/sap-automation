@@ -96,7 +96,9 @@ AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 export AZURE_DEVOPS_EXT_PAT
 
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
-az extension add --name azure-devops --output none --only-show-errors
+if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
+	az extension add --name azure-devops --output none --only-show-errors
+fi
 az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then

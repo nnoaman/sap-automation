@@ -10,11 +10,11 @@ parent_directory="$(dirname "$script_directory")"
 source "${parent_directory}/deploy_utils.sh"
 source "${script_directory}/helper.sh"
 
-if ! az extension list --query "[?contains(name, 'azure-devops')].name" --output tsv; then
+if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
 	az extension add --name azure-devops --output none --only-show-errors
 fi
 
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$
+az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID
 app_service_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceId" "${CONTROL_PLANE_NAME}")
 if [ -n "$app_service_id" ]; then
   app_service_name=$(echo $app_service_id | cut -d'/' -f9)

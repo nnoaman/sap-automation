@@ -58,7 +58,8 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment
+                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            azurerm_private_endpoint.app_config
                                          ]
 
   configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
@@ -84,7 +85,8 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment
+                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            azurerm_private_endpoint.app_config
                                          ]
 
   configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
@@ -111,7 +113,8 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment
+                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            azurerm_private_endpoint.app_config
                                          ]
 
   configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
@@ -137,7 +140,8 @@ resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment
+                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            azurerm_private_endpoint.app_config
                                          ]
 
   configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
@@ -162,7 +166,8 @@ resource "azurerm_app_configuration_key" "deployer_subscription_id" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment
+                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            azurerm_private_endpoint.app_config
                                          ]
 
   configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
@@ -187,7 +192,8 @@ resource "azurerm_app_configuration_key" "web_application_resource_id" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? var.use_webapp ? 1 :0 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment
+                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            azurerm_private_endpoint.app_config
                                          ]
 
   configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
@@ -212,7 +218,8 @@ resource "azurerm_app_configuration_key" "web_application_identity_id" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? var.use_webapp ? 1 :0 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment
+                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            azurerm_private_endpoint.app_config
                                          ]
 
   configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
@@ -238,7 +245,8 @@ resource "azurerm_app_configuration_key" "deployer_msi_id" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_application_configuration ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment
+                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            azurerm_private_endpoint.app_config
                                          ]
 
   configuration_store_id               = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
