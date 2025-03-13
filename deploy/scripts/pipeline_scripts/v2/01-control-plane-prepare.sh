@@ -124,7 +124,6 @@ echo "$val                 $VARIABLE_GROUP_ID"
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
@@ -199,7 +198,6 @@ else
 	echo "Deployer Key Vault:                  undefined"
 fi
 
-
 echo -e "$green--- Variables ---$reset"
 
 if [ -z "${TF_VAR_ansible_core_version}" ]; then
@@ -218,20 +216,21 @@ fi
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
 set +eu
 
-if [ "$USE_MSI" != "true" ]; then
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_control_plane_v2.sh" \
-		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
-		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
-		--subscription "$ARM_SUBSCRIPTION_ID" \
-		--auto-approve --ado --only_deployer
+msi_flag="  "
 
-else
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_control_plane_v2.sh" \
-		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
-		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
+if [ "$USE_MSI" == "true" ]; then
+	msi_flag=" --msi "
 fi
-return_code=$?
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_control_plane_v2.sh" \
+	--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
+	--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
+	--subscription "$ARM_SUBSCRIPTION_ID" \
+	--auto-approve --ado --only_deployer "${msi_flag}"; then
+	return_code=$?
+else
+	return_code=$?
+fi
+
 print_banner "$banner_title - Preparation" "Deploy_control_plane_v2 returned: $return_code" "info"
 
 set -eu
@@ -240,9 +239,15 @@ if [ 0 = $return_code ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+
 	if [ "$USE_MSI" != "true" ]; then
-		"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --environment "${ENVIRONMENT}" --vault ${DEPLOYER_KEYVAULT} \
-			--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado
+		if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --environment "${ENVIRONMENT}" --vault ${DEPLOYER_KEYVAULT} \
+			--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado; then
+			return_code=$?
+		else
+			return_code=$?
+			print_banner "$banner_title - Set secrets" "Set_secrets failed" "error"
+		fi
 	fi
 
 fi
@@ -253,8 +258,6 @@ cd "$CONFIG_REPO_PATH" || exit
 
 # Pull changes
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
-
-echo -e "$green--- Update repo ---$reset"
 
 if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
 	git add ".sap_deployment_automation/$CONTROL_PLANE_NAME"
