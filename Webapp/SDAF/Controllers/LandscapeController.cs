@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace SDAFWebApp.Controllers
@@ -25,7 +26,7 @@ namespace SDAFWebApp.Controllers
         private readonly ITableStorageService<AppFile> _appFileService;
         private FormViewModel<LandscapeModel> landscapeView;
         private readonly IConfiguration _configuration;
-        private RestHelper restHelper;
+        private readonly RestHelper restHelper;
         private readonly ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
@@ -55,7 +56,7 @@ namespace SDAFWebApp.Controllers
             }
             catch
             {
-                landscapeView.ParameterGroupings = Array.Empty<Grouping>();
+                landscapeView.ParameterGroupings = [];
             }
 
             return landscapeView;
@@ -197,7 +198,7 @@ namespace SDAFWebApp.Controllers
 
                     landscape.environment = landscape.workloadZoneName.Split('-')[0];
 
-                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
+                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape, new JsonSerializerOptions() { }));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     string id = landscape.Id;
                     string path = $"/LANDSCAPE/{id}/{id}.tfvars";
@@ -346,7 +347,7 @@ namespace SDAFWebApp.Controllers
                 try
                 {
                     string newId = Helper.GenerateId(landscape);
-                    if (landscape.Id == null) landscape.Id = newId;
+                    landscape.Id ??= newId;
                     if (newId != landscape.Id)
                     {
                         landscape.Id = newId;
@@ -382,7 +383,7 @@ namespace SDAFWebApp.Controllers
                         landscape.environment = landscape.workloadZoneName.Split('-')[0];
                         landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
 
-                        await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
+                        await _landscapeService.UpdateAsync(new LandscapeEntity(landscape, new JsonSerializerOptions() { }));
                         TempData["success"] = "Successfully updated workload zone " + landscape.Id;
 
                         string id = landscape.Id;
@@ -438,7 +439,7 @@ namespace SDAFWebApp.Controllers
 
                     landscape.environment = landscape.workloadZoneName.Split('-')[0];
 
-                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
+                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape, new JsonSerializerOptions() { }));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     string id = landscape.Id;
                     string path = $"/LANDSCAPE/{id}/{id}.tfvars";
@@ -545,7 +546,7 @@ namespace SDAFWebApp.Controllers
                 if (existingDefault != null && existingDefault.Id != id)
                 {
                     existingDefault.IsDefault = false;
-                    await _landscapeService.UpdateAsync(new LandscapeEntity(existingDefault));
+                    await _landscapeService.UpdateAsync(new LandscapeEntity(existingDefault, new JsonSerializerOptions() { }));
                     Console.WriteLine("Unset existing default " + existingDefault.Id);
                 }
             }

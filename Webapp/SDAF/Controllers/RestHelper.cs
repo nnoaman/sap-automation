@@ -43,9 +43,9 @@ namespace SDAFWebApp.Controllers
 
         private readonly string sampleUrl = "https://api.github.com/repos/Azure/SAP-automation-samples";
 
-        private HttpClient client;
+        private readonly HttpClient client;
 
-        private JsonSerializerOptions jsonSerializerOptions;
+        private readonly JsonSerializerOptions jsonSerializerOptions;
 
         public RestHelper(IConfiguration configuration, string type = "ADO")
         {
@@ -153,7 +153,7 @@ namespace SDAFWebApp.Controllers
             };
             GitRequestBody requestBody = new()
             {
-                refUpdates = new Refupdate[] { refUpdate },
+                refUpdates = [refUpdate],
             };
             StringContent editContent = Helper.CreateHttpContent("edit", path, content, requestBody);
 
@@ -220,7 +220,7 @@ namespace SDAFWebApp.Controllers
                 }
             }
 
-            return fileNames.ToArray();
+            return [.. fileNames];
         }
 
         // Get a file from azure sap-automation repository
@@ -282,7 +282,7 @@ namespace SDAFWebApp.Controllers
 
             }
 
-            return variableGroups.ToArray();
+            return [.. variableGroups];
         }
 
         // Get a list of all variable group names for use in a dropdown
@@ -365,7 +365,7 @@ namespace SDAFWebApp.Controllers
                 string value = variables.GetProperty(variableName).GetProperty("value").GetString();
                 if (value.EndsWith('/'))
                 {
-                    value = value.Remove(value.Length - 1);
+                    value = value[..^1];
                 }
                 return value;
             }
@@ -384,8 +384,8 @@ namespace SDAFWebApp.Controllers
 
             newName = "SDAF-" + newName.Replace("SDAF-", "");
             environment.name = newName;
-            environment.variableGroupProjectReferences = new VariableGroupProjectReference[]
-                {
+            environment.variableGroupProjectReferences =
+                [
                     new VariableGroupProjectReference
                     {
                         name = newName,
@@ -396,7 +396,7 @@ namespace SDAFWebApp.Controllers
                             name = project
                         }
                     }
-                };
+                ];
 
             string requestJson = JsonSerializer.Serialize(environment, typeof(EnvironmentModel), jsonSerializerOptions);
             StringContent content = new(requestJson, Encoding.ASCII, "application/json");

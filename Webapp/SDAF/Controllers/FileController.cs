@@ -154,7 +154,7 @@ namespace SDAFWebApp.Controllers
                 {
                     LandscapeModel landscape = JsonSerializer.Deserialize<LandscapeModel>(jsonString);
                     landscape.Id = id;
-                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
+                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape, new JsonSerializerOptions() { }));
                     TempData["success"] = "Successfully converted file " + id + " to a workload zone object";
                 }
                 else
@@ -446,7 +446,7 @@ namespace SDAFWebApp.Controllers
                     type = 2;
                 }
 
-                if (newName.Contains("..") || newName.Contains("/") || newName.Contains("\\"))
+                if (newName.Contains("..") || newName.Contains('/') || newName.Contains('\\'))
                 {
                     throw new Exception("Invalid filename");
                 }

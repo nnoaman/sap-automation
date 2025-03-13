@@ -27,7 +27,7 @@ namespace SDAFWebApp.Controllers
         private readonly IConfiguration _configuration;
         private readonly RestHelper restHelper;
 
-        private ImageDropdown[] imagesOffered;
+        private readonly ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
 
@@ -74,7 +74,7 @@ namespace SDAFWebApp.Controllers
                 systemIndex.SapObjects = systems;
 
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();
-                systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars") && file.Id != "VM-Images.json" && file.Id.IndexOf("_custom_") == -1);
+                systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars") && file.Id != "VM-Images.json" && !file.Id.Contains("_custom_"));
 
                 systemIndex.ImagesFile = await Helper.GetImagesFile(_appFileService);
             }
@@ -167,9 +167,8 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public ActionResult GetImage(string name)
         {
-            if (name != null && imageMapping.ContainsKey(name))
+            if (name != null && imageMapping.TryGetValue(name, out Image image))
             {
-                Image image = imageMapping[name];
                 return Json(image);
             }
             else
@@ -437,7 +436,7 @@ namespace SDAFWebApp.Controllers
                 try
                 {
                     string newId = Helper.GenerateId(system);
-                    if (system.Id == null) system.Id = newId;
+                    system.Id ??= newId;
                     if (newId != system.Id)
                     {
                         if (String.IsNullOrEmpty(system.Description))
