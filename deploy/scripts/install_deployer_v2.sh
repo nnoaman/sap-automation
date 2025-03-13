@@ -324,7 +324,6 @@ function install_deployer() {
 			print_banner "$banner_title" "Terraform apply succeeded" "success"
 		else
 			return_value=$?
-
 			print_banner "$banner_title" "Terraform apply failed." "error"
 		fi
 
@@ -335,38 +334,33 @@ function install_deployer() {
 
 		if [[ -n $errors_occurred ]]; then
 			return_value=10
-			if [ -n "${approve}" ]; then
-
+			# shellcheck disable=SC2086
+			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+				return_value=$?
+			fi
+			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
 				fi
-				if [ -f apply_output.json ]; then
-					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-						return_value=$?
-					fi
+			fi
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					return_value=$?
 				fi
-				if [ -f apply_output.json ]; then
-					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-						return_value=$?
-					fi
+			fi
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					return_value=$?
 				fi
-				if [ -f apply_output.json ]; then
-					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-						return_value=$?
-					fi
+			fi
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					return_value=$?
 				fi
-				if [ -f apply_output.json ]; then
-					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-						return_value=$?
-					fi
-				fi
-			else
-				return_value=10
 			fi
 		fi
 	fi
@@ -378,7 +372,9 @@ function install_deployer() {
 		return $return_value
 	fi
 
-	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+	terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name
+
+	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 	if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 		printf -v val %-.20s "$DEPLOYER_KEYVAULT"
 		print_banner "Bootstrap Deployer " "Keyvault to use for deployment credentials: $val" "info"
