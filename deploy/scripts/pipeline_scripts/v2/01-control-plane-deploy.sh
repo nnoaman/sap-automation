@@ -17,7 +17,7 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_NAME
-
+banner_title="Deploy Control Plane"
 #call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
@@ -37,7 +37,7 @@ fi
 export DEBUG
 set -eu
 
-print_banner "Deploy Control Plane" "Starting $SCRIPT_NAME" "info"
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 echo -e "$green--- File Validations ---$reset"
 
@@ -75,7 +75,6 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
 fi
-
 
 echo -e "$green--- Information ---$reset"
 echo "Agent:                               $THIS_AGENT"
@@ -160,7 +159,7 @@ dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FIL
 
 echo -e "$green--- Variables ---$reset"
 
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/" ; then
+if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$key_vault_id" ]; then
@@ -174,7 +173,6 @@ else
 	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
 	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
-
 
 TF_VAR_spn_keyvault_id=${key_vault_id}
 export TF_VAR_spn_keyvault_id
@@ -215,10 +213,6 @@ if [ -z "${TF_VAR_ansible_core_version}" ]; then
 	export TF_VAR_ansible_core_version=2.16
 fi
 
-
-file_terraform_storage_account_name=""
-file_terraform_storage_account_resource_group_name=""
-
 echo -e "$green--- Update .sap_deployment_automation/config as SAP_AUTOMATION_REPO_PATH can change on devops agent ---$reset"
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
@@ -234,7 +228,6 @@ if [ -n "${key_vault}" ]; then
 		if [ "azure pipelines" = "$THIS_AGENT" ]; then
 			this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 			az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
-			ip_added=1
 		fi
 	fi
 fi
@@ -258,41 +251,28 @@ fi
 
 export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
-print_banner "Deploy Control Plane" "Calling deploy_control_plane_v2" "info"
+print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
+
+msi_flag=""
 if [ "$USE_MSI" != "true" ]; then
-
-	export TF_VAR_use_spn=true
-
-	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
-		--library_parameter_file "${library_configuration_file}" \
-		--subscription "$ARM_SUBSCRIPTION_ID" \
-		--auto-approve --ado \
-		"${storage_account_parameter}" "${keyvault_parameter}"; then
-		return_code=$?
-		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
-		echo "Return code from deploy_control_plane_v2 $return_code."
-	else
-		return_code=$?
-		echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
-		echo "Return code from deploy_control_plane_v2 $return_code."
-
-	fi
-else
+	msi_flag=" --msi "
 	export TF_VAR_use_spn=false
+else
+	export TF_VAR_use_spn=true
+fi
 
-	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
-		--library_parameter_file "${library_configuration_file}" \
-		--subscription "$ARM_SUBSCRIPTION_ID" \
-		--auto-approve --ado --msi \
-		"${storage_account_parameter}" "${keyvault_parameter}"; then
-		return_code=$?
-		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
-		echo "Return code from deploy_control_plane_v2 $return_code."
-	else
-		return_code=$?
-		echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
-		echo "Return code from deploy_control_plane_v2 $return_code."
-	fi
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
+	--library_parameter_file "${library_configuration_file}" \
+	--subscription "$ARM_SUBSCRIPTION_ID" \
+	--auto-approve --ado "$msi_flag" \
+	"${storage_account_parameter}" "${keyvault_parameter}"; then
+	return_code=$?
+	echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
+	echo "Return code from deploy_control_plane_v2 $return_code."
+else
+	return_code=$?
+	echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
+	echo "Return code from deploy_control_plane_v2 $return_code."
 
 fi
 
@@ -431,6 +411,7 @@ if [ 0 = $return_code ]; then
 		echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-
 fi
+print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
+
 exit $return_code
