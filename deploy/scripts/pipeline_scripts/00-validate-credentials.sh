@@ -121,7 +121,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 		echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$az_var"
 	else
 		if printenv ARM_OBJECT_ID; then
-			echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$ARM_OBJECT_ID"
+			echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$ARM_OBJECT_ID"
 		fi
 	fi
 else
