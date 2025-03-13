@@ -51,28 +51,7 @@ export control_plane_subscription
 
 vault_name=$(echo "${VAULT_NAME}" | tr [:upper:] [:lower:] | xargs)
 
-deployer_file=/etc/profile.d/deploy_server.sh
-
-if [ $USE_MSI != "true" ]; then
-	echo "##[section]Running on a deployer..."
-	source /etc/profile.d/deploy_server.sh
-	noAccess=$(az account show --query name | grep "N/A(tenant level account) || true")
-
-	if [ -z "$noAccess" ]; then
-		az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
-	fi
-else
-	echo "##[section]Running on an Azure DevOps agent..."
-
-	if [ '$(ARM_CLIENT_ID)' == $AZURE_CLIENT_ID ]; then
-		source "$deployer_file"
-	else
-		az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
-	fi
-
-	az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
-
-fi
+az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
 
 set -eu
 
