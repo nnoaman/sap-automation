@@ -77,8 +77,16 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 		echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$az_var"
 	else
 		if printenv ARM_CLIENT_ID; then
-			echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$ARM_CLIENT_ID"
+			echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$ARM_CLIENT_ID"
+		else
+			if [[ -f /etc/profile.d/deploy_server.sh ]]; then
+				ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+				echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$ARM_CLIENT_ID"
+			else
+				echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]"
+			fi
 		fi
+
 	fi
 
 	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_CLIENT_SECRET.value" --output tsv)
@@ -86,7 +94,9 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 		echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true;issecret=true]$az_var"
 	else
 		if printenv ARM_CLIENT_SECRET; then
-			echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$ARM_CLIENT_SECRET"
+			echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$ARM_CLIENT_SECRET"
+		else
+			echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
 		fi
 	fi
 
@@ -95,7 +105,14 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 		echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$az_var"
 	else
 		if printenv ARM_TENANT_ID; then
-			echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$ARM_TENANT_ID"
+			echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$ARM_TENANT_ID"
+		else
+			if [[ -f /etc/profile.d/deploy_server.sh ]]; then
+				ARM_TENANT_ID=$(grep -m 1 "export ARM_TENANT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+				echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$ARM_CLIENT_ID"
+			else
+				echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]"
+			fi
 		fi
 	fi
 
@@ -107,7 +124,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 			echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$ARM_OBJECT_ID"
 		fi
 	fi
-	else
+else
 	print_banner "$banner_title" "VARIABLE_GROUP: $VARIABLE_GROUP was not found" "error"
 	exit 1
 fi
