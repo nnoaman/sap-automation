@@ -378,28 +378,25 @@ function install_deployer() {
 		return $return_value
 	fi
 
-	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+	if [ -n "${DEPLOYER_KEYVAULT}" ]; then
+		printf -v val %-.20s "$DEPLOYER_KEYVAULT"
+		print_banner "Bootstrap Deployer " "Keyvault to use for deployment credentials: $val" "info"
+		export DEPLOYER_KEYVAULT
+	fi
 
-		DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-		if [ -n "${DEPLOYER_KEYVAULT}" ]; then
-			printf -v val %-.20s "$DEPLOYER_KEYVAULT"
-			print_banner "Bootstrap Deployer " "Keyvault to use for deployment credentials: $val" "info"
-			export DEPLOYER_KEYVAULT
-		fi
+	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
+	fi
+	export APPLICATION_CONFIGURATION_ID
 
-		APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
-		if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
-			save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
-		fi
-		export APPLICATION_CONFIGURATION_ID
+	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${deployer_random_id}" ]; then
+		custom_random_id="${deployer_random_id:0:3}"
+		sed -i -e /"custom_random_id"/d "${var_file}"
+		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
-		deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-		if [ -n "${deployer_random_id}" ]; then
-			custom_random_id="${deployer_random_id:0:3}"
-			sed -i -e /"custom_random_id"/d "${var_file}"
-			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-
-		fi
 	fi
 
 	unset TF_DATA_DIR
@@ -408,9 +405,8 @@ function install_deployer() {
 }
 
 # Main script
-if install_deployer "$@" ; then
+if install_deployer "$@"; then
 	exit 0
 else
 	exit $?
 fi
-
