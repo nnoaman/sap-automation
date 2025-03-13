@@ -195,7 +195,16 @@ function bootstrap_deployer() {
 
   echo "Calling install_deployer_v2.sh:         $allParameters"
 
-  if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
+  if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
+    return_code=$?
+    print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
+    echo "Return code from install_deployer_v2:   ${return_code}"
+    step=1
+    save_config_var "step" "${deployer_config_information}"
+    if [ 1 = "${only_deployer:-}" ]; then
+      return 0
+    fi
+  else
     return_code=$?
     echo "Return code from install_deployer_v2:   ${return_code}"
 
@@ -207,15 +216,6 @@ function bootstrap_deployer() {
     else
       print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
       return 10
-    fi
-  else
-    return_code=$?
-    print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
-    echo "Return code from install_deployer_v2:   ${return_code}"
-    step=1
-    save_config_var "step" "${deployer_config_information}"
-    if [ 1 = "${only_deployer:-}" ]; then
-      return 0
     fi
   fi
 
@@ -713,7 +713,7 @@ function deploy_control_plane() {
   fi
 
   if [ 0 -eq $step ]; then
-    if bootstrap_deployer; then
+    if ! bootstrap_deployer; then
       print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
       return 10
     fi
