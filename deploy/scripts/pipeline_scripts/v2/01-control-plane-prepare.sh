@@ -111,6 +111,7 @@ if [ -n "$POOL" ]; then
 	echo "Deployer Agent Pool:                 $POOL"
 fi
 echo ""
+VARIABLE_GROUP="SDAF-$CONTROL_PLANE_NAME"
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
