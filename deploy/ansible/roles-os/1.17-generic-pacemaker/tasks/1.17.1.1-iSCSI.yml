@@ -20,16 +20,16 @@
     - sbd
 
 - name:                                "1.17.1 iSCSI packages (REDHAT)"
+  when:                                (ansible_os_family | upper) == "REDHAT"
   become:                              true
   become_user:                         root
   ansible.builtin.dnf:
     name:                              "{{ item }}"
     state:                             present
   loop:
-    - open-iscsi
+    - iscsi-initiator-utils
     - sbd
-  when:                                (ansible_os_family | upper) == "REDHAT"
-
+    - fence-agents-sbd
 
 - name:                                "1.17.1 iSCSI packages"
   become:                              true
