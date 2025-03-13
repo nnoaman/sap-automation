@@ -151,41 +151,32 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
 
-else
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure "$USE_MSI"
-fi
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
 fi
 
 export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "$deployer_tfvars_file_name"
-dos2unix -q "$library_tfvars_file_name"
-
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
 if [ -n "$key_vault" ]; then
 	echo "Deployer Key Vault:                  ${key_vault}"
+
 	key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
 
 	if [ -z "${key_vault_id}" ]; then
 		echo "##vso[task.logissue type=error]Key Vault $key_vault could not be found, trying to recover"
 		key_vault=$(az keyvault list-deleted --query "[?name=='${key_vault}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
 		if [ -n "$key_vault" ]; then
-			echo "Deployer Key Vault:                  ${key_vault} is deleted, recovering"
-			az keyvault recover --name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --output none
-			key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
-			if [ -n "${key_vault_id}" ]; then
-				export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
-				this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-				az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
+
+			print_banner "$banner_title" "Key Vault $key_vault found in deleted state, recovering it" "info"
+
+			if az keyvault recover --name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --output none; then
+				key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+				if [ -n "${key_vault_id}" ]; then
+					export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
+					this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+					az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
+				fi
 			fi
 		fi
 	else
