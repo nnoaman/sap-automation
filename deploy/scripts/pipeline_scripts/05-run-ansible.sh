@@ -48,6 +48,9 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 fi
 export control_plane_subscription
 
+
+vault_name=$(echo "${VAULT_NAME}" | tr [:upper:] [:lower:] | xargs)
+
 deployer_file=/etc/profile.d/deploy_server.sh
 
 if [ $USE_MSI != "true" ]; then
@@ -75,11 +78,11 @@ set -eu
 
 if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$VAULT_NAME" --subscription "$control_plane_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$vault_name" --subscription "$control_plane_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
 	sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
 fi
 
-password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$VAULT_NAME" --query value --output tsv)
+password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$vault_name" --query value --output tsv)
 
 echo "Extra parameters passed: " "$EXTRA_PARAMS"
 
@@ -112,10 +115,10 @@ fi
 if [ -f "${filename}" ]; then
 	echo "##[group]- preconfiguration"
 
-	redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS "$EXTRA_PARAMS" $EXTRA_PARAM_FILE ${filename} -e 'kv_name=$VAULT_NAME'"
+	redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS "$EXTRA_PARAMS" $EXTRA_PARAM_FILE ${filename} -e 'kv_name=$vault_name'"
 	echo "##[section]Executing [$redacted_command]..."
 
-	command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  -e 'kv_name=$VAULT_NAME' \
+	command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  -e 'kv_name=$vault_name' \
             -e @$SAP_PARAMS -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$PARAMETERS_FOLDER' "$EXTRA_PARAMS"  \
             -e ansible_ssh_pass='${password_secret}' $EXTRA_PARAM_FILE ${filename}"
 
@@ -126,12 +129,12 @@ if [ -f "${filename}" ]; then
 
 fi
 
-command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey   -e 'kv_name=$VAULT_NAME'   \
+command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey   -e 'kv_name=$vault_name'   \
       -e @$SAP_PARAMS -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$PARAMETERS_FOLDER' \
       -e ansible_ssh_pass='${password_secret}' "$EXTRA_PARAMS" $EXTRA_PARAM_FILE                                  \
        $ANSIBLE_FILE_PATH"
 
-redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS "$EXTRA_PARAMS" $EXTRA_PARAM_FILE $ANSIBLE_FILE_PATH  -e 'kv_name=$VAULT_NAME'"
+redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS "$EXTRA_PARAMS" $EXTRA_PARAM_FILE $ANSIBLE_FILE_PATH  -e 'kv_name=$vault_name'"
 
 echo "##[section]Executing [$redacted_command]..."
 echo "##[group]- output"
@@ -152,10 +155,10 @@ echo "Check for file: ${filename}"
 if [ -f ${filename} ]; then
 
 	echo "##[group]- postconfiguration"
-	redacted_command="ansible-playbook -i "$INVENTORY" -e @"$SAP_PARAMS" "$EXTRA_PARAMS" $EXTRA_PARAM_FILE "${filename}"  -e 'kv_name=$VAULT_NAME'"
+	redacted_command="ansible-playbook -i "$INVENTORY" -e @"$SAP_PARAMS" "$EXTRA_PARAMS" $EXTRA_PARAM_FILE "${filename}"  -e 'kv_name=$vault_name'"
 	echo "##[section]Executing [$redacted_command]..."
 
-	command="ansible-playbook -i "$INVENTORY" --private-key $PARAMETERS_FOLDER/sshkey   -e 'kv_name=$VAULT_NAME'      \
+	command="ansible-playbook -i "$INVENTORY" --private-key $PARAMETERS_FOLDER/sshkey   -e 'kv_name=$vault_name'      \
             -e @$SAP_PARAMS -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$PARAMETERS_FOLDER' \
             -e ansible_ssh_pass='${password_secret}' ${filename}  "$EXTRA_PARAMS" $EXTRA_PARAM_FILE"
 
