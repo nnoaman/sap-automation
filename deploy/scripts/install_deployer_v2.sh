@@ -372,14 +372,16 @@ function install_deployer() {
 		return $return_value
 	fi
 
-	terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name
+
 
 	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 	if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 		printf -v val %-.20s "$DEPLOYER_KEYVAULT"
 		print_banner "Bootstrap Deployer " "Keyvault to use for deployment credentials: $val" "info"
-		export DEPLOYER_KEYVAULT
+
+		save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
 	fi
+	export DEPLOYER_KEYVAULT
 
 	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
 	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then

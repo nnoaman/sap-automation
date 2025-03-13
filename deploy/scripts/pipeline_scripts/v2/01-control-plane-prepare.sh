@@ -230,6 +230,14 @@ print_banner "$banner_title - Preparation" "Deploy_control_plane_v2 returned: $r
 set -eu
 
 if [ 0 = $return_code ]; then
+
+	if ! printenv DEPLOYER_KEYVAULT; then
+		load_config_vars "$deployer_environment_file_name" "DEPLOYER_KEYVAULT"
+	fi
+	if ! printenv APPLICATION_CONFIGURATION_ID; then
+		load_config_vars "$deployer_environment_file_name" "APPLICATION_CONFIGURATION_ID"
+	fi
+
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
