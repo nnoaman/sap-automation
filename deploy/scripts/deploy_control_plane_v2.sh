@@ -701,7 +701,7 @@ function deploy_control_plane() {
   fi
   az account list --query "[].{Name:name,Id:id}" --output table
 
-  if [ 0 = "${deploy_using_msi_only:-}" ]; then
+  if [ "$USE_MSI" != "true" ]; then
     echo "Identity to use:                     Service Principal"
     unset ARM_USE_MSI
     if ! printenv ARM_USE_OIDC; then
