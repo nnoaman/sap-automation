@@ -230,7 +230,7 @@ print_banner "$banner_title - Preparation" "Deploy_control_plane_v2 returned: $r
 set -eu
 
 if [ 0 = $return_code ]; then
-  cat $deployer_environment_file_name
+	cat $deployer_environment_file_name
 
 	if ! printenv DEPLOYER_KEYVAULT; then
 		load_config_vars "$deployer_environment_file_name" "keyvault"
@@ -243,15 +243,18 @@ if [ 0 = $return_code ]; then
 
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+	if [ -n "$DEPLOYER_KEYVAULT" ]; then
 
-	if [ "$USE_MSI" != "true" ]; then
-		if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --environment "${ENVIRONMENT}" --vault ${DEPLOYER_KEYVAULT} \
-			--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado; then
-			return_code=$?
-		else
-			return_code=$?
-			print_banner "$banner_title - Set secrets" "Set_secrets failed" "error"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+
+		if [ "$USE_MSI" != "true" ]; then
+			if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --environment "${ENVIRONMENT}" --vault ${DEPLOYER_KEYVAULT} \
+				--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado; then
+				return_code=$?
+			else
+				return_code=$?
+				print_banner "$banner_title - Set secrets" "Set_secrets failed" "error"
+			fi
 		fi
 	fi
 
