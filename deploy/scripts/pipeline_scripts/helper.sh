@@ -158,9 +158,6 @@ function configureNonDeployer() {
 	unzip -qq "terraform_${tf_version}_linux_amd64.zip"
 	sudo mv terraform /bin/
 	rm -f "terraform_${tf_version}_linux_amd64.zip"
-
-	az extension add --name storage-blob-preview --allow-preview true --output none >/dev/null
-
 }
 
 function LogonToAzure() {
