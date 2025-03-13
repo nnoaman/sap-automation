@@ -704,9 +704,7 @@ function deploy_control_plane() {
   if [ 0 = "${deploy_using_msi_only:-}" ]; then
     echo "Identity to use:                     Service Principal"
     unset ARM_USE_MSI
-    if printenv ARM_USE_OIDC; then
-      set_executing_user_environment_variables "$ARM_OIDC_TOKEN"
-    else
+    if ! printenv ARM_USE_OIDC; then
       set_executing_user_environment_variables "$ARM_CLIENT_SECRET"
     fi
   else
