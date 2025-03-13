@@ -23,5 +23,6 @@ if [ -n "$app_service_id" ]; then
   echo "##vso[task.setvariable variable=HAS_WEBAPP;isOutput=true]true"
 else
   echo "##vso[task.setvariable variable=HAS_WEBAPP;isOutput=true]false"
+	echo "##vso[task.setvariable variable=APPSERVICE_NAME;isOutput=true]$app_service_name"
 fi
 exit 0
