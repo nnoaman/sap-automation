@@ -73,6 +73,10 @@ terraform_storage_account_resource_group_name=$DEPLOYER_FOLDERNAME
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
+
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
+	export ARM_USE_MSI
 fi
 
 echo -e "$green--- Information ---$reset"
