@@ -460,6 +460,14 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 		echo "APPLICATION_CONFIGURATION_ID:         $APPLICATION_CONFIGURATION_ID"
 	fi
 
+	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+	if [ -n "${DEPLOYER_KEYVAULT}" ]; then
+
+		save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+		export DEPLOYER_KEYVAULT
+		echo "DEPLOYER_KEYVAULT:                   $DEPLOYER_KEYVAULT"
+	fi
+
 	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${deployer_random_id}" ]; then
 		custom_random_id="${deployer_random_id:0:3}"
