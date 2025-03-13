@@ -230,6 +230,7 @@ print_banner "$banner_title - Preparation" "Deploy_control_plane_v2 returned: $r
 set -eu
 
 if [ 0 = $return_code ]; then
+  cat $deployer_environment_file_name
 
 	if ! printenv DEPLOYER_KEYVAULT; then
 		load_config_vars "$deployer_environment_file_name" "DEPLOYER_KEYVAULT"
