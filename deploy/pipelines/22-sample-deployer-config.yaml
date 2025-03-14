@@ -111,6 +111,12 @@ stages:
 
       - name:                              address_prefix
         value:                             ${{ parameters.address_prefix }}
+
+      - name:                              sap_automation_repo_path
+        value:                             ${{ parameters.sap_automation_repo_path }}
+
+      - name:                              config_repo_path
+        value:                             ${{ parameters.config_repo_path }}
     jobs:
       - job:                           Create_Deployer_Configuration
         displayName:                   Create Deployer Configuration

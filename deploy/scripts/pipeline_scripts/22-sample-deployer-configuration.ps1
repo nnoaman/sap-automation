@@ -1,5 +1,5 @@
 Get-ChildItem Env:* | Select-Object -Property Name,Value | Sort-Object Name
-Set-Location $BUILD_REPOSITORY_LOCALPATH
+Set-Location $Env:CONFIG_REPO_PATH
 git fetch -q --all
 git checkout -q $Env:BUILD_SOURCEBRANCHNAME
 git pull
@@ -127,10 +127,10 @@ else {
   Add-Content $Env:DEPLOYER_FILE "$Env:deploy_webapp)"
   Add-Content $Env:DEPLOYER_FILE "webapp_subnet_address_prefix              = ""$Env:ADDRESS_PREFIX.192/27"""
 
-  Add-Content $Env:DEPLOYER_FILE "$Env:deploy_firewall)"
+  Add-Content $Env:DEPLOYER_FILE "$Env:DEPLOY_FIREWALL)"
   Add-Content $Env:DEPLOYER_FILE "management_firewall_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.0/26"""
 
-  Add-Content $Env:DEPLOYER_FILE "$Env:deploy_bastion)"
+  Add-Content $Env:DEPLOYER_FILE "$Env:DEPLOY_BASTION)"
   Add-Content $Env:DEPLOYER_FILE "management_bastion_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.128/26"""
 
   Add-Content $Env:DEPLOYER_FILE "use_service_endpoint                      = true"
@@ -192,7 +192,7 @@ if (Test-Path $Full) {
     Add-Content $Env:LIBRARY_FILE "use_private_endpoint          = true"
     Add-Content $Env:LIBRARY_FILE "public_network_access_enabled = false"
     Add-Content $Env:LIBRARY_FILE "$Env:use_spn)"
-    Add-Content $Env:LIBRARY_FILE "dns_label                     = ""$Env:calculated_dns)"""
+    Add-Content $Env:LIBRARY_FILE "dns_label                     = ""$Env:CALCULATED_DNS)"""
     git add -f $Env:LIBRARY_FILE
     git commit -m "Added Control Plane Library configuration[skip ci]"
 
@@ -215,7 +215,7 @@ else {
   Add-Content $Env:LIBRARY_FILE "use_private_endpoint          = true"
   Add-Content $Env:LIBRARY_FILE "public_network_access_enabled = false"
   Add-Content $Env:LIBRARY_FILE "$Env:use_spn)"
-  Add-Content $Env:LIBRARY_FILE "dns_label                     = ""$Env:calculated_dns)"""
+  Add-Content $Env:LIBRARY_FILE "dns_label                     = ""$Env:CALCULATED_DNS)"""
   git add -f $Env:LIBRARY_FILE
   git commit -m "Added Control Plane Library configuration[skip ci]"
 
@@ -228,7 +228,7 @@ $FolderName = "pipelines"
 $pipeLineName = "01-deploy-control-plane.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
                   (Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
@@ -238,7 +238,7 @@ git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set
 $pipeLineName = "12-remove-control-plane.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
                   (Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
@@ -248,8 +248,8 @@ git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set
 $pipeLineName = "02-sap-workload-zone.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:workload_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -258,8 +258,8 @@ git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set
 $pipeLineName = "03-sap-system-deployment.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:workload_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -280,8 +280,8 @@ git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set
 $pipeLineName = "10-remover-terraform.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:workload_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -289,8 +289,8 @@ git commit -m "Update $pipeLineName[skip ci]"
 $pipeLineName = "11-remover-arm-fallback.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:workload_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -298,8 +298,8 @@ git commit -m "Update $pipeLineName[skip ci]"
 $pipeLineName = "12-remove-control-plane.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:workload_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
