@@ -1,5 +1,8 @@
 Get-ChildItem Env:* | Select-Object -Property Name,Value | Sort-Object Name
-Set-Location $Env:CONFIG_REPO_PATH
+$RootFolder = Join-Path -Path $Env:CONFIG_REPO_PATH -ChildPath "WORKSPACES"
+Set-Location $RootFolder
+
+Write-Host Get-Location
 git fetch -q --all
 git checkout -q $Env:BUILD_SOURCEBRANCHNAME
 git pull
@@ -59,11 +62,12 @@ $region = switch ("$Env:DEPLOYER_REGION") {
 
 $msi_id = "$Env:msi_identity_id)".Trim()
 
-$Full = Join-Path -Path $FolderName -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
+$RootFolder = Join-Path
+$Full = Join-Path -Path $$RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE)")
 
 if (Test-Path $Full) {
-  cd $Full
+  Set-Location $Full
 
   if (Test-Path $Env:DEPLOYER_FILE) {
   }
@@ -174,12 +178,14 @@ else {
   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 }
 
-$Full = Join-Path -Path $Env:FOL -ChildPath (Join-Path -Path "LIBRARY" -ChildPath $(library_folder))
+
+$Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "LIBRARY" -ChildPath $Env:LIBRARY_FOLDER)
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:LIBRARY_FILE)")
-cd $(Build.Repository.LocalPath)
+
+Set-Location $Full
 
 if (Test-Path $Full) {
-  cd $Full
+  Set-Location $Full
 
   if (Test-Path $Env:LIBRARY_FILE) {
   }
@@ -203,9 +209,10 @@ if (Test-Path $Full) {
 else {
   #PowerShell Create directory if not exists
   Write-Host "Creating Library directory"
-  cd $(Build.Repository.LocalPath)
+
+  Set-Location (Join-Path -Path $RootFolder -ChildPath "LIBRARY")
   $Folder = New-Item $Full -ItemType Directory
-  cd $Full
+
   Write-Host "Creating Library file"
   $LibraryFile = New-Item -Path . -Name $Env:LIBRARY_FILE -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
   Add-Content $Env:LIBRARY_FILE "environment                   = ""$Env:DEPLOYER_ENVIRONMENT"""
