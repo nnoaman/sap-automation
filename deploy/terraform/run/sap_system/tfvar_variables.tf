@@ -840,7 +840,7 @@ variable "pas_instance_number"                  {
                                                 }
 
 variable "app_instance_number"                  {
-                                                  description = "The Instance number for the Application Server Imnstance"
+                                                  description = "The Instance number for the Application Server Instance"
                                                   default     = "00"
                                                 }
 
