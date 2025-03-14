@@ -63,6 +63,7 @@ Write-Host "Region: $region"
 
 $msi_id = "$Env:MSI_IDENTITY_ID".Trim()
 $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
+Write-Host "Full: $Full"
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE")
 if (Test-Path $Full) {
   Set-Location -Path $Full
