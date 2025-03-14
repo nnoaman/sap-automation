@@ -126,7 +126,7 @@ stages:
           - task:                      PowerShell@2
             displayName:               "Create Sample"
             inputs:
-              targetType:              "inline"
+              targetType:              "filePath"
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/22-sample-deployer-configuration.ps1"
               failOnStderr:            false
               showWarnings:            true
