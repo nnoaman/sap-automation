@@ -62,7 +62,7 @@ $region = switch ("$Env:DEPLOYER_REGION") {
 
 $msi_id = "$Env:msi_identity_id)".Trim()
 
-$Full = Join-Path -Path $$RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
+$Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE)")
 
 if (Test-Path $Full) {
@@ -71,7 +71,7 @@ if (Test-Path $Full) {
 else {
   #PowerShell Create directory if not exists
 
-  Set-Location (Join-Path -Path $$RootFolder -ChildPath "DEPLOYER")
+  Set-Location (Join-Path -Path $RootFolder -ChildPath "DEPLOYER")
   $Folder = New-Item $Env:DEPLOYER_FOLDER -ItemType Directory
   Set-Location $Env:DEPLOYER_FOLDER
 
@@ -145,7 +145,7 @@ if (Test-Path $Full) {
 else {
   #PowerShell Create directory if not exists
 
-  Set-Location (Join-Path -Path $$RootFolder -ChildPath "LIBRARY")
+  Set-Location (Join-Path -Path $RootFolder -ChildPath "LIBRARY")
   $Folder = New-Item $Env:LIBRARY_FOLDER -ItemType Directory
   Set-Location $Env:LIBRARY_FOLDER
 
