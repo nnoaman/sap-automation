@@ -131,3 +131,4 @@ stages:
               failOnStderr:            false
               showWarnings:            true
               pwsh:                    true
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
