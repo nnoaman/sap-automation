@@ -60,6 +60,8 @@ $region = switch ("$Env:DEPLOYER_REGION") {
   "WUS2" { "westus2" }
 }
 
+Write-Host "Region: $region"
+
 $msi_id = "$Env:MSI_IDENTITY_ID".Trim()
 
 $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
