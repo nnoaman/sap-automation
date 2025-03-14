@@ -1,4 +1,4 @@
-Get-ChildItem Env:* | Select-Object -Property Name,Value | Sort-Object Name
+Get-ChildItem Env:* | Select-Object -Property Name, Value | Sort-Object Name
 $RootFolder = Join-Path -Path $Env:CONFIG_REPO_PATH -ChildPath "WORKSPACES"
 Set-Location $RootFolder
 
@@ -62,104 +62,58 @@ $region = switch ("$Env:DEPLOYER_REGION") {
 
 $msi_id = "$Env:msi_identity_id)".Trim()
 
-$RootFolder = Join-Path
 $Full = Join-Path -Path $$RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE)")
 
 if (Test-Path $Full) {
   Set-Location $Full
-
-  if (Test-Path $Env:DEPLOYER_FILE) {
-  }
-  else {
-    $DeployerFile = New-Item -Path . -Name $Env:DEPLOYER_FILE -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
-    Add-Content $Env:DEPLOYER_FILE "environment                               = ""$Env:DEPLOYER_ENVIRONMENT"""
-    Add-Content $Env:DEPLOYER_FILE "location                                  = ""$region"""
-    Add-Content $Env:DEPLOYER_FILE ""
-    Add-Content $Env:DEPLOYER_FILE "management_network_logical_name           = ""$Env:DEPLOYER_MANAGEMENT_NETWORK_LOGICAL_NAME"""
-    Add-Content $Env:DEPLOYER_FILE "management_network_address_space          = ""$Env:ADDRESS_PREFIX.0/24"""
-    Add-Content $Env:DEPLOYER_FILE "management_subnet_address_prefix          = ""$Env:ADDRESS_PREFIX.64/28"""
-
-    Add-Content $Env:DEPLOYER_FILE "$Env:deploy_webapp)"
-    Add-Content $Env:DEPLOYER_FILE "webapp_subnet_address_prefix              = ""$Env:ADDRESS_PREFIX.192/27"""
-
-    Add-Content $Env:DEPLOYER_FILE "$Env:deploy_firewall)"
-    Add-Content $Env:DEPLOYER_FILE "management_firewall_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.0/26"""
-
-    Add-Content $Env:DEPLOYER_FILE "$Env:deploy_bastion)"
-    Add-Content $Env:DEPLOYER_FILE "management_bastion_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.128/26"""
-
-    Add-Content $Env:DEPLOYER_FILE "use_service_endpoint                      = true"
-    Add-Content $Env:DEPLOYER_FILE "use_private_endpoint                      = true"
-    Add-Content $Env:DEPLOYER_FILE "enable_rbac_authorization_for_keyvault    = true"
-    Add-Content $Env:DEPLOYER_FILE "enable_firewall_for_keyvaults_and_storage = true"
-
-    Add-Content $Env:DEPLOYER_FILE "deployer_assign_subscription_permissions  = false"
-
-    Add-Content $Env:DEPLOYER_FILE "public_network_access_enabled             = false"
-
-    Add-Content $Env:DEPLOYER_FILE "$Env:DEPLOYER_COUNT"
-
-    Add-Content $Env:DEPLOYER_FILE "$Env:USE_SPN"
-    if ($msi_id.Length -gt 0) {
-      Add-Content $Env:DEPLOYER_FILE "user_assigned_identity_id             = ""$Env_MSI_IS"""
-    }
-    else {
-      Add-Content $Env:DEPLOYER_FILE "#user_assigned_identity_id             = ""<user_assigned_identity_id>"""
-    }
-
-    git add -f $Env:DEPLOYER_FILE
-    git commit -m "Added Control Plane configuration[skip ci]"
-
-    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
-  }
-
 }
 else {
   #PowerShell Create directory if not exists
-  cd $(Build.Repository.LocalPath)
-  $Folder = New-Item $Full -ItemType Directory
-  cd $Folder.FullName
+
+  Set-Location (Join-Path -Path $$RootFolder -ChildPath "DEPLOYER")
+  $Folder = New-Item $Env:DEPLOYER_FOLDER -ItemType Directory
+  Set-Location $Env:DEPLOYER_FOLDER
+
+}
+
+
+if ( -not (Test-Path -Path $Env:DEPLOYER_FILE)  ) {
   $DeployerFile = New-Item -Path . -Name $Env:DEPLOYER_FILE -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
-  Add-Content $Env:DEPLOYER_FILE "environment                               = ""$Env:DEPLOYER_ENVIRONMENT"""
-  Add-Content $Env:DEPLOYER_FILE "location                                  = ""$region"""
-  Add-Content $Env:DEPLOYER_FILE ""
-  Add-Content $Env:DEPLOYER_FILE "management_network_logical_name           = ""$Env:deployer_management_network_logical_name)"""
-  Add-Content $Env:DEPLOYER_FILE "management_network_address_space          = ""$Env:ADDRESS_PREFIX.0/24"""
-  Add-Content $Env:DEPLOYER_FILE "management_subnet_address_prefix          = ""$Env:ADDRESS_PREFIX.64/28"""
+  Add-Content $DeployerFile "environment                               = ""$Env:DEPLOYER_ENVIRONMENT"""
+  Add-Content $DeployerFile "location                                  = ""$region"""
+  Add-Content $DeployerFile ""
+  Add-Content $DeployerFile "management_network_logical_name           = ""$Env:DEPLOYER_MANAGEMENT_NETWORK_LOGICAL_NAME"""
+  Add-Content $DeployerFile "management_network_address_space          = ""$Env:ADDRESS_PREFIX.0/24"""
+  Add-Content $DeployerFile "management_subnet_address_prefix          = ""$Env:ADDRESS_PREFIX.64/28"""
 
-  Add-Content $Env:DEPLOYER_FILE "$Env:deploy_webapp)"
-  Add-Content $Env:DEPLOYER_FILE "webapp_subnet_address_prefix              = ""$Env:ADDRESS_PREFIX.192/27"""
+  Add-Content $DeployerFile "$Env:deploy_webapp)"
+  Add-Content $DeployerFile "webapp_subnet_address_prefix              = ""$Env:ADDRESS_PREFIX.192/27"""
 
-  Add-Content $Env:DEPLOYER_FILE "$Env:DEPLOY_FIREWALL)"
-  Add-Content $Env:DEPLOYER_FILE "management_firewall_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.0/26"""
+  Add-Content $DeployerFile "$Env:deploy_firewall)"
+  Add-Content $DeployerFile "management_firewall_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.0/26"""
 
-  Add-Content $Env:DEPLOYER_FILE "$Env:DEPLOY_BASTION)"
-  Add-Content $Env:DEPLOYER_FILE "management_bastion_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.128/26"""
+  Add-Content $DeployerFile "$Env:deploy_bastion)"
+  Add-Content $DeployerFile "management_bastion_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.128/26"""
 
-  Add-Content $Env:DEPLOYER_FILE "use_service_endpoint                      = true"
-  Add-Content $Env:DEPLOYER_FILE "use_private_endpoint                      = true"
-  Add-Content $Env:DEPLOYER_FILE "enable_rbac_authorization_for_keyvault    = true"
-  Add-Content $Env:DEPLOYER_FILE "enable_firewall_for_keyvaults_and_storage = true"
+  Add-Content $DeployerFile "use_service_endpoint                      = true"
+  Add-Content $DeployerFile "use_private_endpoint                      = true"
+  Add-Content $DeployerFile "enable_rbac_authorization_for_keyvault    = true"
+  Add-Content $DeployerFile "enable_firewall_for_keyvaults_and_storage = true"
 
+  Add-Content $DeployerFile "deployer_assign_subscription_permissions  = false"
 
-  Add-Content $Env:DEPLOYER_FILE "deployer_assign_subscription_permissions  = false"
+  Add-Content $DeployerFile "public_network_access_enabled             = false"
 
-  Add-Content $Env:DEPLOYER_FILE "public_network_access_enabled             = false"
+  Add-Content $DeployerFile "$Env:DEPLOYER_COUNT"
 
-  Add-Content $Env:DEPLOYER_FILE "$Env:DEPLOYER_COUNT"
-  Add-Content $Env:DEPLOYER_FILE ""
-
-
-  Add-Content $Env:DEPLOYER_FILE "$Env:USE_SPN"
+  Add-Content $DeployerFile "$Env:USE_SPN"
   if ($msi_id.Length -gt 0) {
-    Add-Content $Env:DEPLOYER_FILE "user_assigned_identity_id             = ""$msi_id"""
+    Add-Content $DeployerFile "user_assigned_identity_id             = ""$Env_MSI_IS"""
   }
   else {
-    Add-Content $Env:DEPLOYER_FILE "#user_assigned_identity_id             = ""<user_assigned_identity_id>"""
+    Add-Content $DeployerFile "#user_assigned_identity_id             = ""<user_assigned_identity_id>"""
   }
-
-
   Add-Content $Env:DEPLOYER_FILE ""
 
   Add-Content $Env:DEPLOYER_FILE "deployer_image = {"
@@ -172,48 +126,33 @@ else {
   Add-Content $Env:DEPLOYER_FILE "  version         = ""latest"""
   Add-Content $Env:DEPLOYER_FILE "}"
 
-  git add -f $Env:DEPLOYER_FILE
+
+  git add -f $DeployerFile
   git commit -m "Added Control Plane configuration[skip ci]"
 
   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 }
 
 
+
 $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "LIBRARY" -ChildPath $Env:LIBRARY_FOLDER)
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:LIBRARY_FILE)")
 
-Set-Location $Full
 
 if (Test-Path $Full) {
   Set-Location $Full
-
-  if (Test-Path $Env:LIBRARY_FILE) {
-  }
-  else {
-    $LibraryFile = New-Item -Path . -Name $Env:LIBRARY_FILE -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
-    Add-Content $Env:LIBRARY_FILE "environment                   = ""$Env:DEPLOYER_ENVIRONMENT"""
-    Add-Content $Env:LIBRARY_FILE "location                      = ""$region"""
-    Add-Content $Env:LIBRARY_FILE ""
-    Add-Content $Env:LIBRARY_FILE
-    Add-Content $Env:LIBRARY_FILE "use_private_endpoint          = true"
-    Add-Content $Env:LIBRARY_FILE "public_network_access_enabled = false"
-    Add-Content $Env:LIBRARY_FILE "$Env:use_spn)"
-    Add-Content $Env:LIBRARY_FILE "dns_label                     = ""$Env:CALCULATED_DNS)"""
-    git add -f $Env:LIBRARY_FILE
-    git commit -m "Added Control Plane Library configuration[skip ci]"
-
-    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
-  }
-
 }
 else {
   #PowerShell Create directory if not exists
-  Write-Host "Creating Library directory"
 
-  Set-Location (Join-Path -Path $RootFolder -ChildPath "LIBRARY")
-  $Folder = New-Item $Full -ItemType Directory
+  Set-Location (Join-Path -Path $$RootFolder -ChildPath "LIBRARY")
+  $Folder = New-Item $Env:LIBRARY_FOLDER -ItemType Directory
+  Set-Location $Env:LIBRARY_FOLDER
 
-  Write-Host "Creating Library file"
+}
+
+
+if ( -not (Test-Path -Path $Env:LIBRARY_FILE)  ) {
   $LibraryFile = New-Item -Path . -Name $Env:LIBRARY_FILE -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
   Add-Content $Env:LIBRARY_FILE "environment                   = ""$Env:DEPLOYER_ENVIRONMENT"""
   Add-Content $Env:LIBRARY_FILE "location                      = ""$region"""
@@ -227,46 +166,45 @@ else {
   git commit -m "Added Control Plane Library configuration[skip ci]"
 
   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
-
 }
 
-cd $(Build.Repository.LocalPath)
+
+Set-Location $Env:CONFIG_REPO_PATH
 $FolderName = "pipelines"
 $pipeLineName = "01-deploy-control-plane.yml"
-$filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
-
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
+$filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
+(Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+(Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 
 $pipeLineName = "12-remove-control-plane.yml"
-$filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
+$filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
+(Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+(Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 
 $pipeLineName = "02-sap-workload-zone.yml"
-$filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
+$filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
+(Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+(Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 
 $pipeLineName = "03-sap-system-deployment.yml"
-$filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
+$filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
+(Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+(Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -274,10 +212,10 @@ git commit -m "Update $pipeLineName[skip ci]"
 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 
 $pipeLineName = "04-sap-software-download.yml"
-$filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
+$filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("WEEU", "$Env:DEPLOYER_REGION") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
+(Get-Content $filePath).Replace("WEEU", "$Env:DEPLOYER_REGION") | Set-Content $filePath
+(Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -285,28 +223,28 @@ git commit -m "Update $pipeLineName[skip ci]"
 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 
 $pipeLineName = "10-remover-terraform.yml"
-$filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
+$filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
+(Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+(Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
 
 $pipeLineName = "11-remover-arm-fallback.yml"
-$filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
+$filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
+(Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+(Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
 
 $pipeLineName = "12-remove-control-plane.yml"
-$filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
+$filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
+(Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
+(Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:WORKLOAD_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
