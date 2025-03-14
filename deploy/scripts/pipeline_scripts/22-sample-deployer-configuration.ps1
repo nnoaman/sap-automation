@@ -1,4 +1,4 @@
-Get-Variable
+Get-ChildItem Env:* | Select-Object -Property Name,Value
 cd $Env:CONFIG_REPO_PATH
 git fetch -q --all
 git checkout -q $Env:BUILD_SOURCEBRANCHNAME
