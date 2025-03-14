@@ -52,6 +52,10 @@ parameters:
     displayName:                       The local path on the agent where the config repo can be found
     type:                              string
 
+  - name:                              connection_name
+    displayName:                       Service Connection Name
+    type:                              string
+
 stages:
   - stage:                             Create_Configuration
     displayName:                       Create Deployer Configuration
