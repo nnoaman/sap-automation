@@ -98,7 +98,6 @@ stages:
 
       - name:                              deployer_count
         value:                             ${{ format('deployer_count                            = {0}', parameters.deployer_count) }}
-                                                      public_network_access_enabled             = false
 
       - name:                              use_spn
         value:                             ${{ format('use_spn                                   = {0}', lower(parameters.identity)) }}
