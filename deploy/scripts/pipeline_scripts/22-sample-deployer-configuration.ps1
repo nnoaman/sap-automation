@@ -66,14 +66,15 @@ $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -Chil
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE")
 if (Test-Path $Full) {
   Set-Location $Full
-  Write-Host "1"
 
 }
 else {
   #PowerShell Create directory if not exists
-
-  Set-Location (Join-Path -Path $RootFolder -ChildPath "DEPLOYER")
+  Write-Host "1"
+  Set-Location -Path (Join-Path -Path $RootFolder -ChildPath "DEPLOYER")
+  Write-Host "2"
   $Folder = New-Item $Env:DEPLOYER_FOLDER -ItemType Directory
+  Write-Host "3"
   Set-Location $Env:DEPLOYER_FOLDER
   Write-Host "2"
 
