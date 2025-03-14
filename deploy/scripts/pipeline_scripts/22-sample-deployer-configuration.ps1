@@ -7,7 +7,7 @@ git config --global user.email $Env:BUILDREQUESTEDFOREMAIL
 git config --global user.name $Env:BUILDREQUESTEDFOR
 
 $FolderName = "WORKSPACES"
-$region = switch ("$(deployer_region)") {
+$region = switch ("$Env:DEPLOYER_REGION") {
   "AUCE" { "australiacentral" }
   "AUC2" { "australiacentral2" }
   "AUEA" { "australiaeast" }
@@ -57,10 +57,10 @@ $region = switch ("$(deployer_region)") {
   "WUS2" { "westus2" }
 }
 
-$msi_id = "$(msi_identity_id)".Trim()
+$msi_id = "$Env:msi_identity_id)".Trim()
 
-$Full = Join-Path -Path $($FolderName) -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $(deployer_folder))
-$Full_FileName = (Join-Path -path $Full -ChildPath "$(deployer_file)")
+$Full = Join-Path -Path $FolderName -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
+$Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE)")
 
 if (Test-Path $Full) {
   cd $Full
@@ -69,21 +69,21 @@ if (Test-Path $Full) {
   }
   else {
     $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
-    Add-Content $(deployer_file) "environment                               = ""$(deployer_environment)"""
+    Add-Content $(deployer_file) "environment                               = ""$Env:DEPLOYER_ENVIRONMENT"""
     Add-Content $(deployer_file) "location                                  = ""$region"""
     Add-Content $(deployer_file) ""
-    Add-Content $(deployer_file) "management_network_logical_name           = ""$(deployer_management_network_logical_name)"""
-    Add-Content $(deployer_file) "management_network_address_space          = ""$(address_prefix).0/24"""
-    Add-Content $(deployer_file) "management_subnet_address_prefix          = ""$(address_prefix).64/28"""
+    Add-Content $(deployer_file) "management_network_logical_name           = ""$Env:DEPLOYER_MANAGEMENT_NETWORK_LOGICAL_NAME"""
+    Add-Content $(deployer_file) "management_network_address_space          = ""$Env:ADDRESS_PREFIX.0/24"""
+    Add-Content $(deployer_file) "management_subnet_address_prefix          = ""$Env:ADDRESS_PREFIX.64/28"""
 
-    Add-Content $(deployer_file) "$(deploy_webapp)"
-    Add-Content $(deployer_file) "webapp_subnet_address_prefix              = ""$(address_prefix).192/27"""
+    Add-Content $(deployer_file) "$Env:deploy_webapp)"
+    Add-Content $(deployer_file) "webapp_subnet_address_prefix              = ""$Env:ADDRESS_PREFIX.192/27"""
 
-    Add-Content $(deployer_file) "$(deploy_firewall)"
-    Add-Content $(deployer_file) "management_firewall_subnet_address_prefix = ""$(address_prefix).0/26"""
+    Add-Content $(deployer_file) "$Env:deploy_firewall)"
+    Add-Content $(deployer_file) "management_firewall_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.0/26"""
 
-    Add-Content $(deployer_file) "$(deploy_bastion)"
-    Add-Content $(deployer_file) "management_bastion_subnet_address_prefix = ""$(address_prefix).128/26"""
+    Add-Content $(deployer_file) "$Env:deploy_bastion)"
+    Add-Content $(deployer_file) "management_bastion_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.128/26"""
 
     Add-Content $(deployer_file) "use_service_endpoint                      = true"
     Add-Content $(deployer_file) "use_private_endpoint                      = true"
@@ -94,11 +94,11 @@ if (Test-Path $Full) {
 
     Add-Content $(deployer_file) "public_network_access_enabled             = false"
 
-    Add-Content $(deployer_file) "$(deployer_count)"
+    Add-Content $(deployer_file) "$Env:DEPLOYER_COUNT"
 
-    Add-Content $(deployer_file) "$(use_spn)"
+    Add-Content $(deployer_file) "$Env:USE_SPN"
     if ($msi_id.Length -gt 0) {
-      Add-Content $(deployer_file) "user_assigned_identity_id             = ""$msi_id"""
+      Add-Content $(deployer_file) "user_assigned_identity_id             = ""$Env_MSI_IS"""
     }
     else {
       Add-Content $(deployer_file) "#user_assigned_identity_id             = ""<user_assigned_identity_id>"""
@@ -117,21 +117,21 @@ else {
   $Folder = New-Item $Full -ItemType Directory
   cd $Folder.FullName
   $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
-  Add-Content $(deployer_file) "environment                               = ""$(deployer_environment)"""
+  Add-Content $(deployer_file) "environment                               = ""$Env:DEPLOYER_ENVIRONMENT"""
   Add-Content $(deployer_file) "location                                  = ""$region"""
   Add-Content $(deployer_file) ""
-  Add-Content $(deployer_file) "management_network_logical_name           = ""$(deployer_management_network_logical_name)"""
-  Add-Content $(deployer_file) "management_network_address_space          = ""$(address_prefix).0/24"""
-  Add-Content $(deployer_file) "management_subnet_address_prefix          = ""$(address_prefix).64/28"""
+  Add-Content $(deployer_file) "management_network_logical_name           = ""$Env:deployer_management_network_logical_name)"""
+  Add-Content $(deployer_file) "management_network_address_space          = ""$Env:ADDRESS_PREFIX.0/24"""
+  Add-Content $(deployer_file) "management_subnet_address_prefix          = ""$Env:ADDRESS_PREFIX.64/28"""
 
-  Add-Content $(deployer_file) "$(deploy_webapp)"
-  Add-Content $(deployer_file) "webapp_subnet_address_prefix              = ""$(address_prefix).192/27"""
+  Add-Content $(deployer_file) "$Env:deploy_webapp)"
+  Add-Content $(deployer_file) "webapp_subnet_address_prefix              = ""$Env:ADDRESS_PREFIX.192/27"""
 
-  Add-Content $(deployer_file) "$(deploy_firewall)"
-  Add-Content $(deployer_file) "management_firewall_subnet_address_prefix = ""$(address_prefix).0/26"""
+  Add-Content $(deployer_file) "$Env:deploy_firewall)"
+  Add-Content $(deployer_file) "management_firewall_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.0/26"""
 
-  Add-Content $(deployer_file) "$(deploy_bastion)"
-  Add-Content $(deployer_file) "management_bastion_subnet_address_prefix = ""$(address_prefix).128/26"""
+  Add-Content $(deployer_file) "$Env:deploy_bastion)"
+  Add-Content $(deployer_file) "management_bastion_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.128/26"""
 
   Add-Content $(deployer_file) "use_service_endpoint                      = true"
   Add-Content $(deployer_file) "use_private_endpoint                      = true"
@@ -143,11 +143,11 @@ else {
 
   Add-Content $(deployer_file) "public_network_access_enabled             = false"
 
-  Add-Content $(deployer_file) "$(deployer_count)"
+  Add-Content $(deployer_file) "$Env:DEPLOYER_COUNT"
   Add-Content $(deployer_file) ""
 
 
-  Add-Content $(deployer_file) "$(use_spn)"
+  Add-Content $(deployer_file) "$Env:USE_SPN"
   if ($msi_id.Length -gt 0) {
     Add-Content $(deployer_file) "user_assigned_identity_id             = ""$msi_id"""
   }
@@ -174,8 +174,8 @@ else {
   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 }
 
-$Full = Join-Path -Path $($FolderName) -ChildPath (Join-Path -Path "LIBRARY" -ChildPath $(library_folder))
-$Full_FileName = (Join-Path -path $Full -ChildPath "$(library_file)")
+$Full = Join-Path -Path $Env:FOL -ChildPath (Join-Path -Path "LIBRARY" -ChildPath $(library_folder))
+$Full_FileName = (Join-Path -path $Full -ChildPath "$Env:LIBRARY_FILE)")
 cd $(Build.Repository.LocalPath)
 
 if (Test-Path $Full) {
@@ -185,14 +185,14 @@ if (Test-Path $Full) {
   }
   else {
     $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
-    Add-Content $(library_file) "environment                   = ""$(deployer_environment)"""
+    Add-Content $(library_file) "environment                   = ""$Env:DEPLOYER_ENVIRONMENT"""
     Add-Content $(library_file) "location                      = ""$region"""
     Add-Content $(library_file) ""
     Add-Content $(library_file)
     Add-Content $(library_file) "use_private_endpoint          = true"
     Add-Content $(library_file) "public_network_access_enabled = false"
-    Add-Content $(library_file) "$(use_spn)"
-    Add-Content $(library_file) "dns_label                     = ""$(calculated_dns)"""
+    Add-Content $(library_file) "$Env:use_spn)"
+    Add-Content $(library_file) "dns_label                     = ""$Env:calculated_dns)"""
     git add -f $(library_file)
     git commit -m "Added Control Plane Library configuration[skip ci]"
 
@@ -208,14 +208,14 @@ else {
   cd $Full
   Write-Host "Creating Library file"
   $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
-  Add-Content $(library_file) "environment                   = ""$(deployer_environment)"""
+  Add-Content $(library_file) "environment                   = ""$Env:DEPLOYER_ENVIRONMENT"""
   Add-Content $(library_file) "location                      = ""$region"""
   Add-Content $(library_file) ""
   Add-Content $(library_file)
   Add-Content $(library_file) "use_private_endpoint          = true"
   Add-Content $(library_file) "public_network_access_enabled = false"
-  Add-Content $(library_file) "$(use_spn)"
-  Add-Content $(library_file) "dns_label                     = ""$(calculated_dns)"""
+  Add-Content $(library_file) "$Env:use_spn)"
+  Add-Content $(library_file) "dns_label                     = ""$Env:calculated_dns)"""
   git add -f $(library_file)
   git commit -m "Added Control Plane Library configuration[skip ci]"
 
@@ -228,8 +228,8 @@ $FolderName = "pipelines"
 $pipeLineName = "01-deploy-control-plane.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$(control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("MGMT", "$(deployer_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -238,8 +238,8 @@ git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set
 $pipeLineName = "12-remove-control-plane.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$(control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("MGMT", "$(deployer_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -248,8 +248,8 @@ git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set
 $pipeLineName = "02-sap-workload-zone.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$(control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$(workload_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:workload_environment)") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -258,8 +258,8 @@ git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set
 $pipeLineName = "03-sap-system-deployment.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$(control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$(workload_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:workload_environment)") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -269,8 +269,8 @@ git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set
 $pipeLineName = "04-sap-software-download.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("WEEU", "$(deployer_region)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("MGMT", "$(deployer_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("WEEU", "$Env:DEPLOYER_REGION") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -280,8 +280,8 @@ git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set
 $pipeLineName = "10-remover-terraform.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$(control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$(workload_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:workload_environment)") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -289,8 +289,8 @@ git commit -m "Update $pipeLineName[skip ci]"
 $pipeLineName = "11-remover-arm-fallback.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$(control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$(workload_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:workload_environment)") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
@@ -298,8 +298,8 @@ git commit -m "Update $pipeLineName[skip ci]"
 $pipeLineName = "12-remove-control-plane.yml"
 $filePath = (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
-                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$(control_plane_name)") | Set-Content $filePath
-                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$(workload_environment)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:control_plane_name)") | Set-Content $filePath
+                  (Get-Content $filePath).Replace("DEV-WEEU-SAP01", "$Env:workload_environment)") | Set-Content $filePath
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
