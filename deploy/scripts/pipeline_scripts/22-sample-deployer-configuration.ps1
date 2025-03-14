@@ -62,12 +62,12 @@ $region = switch ("$Env:DEPLOYER_REGION") {
 Write-Host "Region: $region"
 
 $msi_id = "$Env:MSI_IDENTITY_ID".Trim()
-Write-Host $RootFolder
 $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE")
-Write-Host $Full
 if (Test-Path $Full) {
   Set-Location $Full
+  Write-Host "1"
+
 }
 else {
   #PowerShell Create directory if not exists
@@ -75,12 +75,14 @@ else {
   Set-Location (Join-Path -Path $RootFolder -ChildPath "DEPLOYER")
   $Folder = New-Item $Env:DEPLOYER_FOLDER -ItemType Directory
   Set-Location $Env:DEPLOYER_FOLDER
+  Write-Host "2"
 
 }
 
 
 if ( -not (Test-Path -Path $Env:DEPLOYER_FILE)  ) {
   $DeployerFile = New-Item -Path . -Name $Env:DEPLOYER_FILE -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
+  Write-Host "3"
   Add-Content $DeployerFile "environment                               = ""$Env:DEPLOYER_ENVIRONMENT"""
   Add-Content $DeployerFile "location                                  = ""$region"""
   Add-Content $DeployerFile ""
