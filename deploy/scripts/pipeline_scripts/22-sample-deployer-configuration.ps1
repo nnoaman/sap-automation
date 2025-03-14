@@ -82,8 +82,11 @@ else {
 
 }
 
+Write-Host $Full_FileName
+$found = Test-Path -Path $Full_FileName
+Write-Host $found
 
-if ( -not (Test-Path -Path $Full_FileName)  ) {
+if ( -not $found ) {
   Write-Host "33"
   $DeployerFile = New-Item -Path $Full -Name $Env:DEPLOYER_FILE -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
   Write-Host "3"
