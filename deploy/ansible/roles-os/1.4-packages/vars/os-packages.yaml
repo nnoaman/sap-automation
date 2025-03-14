@@ -212,16 +212,16 @@ packages:
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.8:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
-    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
   redhat8.9:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
-    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
   redhat8.10:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
-    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
   redhat9:
     - { tier: 'os',     package: '@base',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'bind-utils',                                   node_tier: 'all',            state: 'present' }
@@ -246,6 +246,7 @@ packages:
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
     # - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',            state: 'present' }
     - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',     package: 'libaio',                                       node_tier: 'db2',            state: 'present' }
@@ -302,7 +303,6 @@ packages:
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',            state: 'present' }
     # ------------------------- End - Packages required for Clustering --------------------------------------8
-    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     # ------------------------- Begin - Packages required for Start/Stop ------------------------------------8
     - { tier: 'ha',     package: 'sap-cluster-connector',                        node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'sap-cluster-connector',                        node_tier: 'scs',            state: 'present' }
@@ -423,8 +423,8 @@ packages:
     - { tier: 'ha',     package: 'sap-suse-cluster-connector',                   node_tier: 'ers',            state: 'present' }
     # --------------------------- Begin - Packages required for iSCSI ---------------------------------------8
     # https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-suse-pacemaker#sbd-with-an-iscsi-target-server
-    - { tier: 'iscsi',  package: 'targetcli-fb',                                 node_tier: 'iscsi',          state: 'present' }
-    - { tier: 'iscsi',  package: 'dbus-1-python',                                node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'os',     package: 'targetcli-fb',                                 node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'os',     package: 'dbus-1-python',                                node_tier: 'iscsi',          state: 'present' }
     # --------------------------- End - Packages required for iSCSI -----------------------------------------8
     # ------------------------ End - packages required for Clustering ---------------------------------------8
   sles_sap15.1:
