@@ -9,7 +9,7 @@ git config --global user.email $Env:BUILDREQUESTEDFOREMAIL
 git config --global user.name $Env:BUILDREQUESTEDFOR
 
 $FolderName = "WORKSPACES"
-$DNS="azure.$Env:DEPLOYER_REGION.sdaf.contoso.net"
+$DNS="azure.$Env:DEPLOYER_REGION.sdaf.contoso.net".ToLower()
 $region = switch ("$Env:DEPLOYER_REGION") {
   "AUCE" { "australiacentral" }
   "AUC2" { "australiacentral2" }
@@ -166,14 +166,14 @@ else {
 if ( -not (Test-Path -Path $Env:LIBRARY_FILE)  ) {
   $LibraryFile = New-Item -Path $Full -Name $Env:LIBRARY_FILE -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
   Add-Content $LibraryFile ""
-  Add-Content $LibraryFile "environment                   = ""$Env:DEPLOYER_ENVIRONMENT"""
-  Add-Content $LibraryFile "location                      = ""$region"""
+  Add-Content $LibraryFile "environment                               = ""$Env:DEPLOYER_ENVIRONMENT"""
+  Add-Content $LibraryFile "location                                  = ""$region"""
   Add-Content $LibraryFile ""
   Add-Content $LibraryFile ""
-  Add-Content $LibraryFile "use_private_endpoint          = true"
-  Add-Content $LibraryFile "public_network_access_enabled = false"
+  Add-Content $LibraryFile "use_private_endpoint                      = true"
+  Add-Content $LibraryFile "public_network_access_enabled             = false"
   Add-Content $LibraryFile "$Env:USE_SPN"
-  Add-Content $LibraryFile "dns_label                     = ""$DNS"""
+  Add-Content $LibraryFile "dns_label                                 = ""$DNS"""
   git add -f $LibraryFile
   git commit -m "Added Control Plane Library configuration[skip ci]"
 
