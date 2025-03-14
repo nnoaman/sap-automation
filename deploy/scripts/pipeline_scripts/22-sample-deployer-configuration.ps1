@@ -144,6 +144,9 @@ if ( -not $found ) {
 
   git -c http.extraheader="AUTHORIZATION: bearer $Env:SYSTEM_ACCESSTOKEN" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 }
+else {
+  Write-Host "File $Full_FileName already exists"
+}
 
 $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "LIBRARY" -ChildPath $Env:LIBRARY_FOLDER)
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:LIBRARY_FILE")
@@ -160,19 +163,22 @@ else {
 }
 
 if ( -not (Test-Path -Path $Env:LIBRARY_FILE)  ) {
-  $LibraryFile = New-Item -Path . -Name $Env:LIBRARY_FILE -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
-  Add-Content $Env:LIBRARY_FILE "environment                   = ""$Env:DEPLOYER_ENVIRONMENT"""
-  Add-Content $Env:LIBRARY_FILE "location                      = ""$region"""
-  Add-Content $Env:LIBRARY_FILE ""
-  Add-Content $Env:LIBRARY_FILE
-  Add-Content $Env:LIBRARY_FILE "use_private_endpoint          = true"
-  Add-Content $Env:LIBRARY_FILE "public_network_access_enabled = false"
-  Add-Content $Env:LIBRARY_FILE "$Env:use_spn)"
-  Add-Content $Env:LIBRARY_FILE "dns_label                     = ""$Env:CALCULATED_DNS)"""
-  git add -f $Env:LIBRARY_FILE
+  $LibraryFile = New-Item -Path $Full -Name $Env:LIBRARY_FILE -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
+  Add-Content $LibraryFile "environment                   = ""$Env:DEPLOYER_ENVIRONMENT"""
+  Add-Content $LibraryFile "location                      = ""$region"""
+  Add-Content $LibraryFile ""
+  Add-Content $LibraryFile ""
+  Add-Content $LibraryFile "use_private_endpoint          = true"
+  Add-Content $LibraryFile "public_network_access_enabled = false"
+  Add-Content $LibraryFile "$Env:use_spn)"
+  Add-Content $LibraryFile "dns_label                     = ""$Env:CALCULATED_DNS)"""
+  git add -f $LibraryFile
   git commit -m "Added Control Plane Library configuration[skip ci]"
 
   git -c http.extraheader="AUTHORIZATION: bearer $Env:SYSTEM_ACCESSTOKEN" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
+}
+else {
+    Write-Host "File $Full_FileName already exists"
 }
 
 
