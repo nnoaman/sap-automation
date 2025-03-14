@@ -1,16 +1,13 @@
 ---
-name:                                  Create Deployer Configuration
 
 parameters:
   - name:                              control_plane_name
     displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
     type:                              string
-    default:                           MGMT-NOEU-DEP01
 
   - name:                              workload_zone_name
     displayName:                       Workload zone name (MGMT, DEV, QA, PRD, ...)
     type:                              string
-    default:                           MGMT-NOEU-DEP01
 
   - name:                              firewall
     displayName:                       Deploy Azure Firewall
