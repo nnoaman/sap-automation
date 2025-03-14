@@ -2,7 +2,6 @@ Get-ChildItem Env:* | Select-Object -Property Name, Value | Sort-Object Name
 $RootFolder = Join-Path -Path $Env:CONFIG_REPO_PATH -ChildPath "WORKSPACES"
 Set-Location $RootFolder
 
-Write-Host Get-Location
 git fetch -q --all
 git checkout -q $Env:BUILD_SOURCEBRANCHNAME
 git pull
@@ -63,10 +62,10 @@ $region = switch ("$Env:DEPLOYER_REGION") {
 Write-Host "Region: $region"
 
 $msi_id = "$Env:MSI_IDENTITY_ID".Trim()
-
+Write-Host $RootFolder
 $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE")
-
+Write-Host $Full
 if (Test-Path $Full) {
   Set-Location $Full
 }
