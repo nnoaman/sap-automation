@@ -45,64 +45,62 @@ parameters:
     type:                              string
     default:                           ' '
 
-variables:
-  - name:                              control_plane_name
-    value:                             ${{ parameters.control_plane_name }}
-
-  - name:                              workload_environment
-    value:                             ${{ parameters.workload_zone_name }}
-
-  - name:                              deployer_folder
-    value:                             ${{ format('{0}-DEP01-INFRASTRUCTURE', parameters.control_plane_name) }}
-
-  - name:                              deployer_file
-    value:                             ${{ format('{0}-INFRASTRUCTURE.tfvars', parameters.control_plane_name) }}
-
-  - name:                              library_folder
-    value:                             $[format('{0}-{1}-SAP_LIBRARY', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
-
-  - name:                              library_file
-    value:                             $[format('{0}-{1}-SAP_LIBRARY.tfvars', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
-
-  - name:                              deployer_region
-    value:                             $[split('${{ parameters.control_plane_name }}', '-')[1]]
-
-  - name:                              deployer_environment
-    value:                             $[split('${{ parameters.control_plane_name }}', '-')[0]]
-
-  - name:                              deployer_management_network_logical_name
-    value:                             $[split('${{ parameters.control_plane_name }}', '-')[2]]
-
-  - name:                              deploy_firewall
-    value:                             ${{ format('firewall_deployment                       = {0}', lower(parameters.firewall)) }}
-
-  - name:                              deploy_bastion
-    value:                             ${{ format('bastion_deployment                        = {0}', lower(parameters.bastion)) }}
-
-  - name:                              deploy_webapp
-    value:                             ${{ format('use_webapp                                = {0}', lower(parameters.webapp)) }}
-
-  - name:                              deployer_count
-    value:                             ${{ format('deployer_count                            = {0}', parameters.deployer_count) }}
-                                                   public_network_access_enabled             = false
-
-  - name:                              use_spn
-    value:                             ${{ format('use_spn                                   = {0}', lower(parameters.identity)) }}
-
-  - name:                              calculated_dns
-    value:                             ${{ format('azure.{0}.sdaf.contoso.net', lower(split('${{ parameters.control_plane_name }}', '-')[1])) }}
-
-  - name:                              msi_identity_id
-    value:                             ${{ parameters.msi_identity }}
-
-  - name:                              address_prefix
-    value:                             ${{ parameters.address_prefix }}
-
-trigger:                               none
 
 stages:
   - stage:                             Create_Configuration
     displayName:                       Create Deployer Configuration
+    variables:
+      - name:                              control_plane_name
+        value:                             ${{ parameters.control_plane_name }}
+
+      - name:                              workload_environment
+        value:                             ${{ parameters.workload_zone_name }}
+
+      - name:                              deployer_folder
+        value:                             ${{ format('{0}-DEP01-INFRASTRUCTURE', parameters.control_plane_name) }}
+
+      - name:                              deployer_file
+        value:                             ${{ format('{0}-INFRASTRUCTURE.tfvars', parameters.control_plane_name) }}
+
+      - name:                              library_folder
+        value:                             $[format('{0}-{1}-SAP_LIBRARY', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
+
+      - name:                              library_file
+        value:                             $[format('{0}-{1}-SAP_LIBRARY.tfvars', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
+
+      - name:                              deployer_region
+        value:                             $[split('${{ parameters.control_plane_name }}', '-')[1]]
+
+      - name:                              deployer_environment
+        value:                             $[split('${{ parameters.control_plane_name }}', '-')[0]]
+
+      - name:                              deployer_management_network_logical_name
+        value:                             $[split('${{ parameters.control_plane_name }}', '-')[2]]
+
+      - name:                              deploy_firewall
+        value:                             ${{ format('firewall_deployment                       = {0}', lower(parameters.firewall)) }}
+
+      - name:                              deploy_bastion
+        value:                             ${{ format('bastion_deployment                        = {0}', lower(parameters.bastion)) }}
+
+      - name:                              deploy_webapp
+        value:                             ${{ format('use_webapp                                = {0}', lower(parameters.webapp)) }}
+
+      - name:                              deployer_count
+        value:                             ${{ format('deployer_count                            = {0}', parameters.deployer_count) }}
+                                                      public_network_access_enabled             = false
+
+      - name:                              use_spn
+        value:                             ${{ format('use_spn                                   = {0}', lower(parameters.identity)) }}
+
+      - name:                              calculated_dns
+        value:                             ${{ format('azure.{0}.sdaf.contoso.net', lower(split('${{ parameters.control_plane_name }}', '-')[1])) }}
+
+      - name:                              msi_identity_id
+        value:                             ${{ parameters.msi_identity }}
+
+      - name:                              address_prefix
+        value:                             ${{ parameters.address_prefix }}
     jobs:
       - job:                           Create_Deployer_Configuration
         displayName:                   Create Deployer Configuration
