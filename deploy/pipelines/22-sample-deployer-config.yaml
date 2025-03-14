@@ -34,7 +34,6 @@ parameters:
     type:                              string
     default:                           10.170.20
 
-
   - name:                              identity
     displayName:                       Use a Service Principal for deployments (legacy), unchecking will use a Managed Identity.
     type:                              boolean
@@ -45,6 +44,13 @@ parameters:
     type:                              string
     default:                           ' '
 
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
+
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
   - stage:                             Create_Configuration
