@@ -183,9 +183,9 @@ else {
 }
 
 
-Set-Location (Join-Path - Path $Env:CONFIG_REPO_PATH -ChildPath "pipelines")
+Set-Location (Join-Path -Path $Env:CONFIG_REPO_PATH -ChildPath "pipelines")
 $pipeLineName = "01-deploy-control-plane.yml"
-$filePath = Join-Path -path $Env:CONFIG_REPO_PATH  -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
+$filePath = Join-Path -Path $Env:CONFIG_REPO_PATH  -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
 (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
 (Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
 
@@ -193,7 +193,7 @@ git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
 
 $pipeLineName = "12-remove-control-plane.yml"
-$filePath = Join-Path -path $Env:CONFIG_REPO_PATH -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
+$filePath = Join-Path -Path $Env:CONFIG_REPO_PATH -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
 
 (Get-Content $filePath).Replace("MGMT-WEEU-DEP01", "$Env:CONTROL_PLANE_NAME") | Set-Content $filePath
 (Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
