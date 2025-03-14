@@ -148,14 +148,14 @@ if ( -not $found ) {
 $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "LIBRARY" -ChildPath $Env:LIBRARY_FOLDER)
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:LIBRARY_FILE")
 
-if (Test-Path $Full) {
+if (Test-Path -path $Full) {
   Set-Location $Full
 }
 else {
   #PowerShell Create directory if not exists
 
   Set-Location (Join-Path -Path $RootFolder -ChildPath "LIBRARY")
-  $Folder = New-Item $Env:LIBRARY_FOLDER -ItemType Directory
+  $Folder = New-Item -PAth $Env:LIBRARY_FOLDER -ItemType Directory
   Set-Location $Env:LIBRARY_FOLDER
 }
 
