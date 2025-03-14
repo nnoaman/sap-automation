@@ -130,14 +130,11 @@ if ( -not (Test-Path -Path $Env:DEPLOYER_FILE)  ) {
   git add -f $DeployerFile
   git commit -m "Added Control Plane configuration[skip ci]"
 
-  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
+  git -c http.extraheader="AUTHORIZATION: bearer $Env:SYSTEM_ACCESSTOKEN" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 }
-
-
 
 $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "LIBRARY" -ChildPath $Env:LIBRARY_FOLDER)
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:LIBRARY_FILE)")
-
 
 if (Test-Path $Full) {
   Set-Location $Full
@@ -148,9 +145,7 @@ else {
   Set-Location (Join-Path -Path $RootFolder -ChildPath "LIBRARY")
   $Folder = New-Item $Env:LIBRARY_FOLDER -ItemType Directory
   Set-Location $Env:LIBRARY_FOLDER
-
 }
-
 
 if ( -not (Test-Path -Path $Env:LIBRARY_FILE)  ) {
   $LibraryFile = New-Item -Path . -Name $Env:LIBRARY_FILE -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
@@ -165,7 +160,7 @@ if ( -not (Test-Path -Path $Env:LIBRARY_FILE)  ) {
   git add -f $Env:LIBRARY_FILE
   git commit -m "Added Control Plane Library configuration[skip ci]"
 
-  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
+  git -c http.extraheader="AUTHORIZATION: bearer $Env:SYSTEM_ACCESSTOKEN" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 }
 
 
@@ -178,7 +173,6 @@ $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path 
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
-git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 
 $pipeLineName = "12-remove-control-plane.yml"
 $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
@@ -188,7 +182,6 @@ $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path 
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
-git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 
 $pipeLineName = "02-sap-workload-zone.yml"
 $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
@@ -198,7 +191,6 @@ $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path 
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
-git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 
 $pipeLineName = "03-sap-system-deployment.yml"
 $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
@@ -209,7 +201,6 @@ $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
 
-git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 
 $pipeLineName = "04-sap-software-download.yml"
 $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
@@ -220,7 +211,6 @@ $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
 
-git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
 
 $pipeLineName = "10-remover-terraform.yml"
 $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
@@ -248,4 +238,4 @@ $filePath = Join-Path -path $Env:CONFIG_REPO_PATH - -ChildPath (Join-Path -path 
 
 git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
-git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
+git -c http.extraheader="AUTHORIZATION: bearer $Env:SYSTEM_ACCESSTOKEN" push --set-upstream origin $Env:BUILD_SOURCEBRANCHNAME
