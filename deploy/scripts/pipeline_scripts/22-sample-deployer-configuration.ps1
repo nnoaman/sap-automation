@@ -60,10 +60,10 @@ $region = switch ("$Env:DEPLOYER_REGION") {
   "WUS2" { "westus2" }
 }
 
-$msi_id = "$Env:msi_identity_id)".Trim()
+$msi_id = "$Env:msi_identity_id".Trim()
 
 $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $Env:DEPLOYER_FOLDER)
-$Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE)")
+$Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE")
 
 if (Test-Path $Full) {
   Set-Location $Full
@@ -90,10 +90,10 @@ if ( -not (Test-Path -Path $Env:DEPLOYER_FILE)  ) {
   Add-Content $DeployerFile "$Env:deploy_webapp)"
   Add-Content $DeployerFile "webapp_subnet_address_prefix              = ""$Env:ADDRESS_PREFIX.192/27"""
 
-  Add-Content $DeployerFile "$Env:deploy_firewall)"
+  Add-Content $DeployerFile "$Env:DEPLOY_FIREWALL"
   Add-Content $DeployerFile "management_firewall_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.0/26"""
 
-  Add-Content $DeployerFile "$Env:deploy_bastion)"
+  Add-Content $DeployerFile "$Env:DEPLOY_BASTION"
   Add-Content $DeployerFile "management_bastion_subnet_address_prefix = ""$Env:ADDRESS_PREFIX.128/26"""
 
   Add-Content $DeployerFile "use_service_endpoint                      = true"
@@ -109,7 +109,7 @@ if ( -not (Test-Path -Path $Env:DEPLOYER_FILE)  ) {
 
   Add-Content $DeployerFile "$Env:USE_SPN"
   if ($msi_id.Length -gt 0) {
-    Add-Content $DeployerFile "user_assigned_identity_id             = ""$Env_MSI_IS"""
+    Add-Content $DeployerFile "user_assigned_identity_id             = ""$msi_id"""
   }
   else {
     Add-Content $DeployerFile "#user_assigned_identity_id             = ""<user_assigned_identity_id>"""
@@ -134,7 +134,7 @@ if ( -not (Test-Path -Path $Env:DEPLOYER_FILE)  ) {
 }
 
 $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "LIBRARY" -ChildPath $Env:LIBRARY_FOLDER)
-$Full_FileName = (Join-Path -path $Full -ChildPath "$Env:LIBRARY_FILE)")
+$Full_FileName = (Join-Path -path $Full -ChildPath "$Env:LIBRARY_FILE")
 
 if (Test-Path $Full) {
   Set-Location $Full
