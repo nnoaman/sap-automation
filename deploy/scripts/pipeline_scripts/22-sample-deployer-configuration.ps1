@@ -9,6 +9,7 @@ git config --global user.email $Env:BUILDREQUESTEDFOREMAIL
 git config --global user.name $Env:BUILDREQUESTEDFOR
 
 $FolderName = "WORKSPACES"
+$DNS="azure.$Env:DEPLOYER_REGION.sdaf.contoso.net"
 $region = switch ("$Env:DEPLOYER_REGION") {
   "AUCE" { "australiacentral" }
   "AUC2" { "australiacentral2" }
@@ -111,10 +112,10 @@ if ( -not $found ) {
   Add-Content $DeployerFile "enable_firewall_for_keyvaults_and_storage = true"
   Add-Content $DeployerFile "$Env:USE_SPN"
   if ($msi_id.Length -gt 0) {
-    Add-Content $DeployerFile "user_assigned_identity_id             = ""$msi_id"""
+    Add-Content $DeployerFile "user_assigned_identity_id                 = ""$msi_id"""
   }
   else {
-    Add-Content $DeployerFile "#user_assigned_identity_id             = ""<user_assigned_identity_id>"""
+    Add-Content $DeployerFile "#user_assigned_identity_id                 = ""<user_assigned_identity_id>"""
   }
 
 
@@ -172,7 +173,7 @@ if ( -not (Test-Path -Path $Env:LIBRARY_FILE)  ) {
   Add-Content $LibraryFile "use_private_endpoint          = true"
   Add-Content $LibraryFile "public_network_access_enabled = false"
   Add-Content $LibraryFile "$Env:USE_SPN"
-  Add-Content $LibraryFile "dns_label                     = ""$Env:CALCULATED_DNS)"""
+  Add-Content $LibraryFile "dns_label                     = ""$DNS"""
   git add -f $LibraryFile
   git commit -m "Added Control Plane Library configuration[skip ci]"
 
@@ -183,6 +184,7 @@ else {
 }
 
 
+$FolderName= "pipelines"
 Set-Location (Join-Path -Path $Env:CONFIG_REPO_PATH -ChildPath "pipelines")
 $pipeLineName = "01-deploy-control-plane.yml"
 $filePath = Join-Path -Path $Env:CONFIG_REPO_PATH  -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)

@@ -102,9 +102,6 @@ stages:
       - name:                              use_spn
         value:                             ${{ format('use_spn                                   = {0}', lower(parameters.identity)) }}
 
-      - name:                              calculated_dns
-        value:                             ${{ format('azure.{0}.sdaf.contoso.net', lower(split('${{ parameters.control_plane_name }}', '-')[1])) }}
-
       - name:                              msi_identity_id
         value:                             ${{ parameters.msi_identity }}
 
@@ -129,7 +126,7 @@ stages:
             parameters:
               getLatestFromBranch:     true
           - task:                      PowerShell@2
-            displayName:               "Create Sample"
+            displayName:               "Create Control Plane Configuration"
             inputs:
               targetType:              "filePath"
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/22-sample-deployer-configuration.ps1"
