@@ -72,13 +72,13 @@ if (Test-Path $Full) {
 }
 else {
   #PowerShell Create directory if not exists
-  Write-Host "1"
+  Write-Host "11"
   Set-Location -Path (Join-Path -Path $RootFolder -ChildPath "DEPLOYER")
-  Write-Host "2"
-  $Folder = New-Item $Env:DEPLOYER_FOLDER -ItemType Directory
-  Write-Host "3"
+  Write-Host "22"
+  $Folder = New-Item -Path $Env:DEPLOYER_FOLDER -ItemType Directory
+  Write-Host "33"
   Set-Location -Path $Env:DEPLOYER_FOLDER
-  Write-Host "2"
+  Write-Host "44"
 
 }
 
