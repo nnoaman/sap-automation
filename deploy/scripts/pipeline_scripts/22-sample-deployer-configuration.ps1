@@ -66,27 +66,29 @@ $Full = Join-Path -Path $RootFolder -ChildPath (Join-Path -Path "DEPLOYER" -Chil
 
 $Full_FileName = (Join-Path -path $Full -ChildPath "$Env:DEPLOYER_FILE")
 if (Test-Path $Full) {
-  Write-Host "1"
+
   Set-Location -Path $Full
-  Write-Host "2"
+
 }
 else {
   #PowerShell Create directory if not exists
-  Write-Host "11"
+
   Set-Location -Path (Join-Path -Path $RootFolder -ChildPath "DEPLOYER")
-  Write-Host "22"
+
   $Folder = New-Item -Path $Env:DEPLOYER_FOLDER -ItemType Directory
-  Write-Host "33"
+
   Set-Location -Path $Env:DEPLOYER_FOLDER
   Write-Host "44"
 
 }
 
 
-if ( -not (Test-Path -Path $Env:DEPLOYER_FILE)  ) {
-  $DeployerFile = New-Item -Path . -Name $Env:DEPLOYER_FILE -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
+if ( -not (Test-Path -Path $Full_FileName)  ) {
+  Write-Host "33"
+  $DeployerFile = New-Item -Path $Full -Name $Env:DEPLOYER_FILE -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
   Write-Host "3"
   Add-Content $DeployerFile "environment                               = ""$Env:DEPLOYER_ENVIRONMENT"""
+  Write-Host "33"
   Add-Content $DeployerFile "location                                  = ""$region"""
   Add-Content $DeployerFile ""
   Add-Content $DeployerFile "management_network_logical_name           = ""$Env:DEPLOYER_MANAGEMENT_NETWORK_LOGICAL_NAME"""
@@ -112,6 +114,7 @@ if ( -not (Test-Path -Path $Env:DEPLOYER_FILE)  ) {
   Add-Content $DeployerFile "public_network_access_enabled             = false"
 
   Add-Content $DeployerFile "$Env:DEPLOYER_COUNT"
+  Write-Host "4"
 
   Add-Content $DeployerFile "$Env:USE_SPN"
   if ($msi_id.Length -gt 0) {
