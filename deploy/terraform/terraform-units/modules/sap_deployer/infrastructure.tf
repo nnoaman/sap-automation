@@ -65,7 +65,7 @@ resource "azurerm_subnet" "subnet_mgmt" {
   private_endpoint_network_policies    = !var.use_private_endpoint ? "Enabled" : "Disabled"
 
   service_endpoints                    = var.use_service_endpoint ? (
-                                           var.use_webapp ? (
+                                           var.app_service.use ? (
                                              ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
                                              ["Microsoft.Storage", "Microsoft.KeyVault"]
                                            )) : (

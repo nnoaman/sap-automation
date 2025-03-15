@@ -108,6 +108,7 @@ if ( -not $found ) {
 
   Add-Content $DeployerFile "use_service_endpoint                      = true"
   Add-Content $DeployerFile "use_private_endpoint                      = true"
+  Add-Content $DeployerFile "use_private_endpoint                      = true"
   Add-Content $DeployerFile "enable_rbac_authorization_for_keyvault    = true"
   Add-Content $DeployerFile "enable_firewall_for_keyvaults_and_storage = true"
   Add-Content $DeployerFile "$Env:USE_SPN"

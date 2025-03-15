@@ -278,6 +278,10 @@ variable "use_webapp"                            {
                                                    default     = false
                                                  }
 
+variable "webapp_deployment"                         {
+                                                        description = "Boolean value indicating if a webapp should be deployed"
+                                                        default     = false
+                                                      }
 
 variable "Agent_IP"                              {
                                                    description = "IP address of the agent"

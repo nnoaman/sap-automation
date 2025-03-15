@@ -213,22 +213,22 @@ output "automation_version"                      {
 
 output "webapp_url_base"                         {
                                                    description = "The URL of the configuration Web Application"
-                                                   value       = var.use_webapp ? module.sap_deployer.webapp_url_base : ""
+                                                   value       = var.webapp_deployment ? module.sap_deployer.webapp_url_base : ""
                                                  }
 
 output "webapp_identity"                         {
                                                    description = "The identity of the configuration Web Application"
-                                                   value       = var.use_webapp ? module.sap_deployer.webapp_identity : ""
+                                                   value       = var.webapp_deployment ? module.sap_deployer.webapp_identity : ""
                                                  }
 
 output "webapp_id"                               {
                                                    description = "The Azure resource ID of the configuration Web Application"
-                                                   value       = var.use_webapp ? module.sap_deployer.webapp_id : ""
+                                                   value       = var.webapp_deployment ? module.sap_deployer.webapp_id : ""
                                                  }
 
-output "use_webapp"                             {
+output "webapp_deployment"                             {
                                                    description = "Is the App Service deployed"
-                                                   value       = var.use_webapp
+                                                   value       = var.webapp_deployment
                                                  }
 
 ###############################################################################

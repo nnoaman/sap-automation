@@ -33,7 +33,7 @@ resource "null_resource" "prepare-deployer" {
                                              pool                 = var.agent_pool,
                                              pat                  = var.agent_pat,
                                              ado_repo             = var.agent_ado_url,
-                                             use_webapp           = var.use_webapp
+                                             use_webapp           = var.webapp_deployment
                                              ansible_core_version = var.ansible_core_version
                                              }
                                            )
@@ -72,7 +72,7 @@ resource "local_file" "configure_deployer" {
                                            pool                 = var.agent_pool,
                                            pat                  = var.agent_pat,
                                            ado_repo             = var.agent_ado_url,
-                                           use_webapp           = var.use_webapp
+                                           use_webapp           = var.webapp_deployment
                                            ansible_core_version = var.ansible_core_version
                                            }
                                          )

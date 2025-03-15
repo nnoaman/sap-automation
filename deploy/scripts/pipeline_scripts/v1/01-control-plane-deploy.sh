@@ -86,6 +86,16 @@ else
 	echo "Deploy Web App:                      false"
 fi
 
+if printenv USE_WEBAPP; then
+	USE_WEBAPP=$USE_WEBAPP
+else
+	USE_WEBAPP=false
+fi
+if printenv APP_REGISTRATION_APP_ID; then
+	APP_REGISTRATION_APP_ID=$APP_REGISTRATION_APP_ID
+else
+	APP_REGISTRATION_APP_ID=""
+fi
 TF_VAR_use_webapp=$USE_WEBAPP
 export TF_VAR_use_webapp
 

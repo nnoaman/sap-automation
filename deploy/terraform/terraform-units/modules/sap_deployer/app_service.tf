@@ -12,7 +12,7 @@ resource "azurerm_subnet" "webapp" {
                                                     azurerm_subnet.subnet_mgmt
                                                   ]
 
-  count                                         = var.use_webapp ? local.webapp_subnet_exists ? 0 : 1 : 0
+  count                                         = var.app_service.use ? local.webapp_subnet_exists ? 0 : 1 : 0
   name                                          = local.webapp_subnet_name
   resource_group_name                           = local.management_virtual_network_exists ? (
                                                     data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
@@ -28,7 +28,7 @@ resource "azurerm_subnet" "webapp" {
   private_endpoint_network_policies             = var.use_private_endpoint ? "Enabled" : "Disabled"
 
   service_endpoints                             = var.use_service_endpoint ? (
-                                                    var.use_webapp ? (
+                                                    var.app_service.use ? (
                                                       ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
                                                       ["Microsoft.Storage", "Microsoft.KeyVault"]
                                                     )) : (
@@ -36,7 +36,7 @@ resource "azurerm_subnet" "webapp" {
                                                   )
 
   dynamic "delegation" {
-                        for_each = range(var.use_webapp ? 1 : 0)
+                        for_each = range(var.app_service.use ? 1 : 0)
                         content {
                           name = "delegation"
                           service_delegation {
@@ -49,7 +49,7 @@ resource "azurerm_subnet" "webapp" {
 }
 
 data "azurerm_subnet" "webapp" {
-  count                                         = var.use_webapp ? local.webapp_subnet_exists ? 1 : 0 : 0
+  count                                         = var.app_service.use ? local.webapp_subnet_exists ? 1 : 0 : 0
   name                                          = split("/", local.webapp_subnet_arm_id)[10]
   resource_group_name                           = split("/", local.webapp_subnet_arm_id)[4]
   virtual_network_name                          = split("/", local.webapp_subnet_arm_id)[8]
@@ -59,7 +59,7 @@ data "azurerm_subnet" "webapp" {
 
 # Create the Windows App Service Plan
 resource "azurerm_service_plan" "appserviceplan" {
-  count                                         = var.use_webapp ? 1 : 0
+  count                                         = var.app_service.use ? 1 : 0
   name                                          = lower(format("%s%s%s%s",
                                                     var.naming.resource_prefixes.app_service_plan,
                                                     var.naming.prefix.DEPLOYER,
@@ -75,7 +75,7 @@ resource "azurerm_service_plan" "appserviceplan" {
 
 # Create the app service with AD authentication and storage account connection string
 resource "azurerm_windows_web_app" "webapp" {
-  count                                          = var.use_webapp ? 1 : 0
+  count                                          = var.app_service.use ? 1 : 0
   name                                           = lower(format("%s%s%s%s",
                                                     var.naming.resource_prefixes.app_service_plan,
                                                     var.naming.prefix.LIBRARY,
@@ -189,7 +189,7 @@ resource "azurerm_windows_web_app" "webapp" {
 
 # Set up Vnet integration for webapp and storage account interaction
 resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_connection" {
-  count          = var.use_webapp ? 1 : 0
+  count          = var.app_service.use ? 1 : 0
   app_service_id = azurerm_windows_web_app.webapp[0].id
   subnet_id      = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
 }
@@ -197,7 +197,7 @@ resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_con
 
 # resource "azurerm_role_assignment" "app_service_contributor" {
 #   provider             = azurerm.main
-#   count                = var.use_webapp && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
+#   count                = var.app_service.use && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
 #   scope                = azurerm_windows_web_app.webapp[0].id
 #   role_definition_name = "Website Contributor"
 #   principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
@@ -205,7 +205,7 @@ resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_con
 
 # resource "azurerm_role_assignment" "app_service_contributor_msi" {
 #   provider             = azurerm.main
-#   count                = var.use_webapp ? 1 : 0
+#   count                = var.app_service.use ? 1 : 0
 #   scope                = azurerm_windows_web_app.webapp[0].id
 #   role_definition_name = "Website Contributor"
 #   principal_id         = azurerm_user_assigned_identity.deployer.principal_id

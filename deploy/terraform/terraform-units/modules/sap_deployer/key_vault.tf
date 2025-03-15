@@ -44,10 +44,10 @@ resource "azurerm_key_vault" "kv_user" {
                                             length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                           ]
                                         )
-            virtual_network_subnet_ids = compact(local.management_subnet_exists ? (var.use_webapp ? (
+            virtual_network_subnet_ids = compact(local.management_subnet_exists ? (var.app_service.use ? (
                                           flatten([data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id, var.subnets_to_add, var.additional_network_id])) : (
                                           flatten([data.azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.additional_network_id]))
-                                          ) : (var.use_webapp ? (
+                                          ) : (var.app_service.use ? (
                                             compact(flatten([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null), var.subnets_to_add, var.additional_network_id]))) : (
                                             flatten([azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.additional_network_id])
                                             )
@@ -206,7 +206,7 @@ resource "azurerm_role_assignment" "role_assignment_additional_users" {
 
 resource "azurerm_role_assignment" "role_assignment_webapp" {
   provider                             = azurerm.main
-  count                                = !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.use_webapp ? 1 : 0
+  count                                = !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Secrets Officer"
   principal_id                         = azurerm_windows_web_app.webapp[0].identity[0].principal_id
@@ -214,7 +214,7 @@ resource "azurerm_role_assignment" "role_assignment_webapp" {
 }
 resource "azurerm_key_vault_access_policy" "webapp" {
   provider                             = azurerm.main
-  count                                = !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.use_webapp ? 1 : 0
+  count                                = !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0
 
   key_vault_id                         = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 

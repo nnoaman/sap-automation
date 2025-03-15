@@ -565,6 +565,12 @@ variable "use_webapp"                                 {
                                                         default     = false
                                                       }
 
+variable "webapp_deployment"                         {
+                                                        description = "Boolean value indicating if a webapp should be deployed"
+                                                        default     = false
+                                                      }
+
+
 variable "app_registration_app_id"                    {
                                                         description = "The app registration id to be used for the webapp"
                                                         default     = ""

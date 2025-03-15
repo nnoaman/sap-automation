@@ -111,7 +111,7 @@ output "subnet_mgmt_address_prefixes" {
 // Deatils of webapp subnet that is deployed/imported
 output "subnet_webapp_id" {
   description                          = "Webapp Subnet ID"
-  value                                = var.use_webapp ? (local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id) : ""
+  value                                = var.app_service.use ? (local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id) : ""
 }
 
 // Details of the management vnet NSG that is deployed/imported
@@ -198,17 +198,17 @@ output "firewall_id" {
 
 output "webapp_url_base" {
   description                          = "Webapp URL Base"
-  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
+  value                                = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
 }
 
 output "webapp_identity" {
   description                          = "Webapp Identity"
-  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") :  ""
+  value                                = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") :  ""
 }
 
 output "webapp_id" {
   description                          = "Webapp ID"
-  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].id, "") : ""
+  value                                = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].id, "") : ""
 }
 
 ###############################################################################

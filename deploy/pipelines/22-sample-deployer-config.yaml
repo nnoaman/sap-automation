@@ -94,7 +94,7 @@ stages:
         value:                             ${{ format('bastion_deployment                        = {0}', lower(parameters.bastion)) }}
 
       - name:                              deploy_webapp
-        value:                             ${{ format('use_webapp                                = {0}', lower(parameters.webapp)) }}
+        value:                             ${{ format('webapp_deployment                         = {0}', lower(parameters.webapp)) }}
 
       - name:                              deployer_count
         value:                             ${{ format('deployer_count                            = {0}', parameters.deployer_count) }}
