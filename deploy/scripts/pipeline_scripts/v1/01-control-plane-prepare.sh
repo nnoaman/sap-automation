@@ -120,8 +120,9 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	TF_VAR_spn_id=$ARM_CLIENT_ID
 	export TF_VAR_spn_id
 
-	ARM_OIDC_TOKEN="$idToken"
-	if [ -n "$ARM_OIDC_TOKEN" ]; then
+
+	if [ -n "$idToken" ]; then
+		ARM_OIDC_TOKEN="$idToken"
 		export ARM_OIDC_TOKEN
 		ARM_USE_OIDC=true
 		export ARM_USE_OIDC
