@@ -39,8 +39,8 @@ if ($Workload_zone_code.Length -eq 0) {
 
 
 if ($Workload_zone_subscriptionID.Length -eq 0) {
-  Write-Host "$Env:ControlPlaneSubscriptionID is not set!" -ForegroundColor Red
-  $Title = "Choose the subscription for the Control Plane"
+  Write-Host "$Env:SDAF_WorkloadZoneSubscriptionID is not set!" -ForegroundColor Red
+  $Title = "Choose the subscription for the Workload Zone"
   $subscriptions = $(az account list --query "[].{Name:name}" -o table | Sort-Object)
   Show-Menu($subscriptions[2..($subscriptions.Length - 1)])
 
