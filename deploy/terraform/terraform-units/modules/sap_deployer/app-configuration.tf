@@ -196,7 +196,7 @@ resource "azurerm_app_configuration_key" "deployer_subscription_id" {
 
 resource "azurerm_app_configuration_key" "web_application_resource_id" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.application_configuration_deployment ? var.webapp_deployment ? 1 :0 : 0
+  count                                = var.infrastructure.application_configuration_deployment && var.app_service.use ? 1 :0
   depends_on                           = [
                                             time_sleep.wait_for_appconf_dataowner_assignment,
                                             azurerm_private_endpoint.app_config
@@ -222,7 +222,7 @@ resource "azurerm_app_configuration_key" "web_application_resource_id" {
 
 resource "azurerm_app_configuration_key" "web_application_identity_id" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.application_configuration_deployment ? var.app_service.use ? 1 :0 : 0
+  count                                = var.infrastructure.application_configuration_deployment && var.app_service.use ? 1 :0
   depends_on                           = [
                                             time_sleep.wait_for_appconf_dataowner_assignment,
                                             azurerm_private_endpoint.app_config
