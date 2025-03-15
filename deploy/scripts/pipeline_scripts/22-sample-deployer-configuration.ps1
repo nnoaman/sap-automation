@@ -97,6 +97,8 @@ if ( -not $found ) {
   Add-Content $DeployerFile "management_network_address_space          = ""$Env:ADDRESS_PREFIX.0/24"""
   Add-Content $DeployerFile "management_subnet_address_prefix          = ""$Env:ADDRESS_PREFIX.64/28"""
 
+  Add-Content $DeployerFile "application_configuration_deployment      = true"
+
   Add-Content $DeployerFile "$Env:DEPLOY_WEBAPP"
   Add-Content $DeployerFile "webapp_subnet_address_prefix              = ""$Env:ADDRESS_PREFIX.192/27"""
 

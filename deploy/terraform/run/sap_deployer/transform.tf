@@ -134,13 +134,14 @@ locals {
                                               }
                                             }
                                           }
-    deploy_monitoring_extension      = var.deploy_monitoring_extension
-    deploy_defender_extension        = var.deploy_defender_extension
-    custom_random_id                 = var.custom_random_id
-    bastion_public_ip_tags           = try(var.bastion_public_ip_tags, {})
 
-    deploy_application_configuration = var.deploy_application_configuration
-    application_configuration_id     = var.application_configuration_id
+    deploy_monitoring_extension          = var.deploy_monitoring_extension
+    deploy_defender_extension            = var.deploy_defender_extension
+    custom_random_id                     = var.custom_random_id
+    bastion_public_ip_tags               = try(var.bastion_public_ip_tags, {})
+
+    application_configuration_deployment = var.application_configuration_deployment
+    application_configuration_id         = var.application_configuration_id
 
                                         }
   deployer                             = {

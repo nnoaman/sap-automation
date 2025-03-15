@@ -694,7 +694,7 @@ variable "application_configuration_id"          {
                                                     type        = string
                                                     default     = ""
                                                  }
-variable "deploy_application_configuration"      {
+variable "application_configuration_deployment"      {
                                                     description = "If defined, will add the Microsoft.Azure.ApplicationConfiguration extension to the virtual machines"
                                                     default     = false
                                                  }
