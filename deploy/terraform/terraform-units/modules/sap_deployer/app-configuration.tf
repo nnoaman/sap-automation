@@ -31,7 +31,7 @@ data "azurerm_app_configuration" "app_config" {
 }
 resource "azurerm_role_assignment" "appconf_dataowner" {
   provider                             = azurerm.main
-  count                                = var.bootstrap ? 1 : 0
+  count                                = var.bootstrap && var.infrastructure.deploy_application_configuration ? 1 : 0
   scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   role_definition_name                 = "App Configuration Data Owner"
   principal_id                         = data.azurerm_client_config.current.object_id
@@ -39,7 +39,7 @@ resource "azurerm_role_assignment" "appconf_dataowner" {
 
 resource "azurerm_role_assignment" "appconf_dataowner_msi" {
   provider                             = azurerm.main
-  scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
+  scope                                = var.infrastructure.deploy_application_configuration ? (length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id) : 0
   role_definition_name                 = "App Configuration Data Owner"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 
@@ -269,7 +269,7 @@ resource "azurerm_app_configuration_key" "deployer_msi_id" {
 
 resource "azurerm_private_endpoint" "app_config" {
   provider                             = azurerm.main
-  count                                = !var.bootstrap && var.use_private_endpoint ? 1 : 0
+  count                                = !var.bootstrap && var.use_private_endpoint && var.infrastructure.deploy_application_configuration ? 1 : 0
   name                                 = format("%s%s%s",
                                           var.naming.resource_prefixes.appconfig_private_link,
                                           local.prefix,
