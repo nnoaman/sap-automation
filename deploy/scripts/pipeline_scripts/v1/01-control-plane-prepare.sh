@@ -120,17 +120,17 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	TF_VAR_spn_id=$ARM_CLIENT_ID
 	export TF_VAR_spn_id
 
+	if printenv servicePrincipalKey; then
+		unset ARM_OIDC_TOKEN
+		ARM_CLIENT_SECRET="$servicePrincipalKey"
+		export ARM_CLIENT_SECRET
 
-	if [ -n "$idToken" ]; then
+	else
 		ARM_OIDC_TOKEN="$idToken"
 		export ARM_OIDC_TOKEN
 		ARM_USE_OIDC=true
 		export ARM_USE_OIDC
 		unset ARM_CLIENT_SECRET
-	else
-		unset ARM_OIDC_TOKEN
-		ARM_CLIENT_SECRET="$servicePrincipalKey"
-		export ARM_CLIENT_SECRET
 	fi
 
 	ARM_TENANT_ID="$tenantId"
@@ -290,7 +290,7 @@ set -eu
 
 if [ -f "${deployer_environment_file_name}" ]; then
 
-  APPLICATION_CONFIGURATION_ID=$(grep -m1 "^APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	APPLICATION_CONFIGURATION_ID=$(grep -m1 "^APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	export APPLICATION_CONFIGURATION_ID
 
 	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
@@ -366,8 +366,6 @@ if [ 0 = $return_code ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-
-
 
 fi
 exit $return_code
