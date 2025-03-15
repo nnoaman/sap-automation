@@ -67,7 +67,7 @@ stages:
         value:                             ${{ parameters.workload_zone_name }}
 
       - name:                              deployer_folder
-        value:                             ${{ format('{0}-DEP01-INFRASTRUCTURE', parameters.control_plane_name) }}
+        value:                             ${{ format('{0}-INFRASTRUCTURE', parameters.control_plane_name) }}
 
       - name:                              deployer_file
         value:                             ${{ format('{0}-INFRASTRUCTURE.tfvars', parameters.control_plane_name) }}
