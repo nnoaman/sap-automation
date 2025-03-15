@@ -39,7 +39,12 @@ resource "azurerm_role_assignment" "appconf_dataowner" {
 
 resource "azurerm_role_assignment" "appconf_dataowner_msi" {
   provider                             = azurerm.main
-  scope                                = var.infrastructure.deploy_application_configuration ? (length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id) : 0
+  scope                                = var.infrastructure.deploy_application_configuration ? (
+                                          length(var.infrastructure.application_configuration_id) == 0 ? (
+                                            azurerm_app_configuration.app_config[0].id) : (
+                                            data.azurerm_app_configuration.app_config[0].id)) : (
+                                          0
+                                          )
   role_definition_name                 = "App Configuration Data Owner"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 
