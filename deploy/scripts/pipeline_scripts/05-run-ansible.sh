@@ -68,7 +68,6 @@ echo "Extra parameters passed: " "$EXTRA_PARAMS"
 base=$(basename "$ANSIBLE_FILE_PATH")
 
 filename_without_prefix=$(echo "$base" | awk -F'.' '{print $1}')
-filename=./config/Ansible/"${filename_without_prefix}"_pre.yml
 return_code=0
 
 echo "Extra parameters passed: " $EXTRA_PARAMS
@@ -90,6 +89,7 @@ fi
 # Run Pre tasks if Ansible playbook with the correct naming exists                         #
 #                                                                                          #
 ############################################################################################
+filename=./config/Ansible/"${filename_without_prefix}"_pre.yml
 
 if [ -f "${filename}" ]; then
 	echo "##[group]- preconfiguration"
@@ -122,14 +122,14 @@ return_code=$?
 echo "##[section]Ansible playbook execution completed with exit code [$return_code]"
 echo "##[endgroup]"
 
-filename=./config/Ansible/"${filename_without_prefix}"_post.yml
-echo "Check for file: ${filename}"
-
 ############################################################################################
 #                                                                                          #
 # Run Post tasks if Ansible playbook with the correct naming exists                        #
 #                                                                                          #
 ############################################################################################
+
+filename=./config/Ansible/"${filename_without_prefix}"_post.yml
+echo "Check for file: ${filename}"
 
 if [ -f ${filename} ]; then
 
