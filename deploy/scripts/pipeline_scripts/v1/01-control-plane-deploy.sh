@@ -80,15 +80,10 @@ if [ -n "$POOL" ]; then
 	echo "Deployer Agent Pool:                 $POOL"
 fi
 echo ""
-if [ "$USE_WEBAPP" = "true" ]; then
-	echo "Deploy Web App:                      true"
+if printenv USE_WEBAPP; then
+	echo "Deploy Web App:                      $USE_WEBAPP"
 else
 	echo "Deploy Web App:                      false"
-fi
-
-if printenv USE_WEBAPP; then
-	USE_WEBAPP=$USE_WEBAPP
-else
 	USE_WEBAPP=false
 fi
 if printenv APP_REGISTRATION_APP_ID; then
