@@ -128,6 +128,8 @@ az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 # Check if running on deployer
+
+# Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
 
@@ -136,16 +138,17 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	TF_VAR_spn_id=$ARM_CLIENT_ID
 	export TF_VAR_spn_id
 
-	ARM_OIDC_TOKEN="$idToken"
-	if [ -n "$ARM_OIDC_TOKEN" ]; then
+	if printenv servicePrincipalKey; then
+		unset ARM_OIDC_TOKEN
+		ARM_CLIENT_SECRET="$servicePrincipalKey"
+		export ARM_CLIENT_SECRET
+
+	else
+		ARM_OIDC_TOKEN="$idToken"
 		export ARM_OIDC_TOKEN
 		ARM_USE_OIDC=true
 		export ARM_USE_OIDC
 		unset ARM_CLIENT_SECRET
-	else
-		unset ARM_OIDC_TOKEN
-		ARM_CLIENT_SECRET="$servicePrincipalKey"
-		export ARM_CLIENT_SECRET
 	fi
 
 	ARM_TENANT_ID="$tenantId"
@@ -153,6 +156,34 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
+fi
+if printenv USE_MSI; then
+	if [ $USE_MSI == "true" ]; then
+		if printenv CP_ARM_CLIENT_ID; then
+			ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
+			export ARM_CLIENT_ID
+			TF_VAR_spn_id=$CP_ARM_CLIENT_ID
+			export TF_VAR_spn_id
+		fi
+		if printenv CP_ARM_CLIENT_SECRET; then
+			ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
+			export ARM_CLIENT_SECRET
+		fi
+		if printenv CP_ARM_TENANT_ID; then
+			ARM_TENANT_ID="$CP_ARM_TENANT_ID"
+			export ARM_TENANT_ID
+		fi
+
+		if printenv CP_ARM_SUBSCRIPTION_ID; then
+			ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+			export ARM_SUBSCRIPTION_ID
+		fi
+	fi
+
+else
+	USE_MSI="false"
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure "$USE_MSI"
 
 fi
 

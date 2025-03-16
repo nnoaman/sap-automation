@@ -32,6 +32,13 @@ else {
   $CreateConnection = $true
 }
 
+if ( $null -ne $Env:SDAF_BRANCH ) {
+  $branch = $Env:SDAF_BRANCH
+}
+else {
+$branch = "main"
+}
+
 if ( $null -ne $Env:ImportFromGitHub) {
   $ImportFromGitHub = [System.Convert]::ToBoolean($Env:ImportFromGitHub)
 }
@@ -224,11 +231,12 @@ if ($Project_ID.Length -eq 0) {
   az devops configure --defaults organization=$ADO_ORGANIZATION project="$ADO_PROJECT"
 
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]"  --out tsv)
+  $repo_url = (az repos list --query "[?name=='$ADO_Project'].webUrl | [0]"  --out tsv)
 
   Write-Host "Importing the content from GitHub" -ForegroundColor Green
   az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id   --output none
 
-  az repos update --repository $repo_id --default-branch main  --output none
+  az repos update --repository $repo_id --default-branch $branch   --output none
 
 }
 
@@ -245,6 +253,7 @@ else {
   if ($repo_id.Length -ne 0) {
     Write-Host "Using repository '$ADO_Project'" -ForegroundColor Green
   }
+  $repo_url = (az repos list --query "[?name=='$ADO_Project'].webUrl | [0]"  --out tsv)
 
   $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]"  --output tsv)
 
@@ -272,8 +281,16 @@ else {
     }
   }
 
-  az repos update --repository $repo_id --default-branch main  --output none
+  az repos update --repository $repo_id --default-branch $branch   --output none
 }
+
+if( Test-Path "temprepo") {
+  Write-Host "Removing temprepo" -ForegroundColor Green
+  Remove-Item -Path (Join-Path -PAth Get-Location -ChildPath "temprepo") -Recurse -Force
+}
+
+$tempPath=New-Item -Path (Join-Path -PAth Get-Location -ChildPath "temprepo") -ItemType Directory -Force | Out-Null
+git clone $repo_url $tempPath
 
 if ( $null -ne $Env:ImportFromGitHub) {
   if ([System.Convert]::ToBoolean($Env:ImportFromGitHub)) {
@@ -298,7 +315,7 @@ if ($confirmation -ne 'y') {
   az repos create --name $repo_name --query id  --output none
   $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]"  --out tsv)
   az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id  --output none
-  az repos update --repository $code_repo_id --default-branch main  --output none
+  az repos update --repository $code_repo_id --default-branch $branch   --output none
 
   $import_code = $true
   $repo_name = "sap-samples"
@@ -306,7 +323,7 @@ if ($confirmation -ne 'y') {
   az repos create --name $repo_name --query id  --output none
   $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]"  --out tsv)
   az repos import create --git-url https://github.com/Azure/SAP-automation-samples --repository $sample_repo_id  --output none
-  az repos update --repository $sample_repo_id --default-branch main  --output none
+  az repos update --repository $sample_repo_id --default-branch $branch   --output none
 
   if ($ADO_Project -ne "SAP Deployment Automation Framework") {
 
@@ -852,6 +869,12 @@ if ($WebApp) {
     $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access $manifestPath --query "appId" --output tsv)
     $ExistingData = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
     $APP_REGISTRATION_OBJECTID = $ExistingData.id
+    az role assignment create --assignee $APP_REGISTRATION_OBJECTID --role "Reader" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+    az role assignment create --assignee $APP_REGISTRATION_OBJECTID --role "Storage Blob Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+    az role assignment create --assignee $APP_REGISTRATION_OBJECTID --role "Storage Table Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
 
     if (Test-Path $manifestPath) { Write-Host "Removing manifest.json" ; Remove-Item $manifestPath }
 
@@ -871,6 +894,15 @@ if ($WebApp) {
 
       Start-Process $API_URL
       Read-Host -Prompt "Once you have created and validated the scope, Press any key to continue"
+
+
+      az role assignment create --assignee $MSI_objectId --role "Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+      az role assignment create --assignee $MSI_objectId --role "User Access Administrator" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+      az role assignment create --assignee $MSI_objectId --role "Storage Blob Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+      az role assignment create --assignee $MSI_objectId --role "Storage Table Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
     }
 
   }
@@ -896,8 +928,6 @@ if ($authenticationMethod -eq "Service Principal") {
   $ARM_TENANT_ID = ""
   $ARM_CLIENT_SECRET = "Please update"
 
-  $SPN_Created = $false
-  $bSkip = $true
 
   $found_appName = (az ad sp list --all --filter "startswith(displayName, '$spn_name')" --query "[?displayName=='$spn_name'].displayName | [0]" --only-show-errors)
   if ($found_appName.Length -gt 0) {
@@ -934,6 +964,11 @@ if ($authenticationMethod -eq "Service Principal") {
   az role assignment create --assignee $ARM_CLIENT_ID --role "Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 
   az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+  az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Blob Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+  az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Table Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
 
   $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   if ($Control_plane_groupID.Length -eq 0) {
