@@ -194,23 +194,19 @@ echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
 if [ -n "$key_vault" ]; then
 	echo "Deployer Key Vault:                  ${key_vault}"
-
 	key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
 
 	if [ -z "${key_vault_id}" ]; then
 		echo "##vso[task.logissue type=error]Key Vault $key_vault could not be found, trying to recover"
 		key_vault=$(az keyvault list-deleted --query "[?name=='${key_vault}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
 		if [ -n "$key_vault" ]; then
-
-			print_banner "$banner_title" "Key Vault $key_vault found in deleted state, recovering it" "info"
-
-			if az keyvault recover --name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --output none; then
-				key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
-				if [ -n "${key_vault_id}" ]; then
-					export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
-					this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-					az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
-				fi
+			echo "Deployer Key Vault:                  ${key_vault} is deleted, recovering"
+			az keyvault recover --name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --output none
+			key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+			if [ -n "${key_vault_id}" ]; then
+				export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
+				this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+				az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
 			fi
 		fi
 	else
@@ -222,6 +218,7 @@ if [ -n "$key_vault" ]; then
 else
 	echo "Deployer Key Vault:                  undefined"
 fi
+
 
 echo -e "$green--- Variables ---$reset"
 
