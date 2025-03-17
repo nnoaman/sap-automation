@@ -76,7 +76,23 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_CLIENT_ID
+
+	ARM_USE_MSI=$(grep -m 1 "export ARM_USE_MSI=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_USE_MSI
+
+	ARM_SUBSCRIPTION_ID=$(grep -m 1 "export ARM_SUBSCRIPTION_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_SUBSCRIPTION_ID
+else
+
+	configureNonDeployer "$(tf_version)"
+	echo -e "$green--- az login ---$reset"
+	if ! LogonToAzure false; then
+		print_banner "$banner_title" "Login to Azure failed" "error"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit 2
+	fi
+	return_code=$?
+
 fi
 
 echo -e "$green--- Information ---$reset"
@@ -134,18 +150,6 @@ fi
 printf -v tempval '%s id:' "$VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
 echo "$val                 $VARIABLE_GROUP_ID"
-
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
-	fi
-fi
-return_code=$?
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id

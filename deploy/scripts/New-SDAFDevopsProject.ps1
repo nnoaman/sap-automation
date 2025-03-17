@@ -896,13 +896,6 @@ if ($WebApp) {
       Read-Host -Prompt "Once you have created and validated the scope, Press any key to continue"
 
 
-      az role assignment create --assignee $MSI_objectId --role "Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
-
-      az role assignment create --assignee $MSI_objectId --role "User Access Administrator" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
-
-      az role assignment create --assignee $MSI_objectId --role "Storage Blob Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
-
-      az role assignment create --assignee $MSI_objectId --role "Storage Table Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
     }
 
   }
@@ -968,6 +961,8 @@ if ($authenticationMethod -eq "Service Principal") {
   az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Blob Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 
   az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Table Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+  az role assignment create --assignee $ARM_CLIENT_ID --role "App Configuration Data Owner" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 
 
   $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
