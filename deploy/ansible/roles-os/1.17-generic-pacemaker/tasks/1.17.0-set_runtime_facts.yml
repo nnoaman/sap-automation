@@ -261,27 +261,28 @@
   loop_control:
     loop_var:                                     packages_list
 
-- name:                                           "1.17 Generic Pacemaker - Determine if OS version is supported for SBD"
+- name:                                           "1.17 Generic Pacemaker - Determine if OS version is supported for SBD STONITH"
+  when:                                           ansible_os_family | upper == "REDHAT" or ansible_os_family | upper == "SUSE"
   ansible.builtin.set_fact:
     os_version_supported_for_sbd: >-
-                                       {% if scs_cluster_type in ['ASD', 'ISCSI'] or database_cluster_type in ['ASD', 'ISCSI'] %}
-                                         {% if ansible_os_family | upper == "REDHAT" %}
-                                           {{ ansible_distribution_version | version_compare('8.8', '>=') or
-                                               ansible_distribution_version | version_compare('9.0', '>=') }}
-                                         {% elif ansible_os_family | upper == "SUSE" %}
-                                           {% if scs_cluster_type == "ASD" or database_cluster_type == "ASD" %}
-                                             {{ ansible_distribution_version | version_compare('15.1', '>=') }}
-                                           {% elif scs_cluster_type == "ISCSI" or database_cluster_type == "ISCSI" %}
-                                             {{ ansible_distribution_version | version_compare('12.3', '>=') }}
-                                           {% else %}
-                                             false
-                                           {% endif %}
-                                         {% else %}
-                                           false
-                                         {% endif %}
-                                       {% else %}
-                                         false
-                                       {% endif %}
+                                                  {% if scs_cluster_type in ['ASD', 'ISCSI'] or database_cluster_type in ['ASD', 'ISCSI'] %}
+                                                    {% if ansible_os_family | upper == "REDHAT" %}
+                                                      {{ ansible_distribution_version | version_compare('8.8', '>=') or
+                                                          ansible_distribution_version | version_compare('9.0', '>=') }}
+                                                    {% elif ansible_os_family | upper == "SUSE" %}
+                                                      {% if scs_cluster_type == "ASD" or database_cluster_type == "ASD" %}
+                                                        {{ ansible_distribution_version | version_compare('15.1', '>=') }}
+                                                      {% elif scs_cluster_type == "ISCSI" or database_cluster_type == "ISCSI" %}
+                                                        {{ ansible_distribution_version | version_compare('12.5', '>=') }}
+                                                      {% else %}
+                                                        false
+                                                      {% endif %}
+                                                    {% else %}
+                                                      false
+                                                    {% endif %}
+                                                  {% else %}
+                                                    false
+                                                  {% endif %}
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
