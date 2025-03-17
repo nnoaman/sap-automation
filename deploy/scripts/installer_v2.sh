@@ -554,13 +554,16 @@ function sdaf_installer() {
 	fi
 
 	#setting the user environment variables
-	if [ $ARM_USE_MSI = "true" ]; then
-		set_executing_user_environment_variables "none"
-	else
-		if printenv "ARM_CLIENT_SECRET"; then
-			set_executing_user_environment_variables $ARM_CLIENT_SECRET
-		else
+	if printenv "ARM_USE_MSI"; then
+
+		if [ $ARM_USE_MSI = "true" ]; then
 			set_executing_user_environment_variables "none"
+		else
+			if printenv "ARM_CLIENT_SECRET"; then
+				set_executing_user_environment_variables $ARM_CLIENT_SECRET
+			else
+				set_executing_user_environment_variables "none"
+			fi
 		fi
 	fi
 

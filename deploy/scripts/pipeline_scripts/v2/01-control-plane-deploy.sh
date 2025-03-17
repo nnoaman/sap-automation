@@ -75,7 +75,7 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$PATH:$path
 
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
+	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
 
