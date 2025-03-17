@@ -616,16 +616,16 @@ function sdaf_installer() {
 		if [ -n "$local_backend" ]; then
 			print_banner "Installer" "Migrating the state to Azure" "info"
 
-			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
+			# terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-			if ! terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
-				return_value=$?
-				print_banner "Installer" "Terraform local init failed" "error"
-				exit $return_value
-			else
-				return_value=$?
-				print_banner "Installer" "Terraform local init succeeded" "success"
-			fi
+			# if ! terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			# 	return_value=$?
+			# 	print_banner "Installer" "Terraform local init failed" "error"
+			# 	exit $return_value
+			# else
+			# 	return_value=$?
+			# 	print_banner "Installer" "Terraform local init succeeded" "success"
+			# fi
 
 			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 
