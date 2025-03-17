@@ -553,20 +553,6 @@ function sdaf_installer() {
 		export ARM_USE_AZUREAD=true
 	fi
 
-	#setting the user environment variables
-	if printenv "ARM_USE_MSI"; then
-
-		if [ $ARM_USE_MSI = "true" ]; then
-			set_executing_user_environment_variables "none"
-		else
-			if printenv "ARM_CLIENT_SECRET"; then
-				set_executing_user_environment_variables $ARM_CLIENT_SECRET
-			else
-				set_executing_user_environment_variables "none"
-			fi
-		fi
-	fi
-
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${deployment_system}"
 	cd "${param_dirname}" || exit
 

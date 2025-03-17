@@ -75,6 +75,7 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$PATH:$path
 
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
@@ -170,8 +171,8 @@ else
 	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
 
-TF_VAR_spn_keyvault_id=${key_vault_id}
-export TF_VAR_spn_keyvault_id
+TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
+export TF_VAR_deployer_kv_user_arm_id
 
 if [ -n "${key_vault}" ]; then
 	echo "Deployer Key Vault:                  ${key_vault}"
@@ -179,7 +180,6 @@ if [ -n "${key_vault}" ]; then
 else
 	echo "Deployer Key Vault:                  undefined"
 	exit 2
-
 fi
 
 terraform_storage_account_subscription_id=$ARM_SUBSCRIPTION_ID
@@ -209,11 +209,8 @@ if [ -z "${TF_VAR_ansible_core_version}" ]; then
 	export TF_VAR_ansible_core_version=2.16
 fi
 
-echo -e "$green--- Update .sap_deployment_automation/config as SAP_AUTOMATION_REPO_PATH can change on devops agent ---$reset"
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
-echo "SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH" >.sap_deployment_automation/config
-export SAP_AUTOMATION_REPO_PATH
 
 if [ -n "${key_vault}" ]; then
 
@@ -250,10 +247,22 @@ print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 msi_flag=""
 if [ "$USE_MSI" != "true" ]; then
 	msi_flag=" --msi "
-	export TF_VAR_use_spn=false
+	TF_VAR_use_spn=false
+	export TF_VAR_use_spn
+	echo "Deployer using:                      Managed Identity"
+
 else
-	export TF_VAR_use_spn=true
+	TF_VAR_use_spn=true
+	export TF_VAR_use_spn
+	echo "Deployer using:                      Service Principal"
+
+
 fi
+
+if [ "$SYSTEM_DEBUG" = True ]; then
+printenv | grep ARM_
+fi
+
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
 	--library_parameter_file "${library_configuration_file}" \
