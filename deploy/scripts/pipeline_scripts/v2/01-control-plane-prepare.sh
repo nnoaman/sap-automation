@@ -156,20 +156,24 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
+else
+  source /etc/profile.d/deploy_server.sh
+	USE_MSI=true
+	export USE_MSI
+
 fi
 if printenv USE_MSI; then
 	if [ $USE_MSI == "true" ]; then
-		if printenv CP_ARM_CLIENT_ID; then
-			ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
+		if printenv ARM_CLIENT_ID; then
 			export ARM_CLIENT_ID
-			TF_VAR_spn_id=$CP_ARM_CLIENT_ID
+			TF_VAR_spn_id=ARM_CLIENT_ID
 			export TF_VAR_spn_id
 		fi
-		if printenv CP_ARM_CLIENT_SECRET; then
+		if printenv ARM_CLIENT_SECRET; then
 			ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
 			export ARM_CLIENT_SECRET
 		fi
-		if printenv CP_ARM_TENANT_ID; then
+		if printenv ARM_TENANT_ID; then
 			ARM_TENANT_ID="$CP_ARM_TENANT_ID"
 			export ARM_TENANT_ID
 		fi

@@ -24,7 +24,7 @@ provider "azurerm"                     {
                                          features {
                                                   }
 
-                                         use_msi                    = var.use_spn ? false : true
+                                         use_msi                    = true
                                          storage_use_azuread        = !var.shared_access_key_enabled
 
                                        }
