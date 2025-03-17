@@ -223,12 +223,13 @@
         mode:                                 '0644'
         backup:                               true
       loop:
-        - { regexp: "^SBD_PACEMAKER=.*",  line: 'SBD_PACEMAKER=yes'     }
-        - { regexp: "^SBD_STARTMODE=.*",  line: 'SBD_STARTMODE=always'  }
+        - { regexp: "^SBD_PACEMAKER=.*",    line: 'SBD_PACEMAKER=yes'     }
+        - { regexp: "^SBD_STARTMODE=.*",    line: 'SBD_STARTMODE=always'  }
+        - { regexp: "^SBD_DELAY_START=.*",  line: 'SBD_DELAY_START=yes'   }
         # Format line as so:
         #   SBD_DEVICE="/dev/disk/by-id/scsi-3600224804208a67da8073b2a9728af19"
         #   SBD_DEVICE="/dev/disk/by-id/scsi-360022480ef971a6c5759f2dc3adf4c96;/dev/disk/by-id/scsi-360022480ea4064ac4952ea8452d66317"
-        - { regexp: "^SBD_DEVICE=.*",     line: 'SBD_DEVICE="
+        - { regexp: "^SBD_DEVICE=.*",       line: 'SBD_DEVICE="
                                                             {%- for entry in sbdMap              %}
                                                             {%-   if loop.index > 1 %};{% endif -%}
                                                             {{    entry.diskById                 }}

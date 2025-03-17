@@ -34,6 +34,7 @@
 - name:                                "1.17.1 iSCSI packages"
   become:                              true
   become_user:                         root
+  when:                                (ansible_os_family | upper) == "SUSE"
   ansible.builtin.systemd:
     name:                              "{{ item }}"
     enabled:                           true
@@ -41,6 +42,18 @@
     - iscsid
     - iscsi
     - sbd
+
+- name:                                "1.17.1 iSCSI packages"
+  become:                              true
+  become_user:                         root
+  when:                                (ansible_os_family | upper) == "SUSE"
+  ansible.builtin.systemd:
+    name:                              "{{ item }}"
+    enabled:                           true
+  loop:
+    - iscsid
+    - iscsi
+
 
 - name:                                "1.17.1 iSCSI packages - Get node type on which we will operate"
   ansible.builtin.set_fact:
@@ -123,6 +136,11 @@
         - inventory_hostname == secondary_instance_name
 
 - name:                                "1.17.1 iSCSI configuration - restart iSCSI services"
+  become:                              true
+  become_user:                         root
+  when:
+                                       - iscsi_node_type is defined
+                                       - iscsi_initiator_name is defined
   ansible.builtin.systemd:
     name:                              "{{ item }}"
     state:                             restarted
