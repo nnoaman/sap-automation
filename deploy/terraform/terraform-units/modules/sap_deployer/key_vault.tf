@@ -253,6 +253,8 @@ resource "azurerm_key_vault_secret" "subscription" {
                                            azurerm_key_vault_access_policy.kv_user_systemidentity,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_system_identity,
+                                           azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_system_identity
                                          ]
 
@@ -341,7 +343,10 @@ resource "azurerm_key_vault_secret" "ppk" {
   depends_on                           = [ azurerm_key_vault.kv_user,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer
+                                           azurerm_key_vault_access_policy.kv_user_pre_deployer,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_system_identity,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   name                                 = local.private_key_secret_name
   value                                = local.private_key
@@ -364,7 +369,8 @@ resource "azurerm_key_vault_secret" "pk" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_system_identity
+                                           azurerm_role_assignment.role_assignment_system_identity,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   name                                 = local.public_key_secret_name
   value                                = local.public_key
@@ -393,7 +399,8 @@ resource "azurerm_key_vault_secret" "username" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_system_identity
+                                           azurerm_role_assignment.role_assignment_system_identity,
+                                           azurerm_private_endpoint.kv_user
                                          ]
 
   name                                 = local.username_secret_name
@@ -425,7 +432,8 @@ resource "azurerm_key_vault_secret" "pat" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_system_identity
+                                           azurerm_role_assignment.role_assignment_system_identity,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   name                                 = "PAT"
   value                                = var.agent_pat
@@ -485,7 +493,8 @@ resource "azurerm_key_vault_secret" "pwd" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_system_identity
+                                           azurerm_role_assignment.role_assignment_system_identity,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   name                                 = local.pwd_secret_name
   value                                = local.password
