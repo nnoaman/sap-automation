@@ -74,10 +74,14 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
 
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
+	TF_VAR_MSI_id=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export TF_VAR_MSI_id
+
+	TF_VAR_MSI_tenant_id=$(grep -m 1 "export ARM_TENANT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export TF_VAR_MSI_tenant_id
+
+	TF_VAR_subscription_id=$(grep -m 1 "export ARM_SUBSCRIPTION_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export TF_VAR_subscription_id
 fi
 
 echo -e "$green--- Information ---$reset"
@@ -145,6 +149,10 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		echo "##vso[task.logissue type=error]az login failed."
 		exit 2
 	fi
+else
+	unset ARM_CLIENT_ID
+	unset ARM_CLIENT_SECRET
+	unset ARM_TENANT_ID
 fi
 return_code=$?
 

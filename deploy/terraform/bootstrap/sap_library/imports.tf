@@ -6,6 +6,12 @@
       Import deployer resources
 */
 
+# Run the script to get the environment variables of interest.
+# This is a data source, so it will run at plan time.
+data "external" "env"                             {
+                                                    program = ["${path.module}/env.sh"]
+                                                  }
+
 data "terraform_remote_state" "deployer"          {
                                                     backend      = "local"
                                                     count        = length(var.deployer_statefile_foldername) > 0  ? 1 : 0

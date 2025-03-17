@@ -37,6 +37,9 @@ provider "azurerm"                     {
                                          subscription_id            = var.subscription_id
 
                                          use_msi                    = true
+                                         client_id                  = var.MSI_id
+                                         tenant_id                  = var.MSI_tenant_id
+
                                        }
 
 provider "azurerm"                     {
