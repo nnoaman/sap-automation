@@ -145,7 +145,7 @@ stages:
               SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
               TENANT_ID:                      $(ParameterValidation.ARM_TENANT_ID)
               TF_IN_AUTOMATION:               true
-              TF_LOG:                         $(TF_LOG)
+              TF_LOG:                         DEBUG
               TF_VAR_agent_ado_url:           $(System.CollectionUri)
               TF_VAR_agent_pat:               $(PAT)
               TF_VAR_agent_pool:              $(POOL)
@@ -153,7 +153,7 @@ stages:
               TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               TF_VAR_spn_id:                  $(ParameterValidation.ARM_OBJECT_ID)
               TF_VAR_tf_version:              $(tf_version)
-              USE_MSI:                        $(Use_MSI)
+              USE_MSI:                        false
           - task: Bash@3
             inputs:
               targetType:              'filePath'
