@@ -212,15 +212,15 @@ packages:
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.8:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.9:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.10:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat9:
     - { tier: 'os',     package: '@base',                                        node_tier: 'all',            state: 'present' }
@@ -246,7 +246,7 @@ packages:
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
     # - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',            state: 'present' }
     - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',     package: 'libaio',                                       node_tier: 'db2',            state: 'present' }
@@ -385,7 +385,7 @@ packages:
     - { tier: 'os',     package: 'libstdc++.so.6',                               node_tier: 'db2',            state: 'present' }
     - { tier: 'os',     package: 'unzip',                                        node_tier: 'db2',            state: 'present' }
     - { tier: 'os',     package: 'libpam.so.0',                                  node_tier: 'db2',            state: 'present' }
-    - { tier: 'db2',   package: 'acl',                                          node_tier: 'db2',             state: 'present' }
+    - { tier: 'db2',    package: 'acl',                                          node_tier: 'db2',             state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'os',     package: 'cloud-regionsrv-client',                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'cloud-regionsrv-client-plugin-azure',          node_tier: 'all',            state: 'present' }
