@@ -58,11 +58,10 @@ provider "azurerm"                     {
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
 
                                          subscription_id            = var.subscription_id
-                                         use_msi                    = true
-                                        #  client_id                  = "f9bd0299-f746-4c20-a4f4-94e991c781df" #data.azurerm_key_vault_secret.client_id[0]
-                                        #  client_secret              = data.azurerm_key_vault_secret.client_secret[0]
-                                        #  tenant_id                  = "c01abe72-ffef-4ecc-bda0-937975b49e6b" #data.azurerm_key_vault_secret.tenant_id[0]
-                                        #  use_msi                    = false #var.use_spn ? false : true
+                                         client_id                  = try(data.azurerm_key_vault_secret.client_id[0], null)
+                                         client_secret              = try(data.azurerm_key_vault_secret.client_secret[0], null)
+                                         tenant_id                  = try(data.azurerm_key_vault_secret.tenant_id[0], null)
+                                         use_msi                    = var.use_spn ? false : true
                                          alias                      = "main"
                                          storage_use_azuread        = var.data_plane_available
                                        }
@@ -71,10 +70,10 @@ provider "azurerm"                     {
                                          features {}
                                          alias                      = "dnsmanagement"
                                          subscription_id            = try(var.management_dns_subscription_id, null)
-                                         use_msi                    = true
-                                        #  client_id                  = "f9bd0299-f746-4c20-a4f4-94e991c781df" #data.azurerm_key_vault_secret.client_id[0]
-                                        #  client_secret              = data.azurerm_key_vault_secret.client_secret[0]
-                                        #  tenant_id                  = "c01abe72-ffef-4ecc-bda0-937975b49e6b" #data.azurerm_key_vault_secret.tenant_id[0]
+                                         client_id                  = try(data.azurerm_key_vault_secret.client_id[0], null)
+                                         client_secret              = try(data.azurerm_key_vault_secret.client_secret[0], null)
+                                         tenant_id                  = try(data.azurerm_key_vault_secret.tenant_id[0], null)
+                                         use_msi                    = var.use_spn ? false : true
                                          storage_use_azuread        = !var.shared_access_key_enabled
                                        }
 
@@ -82,10 +81,10 @@ provider "azurerm"                     {
                                          features {}
                                          subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id), null)
                                          alias                      = "privatelinkdnsmanagement"
-                                         use_msi                    = true
-                                        #  client_id                  = "f9bd0299-f746-4c20-a4f4-94e991c781df" #data.azurerm_key_vault_secret.client_id[0]
-                                        #  client_secret              = data.azurerm_key_vault_secret.client_secret[0]
-                                        #  tenant_id                  = "c01abe72-ffef-4ecc-bda0-937975b49e6b" # data.azurerm_key_vault_secret.tenant_id[0]
+                                         client_id                  = try(data.azurerm_key_vault_secret.client_id[0], null)
+                                         client_secret              = try(data.azurerm_key_vault_secret.client_secret[0], null)
+                                         tenant_id                  = try(data.azurerm_key_vault_secret.tenant_id[0], null)
+                                         use_msi                    = var.use_spn ? false : true
                                          storage_use_azuread        = !var.shared_access_key_enabled
                                         #  use_msi                    = false #var.use_spn ? false : true
                                        }
