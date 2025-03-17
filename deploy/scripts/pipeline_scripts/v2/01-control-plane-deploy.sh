@@ -74,14 +74,17 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
 
-	TF_VAR_MSI_id=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export TF_VAR_MSI_id
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 
-	TF_VAR_MSI_tenant_id=$(grep -m 1 "export ARM_TENANT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export TF_VAR_MSI_tenant_id
+	ARM_TENANT_ID=$(grep -m 1 "export ARM_TENANT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_TENANT_ID
 
-	TF_VAR_subscription_id=$(grep -m 1 "export ARM_SUBSCRIPTION_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export TF_VAR_subscription_id
+	ARM_USI_MSI=$(grep -m 1 "export ARM_USI_MSI=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_USI_MSI
+
+	ARM_SUBSCRIPTION_ID=$(grep -m 1 "export ARM_SUBSCRIPTION_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_SUBSCRIPTION_ID
 fi
 
 echo -e "$green--- Information ---$reset"
