@@ -261,8 +261,7 @@ if [ 0 = $return_code ]; then
 	cat $deployer_environment_file_name
 
 	if ! printenv DEPLOYER_KEYVAULT; then
-		load_config_vars "$deployer_environment_file_name" "keyvault"
-		DEPLOYER_KEYVAULT=$keyvault
+		load_config_vars "$deployer_environment_file_name" "DEPLOYER_KEYVAULT"
 		export DEPLOYER_KEYVAULT
 	fi
 	if ! printenv APPLICATION_CONFIGURATION_ID; then
