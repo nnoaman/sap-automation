@@ -150,10 +150,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		exit 2
 	fi
 else
-	unset ARM_CLIENT_ID
 	unset ARM_CLIENT_SECRET
-	unset ARM_TENANT_ID
-	unset ARM_OBJECT_ID
 fi
 return_code=$?
 
