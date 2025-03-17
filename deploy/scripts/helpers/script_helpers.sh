@@ -561,6 +561,8 @@ function ImportAndReRunApply {
 
 	if [ -f "$fileName" ]; then
 
+	  cat "$fileName"
+
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 
 		if [[ -n $errors_occurred ]]; then
