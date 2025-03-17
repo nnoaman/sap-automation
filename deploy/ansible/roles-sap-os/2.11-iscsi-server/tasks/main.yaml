@@ -3,33 +3,10 @@
 
 ---
 
-- name:                                "2.11: Determine if OS version is supported for cluster configuration (ASD or ISCSI only)"
-  ansible.builtin.set_fact:
-    os_version_supported_for_sbd: >-
-                                       {% if scs_cluster_type in ['ASD', 'ISCSI'] or database_cluster_type in ['ASD', 'ISCSI'] %}
-                                         {% if ansible_os_family | upper == "REDHAT" %}
-                                           {{ ansible_distribution_version | version_compare('8.8', '>=') or
-                                              ansible_distribution_version | version_compare('9.0', '>=') }}
-                                         {% elif ansible_os_family | upper == "SUSE" %}
-                                           {% if scs_cluster_type == "ASD" or database_cluster_type == "ASD" %}
-                                             {{ ansible_distribution_version | version_compare('15.1', '>=') }}
-                                           {% elif scs_cluster_type == "ISCSI" or database_cluster_type == "ISCSI" %}
-                                             {{ ansible_distribution_version | version_compare('12.3', '>=') }}
-                                           {% else %}
-                                             false
-                                           {% endif %}
-                                         {% else %}
-                                           false
-                                         {% endif %}
-                                       {% else %}
-                                         false
-                                       {% endif %}
-
 - name:                                "2.11: Ensure targetcli is installed on RHEL"
   become_user:                         root
   become:                              true
   when:
-                                       - os_version_supported_for_sbd
                                        - ansible_os_family | upper == "REDHAT"
   ansible.builtin.dnf:
     name:                              targetcli
@@ -41,7 +18,6 @@
   become_user:                         root
   become:                              true
   when:
-                                       - os_version_supported_for_sbd
                                        - ansible_os_family | upper == "SUSE"
   community.general.zypper:
     name:                              "{{ item.name }}"
@@ -52,10 +28,9 @@
   tags:
                                        - "iscsi-targetcli"
 
-- name:                                "2.11: Ensure that the firewall rules are set"
+- name:                                "2.11: Ensure that the firewall rules are set on RHEL"
   when:
                                        - ansible_os_family | upper == "REDHAT"
-                                       - os_version_supported_for_sbd
   ansible.posix.firewalld:
     port:                              "3260/tcp"
     permanent:                         true
