@@ -594,6 +594,9 @@ function sdaf_installer() {
 	new_deployment=0
 
 	printenv | grep ARM_ | sort
+	az account show
+
+	az account set --subscription "${terraform_storage_account_subscription_id}"
 
 	if [ ! -f .terraform/terraform.tfstate ]; then
 		print_banner "Installer" "New deployment" "info"
