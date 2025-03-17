@@ -131,6 +131,7 @@ stages:
             env:
               APPLICATION_CONFIGURATION_ID:   $(APPLICATION_CONFIGURATION_ID)
               APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
+              ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
               AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
               CLIENT_ID:                      $(ParameterValidation.ARM_CLIENT_ID)
               CLIENT_SECRET:                  $(ParameterValidation.ARM_CLIENT_SECRET)
