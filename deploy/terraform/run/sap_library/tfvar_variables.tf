@@ -58,6 +58,16 @@ variable "use_spn"                               {
                                                   default     = false
                                                  }
 
+variable "MSI_id"                               {
+                                                   description = "The id of the managed identity"
+                                                   default     = ""
+                                                 }
+
+variable "MSI_tenant_id"                        {
+                                                   description = "The tenant id of the managed identity"
+                                                   default     = ""
+                                                 }
+
 variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string

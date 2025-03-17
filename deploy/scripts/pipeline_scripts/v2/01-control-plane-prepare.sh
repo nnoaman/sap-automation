@@ -156,38 +156,9 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
-fi
-if printenv USE_MSI; then
-	if [ $USE_MSI == "true" ]; then
-		if printenv CP_ARM_CLIENT_ID; then
-			ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-			export ARM_CLIENT_ID
-			TF_VAR_spn_id=$CP_ARM_CLIENT_ID
-			export TF_VAR_spn_id
-		fi
-		if printenv CP_ARM_CLIENT_SECRET; then
-			ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-			export ARM_CLIENT_SECRET
-		fi
-		if printenv CP_ARM_TENANT_ID; then
-			ARM_TENANT_ID="$CP_ARM_TENANT_ID"
-			export ARM_TENANT_ID
-		fi
-
-		if printenv CP_ARM_SUBSCRIPTION_ID; then
-			ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-			export ARM_SUBSCRIPTION_ID
-		fi
-	fi
-
-else
-	USE_MSI="false"
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure "$USE_MSI"
 
 fi
 
-export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
@@ -258,24 +229,26 @@ print_banner "$banner_title - Preparation" "Deploy_control_plane_v2 returned: $r
 set -eu
 
 if [ 0 = $return_code ]; then
-
-	if ! printenv DEPLOYER_KEYVAULT; then
-		load_config_vars "$deployer_environment_file_name" "DEPLOYER_KEYVAULT"
-		export DEPLOYER_KEYVAULT
-	fi
 	if ! printenv APPLICATION_CONFIGURATION_ID; then
 		load_config_vars "$deployer_environment_file_name" "APPLICATION_CONFIGURATION_ID"
 	fi
 
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"
+
+	if ! printenv DEPLOYER_KEYVAULT; then
+		load_config_vars "$deployer_environment_file_name" "DEPLOYER_KEYVAULT"
+		export DEPLOYER_KEYVAULT
+	fi
+
 	if [ -n "$DEPLOYER_KEYVAULT" ]; then
 
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 
 		if [ "$USE_MSI" != "true" ]; then
 			if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${CONTROL_PLANE_NAME}" --key_vault ${DEPLOYER_KEYVAULT} \
-				--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$ARM_CLIENT_ID" --client_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado; then
+				--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --tenant_id "$TENANT_ID" --ado; then
+				print_banner "$banner_title - Set secrets" "Set_secrets succeeded" "success"
 				return_code=$?
 			else
 				return_code=$?

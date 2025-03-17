@@ -553,17 +553,6 @@ function sdaf_installer() {
 		export ARM_USE_AZUREAD=true
 	fi
 
-	#setting the user environment variables
-	if [ $ARM_USE_MSI = "true" ]; then
-		set_executing_user_environment_variables "none"
-	else
-		if printenv "ARM_CLIENT_SECRET"; then
-			set_executing_user_environment_variables $ARM_CLIENT_SECRET
-		else
-			set_executing_user_environment_variables "none"
-		fi
-	fi
-
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${deployment_system}"
 	cd "${param_dirname}" || exit
 
@@ -604,6 +593,11 @@ function sdaf_installer() {
 
 	new_deployment=0
 
+	printenv | grep ARM_ | sort
+	az account show
+
+	az account set --subscription "${terraform_storage_account_subscription_id}"
+
 	if [ ! -f .terraform/terraform.tfstate ]; then
 		print_banner "Installer" "New deployment" "info"
 
@@ -625,16 +619,16 @@ function sdaf_installer() {
 		if [ -n "$local_backend" ]; then
 			print_banner "Installer" "Migrating the state to Azure" "info"
 
-			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
+			# terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-			if ! terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
-				return_value=$?
-				print_banner "Installer" "Terraform local init failed" "error"
-				exit $return_value
-			else
-				return_value=$?
-				print_banner "Installer" "Terraform local init succeeded" "success"
-			fi
+			# if ! terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			# 	return_value=$?
+			# 	print_banner "Installer" "Terraform local init failed" "error"
+			# 	exit $return_value
+			# else
+			# 	return_value=$?
+			# 	print_banner "Installer" "Terraform local init succeeded" "success"
+			# fi
 
 			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 

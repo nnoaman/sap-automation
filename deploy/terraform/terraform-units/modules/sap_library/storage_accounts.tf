@@ -493,7 +493,11 @@ data "azurerm_private_dns_zone" "storage" {
   name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name
+                                           var.dns_settings.management_dns_resourcegroup_name,
+                                           local.resource_group_exists ? (
+                                                    split("/", data.azurerm_resource_group.library[0].id))[2] : (
+                                                    split("/", azurerm_resource_group.library[0].id)[2]
+                                                  )
                                            )
 
 }
@@ -504,7 +508,11 @@ data "azurerm_private_dns_zone" "table" {
   name                                 = var.dns_settings.dns_zone_names.table_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name
+                                           var.dns_settings.management_dns_resourcegroup_name,
+                                           local.resource_group_exists ? (
+                                                    split("/", data.azurerm_resource_group.library[0].id))[2] : (
+                                                    split("/", azurerm_resource_group.library[0].id)[2]
+                                                  )
                                            )
 
 }

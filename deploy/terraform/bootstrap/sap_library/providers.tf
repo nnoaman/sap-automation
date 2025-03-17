@@ -34,6 +34,8 @@ provider "azurerm"                     {
                                          storage_use_azuread        = true
                                          use_msi                    = true
                                          subscription_id            = var.subscription_id
+                                         client_id                  = var.MSI_id
+                                         tenant_id                  = var.MSI_tenant_id
 
                                        }
 

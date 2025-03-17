@@ -46,7 +46,7 @@
 - name:                                "1.17.1 iSCSI packages"
   become:                              true
   become_user:                         root
-  when:                                (ansible_os_family | upper) == "SUSE"
+  when:                                (ansible_os_family | upper) == "REDHAT"
   ansible.builtin.systemd:
     name:                              "{{ item }}"
     enabled:                           true
