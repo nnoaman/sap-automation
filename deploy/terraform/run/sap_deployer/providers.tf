@@ -90,6 +90,8 @@ provider "azurerm"                     {
                                          alias                      = "privatelinkdnsmanagement"
                                          use_msi                    = true
                                         #  client_id                  = "f9bd0299-f746-4c20-a4f4-94e991c781df" #data.azurerm_key_vault_secret.client_id[0]
+                                         client_id                  = "3f17b58b-5816-447a-bfb8-11a3e955dc51" #var.MSI_id
+                                         tenant_id                  = "c01abe72-ffef-4ecc-bda0-937975b49e6b" #data.azurerm_key_vault_secret.tenant_id[0] #var.MSI_tenant_id
                                         #  client_secret              = data.azurerm_key_vault_secret.client_secret[0]
                                         #  tenant_id                  = "c01abe72-ffef-4ecc-bda0-937975b49e6b" # data.azurerm_key_vault_secret.tenant_id[0]
                                          storage_use_azuread        = !var.shared_access_key_enabled
