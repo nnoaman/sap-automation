@@ -256,13 +256,12 @@ else
 	export TF_VAR_use_spn
 	echo "Deployer using:                      Service Principal"
 
-
 fi
 
-if [ "$SYSTEM_DEBUG" = True ]; then
-printenv | grep ARM_
+if [ "$DEBUG" == True ]; then
+  echo "ARM Environment variables:"
+	printenv | grep ARM_
 fi
-
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
 	--library_parameter_file "${library_configuration_file}" \
