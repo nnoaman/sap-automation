@@ -593,6 +593,8 @@ function sdaf_installer() {
 
 	new_deployment=0
 
+	printenv | grep ARM_ | sort
+
 	if [ ! -f .terraform/terraform.tfstate ]; then
 		print_banner "Installer" "New deployment" "info"
 
