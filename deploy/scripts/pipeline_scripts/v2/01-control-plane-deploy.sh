@@ -80,8 +80,6 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	ARM_USE_MSI=$(grep -m 1 "export ARM_USE_MSI=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_USE_MSI
 
-	ARM_SUBSCRIPTION_ID=$(grep -m 1 "export ARM_SUBSCRIPTION_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_SUBSCRIPTION_ID
 else
 
 	configureNonDeployer "$(tf_version)"
