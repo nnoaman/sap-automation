@@ -138,21 +138,21 @@
     # Description:  Dynamic Processing - Iterate over BOM dictionary to find Dynamic
     #               entries.
     #
-    - name:                                 "Update Block Device"
-      ansible.builtin.include_tasks:        "1.17.1.3-sbd-deviceUpdate.yaml"
-      loop:                                 "{{ sbdMap }}"
+    - name:                                   "Update Block Device"
+      ansible.builtin.include_tasks:          "1.17.1.3-sbd-deviceUpdate.yaml"
+      loop:                                   "{{ sbdMap }}"
       loop_control:
-        loop_var:                           sdbMap_entry
-        index_var:                          sdbMap_index
+        loop_var:                             sdbMap_entry
+        index_var:                            sdbMap_index
       # vars:
       #   _step:                              "deviceUpdate"
     # Step: 03 - END
     # -------------------------------------+---------------------------------------8
 
-    - name:                                       "Update Device Info: Show SBD Dictionary..."
+    - name:                                   "Update Device Info: Show SBD Dictionary..."
       ansible.builtin.debug:
-        var:                                      sbdMap
-        verbosity:                                2
+        var:                                  sbdMap
+        verbosity:                            2
 
 
     # /*------------------------------------
@@ -160,44 +160,40 @@
     # | create sbd devices
     # |
     # +------------------------------------4
-    - name:                                       "dump SBD Device(s)..."
-      ansible.builtin.command:                    "sbd
-                                                  {%- for entry in sbdMap             +%}
-                                                  -d {{ entry.diskById                }}
-                                                  {%- endfor                          +%}
-                                                  dump
-                                                  "
-      ignore_errors:                              true
-      register:                                   sbdDumpCommand_results
-      run_once:                                   true                                            # run on only one host in play
+    - name:                                   "dump SBD Device(s)..."
+      run_once:                               true                                            # run on only one host in play
+      ansible.builtin.command:                "sbd
+                                              {%- for entry in sbdMap             +%}
+                                              -d {{ entry.diskById                }}
+                                              {%- endfor                          +%}
+                                              dump
+                                              "
+      ignore_errors:                          true
+      register:                               sbdDumpCommand_results
 
-    - name:                                       "Show dump SBD device(s) results..."
+    - name:                                   "Show dump SBD device(s) results..."
+      run_once:                               true                                            # run on only one host in play
       ansible.builtin.debug:
-        var:                                      sbdDumpCommand_results
-        verbosity:                                2
-      run_once:                                   true                                            # run on only one host in play
+        var:                                  sbdDumpCommand_results
+        verbosity:                            2
 
-    - name:                                       "create SBD Device(s)..."
+    - name:                                   "Create SBD Device(s)..."
+      when:                                   sbdDumpCommand_results.rc == 1
+      run_once:                               true                                            # run on only one host in play
       block:
+        - name:                               "create SBD Device(s)..."
+          ansible.builtin.command:            "sbd
+                                              {%- for entry in sbdMap             +%}
+                                              -d {{ entry.diskById                }}
+                                              {%- endfor                          +%}
+                                              -1 60 -4 120 create
+                                              "
+          register:                           sbdCreateCommand_results
 
-        - name:                                   "create SBD Device(s)..."
-          ansible.builtin.command:                "sbd
-                                                  {%- for entry in sbdMap             +%}
-                                                  -d {{ entry.diskById                }}
-                                                  {%- endfor                          +%}
-                                                  -1 60 -4 120 create
-                                                  "
-          register:                               sbdCreateCommand_results
-
-
-        - name:                                   "Show block device results..."
+        - name:                               "Show block device results..."
           ansible.builtin.debug:
-            var:                                  sbdCreateCommand_results
-            verbosity:                            2
-
-      run_once:                                   true                                            # run on only one host in play
-      when:                                       sbdDumpCommand_results.rc == 1
-
+            var:                              sbdCreateCommand_results
+            verbosity:                        2
 
     # /*------------------------------------
     # |
@@ -240,12 +236,10 @@
       ansible.builtin.set_fact:
         sbd_device:                          "{{ sbdMap | map(attribute='diskById') | join(';') }}"
 
-
     - name:                                  "Show sbd_device..."
       ansible.builtin.debug:
         var:                                 sbd_device
         verbosity:                           2
-
 
     # /*------------------------------------
     # |
@@ -259,7 +253,6 @@
         owner:                                root
         group:                                root
         mode:                                 '0644'
-
 
     # /*------------------------------------
     # |
