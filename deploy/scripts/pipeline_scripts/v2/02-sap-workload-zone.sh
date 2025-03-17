@@ -222,8 +222,13 @@ fi
 
 echo -e "$green--- Saving the deployment credentials ---$reset"
 if [ "$USE_MSI" != "true" ]; then
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --environment "${ENVIRONMENT}" --vault ${key_vault} \
-		--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${CONTROL_PLANE_NAME}" --key_vault ${key_vault} \
+		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$ARM_CLIENT_ID" --client_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" --ado; then
+		return_code=$?
+	else
+		return_code=$?
+		print_banner "$banner_title - Set secrets" "Set_secrets failed" "error"
+	fi
 fi
 
 export TF_VAR_spn_keyvault_id=${key_vault_id}

@@ -226,6 +226,7 @@ function parse_arguments() {
 		print_banner "Installer" "control_plane_name is required" "error"
 		return 1
 	}
+
 	[[ -z "$APPLICATION_CONFIGURATION_ID" ]] && {
 		print_banner "Installer" "application_configuration_id is required" "error"
 		return 1
