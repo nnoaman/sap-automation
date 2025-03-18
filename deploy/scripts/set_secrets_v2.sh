@@ -1,4 +1,4 @@
-#!/bin/bash
+bin/bash
 
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
@@ -292,3 +292,9 @@ function set_all_secrets() {
 	fi
 	exit $return_code
 }
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+	# Only run if script is executed directly, not when sourced
+	set_all_secrets "$@"
+	exit $?
+fi
