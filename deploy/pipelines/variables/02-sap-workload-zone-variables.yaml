@@ -31,8 +31,6 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.control_plane_name }}
-
   - group:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              parent_variable_group

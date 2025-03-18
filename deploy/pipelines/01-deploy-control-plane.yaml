@@ -121,6 +121,7 @@ stages:
               SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
               SYSTEM_TEAMPROJECT:      $(System.TeamProject)
               ZONE:                    ${{ upper(parameters.control_plane_name) }}
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
 
           - task:                      Bash@3
             inputs:
