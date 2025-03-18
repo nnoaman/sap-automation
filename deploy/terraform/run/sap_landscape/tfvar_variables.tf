@@ -441,6 +441,26 @@ variable "set_secret_expiry"                    {
                                                   type        = bool
                                                 }
 
+variable "workload_zone_private_key_secret_name"     {
+                                                        description = "Defines the name of the secret in the Azure Key Vault that contains the private key"
+                                                        default     = ""
+                                                      }
+variable "workload_zone_public_key_secret_name"       {
+                                                        description = "Defines the name of the secret in the Azure Key Vault that contains the public key"
+                                                        default     = ""
+                                                      }
+
+variable "workload_zone_username_secret_name"         {
+                                                        description = "Defines the name of the secret in the Azure Key Vault that contains the user name"
+                                                        default     = ""
+                                                      }
+
+variable "workload_zone_password_secret_name"        {
+                                                        description = "Defines the name of the secret in the Azure Key Vault that contains the password"
+                                                        default     = ""
+                                                      }
+
+
 #########################################################################################
 #                                                                                       #
 #  Authentication variables                                                             #

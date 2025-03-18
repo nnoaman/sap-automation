@@ -213,12 +213,12 @@ output "kv_user"                                {
 
 output "sid_public_key_secret_name"             {
                                                   description = "Azure Keyvault secret name for the Public key"
-                                                  value       = local.sid_pk_name
+                                                  value       = local.sid_private_key_secret_name
                                                 }
 
 output "sid_private_key_secret_name"            {
                                                   description = "Azure Keyvault secret name for the Private key"
-                                                  value       = local.sid_ppk_name
+                                                  value       = local.sid_public_key_secret_name
                                                 }
 
 output "sid_username_secret_name"              {

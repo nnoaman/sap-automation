@@ -104,11 +104,11 @@ locals {
   // By default, Ansible ssh key for SID uses generated public key.
   // Provide sshkey.path_to_public_key and path_to_private_key overides it
 
-  sid_public_key                                  = local.sid_key_exist ? (
+  sid_public_key                                  = var.key_vault.exists ? (
                                                       data.azurerm_key_vault_secret.sid_pk[0].value) : (
                                                       try(file(var.authentication.path_to_public_key), try(tls_private_key.sid[0].public_key_openssh, ""))
                                                     )
-  sid_private_key                                 = local.sid_key_exist ? (
+  sid_private_key                                 = var.key_vault.exists ? (
                                                       data.azurerm_key_vault_secret.sid_ppk[0].value) : (
                                                       try(file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, ""))
                                                     )
@@ -119,25 +119,13 @@ locals {
   // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of creating new key vaults
 
-  user_key_vault_id                               = try(var.key_vault.keyvault_id_for_system_credentials, "")
-  user_keyvault_exist                             = length(local.user_key_vault_id) > 0
-
-  create_workloadzone_keyvault                    = !local.user_keyvault_exist
-
   // If the user specifies the secret name of key pair/password in input,
   // the secrets will be imported instead of creating new secrets
-  input_sid_public_key_secret_name                = try(var.key_vault.kv_sid_sshkey_pub, "")
-  input_sid_private_key_secret_name               = try(var.key_vault.kv_sid_sshkey_prvt, "")
-  sid_key_exist                                   = try(length(local.input_sid_public_key_secret_name) > 0, false)
 
   input_sid_username                              = try(var.authentication.username, "azureadm")
-  input_sid_password                              = length(try(var.authentication.password, "")) > 0 ? (
-                                                      var.authentication.password) : (
-                                                      random_password.created_password.result
-                                                    )
+  input_sid_password                              = coalesce(var.authentication.password,random_password.created_password.result)
 
-  sid_ppk_name                                    = local.sid_key_exist ? (
-                                                      local.input_sid_private_key_secret_name) : (
+  sid_public_key_secret_name                      = coalesce(var.key_vault.public_key_secret_name,
                                                       trimprefix(
                                                         format("%s-sid-sshkey",
                                                           length(local.prefix) > 0 ? (
@@ -149,8 +137,7 @@ locals {
                                                       )
                                                     )
 
-  sid_pk_name                                     = local.sid_key_exist ? (
-                                                      local.input_sid_public_key_secret_name) : (
+  sid_private_key_secret_name                     = coalesce(var.key_vault.private_key_secret_name,
                                                       trimprefix(
                                                         format("%s-sid-sshkey-pub",
                                                           length(local.prefix) > 0 ? (
@@ -162,12 +149,8 @@ locals {
                                                       )
                                                     )
 
-  input_sid_username_secret_name                  = try(var.key_vault.kv_sid_username, "")
-  input_sid_password_secret_name                  = try(var.key_vault.kv_sid_pwd, "")
-  sid_credentials_secret_exist                    = length(local.input_sid_username_secret_name) > 0
 
-  sid_username_secret_name                        = local.sid_credentials_secret_exist ? (
-                                                      local.input_sid_username_secret_name) : (
+  sid_username_secret_name                        = coalesce(var.key_vault.username_secret_name,
                                                       trimprefix(
                                                         format("%s-sid-username",
                                                           length(local.prefix) > 0 ? (
@@ -178,8 +161,7 @@ locals {
                                                         "-"
                                                       )
                                                     )
-  sid_password_secret_name                        = local.sid_credentials_secret_exist ? (
-                                                      local.input_sid_password_secret_name) : (
+  sid_password_secret_name                        = coalesce(var.key_vault.password_secret_name,
                                                       trimprefix(
                                                         format("%s-sid-password",
                                                           length(local.prefix) > 0 ? (
@@ -192,13 +174,13 @@ locals {
                                                     )
 
   // Extract information from the specified key vault arm ids
-  user_keyvault_name                              = local.user_keyvault_exist ? (
-                                                      split("/", local.user_key_vault_id)[8]) : (
+  user_keyvault_name                              = var.key_vault.exists ? (
+                                                      split("/", var.key_vault.id)[8]) : (
                                                       local.landscape_keyvault_names.user_access
                                                     )
 
-  user_keyvault_resourcegroup_name                = local.user_keyvault_exist ? (
-                                                      split("/", local.user_key_vault_id)[4]) : (
+  user_keyvault_resourcegroup_name                = var.key_vault.exists ? (
+                                                      split("/", var.key_vault.id)[4]) : (
                                                       ""
                                                     )
 

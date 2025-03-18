@@ -243,7 +243,7 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
                                          ]
   count                                = !local.sid_key_exist ? 1 : 0
   content_type                         = "secret"
-  name                                 = local.sid_ppk_name
+  name                                 = local.sid_public_key_secret_name
   value                                = local.sid_private_key
   key_vault_id                         = local.user_keyvault_exist ? (
                                             data.azurerm_key_vault.kv_user[0].id) : (
@@ -258,7 +258,7 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
 data "azurerm_key_vault_secret" "sid_ppk" {
   provider                              = azurerm.main
   count                                 = (local.sid_key_exist) ? 1 : 0
-  name                                  = local.sid_ppk_name
+  name                                  = local.sid_public_key_secret_name
   key_vault_id                          = local.user_key_vault_id
 }
 
@@ -272,7 +272,7 @@ resource "azurerm_key_vault_secret" "sid_pk" {
                                          ]
   count                                = !local.sid_key_exist ? 1 : 0
   content_type                         = "secret"
-  name                                 = local.sid_pk_name
+  name                                 = local.sid_private_key_secret_name
   value                                = local.sid_public_key
   key_vault_id                         = local.user_keyvault_exist ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
@@ -293,7 +293,7 @@ data "azurerm_key_vault_secret" "sid_pk" {
                                            time_sleep.wait_for_private_endpoints
                                          ]
   count                                = (local.sid_key_exist) ? 1 : 0
-  name                                 = local.sid_pk_name
+  name                                 = local.sid_private_key_secret_name
   key_vault_id                         = local.user_key_vault_id
 }
 

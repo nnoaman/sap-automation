@@ -226,20 +226,18 @@ locals {
                                            ) : (
                                            ""
                                          )
+   key_vault                            = {
+                                           id                                     = var.user_keyvault_id
+                                           exists                                 = length(var.user_keyvault_id) > 0 ? true : false
+                                           private_key_secret_name                = var.workload_zone_private_key_secret_name
+                                           public_key_secret_name                 = var.workload_zone_public_key_secret_name
+                                           username_secret_name                   = var.workload_zone_username_secret_name
+                                           password_secret_name                   = var.workload_zone_password_secret_name
+                                           enable_rbac_authorization              = var.enable_rbac_authorization_for_keyvault
+                                           keyvault_id_for_system_credentials     = local.user_keyvault
+                                           keyvault_id_for_deployment_credentials = local.keyvault_containing_the_spns
+                                        }
 
-  key_vault                            = merge(local.key_vault_temp, (
-                                          local.user_keyvault_specified ? (
-                                            {
-                                              keyvault_id_for_system_credentials = local.user_keyvault
-                                            }
-                                          ) : null), (
-                                          local.spn_keyvault_specified ? (
-                                            {
-                                              keyvault_id_for_deployment_credentials = local.keyvault_containing_the_spns
-                                            }
-                                          ) : null
-                                          )
-                                        )
 
   diagnostics_storage_account          = {
                                            arm_id = var.diagnostics_storage_account_arm_id

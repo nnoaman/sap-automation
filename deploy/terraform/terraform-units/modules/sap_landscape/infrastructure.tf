@@ -121,7 +121,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   count                                = (length(var.keyvault_private_endpoint_id) == 0 &&
                                            local.create_application_subnet &&
                                            var.use_private_endpoint &&
-                                           local.create_workloadzone_keyvault
+                                           var.key_vault.exists
                                          ) ? 1 : 0
   depends_on                           = [
                                            azurerm_private_dns_zone_virtual_network_link.vault,

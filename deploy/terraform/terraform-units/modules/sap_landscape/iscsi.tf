@@ -264,7 +264,7 @@ data "template_cloudinit_config" "config_growpart" {
 
 resource "azurerm_key_vault_secret" "iscsi_ppk" {
   provider                             = azurerm.main
-  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
+  count                                = (var.key_vault.exists && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
@@ -284,7 +284,7 @@ resource "azurerm_key_vault_secret" "iscsi_ppk" {
 
 resource "azurerm_key_vault_secret" "iscsi_pk" {
   provider                             = azurerm.main
-  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
+  count                                = (var.key_vault.exists && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
@@ -304,7 +304,7 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
 
 resource "azurerm_key_vault_secret" "iscsi_username" {
   provider                             = azurerm.main
-  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi && !local.iscsi_username_exist) ? 1 : 0
+  count                                = (var.key_vault.exists && local.enable_iscsi && !local.iscsi_username_exist) ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
@@ -324,7 +324,7 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
 
 resource "azurerm_key_vault_secret" "iscsi_password" {
   provider                             = azurerm.main
-  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_password && !local.iscsi_pwd_exist) ? 1 : 0
+  count                                = (var.key_vault.exists && local.enable_iscsi_auth_password && !local.iscsi_pwd_exist) ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
@@ -344,7 +344,7 @@ resource "azurerm_key_vault_secret" "iscsi_password" {
 
 // Generate random password if password is set as authentication type and user doesn't specify a password, and save in KV
 resource "random_password" "iscsi_password" {
-  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_password  && !local.iscsi_pwd_exist  && try(var.authentication.password, null) == null) ? 1 : 0
+  count                                = (var.key_vault.exists && local.enable_iscsi_auth_password  && !local.iscsi_pwd_exist  && try(var.authentication.password, null) == null) ? 1 : 0
   length                               = 32
   min_upper                            = 2
   min_lower                            = 2
@@ -356,28 +356,28 @@ resource "random_password" "iscsi_password" {
 // Import secrets about iSCSI
 data "azurerm_key_vault_secret" "iscsi_pk" {
   provider                             = azurerm.main
-  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
+  count                                = (var.key_vault.exists && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
   name                                 = local.iscsi_pk_name
   key_vault_id                         = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "iscsi_ppk" {
   provider                             = azurerm.main
-  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
+  count                                = (var.key_vault.exists && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
   name                                 = local.iscsi_ppk_name
   key_vault_id                         = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "iscsi_password" {
   provider                             = azurerm.main
-  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_password && local.iscsi_pwd_exist) ? 1 : 0
+  count                                = (var.key_vault.exists && local.enable_iscsi_auth_password && local.iscsi_pwd_exist) ? 1 : 0
   name                                 = local.iscsi_pwd_name
   key_vault_id                         = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "iscsi_username" {
   provider                             = azurerm.main
-  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi && local.iscsi_username_exist) ? 1 : 0
+  count                                = (var.key_vault.exists && local.enable_iscsi && local.iscsi_username_exist) ? 1 : 0
   name                                 = local.iscsi_username_name
   key_vault_id                         = local.user_key_vault_id
 }
@@ -385,7 +385,7 @@ data "azurerm_key_vault_secret" "iscsi_username" {
 // Using TF tls to generate SSH key pair for iscsi devices and store in user KV
 resource "tls_private_key" "iscsi" {
   count                                = (
-                                           local.create_workloadzone_keyvault
+                                           var.key_vault.exists
                                            && local.enable_iscsi_auth_key
                                            && !local.iscsi_key_exist
                                            && try(file(var.authentication.path_to_public_key), null) == null
