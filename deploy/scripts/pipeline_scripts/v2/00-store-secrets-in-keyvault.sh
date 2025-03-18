@@ -149,7 +149,7 @@ if [ -z "$key_vault" ]; then
 fi
 
 if [ "$USE_MSI" != "true" ]; then
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${CONTROL_PLANE_NAME}" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --client_tenant_id "$TENANT_ID" --ado; then
 		return_code=$?
 	else

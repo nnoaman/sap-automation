@@ -72,7 +72,7 @@ stages:
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault"
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             name:                      StoreSecrets
@@ -91,6 +91,7 @@ stages:
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
               ARM_USE_MSI:                  $(Use_MSI)
+              ZONE:                         ${{ upper(parameters.workload_zone_name) }}
 
           - task:                      Bash@3
 
@@ -102,9 +103,6 @@ stages:
             displayName:               Deploy SAP Workload Zone
             env:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
-              CLIENT_ID:                    $(ParameterValidation.ARM_CLIENT_ID)
-              CLIENT_SECRET:                $(ParameterValidation.ARM_CLIENT_SECRET)
-              OBJECT_ID:                    $(ParameterValidation.ARM_OBJECT_ID)
               ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
               TENANT_ID:                    $(ParameterValidation.ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
@@ -117,4 +115,4 @@ stages:
               TF_IN_AUTOMATION:             true
               TF_LOG:                       $(TF_LOG)
               USE_MSI:                      $(Use_MSI)
-              ARM_USE_MSI:                  $(Use_MSI)
+              ARM_USE_MSI:                  true
