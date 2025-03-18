@@ -95,6 +95,12 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	else
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
+		ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+		export ARM_CLIENT_ID
+
+		ARM_USE_MSI=$(grep -m 1 "export ARM_USE_MSI=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+		export ARM_USE_MSI
+
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
