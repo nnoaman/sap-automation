@@ -247,7 +247,7 @@ if [ 0 = $return_code ]; then
 
 		if [ "$USE_MSI" != "true" ]; then
 			if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${CONTROL_PLANE_NAME}" --key_vault ${DEPLOYER_KEYVAULT} \
-				--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --tenant_id "$TENANT_ID" --ado; then
+				--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --client_tenant_id "$TENANT_ID" --ado; then
 				print_banner "$banner_title - Set secrets" "Set_secrets succeeded" "success"
 				return_code=$?
 			else
