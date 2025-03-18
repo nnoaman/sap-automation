@@ -41,11 +41,18 @@ data "azurerm_app_configuration_key" "media_path"    {
                                                       }
 
 
+data "azurerm_app_configuration_key" "credentials_vault"    {
+                                                        count                  = length(coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, " "))) == 1 ? 0 : 1
+                                                        configuration_store_id = coalesce(var.application_configuration_id,try(data.terraform_remote_state.landscape.outputs.application_configuration_id, " "))
+                                                        key                    = format("%s_KeyVaultResourceId", coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, "")))
+                                                        label                  = coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, ""))
+                                                      }
+
 
 data "azurerm_key_vault_secret" "subscription_id" {
   count                                = length(var.subscription_id) > 0 ? 0 : (var.use_spn ? 1 : 0)
   name                                 = format("%s-subscription-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
-  key_vault_id                         = local.spn_key_vault_arm_id
+  key_vault_id                         = try(data.azurerm_app_configuration_key.credentials_vault[0].value, local.spn_key_vault_arm_id)
   timeouts                             {
                                           read = "1m"
                                        }
@@ -54,7 +61,7 @@ data "azurerm_key_vault_secret" "subscription_id" {
 data "azurerm_key_vault_secret" "client_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
-  key_vault_id                         = local.spn_key_vault_arm_id
+  key_vault_id                         = try(data.azurerm_app_configuration_key.credentials_vault[0].value, local.spn_key_vault_arm_id)
   timeouts                             {
                                           read = "1m"
                                        }
@@ -63,7 +70,7 @@ data "azurerm_key_vault_secret" "client_id" {
 data "azurerm_key_vault_secret" "client_secret" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-secret", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
-  key_vault_id                         = local.spn_key_vault_arm_id
+  key_vault_id                         = try(data.azurerm_app_configuration_key.credentials_vault[0].value, local.spn_key_vault_arm_id)
   timeouts                             {
                                           read = "1m"
                                        }
@@ -72,7 +79,7 @@ data "azurerm_key_vault_secret" "client_secret" {
 data "azurerm_key_vault_secret" "tenant_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-tenant-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
-  key_vault_id                         = local.spn_key_vault_arm_id
+  key_vault_id                         = try(data.azurerm_app_configuration_key.credentials_vault[0].value, local.spn_key_vault_arm_id)
   timeouts                             {
                                           read = "1m"
                                        }
@@ -80,7 +87,7 @@ data "azurerm_key_vault_secret" "tenant_id" {
 
 data "azurerm_key_vault_secret" "cp_subscription_id" {
   name                                 = format("%s-subscription-id", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
-  key_vault_id                         = local.spn_key_vault_arm_id
+  key_vault_id                         = try(data.azurerm_app_configuration_key.credentials_vault[0].value, local.spn_key_vault_arm_id)
   timeouts                             {
                                           read = "1m"
                                        }
