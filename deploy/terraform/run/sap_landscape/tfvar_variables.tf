@@ -67,6 +67,13 @@ variable "management_subscription_id"           {
                                                   default     = ""
                                                 }
 
+
+variable "workload_zone_name"                  {
+                                                  description = "This is the name of the workload zone"
+                                                  type        = string
+                                                  default     = ""
+                                                }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #
