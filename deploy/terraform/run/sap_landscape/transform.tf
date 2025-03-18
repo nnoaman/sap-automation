@@ -236,6 +236,7 @@ locals {
                                            enable_rbac_authorization              = var.enable_rbac_authorization_for_keyvault
                                            keyvault_id_for_system_credentials     = local.user_keyvault
                                            keyvault_id_for_deployment_credentials = local.keyvault_containing_the_spns
+                                           set_secret_expiry                      = var.set_secret_expiry
                                         }
 
 
