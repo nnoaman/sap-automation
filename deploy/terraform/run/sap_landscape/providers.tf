@@ -90,12 +90,12 @@ provider "azuread"                     {
                                        }
 
 provider "azapi"                       {
-                                          alias                     = "api"
+                                         alias                      = "api"
                                          subscription_id            = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
                                          client_id                  = try(data.azurerm_key_vault_secret.client_id[0].value, null)
                                          client_secret              = try(data.azurerm_key_vault_secret.client_secret[0].value, null)
                                          tenant_id                  = try(data.azurerm_key_vault_secret.tenant_id[0].value, null)
-                                          use_msi                   = var.use_spn ? false : true
+                                         use_msi                    = var.use_spn ? false : true
                                       }
 
 terraform                              {
@@ -123,6 +123,7 @@ terraform                              {
                                                                          }
                                                               azapi =    {
                                                                            source  = "azure/azapi"
+                                                                           version = "2.3.0"
                                                                          }
                                                             }
                                        }
