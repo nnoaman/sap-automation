@@ -41,7 +41,7 @@ stages:
 
   - stage:                             PopulateKeyVault
     pool:                              $(this_agent)
-    displayName:                       Store the Azure Keyvault secrets
+    displayName:                       Save the Deployment Credentials in Azure Keyvault
     variables:
       - template:                      variables/02-sap-workload-zone-variables.yaml
         parameters:

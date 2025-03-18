@@ -94,7 +94,7 @@ stages:
           control_plane_name:          ${{ parameters.control_plane_name }}
           use_deployer:                ${{ parameters.use_deployer }}
           force_reset:                 ${{ parameters.force_reset }}
-    displayName:                       Store the Azure Keyvault secrets
+    displayName:                       Save the Deployment Credentials in Azure Keyvault
 
     jobs:
       - job:                           SaveDeploymentCredentials
