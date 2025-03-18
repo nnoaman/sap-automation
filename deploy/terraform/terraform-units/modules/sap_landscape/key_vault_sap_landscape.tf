@@ -157,7 +157,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_spn" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   provider                             = azurerm.main
-  count                                = local.user_keyvault_exist && var.enable_rbac_authorization_for_keyvault ? (
+  count                                = local.user_keyvault_exist && !var.enable_rbac_authorization_for_keyvault ? (
                                            0) : (
                                            length(var.deployer_tfstate) > 0 ? (
                                              length(var.deployer_tfstate.deployer_uai) == 2 ? (
@@ -184,6 +184,27 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
                                           "Restore",
                                           "Purge"
                                          ]
+}
+
+resource "azurerm_role_assignment" "kv_user_msi_rbac" {
+  provider                             = azurerm.main
+  count                                = local.user_keyvault_exist && var.enable_rbac_authorization_for_keyvault ? (
+                                           0) : (
+                                           length(var.deployer_tfstate) > 0 ? (
+                                             length(var.deployer_tfstate.deployer_uai) == 2 ? (
+                                               1) : (
+                                               0
+                                             )) : (
+                                             0
+                                           )
+                                         )
+  scope                                = local.user_keyvault_exist ? (
+                                           local.user_key_vault_id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+
+  role_definition_name                 = "Key Vault Administrator"
+  principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
 }
 
 ###############################################################################
