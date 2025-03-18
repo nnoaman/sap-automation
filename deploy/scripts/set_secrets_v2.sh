@@ -281,6 +281,7 @@ function set_all_secrets() {
 			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
 			return 20
 		fi
+
 		secret_name="${prefix}"-client-secret
 		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}" "secret"; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
@@ -289,7 +290,7 @@ function set_all_secrets() {
 			return 20
 		fi
 	fi
-	exit $return_code
+	return $return_code
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
