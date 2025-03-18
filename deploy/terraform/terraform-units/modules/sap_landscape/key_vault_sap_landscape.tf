@@ -118,6 +118,17 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
   principal_id                         = local.service_principal.object_id
 }
 
+resource "azurerm_role_assignment" "role_assignment_spn_officer" {
+  provider                             = azurerm.main
+  count                                = var.enable_rbac_authorization_for_keyvault && local.service_principal.object_id != "" && !var.options.use_spn ? 1 : 0
+  scope                                 = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  role_definition_name                 = "Key Vault Secrets Officer"
+  principal_id                         = local.service_principal.object_id
+}
+
 resource "azurerm_key_vault_access_policy" "kv_user" {
   provider                             = azurerm.deployer
   count                                = 0
@@ -210,6 +221,27 @@ resource "azurerm_role_assignment" "kv_user_msi_rbac" {
                                          )
 
   role_definition_name                 = "Key Vault Administrator"
+  principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
+}
+
+resource "azurerm_role_assignment" "kv_user_msi_rbac_secret_officer" {
+  provider                             = azurerm.main
+  count                                = var.key_vault.exists && var.enable_rbac_authorization_for_keyvault ? (
+                                           0) : (
+                                           length(var.deployer_tfstate) > 0 ? (
+                                             length(var.deployer_tfstate.deployer_uai) == 2 ? (
+                                               1) : (
+                                               0
+                                             )) : (
+                                             0
+                                           )
+                                         )
+  scope                               = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+
+  role_definition_name                 = "Key Vault Secrets Officer"
   principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
 }
 
