@@ -261,7 +261,7 @@
   loop_control:
     loop_var:                                     packages_list
 
-# @TODO: Use this variable to determine the cluster type
+# @TODO: Use this variable to determine the cluster stonith type
 # 'sybase' databases do not have the code to cluster them. It can be added in the future.
 - name:                                           "1.17 Generic Pacemaker - Determine STONITH type for pacemaker cluster initialization"
   ansible.builtin.set_fact:
