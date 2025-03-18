@@ -31,6 +31,10 @@ if [[ "${DEBUG:-false}" == 'true' ]]; then
 	az account show
   TF_LOG=DEBUG
 	export TF_LOG
+	echo ""
+	printenv | grep ARM_
+
+
 fi
 
 # Constants
