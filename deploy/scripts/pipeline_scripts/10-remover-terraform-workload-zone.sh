@@ -13,12 +13,18 @@ source "${parent_directory}/deploy_utils.sh"
 if printenv APPLICATION_CONFIGURATION_ID; then
 	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		echo "Running v2 script"
-		"${script_directory}/v2/$SCRIPT_NAME" "$@"
+		if ! "${script_directory}/v2/$SCRIPT_NAME" "$@" ; then
+			exit 1
+		fi
 	else
 		echo "Running v1 script"
-		"${script_directory}/v1/$SCRIPT_NAME" "$@"
+		if ! "${script_directory}/v1/$SCRIPT_NAME" "$@" ; then
+			exit 1
+		fi
 	fi
 else
 	echo "Running v1 script"
-	"${script_directory}/v1/$SCRIPT_NAME" "$@"
+		if ! "${script_directory}/v1/$SCRIPT_NAME" "$@" ; then
+			exit 1
+		fi
 fi
