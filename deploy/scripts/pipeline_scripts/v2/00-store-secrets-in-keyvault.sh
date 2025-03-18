@@ -40,8 +40,6 @@ set -eu
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
-
 echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
@@ -71,26 +69,6 @@ if [ "$USE_MSI" != "true" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
-fi
-
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
-	fi
-	else
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
-		ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-		export ARM_CLIENT_ID
-
-		ARM_USE_MSI=$(grep -m 1 "export ARM_USE_MSI=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-		export ARM_USE_MSI
-
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
