@@ -18,22 +18,13 @@ script_directory="$(dirname "${full_script_path}")"
 
 # Fail on any error, undefined variable, or pipeline failure
 
-
 # Enable debug mode if DEBUG is set to 'true'
 if [[ "${DEBUG:-false}" == 'true' ]]; then
 	# Enable debugging
 	# Exit on error
-  set -euox pipefail
+	set -euox pipefail
 	echo "Environment variables:"
 	printenv | sort
-	echo "Azure login info:"
-	az account show - query user --output table
-  TF_LOG=DEBUG
-	export TF_LOG
-	echo ""
-	printenv | grep ARM_
-
-
 fi
 
 # Constants
@@ -494,8 +485,12 @@ function sdaf_installer() {
 
 	if [ "$DEBUG" = True ]; then
 		print_banner "Installer" "Enabling debug mode" "info"
-		set -x
-		set -o errexit
+		echo "Azure login info:"
+		az account show - query user --output table
+		TF_LOG=DEBUG
+		export TF_LOG
+		echo ""
+		printenv | grep ARM_
 	fi
 
 	if [ 1 == $called_from_ado ]; then
@@ -946,7 +941,7 @@ function sdaf_installer() {
 		fi
 
 		if [ -f apply_output.json ]; then
-		  cp apply_output.json /var/tmp/apply_output.json
+			cp apply_output.json /var/tmp/apply_output.json
 			errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 			if [[ -n $errors_occurred ]]; then
