@@ -609,7 +609,10 @@ function sdaf_installer() {
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
+			print_banner "Installer" "Terraform init failed." "error"
+
 			return_value=$?
+			return $return_value
 		else
 			return_value=$?
 		fi
@@ -647,7 +650,7 @@ function sdaf_installer() {
 			else
 				return_value=$?
 				print_banner "Installer" "Terraform init failed" "error"
-				exit $return_value
+				return $return_value
 			fi
 		else
 			echo "Terraform state:                     remote"
@@ -661,7 +664,7 @@ function sdaf_installer() {
 				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
 				print_banner "Installer" "Terraform init failed." "error"
-				exit $return_value
+				return $return_value
 			else
 				return_value=$?
 				print_banner "Installer" "Terraform init succeeded." "success"
