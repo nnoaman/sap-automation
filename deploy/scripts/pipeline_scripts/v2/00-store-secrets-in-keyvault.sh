@@ -102,8 +102,6 @@ if [ $USE_MSI != "true" ]; then
 
 	echo -e "$green--- Read parameter values ---$reset"
 
-	dos2unix -q "${workload_environment_file_name}"
-
 	deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 	export deployer_tfstate_key
 
