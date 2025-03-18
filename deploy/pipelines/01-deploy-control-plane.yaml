@@ -83,7 +83,7 @@ stages:
               TF_VAR_tf_version:              $(tf_version)
               TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               USE_MSI:                        $(Use_MSI)
-  - stage:                             DeployControlplaneStage
+  - stage:                             PopulateKeyVault
     dependsOn:
                                        - Prepare_Deployer
     condition:                         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
@@ -94,11 +94,11 @@ stages:
           control_plane_name:          ${{ parameters.control_plane_name }}
           use_deployer:                ${{ parameters.use_deployer }}
           force_reset:                 ${{ parameters.force_reset }}
-    displayName:                       Deploy the control plane
+    displayName:                       Store the Azure Keyvault secrets
 
     jobs:
-      - job:                           DeployControlplaneJob
-        displayName:                   Deploy the control plane
+      - job:                           SaveDeploymentCredentials
+        displayName:                   Save the Deployment Credentials
         workspace:
           clean:                       all
         steps:
@@ -144,6 +144,45 @@ stages:
               USE_MSI:                      $(Use_MSI)
               ARM_USE_MSI:                  true
               ZONE:                         ${{ upper(parameters.control_plane_name) }}
+  - stage:                             DeployControlplaneStage
+    dependsOn:
+                                       - Prepare_Deployer
+                                       - PopulateKeyVault
+    condition:                         and(eq(dependencies.Prepare_Deployer.result, 'Succeeded'), eq(dependencies.PopulateKeyVault.result, 'Succeeded'))
+    pool:                              $(this_agent)
+    variables:
+      - template:                      variables/01-deploy-control-plane-variables.yaml
+        parameters:
+          control_plane_name:          ${{ parameters.control_plane_name }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          force_reset:                 ${{ parameters.force_reset }}
+    displayName:                       Deploy the control plane
+
+    jobs:
+      - job:                           DeployControlplaneJob
+        displayName:                   Deploy the control plane
+        workspace:
+          clean:                       all
+        steps:
+          - task:                      PostBuildCleanup@4
+          - template:                  templates\download.yaml
+            parameters:
+              getLatestFromBranch: true
+
+          - task:                      Bash@3
+            name:                      ParameterValidation
+            displayName:               Parameter Validation
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            env:
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
+              SYSTEM_TEAMPROJECT:      $(System.TeamProject)
+              ZONE:                    ${{ upper(parameters.control_plane_name) }}
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
