@@ -261,28 +261,64 @@
   loop_control:
     loop_var:                                     packages_list
 
+# @TODO: Use this variable to determine the cluster type
+# 'sybase' databases do not have the code to cluster them. It can be added in the future.
+- name:                                           "1.17 Generic Pacemaker - Determine STONITH type for pacemaker cluster initialization"
+  ansible.builtin.set_fact:
+    cluster_stonith_type: >-
+                                                  {% set db_tiers = ['hana', 'db2'] %}
+                                                  {% set scs_tiers = ['scs', 'ers'] %}
+                                                  {% if (node_tier in db_tiers or db_tiers | intersect(supported_tiers)) and database_cluster_type is defined %}
+                                                    {{ database_cluster_type }}
+                                                  {% elif (node_tier in scs_tiers or scs_tiers | intersect(supported_tiers)) and scs_cluster_type is defined %}
+                                                    {{ scs_cluster_type }}
+                                                  {% else %}
+                                                    "UNDEFINED"
+                                                  {% endif %}
+
 - name:                                           "1.17 Generic Pacemaker - Determine if OS version is supported for SBD STONITH"
-  when:                                           ansible_os_family | upper == "REDHAT" or ansible_os_family | upper == "SUSE"
+  when:
+                                                  - ansible_os_family | upper == "REDHAT" or ansible_os_family | upper == "SUSE"
+                                                  - cluster_stonith_type in ['ASD', 'ISCSI']
   ansible.builtin.set_fact:
     os_version_supported_for_sbd: >-
-                                                  {% if scs_cluster_type in ['ASD', 'ISCSI'] or database_cluster_type in ['ASD', 'ISCSI'] %}
-                                                    {% if ansible_os_family | upper == "REDHAT" %}
-                                                      {{ ansible_distribution_version | version_compare('8.8', '>=') or
-                                                          ansible_distribution_version | version_compare('9.0', '>=') }}
-                                                    {% elif ansible_os_family | upper == "SUSE" %}
-                                                      {% if scs_cluster_type == "ASD" or database_cluster_type == "ASD" %}
-                                                        {{ ansible_distribution_version | version_compare('15.1', '>=') }}
-                                                      {% elif scs_cluster_type == "ISCSI" or database_cluster_type == "ISCSI" %}
-                                                        {{ ansible_distribution_version | version_compare('12.5', '>=') }}
-                                                      {% else %}
-                                                        false
-                                                      {% endif %}
+                                                  {% if ansible_os_family | upper == "REDHAT" %}
+                                                    {{ ansible_distribution_version | version_compare('8.8', '>=') or
+                                                       ansible_distribution_version | version_compare('9.0', '>=') }}
+                                                  {% elif ansible_os_family | upper == "SUSE" %}
+                                                    {% if cluster_stonith_type == "ASD" %}
+                                                      {{ ansible_distribution_version | version_compare('15.1', '>=') }}
+                                                    {% elif cluster_stonith_type == "ISCSI" %}
+                                                      {{ ansible_distribution_version | version_compare('12.5', '>=') }}
                                                     {% else %}
                                                       false
                                                     {% endif %}
                                                   {% else %}
                                                     false
                                                   {% endif %}
+
+# - name:                                           "1.17 Generic Pacemaker - Determine if OS version is supported for SBD STONITH"
+#   when:                                           ansible_os_family | upper == "REDHAT" or ansible_os_family | upper == "SUSE"
+#   ansible.builtin.set_fact:
+#     os_version_supported_for_sbd: >-
+#                                                   {% if scs_cluster_type in ['ASD', 'ISCSI'] or database_cluster_type in ['ASD', 'ISCSI'] %}
+#                                                     {% if ansible_os_family | upper == "REDHAT" %}
+#                                                       {{ ansible_distribution_version | version_compare('8.8', '>=') or
+#                                                           ansible_distribution_version | version_compare('9.0', '>=') }}
+#                                                     {% elif ansible_os_family | upper == "SUSE" %}
+#                                                       {% if scs_cluster_type == "ASD" or database_cluster_type == "ASD" %}
+#                                                         {{ ansible_distribution_version | version_compare('15.1', '>=') }}
+#                                                       {% elif scs_cluster_type == "ISCSI" or database_cluster_type == "ISCSI" %}
+#                                                         {{ ansible_distribution_version | version_compare('12.5', '>=') }}
+#                                                       {% else %}
+#                                                         false
+#                                                       {% endif %}
+#                                                     {% else %}
+#                                                       false
+#                                                     {% endif %}
+#                                                   {% else %}
+#                                                     false
+#                                                   {% endif %}
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
