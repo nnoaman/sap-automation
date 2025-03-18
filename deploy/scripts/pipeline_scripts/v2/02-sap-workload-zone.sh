@@ -211,7 +211,7 @@ if [ -z "$tfstate_resource_id" ]; then
 	export tfstate_resource_id
 fi
 
-echo -e "$green--- Deploy the System ---$reset"
+echo -e "$green--- Deploy the Workload Zone ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $WORKLOAD_ZONE_TFVARS_FILENAME --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
