@@ -17,14 +17,13 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 # Fail on any error, undefined variable, or pipeline failure
-set -euo pipefail
+
 
 # Enable debug mode if DEBUG is set to 'true'
 if [[ "${DEBUG:-false}" == 'true' ]]; then
 	# Enable debugging
-	set -x
 	# Exit on error
-	set -o errexit
+  set -euox pipefail
 	echo "Environment variables:"
 	printenv | sort
 	echo "Azure login info:"
