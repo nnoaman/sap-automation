@@ -486,7 +486,7 @@ function sdaf_installer() {
 	if [ "$DEBUG" = True ]; then
 		print_banner "Installer" "Enabling debug mode" "info"
 		echo "Azure login info:"
-		az account show - query user --output table
+		az account show --query user --output table
 		TF_LOG=DEBUG
 		export TF_LOG
 		echo ""
