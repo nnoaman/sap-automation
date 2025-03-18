@@ -939,6 +939,7 @@ function sdaf_installer() {
 		fi
 
 		if [ -f apply_output.json ]; then
+		  cp apply_output.json /var/tmp/apply_output.json
 			errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 			if [[ -n $errors_occurred ]]; then
