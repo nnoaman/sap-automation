@@ -40,66 +40,62 @@ parameters:
 stages:
 
   - stage:                             PopulateKeyVault
-      dependsOn:
-                                        - Prepare_Deployer
-      condition:                         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
-      pool:                              $(this_agent)
-      variables:
-        - template:                      variables/01-deploy-control-plane-variables.yaml
-          parameters:
-            control_plane_name:          ${{ parameters.control_plane_name }}
-            use_deployer:                ${{ parameters.use_deployer }}
-            force_reset:                 ${{ parameters.force_reset }}
-      displayName:                       Store the Azure Keyvault secrets
+    pool:                              $(this_agent)
+    displayName:                       Store the Azure Keyvault secrets
 
-      jobs:
-        - job:                           SaveDeploymentCredentials
-          displayName:                   Save the Deployment Credentials
-          workspace:
-            clean:                       all
-          steps:
-            - task:                      PostBuildCleanup@4
-            - template:                  templates\download.yaml
-              parameters:
-                getLatestFromBranch: true
+    jobs:
+      - job:                           SaveDeploymentCredentials
+      - template:                      variables/02-sap-workload-zone-variables.yaml
+        parameters:
+          workload_zone_name:          ${{ parameters.workload_zone_name }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
+          inherit_settings:            ${{ parameters.inherit_settings }}
+        displayName:                   Save the Deployment Credentials
+        workspace:
+          clean:                       all
+        steps:
+          - task:                      PostBuildCleanup@4
+          - template:                  templates\download.yaml
+            parameters:
+              getLatestFromBranch: true
 
-            - task:                      Bash@3
-              name:                      ParameterValidation
-              displayName:               Parameter Validation
-              inputs:
-                targetType:              'filePath'
-                filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
-                failOnStderr:            false
-                workingDirectory:        "$(System.DefaultWorkingDirectory)"
-              env:
-                AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-                SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
-                SYSTEM_TEAMPROJECT:      $(System.TeamProject)
-                ZONE:                    ${{ upper(parameters.workload_zone_name) }}
-                ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-            - task:                      Bash@3
-              inputs:
-                targetType:              'filePath'
-                filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
-                failOnStderr:            false
-                workingDirectory:        "$(System.DefaultWorkingDirectory)"
-              name:                      StoreSecrets
-              displayName:               Store deployment credentials in Key Vault
-              env:
-                APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
-                CLIENT_ID:                    $(ParameterValidation.ARM_CLIENT_ID)
-                CLIENT_SECRET:                $(ParameterValidation.ARM_CLIENT_SECRET)
-                OBJECT_ID:                    $(ParameterValidation.ARM_OBJECT_ID)
-                ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
-                TENANT_ID:                    $(ParameterValidation.ARM_TENANT_ID)
-                AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
-                CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-                CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
-                SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
-                SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-                USE_MSI:                      $(Use_MSI)
-                ARM_USE_MSI:                  true
-                ZONE:                         ${{ upper(parameters.workload_zone_name) }}
+          - task:                      Bash@3
+            name:                      ParameterValidation
+            displayName:               Parameter Validation
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            env:
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
+              SYSTEM_TEAMPROJECT:      $(System.TeamProject)
+              ZONE:                    ${{ upper(parameters.workload_zone_name) }}
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            name:                      StoreSecrets
+            displayName:               Store deployment credentials in Key Vault
+            env:
+              APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
+              CLIENT_ID:                    $(ParameterValidation.ARM_CLIENT_ID)
+              CLIENT_SECRET:                $(ParameterValidation.ARM_CLIENT_SECRET)
+              OBJECT_ID:                    $(ParameterValidation.ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              TENANT_ID:                    $(ParameterValidation.ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
+              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
+              USE_MSI:                      $(Use_MSI)
+              ARM_USE_MSI:                  true
+              ZONE:                         ${{ upper(parameters.workload_zone_name) }}
 
 
   - stage:                             Deploy_SAP_workload_zone
