@@ -28,7 +28,7 @@ if [[ "${DEBUG:-false}" == 'true' ]]; then
 	echo "Environment variables:"
 	printenv | sort
 	echo "Azure login info:"
-	az account show
+	az account show - query user --output table
   TF_LOG=DEBUG
 	export TF_LOG
 	echo ""
