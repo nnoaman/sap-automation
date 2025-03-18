@@ -42,7 +42,7 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
 
-echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
+echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
