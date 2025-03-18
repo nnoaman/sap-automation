@@ -1023,7 +1023,7 @@ function sdaf_installer() {
 
 		app_service_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 
-		use_webapp=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw use_webapp | tr -d \")
+		use_webapp=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_deployment | tr -d \")
 
 		echo ""
 		return_value=0
