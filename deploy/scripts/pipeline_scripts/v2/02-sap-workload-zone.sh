@@ -257,11 +257,11 @@ if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 	--ado --auto-approve; then
 	return_code=$?
-	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE succeeded" "success"
+	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
 
 else
 	return_code=$?
-	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE  failed" "error"
+	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME  failed" "error"
 
 	echo "##vso[task.logissue type=error]Terraform apply failed."
 fi

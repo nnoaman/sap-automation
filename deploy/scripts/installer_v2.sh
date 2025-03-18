@@ -29,7 +29,8 @@ if [[ "${DEBUG:-false}" == 'true' ]]; then
 	printenv | sort
 	echo "Azure login info:"
 	az account show
-
+  TF_LOG=DEBUG
+	export TF_LOG
 fi
 
 # Constants
