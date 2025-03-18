@@ -215,6 +215,8 @@ else
 
 fi
 
+keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
+
 if [ -z "$key_vault" ]; then
 	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
 	exit 2
@@ -227,7 +229,7 @@ fi
 
 echo -e "$green--- Saving the deployment credentials ---$reset"
 if [ "$USE_MSI" != "true" ]; then
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${CONTROL_PLANE_NAME}" --key_vault "${key_vault}" \
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${CONTROL_PLANE_NAME}" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --client_tenant_id "$TENANT_ID" --ado; then
 		return_code=$?
 	else
