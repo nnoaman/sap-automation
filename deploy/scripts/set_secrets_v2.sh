@@ -231,7 +231,7 @@ function set_all_secrets() {
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
-		print_banner "Bootstrap Deployer " "Validating parameters failed" "error"
+		print_banner "$banner_title " "Validating parameters failed" "error"
 		return $?
 	fi
 
