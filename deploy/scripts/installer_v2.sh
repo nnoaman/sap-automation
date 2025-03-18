@@ -27,6 +27,9 @@ if [[ "${DEBUG:-false}" == 'true' ]]; then
 	set -o errexit
 	echo "Environment variables:"
 	printenv | sort
+	echo "Azure login info:"
+	az account show
+
 fi
 
 # Constants
