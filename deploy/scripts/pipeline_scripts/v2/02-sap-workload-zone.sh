@@ -92,6 +92,9 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		echo "##vso[task.logissue type=error]az login failed."
 		exit 2
 	fi
+	else
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
