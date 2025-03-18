@@ -120,6 +120,7 @@ stages:
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
               SYSTEM_TEAMPROJECT:      $(System.TeamProject)
+              ZONE:                    ${{ upper(parameters.control_plane_name) }}
 
           - task:                      Bash@3
             inputs:

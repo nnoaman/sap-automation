@@ -36,14 +36,15 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
 	az extension add --name azure-devops --output none --only-show-errors
 fi
-VARIABLE_GROUP="SDAF-$CONTROL_PLANE_NAME"
+
+VARIABLE_GROUP="SDAF-$ZONE"
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 if [ -n "${VARIABLE_GROUP_ID}" ]; then
 
-	print_banner "$banner_title" "VARIABLE_GROUP id: $VARIABLE_GROUP_ID" "info"
+	print_banner "$banner_title" "VARIABLE_GROUP name: $VARIABLE_GROUP" "info" "VARIABLE_GROUP id: $VARIABLE_GROUP_ID"
 
 	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 	if [ -n "${az_var}" ]; then

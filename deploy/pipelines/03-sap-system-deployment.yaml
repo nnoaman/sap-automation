@@ -58,6 +58,7 @@ stages:
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
               SYSTEM_TEAMPROJECT:      $(System.TeamProject)
+              ZONE:                    ${{ upper(parameters.workload_zone_name) }}
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -68,11 +69,11 @@ stages:
             env:
 
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
-              ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
+              CLIENT_ID:                    $(ParameterValidation.ARM_CLIENT_ID)
+              CLIENT_SECRET:                $(ParameterValidation.ARM_CLIENT_SECRET)
               ARM_OBJECT_ID:                $(ParameterValidation.ARM_OBJECT_ID)
               ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
+              TENANT_ID:                    $(ParameterValidation.ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
