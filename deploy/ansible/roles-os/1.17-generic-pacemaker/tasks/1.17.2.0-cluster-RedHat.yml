@@ -145,6 +145,27 @@
                                        - pcs_create_sbd_result.rc != 0
                                        - "'already exists' not in pcs_create_sbd_result.stderr"
 
+    - name:                            "1.17 Generic Pacemaker - Stop Cluster on all nodes"
+      when:                            pcs_create_sbd_result.rc == 0
+      ansible.builtin.command:
+        cmd:                           "pcs cluster stop --all"
+      register:                        pcs_cluster_stop_result
+      changed_when:                    pcs_cluster_stop_result.rc == 0
+      failed_when:                     pcs_cluster_stop_result.rc != 0
+
+    - name:                            "1.17 Generic Pacemaker - Start Cluster on all nodes"
+      when:                            pcs_cluster_stop_result.rc == 0
+      ansible.builtin.command:
+        cmd:                           "pcs cluster start --all --request-timeout 140"
+      register:                        pcs_cluster_start_result
+      changed_when:                    pcs_cluster_start_result.rc == 0
+      failed_when:                     pcs_cluster_start_result.rc != 0
+
+    - name:                            "1.17 Generic Pacemaker - Wait until cluster has stabilized"
+      when:                            pcs_create_sbd_result.rc == 0
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
+      register:                        cluster_stable_check
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | SBD - END                                                                  |
