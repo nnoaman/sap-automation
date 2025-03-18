@@ -275,7 +275,11 @@ resource "azurerm_key_vault_secret" "iscsi_ppk" {
   content_type                         = "secret"
   name                                 = local.iscsi_ppk_name
   value                                = local.iscsi_private_key
-  key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+
   expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
@@ -295,7 +299,10 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
   content_type                         = "secret"
   name                                 = local.iscsi_pk_name
   value                                = local.iscsi_public_key
-  key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
   expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
@@ -315,7 +322,10 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
   content_type                         = "configuration"
   name                                 = local.iscsi_username_name
   value                                = local.iscsi_auth_username
-  key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
   expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
@@ -335,7 +345,10 @@ resource "azurerm_key_vault_secret" "iscsi_password" {
   content_type                         = "secret"
   name                                 = local.iscsi_pwd_name
   value                                = local.iscsi_auth_password
-  key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
   expiration_date                       = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
@@ -358,28 +371,40 @@ data "azurerm_key_vault_secret" "iscsi_pk" {
   provider                             = azurerm.main
   count                                = (var.key_vault.exists && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
   name                                 = local.iscsi_pk_name
-  key_vault_id                         = local.user_key_vault_id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
 }
 
 data "azurerm_key_vault_secret" "iscsi_ppk" {
   provider                             = azurerm.main
   count                                = (var.key_vault.exists && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
   name                                 = local.iscsi_ppk_name
-  key_vault_id                         = local.user_key_vault_id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
 }
 
 data "azurerm_key_vault_secret" "iscsi_password" {
   provider                             = azurerm.main
   count                                = (var.key_vault.exists && local.enable_iscsi_auth_password && local.iscsi_pwd_exist) ? 1 : 0
   name                                 = local.iscsi_pwd_name
-  key_vault_id                         = local.user_key_vault_id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
 }
 
 data "azurerm_key_vault_secret" "iscsi_username" {
   provider                             = azurerm.main
   count                                = (var.key_vault.exists && local.enable_iscsi && local.iscsi_username_exist) ? 1 : 0
   name                                 = local.iscsi_username_name
-  key_vault_id                         = local.user_key_vault_id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
 }
 
 // Using TF tls to generate SSH key pair for iscsi devices and store in user KV

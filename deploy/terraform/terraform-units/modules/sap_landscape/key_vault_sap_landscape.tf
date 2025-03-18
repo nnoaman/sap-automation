@@ -316,7 +316,7 @@ resource "azurerm_key_vault_secret" "sid_username" {
                                            azurerm_private_endpoint.kv_user,
                                            time_sleep.wait_for_private_endpoints
                                          ]
-  count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
+  count                                = length(var.key_vault.username_secret_name) == 0 ? 1 : 0
   content_type                         = "configuration"
   name                                 = local.sid_username_secret_name
   value                                = local.input_sid_username
@@ -338,9 +338,12 @@ data "azurerm_key_vault_secret" "sid_username" {
                                            azurerm_private_endpoint.kv_user,
                                            time_sleep.wait_for_private_endpoints
                                          ]
-  count                                = (local.sid_credentials_secret_exist) ? 1 : 0
+  count                                = length(var.key_vault.username_secret_name) > 0 ? 1 : 0
   name                                 = local.sid_username_secret_name
-  key_vault_id                         = local.user_key_vault_id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
 }
 
 resource "azurerm_key_vault_secret" "sid_password" {
@@ -351,7 +354,7 @@ resource "azurerm_key_vault_secret" "sid_password" {
                                            azurerm_private_endpoint.kv_user,
                                            time_sleep.wait_for_private_endpoints
                                          ]
-  count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
+  count                                = length(var.key_vault.password_secret_name) == 0 ? 1 : 0
   name                                 = local.sid_password_secret_name
   content_type                         = "secret"
   value                                = local.input_sid_password
@@ -373,9 +376,12 @@ data "azurerm_key_vault_secret" "sid_password" {
                                            azurerm_private_endpoint.kv_user,
                                            time_sleep.wait_for_private_endpoints
                                          ]
-  count                                = (local.sid_credentials_secret_exist) ? 1 : 0
+  count                                = length(var.key_vault.password_secret_name) > 0 ? 1 : 0
   name                                 = local.sid_password_secret_name
-  key_vault_id                         = local.user_key_vault_id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
 }
 
 
@@ -487,11 +493,11 @@ resource "azurerm_role_assignment" "kv_user_additional_users" {
                                            )) : (
                                            0
                                          )
-
   scope                                = var.key_vault.exists ? (
-                                                                       local.user_key_vault_id) : (
-                                                                       azurerm_key_vault.kv_user[0].id
-                                                                     )
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+
   role_definition_name                 = "Key Vault Secrets Officer"
   principal_id                         = var.additional_users_to_add_to_keyvault_policies[count.index]
 }

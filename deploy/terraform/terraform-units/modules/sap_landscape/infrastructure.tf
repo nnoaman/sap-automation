@@ -171,7 +171,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                                  local.resource_suffixes.keyvault_private_svc
                                )
                                is_manual_connection = false
-                               private_connection_resource_id = local.user_keyvault_exist ? (
+                               private_connection_resource_id = var.key_vault.exists ? (
                                  data.azurerm_key_vault.kv_user[0].id
                                  ) : (
                                  azurerm_key_vault.kv_user[0].id
