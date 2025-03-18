@@ -53,7 +53,6 @@ if [ ! -f "$CONFIG_REPO_PATH/$tfvarsFile" ]; then
 	exit 2
 fi
 
-# Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
 	echo -e "$green--- az login ---$reset"
@@ -62,6 +61,12 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		echo "##vso[task.logissue type=error]az login failed."
 		exit 2
 	fi
+else
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
+
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
