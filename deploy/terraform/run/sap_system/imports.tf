@@ -41,53 +41,77 @@ data "azurerm_app_configuration_key" "media_path"    {
                                                       }
 
 
-data "azurerm_key_vault_secret" "subscription_id"    {
-                                                        count        = length(var.subscription_id) > 0 ? 0 : (var.use_spn ? 1 : 0)
-                                                        name         = format("%s-subscription-id", local.environment)
-                                                        key_vault_id = local.spn_key_vault_arm_id
-                                                      }
 
-data "azurerm_key_vault_secret" "client_id"          {
-                                                        count        = var.use_spn ? 1 : 0
-                                                        name         = format("%s-client-id", local.environment)
-                                                        key_vault_id = local.spn_key_vault_arm_id
-                                                      }
+data "azurerm_key_vault_secret" "subscription_id" {
+  count                                = length(var.subscription_id) > 0 ? 0 : (var.use_spn ? 1 : 0)
+  name                                 = format("%s-subscription-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
+  key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
 
-data "azurerm_key_vault_secret" "client_secret"       {
-                                                        count        = var.use_spn ? 1 : 0
-                                                        name         = format("%s-client-secret", local.environment)
-                                                        key_vault_id = local.spn_key_vault_arm_id
-                                                      }
+data "azurerm_key_vault_secret" "client_id" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
+  key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
 
-data "azurerm_key_vault_secret" "tenant_id"           {
-                                                        count        = var.use_spn ? 1 : 0
-                                                        name         = format("%s-tenant-id", local.environment)
-                                                        key_vault_id = local.spn_key_vault_arm_id
-                                                      }
+data "azurerm_key_vault_secret" "client_secret" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-secret", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
+  key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
 
-data "azurerm_key_vault_secret" "cp_subscription_id"  {
-                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ?  (var.use_spn ? 1 : 0) : 0
-                                                        name         = format("%s-subscription-id", data.terraform_remote_state.deployer[0].outputs.environment)
-                                                        key_vault_id = local.spn_key_vault_arm_id
-                                                      }
+data "azurerm_key_vault_secret" "tenant_id" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-tenant-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
+  key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
 
-data "azurerm_key_vault_secret" "cp_client_id"        {
-                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ?  (var.use_spn ? 1 : 0) : 0
-                                                        name         = format("%s-client-id", data.terraform_remote_state.deployer[0].outputs.environment)
-                                                        key_vault_id = local.spn_key_vault_arm_id
-                                                      }
+data "azurerm_key_vault_secret" "cp_subscription_id" {
+  name                                 = format("%s-subscription-id", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
+  key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
 
-data "azurerm_key_vault_secret" "cp_client_secret"    {
-                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ?  (var.use_spn ? 1 : 0) : 0
-                                                        name         = format("%s-client-secret", data.terraform_remote_state.deployer[0].outputs.environment)
-                                                        key_vault_id = local.spn_key_vault_arm_id
-                                                      }
+data "azurerm_key_vault_secret" "cp_client_id" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-id", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
+  key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
 
-data "azurerm_key_vault_secret" "cp_tenant_id"        {
-                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ?  (var.use_spn ? 1 : 0) : 0
-                                                        name         = format("%s-tenant-id", data.terraform_remote_state.deployer[0].outputs.environment)
-                                                        key_vault_id = local.spn_key_vault_arm_id
-                                                      }
+data "azurerm_key_vault_secret" "cp_client_secret" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-secret", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
+  key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+
+data "azurerm_key_vault_secret" "cp_tenant_id" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-tenant-id", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
+  key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
 
 // Import current service principal
 data "azuread_service_principal" "sp"                 {
