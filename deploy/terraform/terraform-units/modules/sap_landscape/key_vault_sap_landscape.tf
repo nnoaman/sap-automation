@@ -100,7 +100,7 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
   provider                             = azurerm.main
   count                                = var.enable_rbac_authorization_for_keyvault ? 1 : 0
   scope                                = var.key_vault.exists ? (
-                                           local.user_key_vault_id) : (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
   role_definition_name                 = "Key Vault Administrator"
