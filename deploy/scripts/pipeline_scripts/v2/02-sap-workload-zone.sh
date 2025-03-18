@@ -60,28 +60,6 @@ if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_
 fi
 
 echo -e "$green--- Validations ---$reset"
-if [ "$USE_MSI" != "true" ]; then
-
-	if ! printenv ARM_SUBSCRIPTION_ID; then
-		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if ! printenv CLIENT_ID; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if ! printenv CLIENT_SECRET; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if ! printenv TENANT_ID; then
-		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
-		exit 2
-	fi
-fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
