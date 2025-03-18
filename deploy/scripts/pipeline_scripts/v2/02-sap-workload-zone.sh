@@ -233,6 +233,7 @@ if [ "$USE_MSI" != "true" ]; then
 	else
 		return_code=$?
 		print_banner "$banner_title - Set secrets" "Set_secrets failed" "error"
+		exit $return_code
 	fi
 fi
 
