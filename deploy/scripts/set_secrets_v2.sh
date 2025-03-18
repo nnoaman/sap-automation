@@ -174,38 +174,38 @@ function parse_arguments() {
 
 	[[ -z "$keyvault" ]] && {
 		print_banner "$banner_title" "key_vault is required" "error"
-		return 1
+		return 10
 	}
 
 	[[ -z "$prefix" ]] && {
 		print_banner "$banner_title" "prefix is required" "error"
-		return 1
+		return 10
 	}
 
 	if [ 0 -eq "$deploy_using_msi_only" ]; then
 
 		if [ -z "$client_id" ]; then
 			print_banner "$banner_title" "client_id is required" "error"
-			return 1
+			return 10
 		else
 			if ! is_valid_guid "${client_id}"; then
 				print_banner "$banner_title" "client_id is required" "error"
-				return 1
+				return 10
 			fi
 		fi
 
 		[[ -z "$client_secret" ]] && {
 			print_banner "$banner_title" "client_secret is required" "error"
-			return 1
+			return 10
 		}
 
 		if [ -z "$tenant_id" ]; then
 			print_banner "$banner_title" "correct tenant_id is required" "error"
-			return 1
+			return 10
 		else
 			if ! is_valid_guid "${tenant_id}"; then
 				print_banner "$banner_title" "correct tenant_id is required" "error"
-				return 1
+				return 10
 			fi
 		fi
 
