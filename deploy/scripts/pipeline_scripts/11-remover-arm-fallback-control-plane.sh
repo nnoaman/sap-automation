@@ -6,12 +6,10 @@
 green="\e[1;32m"
 reset="\e[0m"
 
-
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 source "${script_directory}/helper.sh"
-
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors --output none
@@ -33,6 +31,15 @@ else
 	echo "Using SYSTEM_ACCESSTOKEN for authentication"
 	AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 fi
+
+function remove_variable() {
+	local variable_name="$2"
+	local variable_group"$1"
+	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group}" --query "$variable_name.value" --out tsv)
+	if [ ${#variable_value} != 0 ]; then
+		az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors
+	fi
+}
 
 export AZURE_DEVOPS_EXT_PAT
 
@@ -131,6 +138,12 @@ if [ 0 == $return_code ]; then
 		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 		changed=1
 	fi
+
+	if [ -f ".sap_deployment_automation/${ENVIRONMENT}-${LOCATION}-${NETWORK}" ]; then
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+		changed=1
+	fi
+
 	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
 		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
 		changed=1
@@ -154,75 +167,20 @@ if [ 0 == $return_code ]; then
 		if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
 			echo "Deleting variables"
 
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Deployer_State_FileName.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_State_FileName --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Deployer_Key_Vault.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "LIBRARY_RANDOM_ID.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Resource_Group_Name.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Subscription --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_IDENTITY.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --yes --only-show-errors
-			fi
-
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --yes --only-show-errors
-			fi
+			remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
+			remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
+			remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
+			remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
+			remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
+			remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
+			remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
+			remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
+			remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
+			remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
+			remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
+			remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
+			remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
+			remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
 
 		fi
 
