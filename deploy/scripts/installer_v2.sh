@@ -1002,7 +1002,7 @@ function sdaf_installer() {
 	if [ 0 -ne $return_value ]; then
 		print_banner "Installer" "Errors during the apply phase" "error"
 		unset TF_DATA_DIR
-		exit $return_value
+		return $return_value
 	fi
 
 	if [ "${deployment_system}" == sap_deployer ]; then
@@ -1082,6 +1082,12 @@ function sdaf_installer() {
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	# Only run if script is executed directly, not when sourced
-	sdaf_installer "$@"
-	exit $?
+	if sdaf_installer "$@" ; then
+		echo "Script executed successfully."
+		exit 0
+	else
+		echo "Script failed with exit code $?"
+		exit $?
+	fi
+
 fi
