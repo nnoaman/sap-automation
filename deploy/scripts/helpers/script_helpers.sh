@@ -591,6 +591,7 @@ function ImportAndReRunApply {
 									import_return_value=0
 								fi
 							fi
+							rm import_result.txt
 						fi
 					fi
 				done
