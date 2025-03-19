@@ -34,20 +34,13 @@ locals {
                                                )
 
   // Storage account for sapbits
-  sa_sapbits_exists                         = length(var.storage_account_sapbits.arm_id) > 0
-  sa_sapbits_name                           = local.sa_sapbits_exists ? (
+  storage_account_SAPmedia                           = length(var.storage_account_sapbits.arm_id) > 0 ? (
                                                 split("/", var.storage_account_sapbits.arm_id)[8]) : (
                                                 length(var.storage_account_sapbits.name) > 0 ? (
                                                   var.storage_account_sapbits.name) : (
                                                   var.naming.storageaccount_names.LIBRARY.library_storageaccount_name
                                                 )
                                               )
-
-
-
-  // Storage account for tfstate
-  sa_tfstate_exists                         = length(var.storage_account_tfstate.arm_id) > 0
-
 
   // Comment out code with users.object_id for the time being.
   // deployer_users_id = try(local.deployer.users.object_id, [])

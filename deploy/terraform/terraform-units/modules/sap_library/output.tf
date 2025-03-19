@@ -38,7 +38,7 @@ output "created_resource_group_name"            {
 
 output "tfstate_storage_account"                 {
                                                    description = "TFState storage account name"
-                                                   value = local.sa_tfstate_exists ? (
+                                                   value = length(var.storage_account_tfstate.arm_id) > 0 ? (
                                                      split("/", var.storage_account_tfstate.arm_id)[8]) : (
                                                      length(var.storage_account_tfstate.name) > 0 ? (
                                                        var.storage_account_tfstate.name) : (
@@ -54,7 +54,7 @@ output "storagecontainer_tfstate"                {
 
 output "sapbits_storage_account_name"            {
                                                    description = "SAPBits storage account name"
-                                                   value = local.sa_sapbits_exists ? (
+                                                   value = length(var.storage_account_sapbits.arm_id) > 0 ? (
                                                      split("/", var.storage_account_sapbits.arm_id)[8]) : (
                                                      length(var.storage_account_sapbits.name) > 0 ? (
                                                        var.storage_account_sapbits.name) : (
@@ -79,7 +79,7 @@ output "random_id"                               {
 
 output "remote_state_storage_account_name"       {
                                                    description = "Storage account name for Terraform remote state"
-                                                   value = local.sa_tfstate_exists ? (
+                                                   value = length(var.storage_account_tfstate.arm_id) > 0 ? (
                                                      split("/", var.storage_account_tfstate.arm_id)[8]) : (
                                                      length(var.storage_account_tfstate.name) > 0 ? (
                                                        var.storage_account_tfstate.name) : (
@@ -90,7 +90,7 @@ output "remote_state_storage_account_name"       {
 
 output "tfstate_resource_id"                     {
                                                    description = "value of the Azure resource id for the tfstate storage account"
-                                                   value = local.sa_tfstate_exists ? (
+                                                   value = length(var.storage_account_tfstate.arm_id) > 0 ? (
                                                      data.azurerm_storage_account.storage_tfstate[0].id) : (
                                                      try(azurerm_storage_account.storage_tfstate[0].id, "")
                                                    )
@@ -99,7 +99,7 @@ output "tfstate_resource_id"                     {
 output "sa_connection_string"                    {
                                                    description = "Connection string to storage account"
                                                    sensitive   = true
-                                                   value = local.sa_tfstate_exists ? (
+                                                   value = length(var.storage_account_tfstate.arm_id) > 0 ? (
                                                      data.azurerm_storage_account.storage_tfstate[0].primary_connection_string) : (
                                                      try(azurerm_storage_account.storage_tfstate[0].primary_connection_string, "")
                                                    )
