@@ -519,33 +519,27 @@ resource "azurerm_key_vault_secret" "pwd" {
   content_type                         = "secret"
 }
 
-data "azurerm_key_vault_secret" "pk" {
+ephemeral "azurerm_key_vault_secret" "pk" {
   count                                = (local.enable_key && (length(var.key_vault.private_key_secret_name) > 0 )) ? (1) : (0)
   name                                 = local.private_key_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
-data "azurerm_key_vault_secret" "ppk" {
+ephemeral "azurerm_key_vault_secret" "ppk" {
   count                                = (local.enable_key && (length(var.key_vault.public_key_secret_name) > 0 )) ? 1 : 0
   name                                 = local.public_key_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
-data "azurerm_key_vault_secret" "username" {
+ephemeral "azurerm_key_vault_secret" "username" {
   count                                = length(var.key_vault.username_secret_name) > 0 ? 1 : 0
   name                                 = var.key_vault.username_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
-data "azurerm_key_vault_secret" "pwd" {
+ephemeral "azurerm_key_vault_secret" "pwd" {
   count                                = (local.enable_password && (length(var.key_vault.password_secret_name) >  0) ) ? 1 : 0
   name                                 = local.pwd_secret_name
-  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
-}
-
-data "azurerm_key_vault_secret" "public_key_from_vault" {
-  count                                = var.bootstrap ? 0 : 1
-  name                                 = local.private_key_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
