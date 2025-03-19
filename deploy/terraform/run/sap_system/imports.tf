@@ -58,31 +58,23 @@ data "azurerm_key_vault_secret" "subscription_id" {
                                        }
 }
 
-data "azurerm_key_vault_secret" "client_id" {
+ephemeral "azurerm_key_vault_secret" "client_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
   key_vault_id                         = try(data.azurerm_app_configuration_key.credentials_vault[0].value, local.spn_key_vault_arm_id)
-  timeouts                             {
-                                          read = "1m"
-                                       }
 }
 
-data "azurerm_key_vault_secret" "client_secret" {
+ephemeral "azurerm_key_vault_secret" "client_secret" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-secret", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
   key_vault_id                         = try(data.azurerm_app_configuration_key.credentials_vault[0].value, local.spn_key_vault_arm_id)
-  timeouts                             {
-                                          read = "1m"
-                                       }
 }
 
-data "azurerm_key_vault_secret" "tenant_id" {
+ephemeral "azurerm_key_vault_secret" "tenant_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-tenant-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
   key_vault_id                         = try(data.azurerm_app_configuration_key.credentials_vault[0].value, local.spn_key_vault_arm_id)
-  timeouts                             {
-                                          read = "1m"
-                                       }
+
 }
 
 data "azurerm_key_vault_secret" "cp_subscription_id" {
@@ -93,31 +85,22 @@ data "azurerm_key_vault_secret" "cp_subscription_id" {
                                        }
 }
 
-data "azurerm_key_vault_secret" "cp_client_id" {
+ephemeral "azurerm_key_vault_secret" "cp_client_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
   key_vault_id                         = local.spn_key_vault_arm_id
-  timeouts                             {
-                                          read = "1m"
-                                       }
 }
 
-data "azurerm_key_vault_secret" "cp_client_secret" {
+ephemeral "azurerm_key_vault_secret" "cp_client_secret" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-secret", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
   key_vault_id                         = local.spn_key_vault_arm_id
-  timeouts                             {
-                                          read = "1m"
-                                       }
 }
 
-data "azurerm_key_vault_secret" "cp_tenant_id" {
+ephemeral "azurerm_key_vault_secret" "cp_tenant_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-tenant-id", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
   key_vault_id                         = local.spn_key_vault_arm_id
-  timeouts                             {
-                                          read = "1m"
-                                       }
 }
 
 // Import current service principal
