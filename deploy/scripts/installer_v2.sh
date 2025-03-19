@@ -724,10 +724,8 @@ function sdaf_installer() {
 		return_value=${PIPESTATUS[0]}
 	fi
 
-	echo "Terraform Plan return code:          $return_value"
-
 	if [ 1 -eq $return_value ]; then
-		print_banner "Installer" "Error when running plan" "error"
+		print_banner "Installer" "Error when running plan" "error" "Terraform plan return code: $return_value"
 		return $return_value
 	else
 		print_banner "Installer" "Terraform plan succeeded." "success"
@@ -921,26 +919,26 @@ function sdaf_installer() {
 
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee -a apply_output.json; then
-				return_value=${PIPESTATUS[0]}
+			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters ; then
+				return_value=$?
 			else
-				return_value=${PIPESTATUS[0]}
+				return_value=$?
 			fi
 		fi
 
 		if [ $return_value -eq 1 ]; then
-			print_banner "Installer" "Terraform apply failed" "error"
+			print_banner "Installer" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
 		elif [ $return_value -eq 2 ]; then
 			# return code 2 is ok
-			print_banner "Installer" "Terraform apply succeeded" "success"
+			print_banner "Installer" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 			return_value=0
 		else
-			print_banner "Installer" "Terraform apply succeeded" "success"
+			print_banner "Installer" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 			return_value=0
 		fi
 
 		if [ -f apply_output.json ]; then
-			cp apply_output.json /var/tmp/apply_output.json
+
 			errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 			if [[ -n $errors_occurred ]]; then
