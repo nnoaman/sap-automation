@@ -67,8 +67,8 @@ function configureNonDeployer() {
 	echo -e "$green --- Install terraform ---$reset"
 
 	wget -q "$tf_url"
-	return_code=$?
-	if [ 0 != $return_code ]; then
+	return_code_conf=$?
+	if [ 0 != $return_code_conf ]; then
 		echo "##vso[task.logissue type=error]Unable to download Terraform version $tf_version."
 		exit 2
 	fi

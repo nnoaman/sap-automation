@@ -565,7 +565,7 @@ variable "use_webapp"                                 {
                                                         default     = false
                                                       }
 
-variable "application_configuration_deployment"                         {
+variable "app_service_deployment"                     {
                                                         description = "Boolean value indicating if a webapp should be deployed"
                                                         default     = false
                                                       }

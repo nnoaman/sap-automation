@@ -223,9 +223,9 @@ output "webapp_id"                               {
                                                    value       = var.application_configuration_deployment ? module.sap_deployer.webapp_id : ""
                                                  }
 
-output "application_configuration_deployment"                             {
+output "app_service_deployment"                 {
                                                    description = "Is the App Service deployed"
-                                                   value       = var.application_configuration_deployment
+                                                   value       = var.app_service_deployment
                                                  }
 
 

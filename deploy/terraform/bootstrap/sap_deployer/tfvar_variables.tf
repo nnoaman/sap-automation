@@ -565,7 +565,7 @@ variable "use_webapp"                                 {
                                                         default     = false
                                                       }
 
-variable "application_configuration_deployment"                         {
+variable "app_service_deployment"                     {
                                                         description = "Boolean value indicating if a webapp should be deployed"
                                                         default     = false
                                                       }
@@ -666,7 +666,7 @@ variable "application_configuration_id"          {
                                                     type        = string
                                                     default     = ""
                                                  }
-variable "application_configuration_deployment"      {
+variable "application_configuration_deployment"  {
                                                     description = "If defined, will add the Microsoft.Azure.ApplicationConfiguration extension to the virtual machines"
                                                     default     = false
                                                  }
