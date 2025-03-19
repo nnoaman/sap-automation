@@ -541,6 +541,7 @@ function ReplaceResourceInStateFile {
 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
 			echo "Importing storage account state object:           ${moduleID}"
 			echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} $4 ${moduleID} ${azureResourceID}"
+			echo ""
 			if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" $4 "${moduleID}" "${azureResourceID}"; then
 				echo -e "$bold_red Importing storage account state object:           ${moduleID} failed $reset_formatting"
 				exit 65
@@ -577,21 +578,18 @@ function ImportAndReRunApply {
 					echo "Trying to import $azureResourceID into $moduleID"
 					# shellcheck disable=SC2086
 					echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
+					echo ""
 					# shellcheck disable=SC2086
-					if ! terraform -chdir="${terraform_module_directory}" import $importParameters -no-color "${moduleID}" "${azureResourceID}" | tee -a import_result.txt; then
-						import_return_value=${PIPESTATUS[0]}
-						if [ -f import_result.txt ]; then
-							moduleName=$(grep "^module..*.." import_result.txt | cut -d' ' -f1 | sed 's/.$//')
-							echo "Removing state object:           ${moduleName}"
-							if terraform -chdir="${terraform_module_directory}" state rm "${moduleName}"; then
-								if ! terraform -chdir="${terraform_module_directory}" import $importParameters -no-color "${moduleID}" "${azureResourceID}"; then
-									import_return_value=$?
-								else
-									import_return_value=0
-								fi
+					if ! terraform -chdir="${terraform_module_directory}" import $importParameters -no-color "${moduleID}" "${azureResourceID}" | tee import_result.txt; then
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+							if ! terraform -chdir="${terraform_module_directory}" import $importParameters -no-color "${moduleID}" "${azureResourceID}"; then
+								import_return_value=$?
+							else
+								import_return_value=0
 							fi
-							rm import_result.txt
 						fi
+						rm import_result.txt
+
 					fi
 				done
 				# shellcheck disable=SC2086
