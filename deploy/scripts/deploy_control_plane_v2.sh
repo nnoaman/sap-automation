@@ -537,8 +537,9 @@ function execute_deployment_steps() {
 
 	if [ 1 -eq "${step}" ]; then
 		if ! validate_keyvault_access; then
+			return_value=$?
 			print_banner "Key vault" "Validating key vault access failed" "error"
-			return $?
+			return $return_value
 		else
 			step=2
 			save_config_var "step" "${deployer_config_information}"
@@ -547,8 +548,9 @@ function execute_deployment_steps() {
 
 	if [ 2 -eq "${step}" ]; then
 		if ! bootstrap_library; then
+			return_value=$?
 			print_banner "Bootstrap Library" "Bootstrapping the SAP Library failed" "error"
-			return $?
+			return $return_value
 		else
 			step=3
 			save_config_var "step" "${deployer_config_information}"
@@ -557,8 +559,9 @@ function execute_deployment_steps() {
 
 	if [ 3 -eq "${step}" ]; then
 		if ! migrate_deployer_state; then
+			return_value=$?
 			print_banner "Deployer" "Migration of deployer state failed" "error"
-			return $?
+			return $return_value
 		else
 			step=4
 			save_config_var "step" "${deployer_config_information}"
@@ -566,8 +569,9 @@ function execute_deployment_steps() {
 	fi
 	if [ 4 -eq "${step}" ]; then
 		if ! migrate_library_state; then
+			return_value=$?
 			print_banner "Library" "Migration of library state failed" "error"
-			return $?
+			return $return_value
 		else
 			step=5
 			save_config_var "step" "${deployer_config_information}"
@@ -576,8 +580,9 @@ function execute_deployment_steps() {
 	if [ 5 -eq "${step}" ]; then
 		if [ "${ado_flag}" != "--ado" ]; then
 			if ! copy_files_to_public_deployer; then
+				return_value=$?
 				print_banner "Copy" "Copying files failed" "error"
-				return $?
+				return $return_value
 			else
 				step=3
 				save_config_var "step" "${deployer_config_information}"
@@ -587,6 +592,7 @@ function execute_deployment_steps() {
 		step=3
 		save_config_var "step" "${deployer_config_information}"
 	fi
+	return 0
 }
 
 function deploy_control_plane() {
