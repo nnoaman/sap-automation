@@ -21,10 +21,12 @@ if [ -n "$app_service_id" ]; then
 	print_banner "Web App Preparation" "Setting the output variables" "info"
   echo "##vso[task.setvariable variable=APPSERVICE_NAME;isOutput=true]$app_service_name"
   echo "##vso[task.setvariable variable=HAS_WEBAPP;isOutput=true]true"
+	print_banner "App Service details" "App Service name: $app_service_name" "info" "Has the App service deployed"
 else
   echo "##vso[task.setvariable variable=HAS_WEBAPP;isOutput=true]false"
 	echo "##vso[task.setvariable variable=APPSERVICE_NAME;isOutput=true]$app_service_name"
+	print_banner "App Service details" "App Service name: $app_service_name" "info" "Does not have the App service deployed"
 fi
 
-print_banner "App Service details" "App Service name: $app_service_name" "info"
+
 exit 0
