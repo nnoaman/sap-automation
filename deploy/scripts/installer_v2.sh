@@ -859,7 +859,7 @@ function sdaf_installer() {
 		fi
 	fi
 
-	apply_needed=1
+	# apply_needed=1 - This is already set above line: 736 - 740
 
 	if [ "${TEST_ONLY}" == "True" ]; then
 		print_banner "Installer" "Running plan only. No deployment performed." "info"
