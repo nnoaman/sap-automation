@@ -138,6 +138,15 @@ if [ $USE_MSI != "true" ]; then
 			print_banner "$banner_title - Set secrets" "Set_secrets failed" "error"
 			exit $return_code
 		fi
+	else
+		if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
+			--subscription "$ARM_SUBSCRIPTION_ID" --msi --ado; then
+			return_code=$?
+		else
+			return_code=$?
+			print_banner "$banner_title - Set secrets" "Set_secrets failed" "error"
+			exit $return_code
+		fi
 	fi
 
 fi
