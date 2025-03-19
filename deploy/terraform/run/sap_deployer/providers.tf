@@ -59,7 +59,7 @@ provider "azurerm"                     {
 
                                          subscription_id            = var.subscription_id
                                          client_id                  = try(data.azurerm_key_vault_secret.client_id[0].value, null)
-                                         client_secret              = try(ephemeral.azurerm_key_vault_secret.client_secret, null)
+                                         client_secret              = try(ephemeral.azurerm_key_vault_secret.client_secret[0].value, null)
                                          tenant_id                  = try(ephemeral.azurerm_key_vault_secret.tenant_id[0].value, null)
                                          use_msi                    = var.use_spn ? false : true
                                          alias                      = "main"
