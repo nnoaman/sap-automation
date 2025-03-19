@@ -679,14 +679,14 @@ function deploy_control_plane() {
 
 	if [ "$USE_MSI" != "true" ]; then
 		echo "Identity to use:                     Service Principal"
-		TF_VAR_use_spn="true"
+		TF_VAR_use_spn=true
 		export TF_VAR_use_spn
 		# if ! printenv ARM_USE_OIDC; then
 		# 	set_executing_user_environment_variables "$ARM_CLIENT_SECRET"
 		# fi
 	else
 		echo "Identity to use:                     Managed Identity"
-		TF_VAR_use_spn="false"
+		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 		# set_executing_user_environment_variables "none"
 	fi
