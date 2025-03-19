@@ -391,7 +391,7 @@ data "azurerm_storage_account" "storage_sapbits" {
 
 resource "azurerm_private_endpoint" "storage_sapbits" {
   provider                             = azurerm.main
-  count                                = var.deployer.use && var.use_private_endpoint && !length(var.storage_account_sapbits.arm_id) > 0 ? 1 : 0
+  count                                = var.deployer.use && var.use_private_endpoint && length(var.storage_account_sapbits.arm_id) == 0 ? 1 : 0
   name                                 = format("%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_sap,
                                            local.prefix,
