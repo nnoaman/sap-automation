@@ -557,7 +557,7 @@ function ImportAndReRunApply {
 	local importParameters=$3
 	local applyParameters=$4
 
-	return_value=0
+	import_return_value=0
 
 	if [ -f "$fileName" ]; then
 
@@ -579,11 +579,15 @@ function ImportAndReRunApply {
 					echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
 					# shellcheck disable=SC2086
 					if ! terraform -chdir="${terraform_module_directory}" import $importParameters -no-color "${moduleID}" "${azureResourceID}" | tee -a import_result.txt; then
-						return_value=${PIPESTATUS[0]}
-						echo "Terraform import:                      failed"
-						cat import_result.txt
-					else
-						echo "Terraform import:                      succeeded"
+						import_return_value=${PIPESTATUS[0]}
+						moduleName=$(grep "^module..*.." .import_result.txt | cut -d' ' -f1 | sed 's/.$//')
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleName}"; then
+							if ! terraform -chdir="${terraform_module_directory}" import $importParameters -no-color "${moduleID}" "${azureResourceID}"; then
+								import_return_value=$?
+							else
+								import_return_value=0
+							fi
+						fi
 					fi
 				done
 				# shellcheck disable=SC2086
@@ -595,11 +599,11 @@ function ImportAndReRunApply {
 
 				# shellcheck disable=SC2086
 				if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee -a "$fileName"; then
-					return_value=${PIPESTATUS[0]}
+					import_return_value=${PIPESTATUS[0]}
 				else
-					return_value=${PIPESTATUS[0]}
+					import_return_value=${PIPESTATUS[0]}
 				fi
-				if [ $return_value -eq 1 ]; then
+				if [ $import_return_value -eq 1 ]; then
 					print_banner "Installer" "Errors during the apply phase after importing resources" "error"
 				else
 					# return code 2 is ok
@@ -607,7 +611,7 @@ function ImportAndReRunApply {
 					if [ -f "$fileName" ]; then
 						rm "$fileName"
 					fi
-					return_value=0
+					import_return_value=0
 				fi
 			else
 				print_banner "Installer" "Terraform apply failed" "error"
@@ -616,18 +620,18 @@ function ImportAndReRunApply {
 			if [[ -n $errors_occurred ]]; then
 				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
 				if [[ -n ${existing} ]]; then
-					return_value=0
+					import_return_value=0
 
 				fi
 			fi
 		else
 			print_banner "Installer" "No resources to import" "info"
-			return_value=10
+			import_return_value=10
 		fi
 
 	fi
 
-	return $return_value
+	return $import_return_value
 }
 
 function testIfResourceWouldBeRecreated {
