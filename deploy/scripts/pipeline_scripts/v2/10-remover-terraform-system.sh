@@ -4,14 +4,16 @@
 
 green="\e[1;32m"
 reset="\e[0m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
 
 #External helper functions
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
+banner_title="Remove SAP System"
 
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
@@ -41,7 +43,7 @@ mkdir -p .sap_deployment_automation
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME" ]; then
-	echo -e "$bold_red--- $SAP_SYSTEM_TFVARS_FILENAME was not found ---$reset"
+	print_banner "$banner_title" "$SAP_SYSTEM_TFVARS_FILENAME was not found" "error"
 	echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
 	exit 2
 fi
@@ -57,9 +59,12 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		echo "##vso[task.logissue type=error]az login failed."
 		exit 2
 	fi
+else
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 fi
-
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read deployment details ---$reset"
 dos2unix -q tfvarsFile
@@ -106,21 +111,26 @@ echo "-------------------------------------------------"
 az --version
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	echo "##vso[task.logissue type=error]The 'environment' setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-SID"
+	print_banner "$banner_title" "The environment setting in $SAP_SYSTEM_TFVARS_FILENAME does not match the file name" "error" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-SID"
+
 	exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	echo "##vso[task.logissue type=error]The 'location' setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	print_banner "$banner_title" "The location setting in $SAP_SYSTEM_TFVARS_FILENAME does not match the file name" "error" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-SID"
 	exit 2
 fi
 
 if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	echo "##vso[task.logissue type=error]The 'network_logical_name' setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	print_banner "$banner_title" "The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME does not match the file name" "error" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-SID"
 	exit 2
 fi
 
 if [ "$SID" != "$SID_IN_FILENAME" ]; then
+	print_banner "$banner_title" "The 'sid' setting in $SAP_SYSTEM_TFVARS_FILENAME does not match the file name" "error" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-SID"
 	echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
 	exit 2
 fi
@@ -152,8 +162,6 @@ echo "$val                 $VARIABLE_GROUP_ID"
 echo -e "$green--- Read parameter values ---$reset"
 
 dos2unix -q "${workload_environment_file_name}"
-
-prefix="${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 
 deployer_tfstate_key=$CONTROL_PLANE_NAME-INFRASTRUCTURE.terraform.tfstate
 
@@ -212,13 +220,18 @@ echo "Terraform state file storage account:$terraform_storage_account_name"
 
 echo -e "$green--- Remove the System ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
-	--ado --auto-approve
+	--ado --auto-approve; then
+	return_code=$?
+	print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
+else
+	return_code=$?
+	print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
+fi
 
-return_code=$?
-echo "Return code from deployment:         ${return_code}"
+echo
 if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]Return code from remover $return_code."
 else
