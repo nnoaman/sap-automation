@@ -581,7 +581,9 @@ function ImportAndReRunApply {
 					if ! terraform -chdir="${terraform_module_directory}" import $importParameters -no-color "${moduleID}" "${azureResourceID}" | tee -a import_result.txt; then
 						import_return_value=${PIPESTATUS[0]}
 						moduleName=$(grep "^module..*.." .import_result.txt | cut -d' ' -f1 | sed 's/.$//')
+						echo "Removing state object:           ${moduleName}"
 						if terraform -chdir="${terraform_module_directory}" state rm "${moduleName}"; then
+
 							if ! terraform -chdir="${terraform_module_directory}" import $importParameters -no-color "${moduleID}" "${azureResourceID}"; then
 								import_return_value=$?
 							else
