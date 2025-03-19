@@ -457,7 +457,6 @@ function sdaf_installer() {
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
-
 		return $?
 	fi
 

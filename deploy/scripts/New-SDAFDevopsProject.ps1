@@ -964,6 +964,7 @@ if ($authenticationMethod -eq "Service Principal") {
 
   az role assignment create --assignee $ARM_CLIENT_ID --role "App Configuration Data Owner" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 
+  az role assignment create --assignee $ARM_CLIENT_ID --role "Private DNS Zone Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 
   $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   if ($Control_plane_groupID.Length -eq 0) {
