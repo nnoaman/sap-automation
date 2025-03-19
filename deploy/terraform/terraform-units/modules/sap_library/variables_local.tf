@@ -46,7 +46,6 @@ locals {
   // deployer_users_id = try(local.deployer.users.object_id, [])
 
   // Current service principal
-  service_principal                         = try(var.service_principal, {})
 
   deployer_public_ip_address                = try(var.deployer_tfstate.deployer_public_ip_address, "")
 

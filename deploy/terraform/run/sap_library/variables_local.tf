@@ -46,12 +46,6 @@ locals {
                                            tenant_id       = local.use_spn ? ephemeral.azurerm_key_vault_secret.tenant_id[0].value : null
                                          }
 
-  service_principal                    = {
-                                            subscription_id = local.spn.subscription_id,
-                                            tenant_id       = local.spn.tenant_id,
-                                            object_id       = local.use_spn ? data.azuread_service_principal.sp[0].id : null
-                                          }
-
   account                              = {
                                           subscription_id = local.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
                                           tenant_id       = data.azurerm_client_config.current.tenant_id,

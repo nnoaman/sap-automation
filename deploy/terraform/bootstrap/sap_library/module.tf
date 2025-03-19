@@ -22,7 +22,6 @@ module "sap_library" {
   key_vault                         = local.key_vault
   naming                            = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   place_delete_lock_on_resources    = var.place_delete_lock_on_resources
-  service_principal                 = var.use_deployer ? local.service_principal : local.account
   short_named_endpoints_nics        = var.short_named_endpoints_nics
   state_filename_prefix             = coalesce(var.deployer_prefix, try(data.terraform_remote_state.deployer[0].outputs.control_plane_name,""))
   storage_account_sapbits           = local.storage_account_sapbits

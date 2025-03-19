@@ -74,9 +74,6 @@ variable "deployer_tfstate"           {
                                         description = "terraform.tfstate of deployer"
                                         default     = {}
                                       }
-variable "service_principal"          {
-                                        description = "Current service principal used to authenticate to Azure"
-                                      }
 
 variable "use_private_endpoint"       {
                                         description = "Boolean value indicating if private endpoint should be used for the deployment"
