@@ -52,6 +52,7 @@ if [ $USE_MSI != "true" ]; then
 
 	echo -e "$green--- Validations ---$reset"
 	if [ "$USE_MSI" != "true" ]; then
+		print_banner "$banner_title" "Using Service Principals for deployment" "info"
 
 		if ! printenv ARM_SUBSCRIPTION_ID; then
 			echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
@@ -72,6 +73,8 @@ if [ $USE_MSI != "true" ]; then
 			echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
 			exit 2
 		fi
+	else
+		print_banner "$banner_title" "Using Managed Identities for deployment" "info"
 	fi
 
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
