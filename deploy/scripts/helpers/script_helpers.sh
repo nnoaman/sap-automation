@@ -582,16 +582,13 @@ function ImportAndReRunApply {
 						return_value=${PIPESTATUS[0]}
 						echo "Terraform import:                      failed"
 						cat import_result.txt
-						return $return_value
 					else
 						echo "Terraform import:                      succeeded"
 					fi
 				done
 				# shellcheck disable=SC2086
 				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters; then
-					echo ""
-					echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-					echo ""
+					print_banner "Installer" "Terraform plan failed" "error"
 				fi
 
 				print_banner "Installer" "Re-running Terraform apply after import" "info"
