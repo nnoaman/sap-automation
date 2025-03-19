@@ -63,19 +63,6 @@ stages:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
           - task:                      Bash@3
-            name:                      ParameterValidation
-            displayName:               Parameter Validation
-            inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            env:
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-              SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
-              SYSTEM_TEAMPROJECT:      $(System.TeamProject)
-              ZONE:                    ${{ upper(parameters.workload_zone_name) }}
-          - task:                      Bash@3
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-system.sh"
@@ -85,17 +72,14 @@ stages:
             displayName:               "Remove SAP system"
             env:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
-              ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
-              ARM_OBJECT_ID:                $(ParameterValidation.ARM_OBJECT_ID)
-              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               USE_MSI:                      $(Use_MSI)
+              ARM_USE_MSI:                  true
 
   - stage:                             Remove_SAP_workload_zone
     displayName:                       "Removing the SAP workload zone"
@@ -117,18 +101,6 @@ stages:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
           - task:                      Bash@3
-            name:                      ParameterValidation
-            displayName:               Parameter Validation
-            inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            env:
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-              SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
-              SYSTEM_TEAMPROJECT:      $(System.TeamProject)
-          - task:                      Bash@3
             inputs:
               targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-workload-zone.sh"
@@ -137,14 +109,11 @@ stages:
             displayName:               Remove SAP workload_zone
             env:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
-              ARM_CLIENT_ID:                $(ParameterValidation.ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:            $(ParameterValidation.ARM_CLIENT_SECRET)
-              ARM_OBJECT_ID:                $(ParameterValidation.ARM_OBJECT_ID)
-              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:                $(ParameterValidation.ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
+              ARM_USE_MSI:                  true
