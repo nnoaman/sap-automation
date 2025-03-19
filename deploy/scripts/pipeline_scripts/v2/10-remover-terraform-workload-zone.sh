@@ -214,6 +214,9 @@ echo "Terraform state file storage account:$terraform_storage_account_name"
 
 echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
+
+return_code=10
+
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
 	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
@@ -224,7 +227,7 @@ else
 	return_code=$?
 	print_banner "$banner_title" "The removal of $WORKLOAD_ZONE_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
 fi
-return_code=$?
+
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]Return code from remover $return_code."
