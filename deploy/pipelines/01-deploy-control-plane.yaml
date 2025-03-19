@@ -195,8 +195,6 @@ stages:
               APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
               ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
               AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
-              CLIENT_ID:                      $(ParameterValidation.ARM_CLIENT_ID)
-              CLIENT_SECRET:                  $(ParameterValidation.ARM_CLIENT_SECRET)
               CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:             ${{ parameters.control_plane_name }}
               DEPLOYER_TFSTATE_KEY:           "${{ parameters.control_plane_name }}-INFRASTRUCTURE.terraform.tfstate"
@@ -217,6 +215,7 @@ stages:
               TF_VAR_spn_id:                  $(ParameterValidation.ARM_OBJECT_ID)
               TF_VAR_tf_version:              $(tf_version)
               USE_MSI:                        $(USE_MSI)
+              ARM_USE_MSI:                    true
           - task: Bash@3
             inputs:
               targetType:              'filePath'

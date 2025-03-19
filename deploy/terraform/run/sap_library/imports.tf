@@ -22,28 +22,28 @@ data "terraform_remote_state" "deployer"          {
 data "azurerm_key_vault_secret" "subscription_id" {
                                                     provider     = azurerm.deployer
                                                     count        = var.use_deployer && local.use_spn ? 1 : 0
-                                                    name         = format("%s-subscription-id", upper(local.infrastructure.environment))
+                                                    name         = format("%s-subscription-id", upper(module.sap_namegenerator.naming.prefix.DEPLOYER))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }
 
 data "azurerm_key_vault_secret" "client_id"       {
                                                     provider     = azurerm.deployer
                                                     count        = var.use_deployer && local.use_spn ? 1 : 0
-                                                    name         = format("%s-client-id", upper(local.infrastructure.environment))
+                                                    name         = format("%s-client-id", upper(module.sap_namegenerator.naming.prefix.DEPLOYER))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }
 
 data "azurerm_key_vault_secret" "client_secret"   {
                                                     provider     = azurerm.deployer
                                                     count        = var.use_deployer && local.use_spn ? 1 : 0
-                                                    name         = format("%s-client-secret", upper(local.infrastructure.environment))
+                                                    name         = format("%s-client-secret", upper(module.sap_namegenerator.naming.prefix.DEPLOYER))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }
 
 data "azurerm_key_vault_secret" "tenant_id"       {
                                                     provider     = azurerm.deployer
                                                     count        = var.use_deployer && local.use_spn ? 1 : 0
-                                                    name         = format("%s-tenant-id", upper(local.infrastructure.environment))
+                                                    name         = format("%s-tenant-id", upper(module.sap_namegenerator.naming.prefix.DEPLOYER))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }
 
