@@ -543,6 +543,11 @@ data "azurerm_key_vault_secret" "pwd" {
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
+data "azurerm_key_vault_secret" "public_key_from_vault" {
+  count                                = var.bootstrap ? 0 : 1
+  name                                 = local.private_key_secret_name
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
+}
 
 
 #######################################4#######################################8
