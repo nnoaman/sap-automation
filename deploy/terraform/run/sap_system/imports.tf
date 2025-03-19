@@ -58,7 +58,7 @@ data "azurerm_key_vault_secret" "subscription_id" {
                                        }
 }
 
-ephemeral "azurerm_key_vault_secret" "client_id" {
+data "azurerm_key_vault_secret" "client_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
   key_vault_id                         = try(data.azurerm_app_configuration_key.credentials_vault[0].value, local.spn_key_vault_arm_id)

@@ -13,7 +13,7 @@ data "azurerm_key_vault_secret" "subscription_id" {
                                                     key_vault_id = var.deployer_kv_user_arm_id
                                                   }
 
-ephemeral "azurerm_key_vault_secret" "client_id"       {
+data "azurerm_key_vault_secret" "client_id"       {
                                                     count        = var.use_spn ? 1 : 1
                                                     name         = format("%s-client-id", upper(module.sap_namegenerator.naming.prefix.DEPLOYER))
                                                     key_vault_id = var.deployer_kv_user_arm_id
