@@ -559,7 +559,7 @@ resource "azurerm_role_assignment" "webapp_table" {
 
 resource "azurerm_role_assignment" "webapp_blob_msi" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && length(var.deployer_tfstate.webapp_identity) > 0 && !local.sa_tfstate_exists ? 1 : 0
+  count                                = var.infrastructure.assign_permissions && length(var.deployer_tfstate.deployer_msi_id) > 0 && !local.sa_tfstate_exists ? 1 : 0
   scope                                = azurerm_storage_account.storage_tfstate[0].id
   role_definition_name                 = "Storage Blob Data Owner"
   principal_id                         = var.deployer_tfstate.deployer_msi_id
