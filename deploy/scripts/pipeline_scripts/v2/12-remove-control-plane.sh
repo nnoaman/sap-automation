@@ -15,6 +15,9 @@ grand_parent_directory="$(dirname "$parent_directory")"
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
+banner_title="Remove Control Plane"
 
 DEBUG=False
 
@@ -48,13 +51,13 @@ fi
 echo -e "$green--- File Validations ---$reset"
 
 if [ ! -f "$deployerTFvarsFile" ]; then
-	echo -e "$bold_red--- File ${deployerTFvarsFile} was not found ---$reset"
+	print_banner "$banner_title" "$deployerTFvarsFile was not found" "error"
 	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
 	exit 2
 fi
 
 if [ ! -f "${libraryTFvarsFile}" ]; then
-	echo -e "$bold_red--- File ${libraryTFvarsFile}  was not found ---$reset"
+	print_banner "$banner_title" "$libraryTFvarsFile was not found" "error"
 	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
@@ -95,23 +98,6 @@ if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 fi
 
 echo -e "$green--- Validations ---$reset"
-if [ "$USE_MSI" != "true" ]; then
-
-	if [ -z "$ARM_CLIENT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ -z "$ARM_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ -z "$ARM_TENANT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -122,6 +108,11 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		echo "##vso[task.logissue type=error]az login failed."
 		exit 2
 	fi
+else
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -145,11 +136,12 @@ if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
 	--library_parameter_file "$libraryTFvarsFile" \
 	--ado --auto-approve --keep_agent; then
 	return_code=$?
-	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed."
+  print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed" "success"
+
 	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed."
 else
 	return_code=$?
-	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 1 failed."
+  print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 failed" "error"
 fi
 
 echo "Return code from remove_control_plane_v2: $return_code."
