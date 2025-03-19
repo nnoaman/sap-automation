@@ -561,8 +561,6 @@ function ImportAndReRunApply {
 
 	if [ -f "$fileName" ]; then
 
-	  cat "$fileName"
-
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 
 		if [[ -n $errors_occurred ]]; then
@@ -599,9 +597,8 @@ function ImportAndReRunApply {
 					echo ""
 				fi
 
-				print_banner "Installer" "Re-running Terraform apply" "info"
+				print_banner "Installer" "Re-running Terraform apply after import" "info"
 
-				echo terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters
 				# shellcheck disable=SC2086
 				if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee -a "$fileName"; then
 					return_value=${PIPESTATUS[0]}
@@ -609,10 +606,13 @@ function ImportAndReRunApply {
 					return_value=${PIPESTATUS[0]}
 				fi
 				if [ $return_value -eq 1 ]; then
-					print_banner "Installer" "Errors during the apply phase" "error"
+					print_banner "Installer" "Errors during the apply phase after importing resources" "error"
 				else
 					# return code 2 is ok
 					print_banner "Installer" "Terraform apply succeeded" "success"
+					if [ -f "$fileName" ]; then
+						rm "$fileName"
+					fi
 					return_value=0
 				fi
 			else
@@ -631,9 +631,6 @@ function ImportAndReRunApply {
 			return_value=10
 		fi
 
-		if [ -f "$fileName" ]; then
-			rm "$fileName"
-		fi
 	fi
 
 	return $return_value
