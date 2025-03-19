@@ -232,7 +232,7 @@ locals {
 
   assign_subscription_permissions      = try(var.deployer_assign_subscription_permissions, false)
   app_service                          = {
-                                           use = var.webapp_deployment
+                                           use = var.application_configuration_deployment
                                            app_id = var.app_registration_app_id
                                            client_secret = var.webapp_client_secret
                                          }

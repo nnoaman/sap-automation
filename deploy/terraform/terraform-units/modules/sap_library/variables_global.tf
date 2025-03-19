@@ -96,7 +96,7 @@ variable "enable_purge_control_for_keyvaults" {
                                                 default     = true
                                               }
 
-variable "webapp_deployment"                        {
+variable "application_configuration_deployment"                        {
                                                default = false
                                              }
 
