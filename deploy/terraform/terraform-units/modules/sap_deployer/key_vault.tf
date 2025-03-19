@@ -408,7 +408,7 @@ resource "azurerm_key_vault_secret" "username" {
                                          ]
 
   name                                 = local.username_secret_name
-  value                                = local.username
+  value                                = try(var.authentication.username, "azureadm")
   key_vault_id                         = var.key_vault.exists ? (
                                            var.key_vault.id) : (
                                            azurerm_key_vault.kv_user[0].id
