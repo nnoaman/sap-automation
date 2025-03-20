@@ -37,20 +37,24 @@ function setSecretValue {
 	local secret_name=$3
 	local value=$4
 	local type=$5
-	if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}"; then
-		return_value=$?
-	else
-		return_value=$?
-		if [ 1 = "${return_value}" ]; then
-			az keyvault secret recover --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}"
-			sleep 10
-			az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}"
-			return_value=$?
+	local local_return_code=0
+	current_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2)
+	if [ "${value}" != "${current_value}" ]; then
+		if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}"; then
+			local_return_code=$?
 		else
-			echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
+			local_return_code=$?
+			if [ 1 = "${local_return_code}" ]; then
+				az keyvault secret recover --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}"
+				sleep 10
+				az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}"
+				local_return_code=$?
+			else
+				echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
+			fi
 		fi
 	fi
-	return $return_value
+	return $local_return_code
 
 }
 

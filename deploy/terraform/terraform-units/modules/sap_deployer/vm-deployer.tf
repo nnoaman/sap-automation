@@ -47,6 +47,7 @@ resource "azurerm_public_ip" "deployer" {
                                               ]
                                               create_before_destroy = true
                                         }
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_network_interface" "deployer" {
@@ -88,6 +89,7 @@ resource "azurerm_network_interface" "deployer" {
 
                                                                                   public_ip_address_id          = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : null
                                          }
+  tags                                 = var.infrastructure.tags
 }
 
 // User defined identity for all Deployers, assign contributor to the current subscription
@@ -96,6 +98,7 @@ resource "azurerm_user_assigned_identity" "deployer" {
   name                                 = format("%s%s%s", var.naming.resource_prefixes.msi, local.prefix, var.naming.resource_suffixes.msi)
   resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  tags                                 = var.infrastructure.tags
 }
 
 // User defined identity for all Deployers, assign contributor to the current subscription
@@ -249,7 +252,7 @@ resource "azurerm_virtual_machine_extension" "configure" {
                                              )
                                            }
                                          )
-
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_virtual_machine_extension" "monitoring_extension_deployer_lnx" {
@@ -263,6 +266,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_deployer_lnx"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  tags                                 = var.infrastructure.tags
 }
 
 
@@ -285,4 +289,5 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_deployer_lnx" 
                                               "reportSuccessOnUnsupportedDistro"  = true,
                                             }
                                           )
+  tags                                 = var.infrastructure.tags
 }
