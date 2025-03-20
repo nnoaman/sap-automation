@@ -51,7 +51,7 @@ provider "azurerm"                     {
                                          subscription_id            = var.subscription_id
                                          client_id                  = try(data.azurerm_key_vault_secret.client_id[0].value, null)
                                          client_secret              = try(ephemeral.azurerm_key_vault_secret.client_secret[0].value, null)
-                                         tenant_id                  = try(ephemeral.azurerm_key_vault_secret.tenant_id[0].value, null)
+                                         tenant_id                  = try(data.azurerm_key_vault_secret.tenant_id[0].value, null)
 
                                          alias                      = "main"
 
@@ -76,7 +76,7 @@ provider "azurerm"                     {
                                          alias                      = "dnsmanagement"
                                          client_id                  = try(data.azurerm_key_vault_secret.client_id[0].value, null)
                                          client_secret              = try(ephemeral.azurerm_key_vault_secret.client_secret[0].value, null)
-                                         tenant_id                  = try(ephemeral.azurerm_key_vault_secret.tenant_id[0].value, null)
+                                         tenant_id                  = try(data.azurerm_key_vault_secret.tenant_id[0].value, null)
 
                                          storage_use_azuread        = true
                                          use_msi                    = var.use_spn ? false : true
@@ -87,7 +87,7 @@ provider "azurerm"                     {
                                          subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, var.subscription_id), null)
                                          client_id                  = try(data.azurerm_key_vault_secret.client_id[0].value, null)
                                          client_secret              = try(ephemeral.azurerm_key_vault_secret.client_secret[0].value, null)
-                                         tenant_id                  = try(ephemeral.azurerm_key_vault_secret.tenant_id[0].value, null)
+                                         tenant_id                  = try(data.azurerm_key_vault_secret.tenant_id[0].value, null)
                                          alias                      = "privatelinkdnsmanagement"
 
                                          storage_use_azuread        = true
@@ -97,7 +97,7 @@ provider "azurerm"                     {
 provider "azuread"                     {
                                          client_id                  = local.spn.client_id
                                          client_secret              = try(ephemeral.azurerm_key_vault_secret.client_secret[0].value, null)
-                                         tenant_id                  = try(ephemeral.azurerm_key_vault_secret.tenant_id[0].value, null)
+                                         tenant_id                  = try(data.azurerm_key_vault_secret.tenant_id[0].value, null)
                                        }
 
 terraform                              {
