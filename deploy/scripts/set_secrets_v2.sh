@@ -38,7 +38,7 @@ function setSecretValue {
 	local value=$4
 	local type=$5
 	local local_return_code=0
-	current_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2)
+	current_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv )
 	if [ "${value}" != "${current_value}" ]; then
 		if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}"; then
 			local_return_code=$?
