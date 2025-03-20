@@ -17,7 +17,7 @@ Description:
 */
 
 data "azurerm_client_config" "current" {
-                                         provider                   = azurerm.deployer
+                                         provider                   = azurerm.main
                                        }
 
 provider "azurerm"                     {
@@ -60,6 +60,16 @@ provider "azurerm"                     {
                                        }
 
 
+provider "azurerm"                     {
+                                         features {
+                                                  }
+                                         alias                      = "deployer"
+
+                                         storage_use_azuread        = true
+                                         use_msi                    = true
+                                         subscription_id            = var.subscription_id
+                                         tenant_id                  = try(data.azurerm_key_vault_secret.tenant_id[0].value, null)
+                                       }
 
 provider "azurerm"                     {
                                          features {}
