@@ -532,6 +532,18 @@ ephemeral "azurerm_key_vault_secret" "pwd" {
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
 }
 
+data "azurerm_key_vault_secret" "stored_pk" {
+  count                                = local.enable_key && !var.bootstrap ? (1) : (0)
+  name                                 = local.private_key_secret_name
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
+}
+
+data "azurerm_key_vault_secret" "stored_ppk" {
+  count                                = local.enable_key && !var.bootstrap ? 1 : 0
+  name                                 = local.public_key_secret_name
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.id)
+}
+
 
 #######################################4#######################################8
 #                                                                              #
