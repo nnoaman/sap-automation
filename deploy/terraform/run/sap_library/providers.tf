@@ -60,15 +60,6 @@ provider "azurerm"                     {
                                        }
 
 
-provider "azurerm"                     {
-                                         features {
-                                                  }
-                                         alias                      = "deployer"
-
-                                         storage_use_azuread        = true
-                                         use_msi                    = true
-                                         subscription_id            = var.subscription_id
-                                       }
 
 provider "azurerm"                     {
                                          features {}
