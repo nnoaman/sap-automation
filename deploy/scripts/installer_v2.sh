@@ -711,9 +711,6 @@ function sdaf_installer() {
 		fi
 	fi
 
-	printenv | grep ARM
-	export TF_LOG=DEBUG
-
 	allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
 	if terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log; then

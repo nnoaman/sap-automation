@@ -438,6 +438,28 @@ function migrate_library_state() {
 
 	print_banner "$banner_title" "Migrating the library state..." "info"
 
+	if [ -z "$terraform_storage_account_name" ]; then
+		if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+			TF_VAR_tfstate_resource_id=$tfstate_resource_id
+			export TF_VAR_tfstate_resource_id
+
+			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+		fi
+	fi
+
+	if [ -z "${terraform_storage_account_name}" ]; then
+		export step=2
+		save_config_var "step" "${deployer_config_information}"
+		echo "##vso[task.setprogress value=40;]Progress Indicator"
+		print_banner "$banner_title" "Could not find the SAP Library, please re-run!" "error"
+		exit 11
+	fi
+
+
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
 	cd "${library_dirname}" || exit
 
