@@ -619,6 +619,7 @@ function ImportAndReRunApply {
 				print_banner "Installer" "Terraform apply failed" "error"
 			fi
 			if [ -f "$fileName" ]; then
+				jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} ' "$fileName"
 				errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 				if [[ -n $errors_occurred ]]; then
 					existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
