@@ -448,6 +448,7 @@ function migrate_library_state() {
 			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+			export ARM_SUBSCRIPTION_ID
 		fi
 	fi
 
@@ -463,10 +464,10 @@ function migrate_library_state() {
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
 	cd "${library_dirname}" || exit
 
-	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name} --storage_account_name ${terraform_storage_account_name}  --deployer_tfstate_key ${deployer_tfstate_key} ${autoApproveParameter} ${ado_flag}"
+	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name}"
 	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
-		$ado_flag $autoApproveParameter; then
+		$ado_flag "${autoApproveParameter}"; then
 
 		print_banner "$banner_title" "Migrating the Library state failed." "error"
 		step=4
@@ -593,6 +594,8 @@ function execute_deployment_steps() {
 		if ! migrate_library_state; then
 			return_value=$?
 			print_banner "Library" "Migration of library state failed" "error"
+			step=4
+			save_config_var "step" "${deployer_config_information}"
 			return $return_value
 		else
 			step=5
