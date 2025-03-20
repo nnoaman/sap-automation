@@ -39,19 +39,6 @@ locals {
   spn_key_vault_arm_id                 = try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, "")
 
 
-  spn                                  = {
-                                           subscription_id = local.use_spn ? coalesce(local.SAPLibrary_subscription_id, data.azurerm_key_vault_secret.subscription_id[0].value) : null,
-                                           client_id       = local.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
-                                           client_secret   = local.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value : null,
-                                           tenant_id       = local.use_spn ? ephemeral.azurerm_key_vault_secret.tenant_id[0].value : null
-                                         }
-
-  account                              = {
-                                          subscription_id = local.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
-                                          tenant_id       = data.azurerm_client_config.current.tenant_id,
-                                          object_id       = data.azurerm_client_config.current.object_id
-                                        }
-
   custom_names                         = length(var.name_override_file) > 0 ? (
                                            jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
                                            null

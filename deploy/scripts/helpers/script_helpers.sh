@@ -566,21 +566,15 @@ function ImportAndReRunApply {
 
 		if [[ -n $errors_occurred ]]; then
 			msi_error_count=0
-			msi_errors_temp2=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists.")) | length //0' "$fileName")
-			echo $msi_errors_temp2
 			msi_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists."))' "$fileName")
-			echo $msi_errors_temp
-			if [[ -z ${msi_errors_temp} ]]; then
+			if [[ -n ${msi_errors_temp} ]]; then
 				readarray -t msi_errors < <(echo ${msi_errors_temp} | jq -c '.')
 				msi_error_count=${#msi_errors[@]}
 			fi
 
 			error_count=0
-      errors_temp2=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID")) | length //0' "$fileName")
-			echo $errors_temp2
 			errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
-			echo $errors_temp
-			if [[ -z ${errors_temp} ]]; then
+			if [[ -n ${errors_temp} ]]; then
 				readarray -t errors < <(echo ${errors_temp} | jq -c '.')
 				error_count=${#errors[@]}
 			fi
@@ -588,7 +582,7 @@ function ImportAndReRunApply {
 
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
-			if [[  ${error_count} -gt 0 ]]; then
+			if [[ ${error_count} -gt 0 ]]; then
 
 				for item in "${errors[@]}"; do
 					moduleID=$(jq -c -r '.address ' <<<"$item")
@@ -640,15 +634,15 @@ function ImportAndReRunApply {
 				import_return_value=0
 			fi
 			if [ -f "$fileName" ]; then
-				msi_error_count=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists.")) | length ' "$fileName")
-				error_count=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID")) | length ' "$fileName")
-				print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
 				errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 				if [[ -n $errors_occurred ]]; then
 					existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
 					if [[ -n ${existing} ]]; then
 						import_return_value=0
-
+					fi
+				else
+					if [ -f "$fileName" ]; then
+						rm "$fileName"
 					fi
 				fi
 			fi

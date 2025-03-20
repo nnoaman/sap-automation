@@ -943,6 +943,8 @@ function sdaf_installer() {
 					# shellcheck disable=SC2086
 					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+						else
+							return_value=0
 					fi
 
 					sleep 10

@@ -337,29 +337,39 @@ function install_deployer() {
 			# shellcheck disable=SC2086
 			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 				return_value=$?
+			else
+				return_value=0
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
+				else
+					return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
+				else
+					return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
+				else
+					return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
+				else
+					return_value=0
 				fi
 			fi
 		fi
@@ -371,8 +381,6 @@ function install_deployer() {
 		print_banner "Bootstrap Deployer " "!!! Error when creating the deployer !!!." "error"
 		return $return_value
 	fi
-
-
 
 	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 	if [ -n "${DEPLOYER_KEYVAULT}" ]; then
