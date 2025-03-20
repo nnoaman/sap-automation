@@ -106,22 +106,6 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
                                            "Purge"
                                          ]
 }
-resource "azurerm_role_assignment" "role_assignment_msi" {
-  provider                             = azurerm.main
-  count                                = var.key_vault.enable_rbac_authorization ? 1 : 0
-  scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-  role_definition_name                 = "Key Vault Administrator"
-  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
-}
-
-resource "azurerm_role_assignment" "role_assignment_msi_officer" {
-  provider                             = azurerm.main
-  count                                = var.key_vault.enable_rbac_authorization ? 1 : 0
-  scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-  role_definition_name                 = "Key Vault Secrets Officer"
-  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
-
-}
 
 resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
   provider                             = azurerm.main
@@ -143,15 +127,6 @@ resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
                                          ]
 }
 
-
-resource "azurerm_role_assignment" "role_assignment_system_identity" {
-  provider                             = azurerm.main
-  depends_on                           = [ azurerm_key_vault_secret.pk ]
-  count                                = var.deployer.add_system_assigned_identity && var.key_vault.enable_rbac_authorization ? var.deployer_vm_count : 0
-  scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-  role_definition_name                 = "Key Vault Administrator"
-  principal_id                         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
-}
 
 
 resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
@@ -202,26 +177,6 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
 
 }
 
-resource "azurerm_role_assignment" "role_assignment_additional_users" {
-  provider                             = azurerm.main
-  count                                = !var.key_vault.exists && var.key_vault.enable_rbac_authorization && length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
-                                           length(compact(var.additional_users_to_add_to_keyvault_policies))) : (
-                                           0
-                                         )
-
-  scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-  role_definition_name                 = "Key Vault Secrets Officer"
-  principal_id                         = var.additional_users_to_add_to_keyvault_policies[count.index]
-}
-
-resource "azurerm_role_assignment" "role_assignment_webapp" {
-  provider                             = azurerm.main
-  count                                = !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0
-  scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-  role_definition_name                 = "Key Vault Secrets Officer"
-  principal_id                         = azurerm_windows_web_app.webapp[0].identity[0].principal_id
-
-}
 resource "azurerm_key_vault_access_policy" "webapp" {
   provider                             = azurerm.main
   count                                = !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0

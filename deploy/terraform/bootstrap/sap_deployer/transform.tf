@@ -230,7 +230,7 @@ locals {
                                            ip_tags              = try(var.firewall_public_ip_tags, {})
                                          }
 
-  assign_subscription_permissions      = try(var.deployer_assign_subscription_permissions, false)
+
   app_service                          = {
                                            use = var.app_service_deployment
                                            app_id = var.app_registration_app_id
