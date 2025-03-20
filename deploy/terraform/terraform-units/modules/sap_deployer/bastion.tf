@@ -71,6 +71,7 @@ resource "azurerm_public_ip" "bastion" {
   lifecycle                            {
                                          create_before_destroy = true
                                        }
+  tags                                 = var.infrastructure.tags
 }
 
 # Create the Bastion Host
@@ -101,4 +102,5 @@ resource "azurerm_bastion_host" "bastion" {
                                                                  )
                                          public_ip_address_id = azurerm_public_ip.bastion[0].id
                                        }
+  tags                                 = var.infrastructure.tags
 }

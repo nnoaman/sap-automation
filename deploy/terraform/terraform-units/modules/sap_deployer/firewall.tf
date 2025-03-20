@@ -85,6 +85,7 @@ resource "azurerm_firewall" "firewall" {
   lifecycle                                    {
                                                   create_before_destroy = true
                                                }
+  tags                                 = var.infrastructure.tags
 
 }
 
@@ -106,6 +107,7 @@ resource "azurerm_route_table" "rt" {
                                                  data.azurerm_resource_group.deployer[0].location) : (
                                                  azurerm_resource_group.deployer[0].location
                                                )
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_route" "admin" {

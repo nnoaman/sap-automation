@@ -58,6 +58,7 @@ resource "azurerm_key_vault" "kv_user" {
   lifecycle                        {
                                      ignore_changes = [network_acls]
                                    }
+  tags                                 = var.infrastructure.tags
 
 }
 
@@ -234,6 +235,7 @@ resource "azurerm_key_vault_secret" "subscription" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  tags                                 = var.infrastructure.tags
 }
 
 # ephemeral "azurerm_key_vault_secret" "test" {
@@ -324,6 +326,7 @@ resource "azurerm_key_vault_secret" "ppk" {
                                            null
                                          )
   content_type                         = "secret"
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_key_vault_secret" "pk" {
@@ -346,6 +349,7 @@ resource "azurerm_key_vault_secret" "pk" {
                                            null
                                          )
   content_type                         = "secret"
+  tags                                 = var.infrastructure.tags
 }
 resource "azurerm_key_vault_secret" "username" {
   count                                = (local.enable_key && (length(var.key_vault.username_secret_name) == 0 )) ? (
@@ -374,6 +378,7 @@ resource "azurerm_key_vault_secret" "username" {
                                            null
                                          )
   content_type                         = "configuration"
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_key_vault_secret" "pat" {
@@ -403,6 +408,7 @@ resource "azurerm_key_vault_secret" "pat" {
                                            null
                                          )
   content_type                         = "secret"
+  tags                                 = var.infrastructure.tags
 }
 
 # resource "azurerm_key_vault_secret" "web_pwd" {
@@ -461,6 +467,7 @@ resource "azurerm_key_vault_secret" "pwd" {
                                            null
                                          )
   content_type                         = "secret"
+  tags                                 = var.infrastructure.tags
 }
 
 ephemeral "azurerm_key_vault_secret" "pk" {
@@ -554,6 +561,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                                                private_dns_zone_ids = [data.azurerm_private_dns_zone.vault[0].id]
                                              }
                                    }
+  tags                                 = var.infrastructure.tags
 
 }
 

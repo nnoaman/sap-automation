@@ -46,6 +46,7 @@ resource "azurerm_virtual_network" "vnet_mgmt" {
   location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   address_space                        = [local.vnet_mgmt_addr]
   flow_timeout_in_minutes              = var.infrastructure.vnets.management.flow_timeout_in_minutes
+  tags                                 = var.infrastructure.tags
 }
 
 data "azurerm_virtual_network" "vnet_mgmt" {
@@ -70,7 +71,6 @@ resource "azurerm_subnet" "subnet_mgmt" {
                                              ["Microsoft.Storage", "Microsoft.KeyVault"]
                                            )) : (
                                          null)
-
 
 }
 
@@ -102,7 +102,7 @@ resource "azurerm_storage_account" "deployer" {
     virtual_network_subnet_ids         = var.use_service_endpoint ? [(local.management_subnet_exists) ? local.management_subnet_arm_id : azurerm_subnet.subnet_mgmt[0].id] : null
     bypass                             = ["Metrics", "Logging", "AzureServices"]
   }
-
+  tags                                 = var.infrastructure.tags
 }
 
 data "azurerm_storage_account" "deployer" {
@@ -140,6 +140,7 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
                                              )
 
   allow_virtual_network_access         = true
+
 }
 
 resource "azurerm_virtual_network_peering" "peering_agent_management" {

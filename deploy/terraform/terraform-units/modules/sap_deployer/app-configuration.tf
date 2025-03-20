@@ -21,6 +21,7 @@ resource "azurerm_app_configuration" "app_config" {
                                            azurerm_resource_group.deployer[0].location
                                          )
   sku =                                "standard"
+  tags                                 = var.infrastructure.tags
 }
 
 data "azurerm_app_configuration" "app_config" {
@@ -55,9 +56,10 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
   value                                = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
   content_type                         = "text/plain"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
                                          }
+  )
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -82,9 +84,9 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
   value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
   content_type                         = "text/plain"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
-                                         }
+                                         })
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -109,9 +111,9 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
   value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   content_type                         = "text/id"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
-                                         }
+                                         })
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -136,9 +138,9 @@ resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
   value                                = local.resourcegroup_name
   content_type                         = "text/plain"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
-                                         }
+                                         })
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -162,9 +164,9 @@ resource "azurerm_app_configuration_key" "deployer_subscription_id" {
   value                                = data.azurerm_subscription.primary.subscription_id
   content_type                         = "text/id"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
-                                         }
+                                         })
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -188,9 +190,9 @@ resource "azurerm_app_configuration_key" "web_application_resource_id" {
   value                                = try(azurerm_windows_web_app.webapp[0].id, "")
   content_type                         = "text/id"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
-                                         }
+                                         })
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -214,9 +216,9 @@ resource "azurerm_app_configuration_key" "web_application_identity_id" {
   value                                = try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "")
   content_type                         = "text/id"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
-                                         }
+                                         })
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -241,9 +243,9 @@ resource "azurerm_app_configuration_key" "deployer_msi_id" {
   value                                = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
   content_type                         = "text/id"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
-                                         }
+                                         })
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -300,6 +302,7 @@ resource "azurerm_private_endpoint" "app_config" {
                                                private_dns_zone_ids = [data.azurerm_private_dns_zone.appconfig[0].id]
                                              }
                                    }
+  tags                                 = var.infrastructure.tags
 
 }
 
