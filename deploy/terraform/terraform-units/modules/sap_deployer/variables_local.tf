@@ -173,17 +173,9 @@ locals {
 
   // By default use generated public key. Provide authentication.path_to_public_key and path_to_private_key overrides it
 
-  public_key                           = local.enable_key ? (
-                                           var.bootstrap ?
-                                              try(file(var.authentication.path_to_public_key), tls_private_key.deployer[0].public_key_openssh) :
-                                              data.azurerm_key_vault_secret.stored_pk[0].value ) : (
-                                           null)
+  public_key                           = local.enable_key ? try(file(var.authentication.path_to_public_key), tls_private_key.deployer[0].public_key_openssh) : ( null )
 
-  private_key                          = local.enable_key ? (
-                                           var.bootstrap ?
-                                             try(file(var.authentication.path_to_private_key), tls_private_key.deployer[0].private_key_pem)  :
-                                              data.azurerm_key_vault_secret.stored_ppk[0].value ) : (
-                                           null )
+  private_key                          = local.enable_key ? (try(file(var.authentication.path_to_private_key), tls_private_key.deployer[0].private_key_pem)  ) : ( null )
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
 
