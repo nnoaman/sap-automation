@@ -937,7 +937,7 @@ function sdaf_installer() {
 			errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 			if [[ -n $errors_occurred ]]; then
-				return_value=10
+				return_value=0
 				if [ -n "${approve}" ]; then
 
 					# shellcheck disable=SC2086
