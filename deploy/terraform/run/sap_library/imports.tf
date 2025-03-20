@@ -20,28 +20,24 @@ data "terraform_remote_state" "deployer"          {
                                                   }
 
 data "azurerm_key_vault_secret" "subscription_id" {
-                                                    provider     = azurerm.deployer
                                                     count        = var.use_deployer && local.use_spn ? 1 : 0
                                                     name         = format("%s-subscription-id", upper(data.terraform_remote_state.deployer[0].outputs.control_plane_name))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }
 
 data "azurerm_key_vault_secret" "client_id"       {
-                                                    provider     = azurerm.deployer
                                                     count        = var.use_deployer && local.use_spn ? 1 : 0
                                                     name         = format("%s-client-id", upper(data.terraform_remote_state.deployer[0].outputs.control_plane_name))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }
 
 ephemeral "azurerm_key_vault_secret" "client_secret"   {
-                                                    provider     = azurerm.deployer
                                                     count        = var.use_deployer && local.use_spn ? 1 : 0
                                                     name         = format("%s-client-secret", upper(data.terraform_remote_state.deployer[0].outputs.control_plane_name))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }
 
 ephemeral "azurerm_key_vault_secret" "tenant_id"       {
-                                                    provider     = azurerm.deployer
                                                     count        = var.use_deployer && local.use_spn ? 1 : 0
                                                     name         = format("%s-tenant-id", upper(data.terraform_remote_state.deployer[0].outputs.control_plane_name))
                                                     key_vault_id = local.key_vault.kv_spn_id
