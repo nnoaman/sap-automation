@@ -50,7 +50,7 @@ provider "azurerm"                     {
 
                                                   }
 
-                                         subscription_id            = local.use_spn || var.use_spn ? local.spn.subscription_id : null
+                                         subscription_id            = var.subscription_id
                                          client_id                  = local.use_spn ? local.spn.client_id : null
                                          client_secret              = local.use_spn ? try(ephemeral.azurerm_key_vault_secret.client_secret[0].value, null) : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
@@ -69,18 +69,12 @@ provider "azurerm"                     {
 
                                          storage_use_azuread        = true
                                          use_msi                    = var.use_spn ? false : true
-                                         subscription_id            = var.use_deployer ? (
-                                                                        coalesce(
-                                                                          var.subscription_id,
-                                                                          local.spn.subscription_id)
-                                                                          ) : (
-                                                                        null
-                                                                        )
+                                         subscription_id            = var.subscription_id
                                        }
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id            = try(coalesce(var.management_dns_subscription_id, local.spn.subscription_id), null)
+                                         subscription_id            = try(coalesce(var.management_dns_subscription_id, var.subscription_id), null)
                                          client_id                  = local.use_spn ? local.spn.client_id : null
                                          client_secret              = local.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
@@ -92,7 +86,7 @@ provider "azurerm"                     {
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, local.spn.subscription_id), null)
+                                         subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, var.subscription_id), null)
                                          client_id                  = local.use_spn ? local.spn.client_id : null
                                          client_secret              = local.use_spn ? try(ephemeral.azurerm_key_vault_secret.client_secret[0].value, null) : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
