@@ -241,7 +241,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
-export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
+export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log"
 
 print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
