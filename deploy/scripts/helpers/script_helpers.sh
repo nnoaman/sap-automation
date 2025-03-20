@@ -616,11 +616,15 @@ function ImportAndReRunApply {
 					import_return_value=0
 				fi
 			else
-				print_banner "Installer" "Terraform apply failed" "error"
+				if [ -f "$fileName" ]; then
+					rm "$fileName"
+				fi
+				import_return_value=0
 			fi
 			if [ -f "$fileName" ]; then
-				jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary | select(.summary | contains("The role assignment already exists.")) | length ' "$fileName"
-				jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary | select(.summary | startswith("A resource with the ID")) | length ' "$fileName"
+				msi_error_count=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists.")) | length ' "$fileName")
+				error_count=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID")) | length ' "$fileName")
+				print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
 				errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 				if [[ -n $errors_occurred ]]; then
 					existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
