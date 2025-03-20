@@ -71,7 +71,7 @@ filename_without_prefix=$(echo "$base" | awk -F'.' '{print $1}')
 return_code=0
 
 echo "Extra parameters passed: " $EXTRA_PARAMS
-echo "Check for file: ${filename}"
+echo "Check for file: ${filename_without_prefix}"
 
 command="ansible --version"
 eval $command
