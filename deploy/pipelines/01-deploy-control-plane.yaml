@@ -212,8 +212,8 @@ stages:
               TF_VAR_agent_pool:              $(POOL)
               TF_VAR_ansible_core_version:    $(ansible_core_version)
               TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
-              TF_VAR_spn_id:                  $(ParameterValidation.ARM_OBJECT_ID)
               TF_VAR_tf_version:              $(tf_version)
+              TF_VAR_subscription_id:         $(ARM_SUBSCRIPTION_ID)
               USE_MSI:                        $(USE_MSI)
               ARM_USE_MSI:                    true
           - task: Bash@3
