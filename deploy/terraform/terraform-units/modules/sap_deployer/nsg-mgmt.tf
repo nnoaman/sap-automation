@@ -19,6 +19,7 @@ resource "azurerm_network_security_group" "nsg_mgmt" {
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
+  tags                                 = var.infrastructure.tags
 }
 
 data "azurerm_network_security_group" "nsg_mgmt" {
@@ -69,6 +70,7 @@ resource "azurerm_network_security_rule" "nsr_ssh" {
   destination_port_range               = 22
   source_address_prefixes              = local.management_subnet_nsg_allowed_ips
   destination_address_prefixes         = local.management_subnet_deployed_prefixes
+
 }
 
 // Add RDP network security rule
