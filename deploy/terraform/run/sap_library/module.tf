@@ -9,7 +9,7 @@ module "sap_library" {
   source                            = "../../terraform-units/modules/sap_library"
   providers                         = {
                                        azurerm.main                     = azurerm.main
-                                       azurerm.deployer                 = azurerm.main
+                                       azurerm.deployer                 = azurerm.deployer
                                        azurerm.dnsmanagement            = azurerm.dnsmanagement
                                        azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                      }
