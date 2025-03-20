@@ -182,7 +182,7 @@ locals {
   private_key                          = local.enable_key ? (
                                            var.bootstrap ?
                                              try(file(var.authentication.path_to_private_key), tls_private_key.deployer[0].private_key_pem)  :
-                                              data.azurerm_key_vault_secret.stored_pkk[0].value ) : (
+                                              data.azurerm_key_vault_secret.stored_ppk[0].value ) : (
                                            null )
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
