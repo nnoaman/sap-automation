@@ -78,6 +78,11 @@ if [ -d "logs" ]; then
   changed=1
 fi
 
+if [ -f "SYS/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_CONFIG" ]; then
+	sed -i /"custom_random_id"/d "LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_CONFIG"
+	git add -f "LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_CONFIG"
+	changed=1
+fi
 if [ 1 == $changed ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"
