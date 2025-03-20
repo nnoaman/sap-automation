@@ -62,6 +62,8 @@ if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
 fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$vault_name" --query value --output tsv)
+ANSIBLE_PASSWORD=$password_secret
+export ANSIBLE_PASSWORD
 
 echo "Extra parameters passed: " "$EXTRA_PARAMS"
 
@@ -99,7 +101,7 @@ if [ -f "${filename}" ]; then
 
 	command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  -e 'kv_name=$vault_name' \
             -e @$SAP_PARAMS -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$PARAMETERS_FOLDER' "$EXTRA_PARAMS"  \
-            -e ansible_ssh_pass='${password_secret}' $EXTRA_PARAM_FILE ${filename}"
+            -e ansible_ssh_pass='{{ lookup('env', 'ANSIBLE_PASSWORD') }}' $EXTRA_PARAM_FILE ${filename}"
 
 	eval $command
 	return_code=$?
@@ -110,7 +112,7 @@ fi
 
 command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey   -e 'kv_name=$vault_name'   \
       -e @$SAP_PARAMS -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$PARAMETERS_FOLDER' \
-      -e ansible_ssh_pass='${password_secret}' "$EXTRA_PARAMS" $EXTRA_PARAM_FILE                                  \
+      -e ansible_ssh_pass='{{ lookup('env', 'ANSIBLE_PASSWORD') }}' "$EXTRA_PARAMS" $EXTRA_PARAM_FILE                                  \
        $ANSIBLE_FILE_PATH"
 
 redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS "$EXTRA_PARAMS" $EXTRA_PARAM_FILE $ANSIBLE_FILE_PATH  -e 'kv_name=$vault_name'"
@@ -139,7 +141,7 @@ if [ -f ${filename} ]; then
 
 	command="ansible-playbook -i "$INVENTORY" --private-key $PARAMETERS_FOLDER/sshkey   -e 'kv_name=$vault_name'      \
             -e @$SAP_PARAMS -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$PARAMETERS_FOLDER' \
-            -e ansible_ssh_pass='${password_secret}' ${filename}  "$EXTRA_PARAMS" $EXTRA_PARAM_FILE"
+            -e ansible_ssh_pass='{{ lookup('env', 'ANSIBLE_PASSWORD') }}' ${filename}  "$EXTRA_PARAMS" $EXTRA_PARAM_FILE"
 
 	eval $command
 	return_code=$?
