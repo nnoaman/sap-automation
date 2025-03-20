@@ -565,6 +565,10 @@ function ImportAndReRunApply {
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 
 		if [[ -n $errors_occurred ]]; then
+			msi_error_count=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists.")) | length ' "$fileName")
+			error_count=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID")) | length ' "$fileName")
+			print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
+
 			print_banner "Installer" "Errors during the apply phase" "error"
 
 			# Check for resource that can be imported
