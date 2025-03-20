@@ -319,6 +319,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
   lifecycle {
               ignore_changes = [tags]
             }
+  tags                                 = var.infrastructure.tags
 }
 
 
@@ -445,6 +446,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
   lifecycle {
     ignore_changes = [tags]
   }
+  tags                                 = var.infrastructure.tags
 }
 
 // Creates the storage container inside the storage account for SAP bits

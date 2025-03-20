@@ -21,9 +21,9 @@ resource "azurerm_app_configuration_key" "libraryStateFileName" {
   value                                = format("%s-SAP_LIBRARY.terraform.tfstate",var.naming.prefix.LIBRARY)
   content_type                         = "text/plain"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "SAPLibrary"
-                                         }
+                                         }  )
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -45,9 +45,9 @@ resource "azurerm_app_configuration_key" "terraformRemoteStateStorageAccountId" 
                                                           )
   content_type                         = "text/id"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "SAPLibrary"
-                                         }
+                                         }  )
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -69,9 +69,9 @@ resource "azurerm_app_configuration_key" "SAPLibraryStorageAccountId" {
                                                           )
   content_type                         = "text/id"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "SAPLibrary"
-                                         }
+                                         }  )
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -91,9 +91,9 @@ resource "azurerm_app_configuration_key" "SAPMediaPath" {
                                                              var.storage_account_sapbits.sapbits_blob_container.name)
   content_type                         = "text/plain"
   type                                 = "kv"
-  tags                                 = {
+  tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "SAPLibrary"
-                                         }
+                                         }  )
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -101,7 +101,6 @@ resource "azurerm_app_configuration_key" "SAPMediaPath" {
                 id
               ]
             }
-}
 
 locals {
 

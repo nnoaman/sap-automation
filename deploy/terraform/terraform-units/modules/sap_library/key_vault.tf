@@ -34,6 +34,7 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
                                           time_offset.secret_expiry_date.rfc3339) : (
                                           null
                                         )
+  tags                                 = var.infrastructure.tags
 
 }
 
@@ -59,6 +60,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_key_vault_secret" "sa_connection_string" {
@@ -81,6 +83,7 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_key_vault_secret" "tfstate" {
@@ -100,6 +103,7 @@ resource "azurerm_key_vault_secret" "tfstate" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  tags                                 = var.infrastructure.tags
 }
 
 

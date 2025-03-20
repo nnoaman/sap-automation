@@ -18,6 +18,7 @@ resource "azurerm_private_dns_zone" "dns" {
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
                                          )
+  tags                                 = var.infrastructure.tags
 }
 resource "azurerm_private_dns_zone" "blob" {
   provider                             = azurerm.main
@@ -30,6 +31,7 @@ resource "azurerm_private_dns_zone" "blob" {
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
                                          )
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_private_dns_zone" "table" {
@@ -43,6 +45,7 @@ resource "azurerm_private_dns_zone" "table" {
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
                                          )
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_private_dns_zone" "file" {
@@ -56,6 +59,7 @@ resource "azurerm_private_dns_zone" "file" {
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
                                          )
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_private_dns_zone" "vault" {
@@ -69,6 +73,7 @@ resource "azurerm_private_dns_zone" "vault" {
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
                                          )
+  tags                                 = var.infrastructure.tags
 }
 
 data "azurerm_private_dns_zone" "vault" {
@@ -96,6 +101,7 @@ resource "azurerm_private_dns_zone" "appconfig" {
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
                                          )
+  tags                                 = var.infrastructure.tags
 }
 
 data "azurerm_private_dns_zone" "appconfig" {
