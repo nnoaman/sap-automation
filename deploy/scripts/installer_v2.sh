@@ -460,7 +460,9 @@ function sdaf_installer() {
 		return $?
 	fi
 
-	retrieve_parameters
+	if ! retrieve_parameters; then
+		return $?
+	fi
 
 	parallelism=10
 
@@ -544,16 +546,6 @@ function sdaf_installer() {
 
 	fi
 
-	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --query allowSharedKeyAccess --subscription "${terraform_storage_account_subscription_id}" --out tsv)
-
-	if [ "$useSAS" = "true" ]; then
-		echo "Storage Account Authentication:      Key"
-		export ARM_USE_AZUREAD=false
-	else
-		echo "Storage Account Authentication:      Entra ID"
-		export ARM_USE_AZUREAD=true
-	fi
-
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${deployment_system}"
 	cd "${param_dirname}" || exit
 
@@ -585,6 +577,16 @@ function sdaf_installer() {
 	echo "Current directory:                   $(pwd)"
 	echo "Parallelism count:                   $parallelism"
 	echo ""
+
+	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --resource-group "${terraform_storage_account_resource_group_name}" --subscription "${terraform_storage_account_subscription_id}" --query allowSharedKeyAccess --out tsv)
+
+	if [ "$useSAS" = "true" ]; then
+		echo "Storage Account Authentication:      Key"
+		export ARM_USE_AZUREAD=false
+	else
+		echo "Storage Account Authentication:      Entra ID"
+		export ARM_USE_AZUREAD=true
+	fi
 
 	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_subscription_id
