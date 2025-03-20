@@ -578,7 +578,11 @@ function ImportAndReRunApply {
 				readarray -t errors < <(echo ${errors_temp} | jq -c '.')
 				error_count=${#errors[@]}
 			fi
-			print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
+			if [[ ${error_count} -gt 0 ]]; then
+				print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
+			else
+				print_banner "Installer" "Number of permission errors: $msi_error_count - can safely be ignored" "info"
+			fi
 
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
