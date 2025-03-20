@@ -285,6 +285,8 @@ else
 			changed=1
 		fi
 
+
+
 		if [ -d "logs" ]; then
 			git rm -q -r --ignore-unmatch "logs"
 			changed=1
