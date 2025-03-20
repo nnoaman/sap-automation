@@ -17,7 +17,7 @@ Description:
 */
 
 data "azurerm_client_config" "current" {
-                                         provider                   = azurerm.deployer
+                                         provider                   = azurerm.main
                                        }
 
 provider "azurerm"                     {
