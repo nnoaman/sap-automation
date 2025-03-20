@@ -624,7 +624,7 @@ function sdaf_installer() {
 
 			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-			if ! terraform -chdir="${terraform_module_directory}" init  --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if ! terraform -chdir="${terraform_module_directory}" init -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Installer" "Terraform local init failed" "error"
 				exit $return_value
