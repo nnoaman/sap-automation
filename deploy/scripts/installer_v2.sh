@@ -4,7 +4,7 @@
 
 #colors for terminal
 bold_red="\e[1;31m"
-cyan="\e[1;36m"
+
 reset_formatting="\e[0m"
 
 # Ensure that the exit status of a pipeline command is non-zero if any
@@ -53,7 +53,7 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$path
 fi
 
-function showhelp {
+function show_help {
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -138,7 +138,7 @@ function parse_arguments() {
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
-		showhelp
+		show_help
 		return 1
 	fi
 
@@ -197,7 +197,7 @@ function parse_arguments() {
 			shift
 			;;
 		-h | --help)
-			showhelp
+			show_help
 			return 3
 			;;
 		--)
@@ -307,10 +307,10 @@ function parse_arguments() {
 
 	if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
 		system_config_information="${CONFIG_DIR}/${WORKLOAD_ZONE_NAME}"
-		network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3)
+		# network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3)
 	else
 		system_config_information="${CONFIG_DIR}/${CONTROL_PLANE_NAME}"
-		management_network_logical_name=$(echo $CONTROL_PLANE_NAME | cut -d'-' -f3)
+		# management_network_logical_name=$(echo $CONTROL_PLANE_NAME | cut -d'-' -f3)
 	fi
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	if valid_region_name "${region}"; then

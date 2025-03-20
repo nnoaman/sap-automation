@@ -28,6 +28,9 @@ DEBUG=False
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
 	DEBUG=True
+	TF_LOG=DEBUG
+  export TF_LOG
+
 	echo "Environment variables:"
 	printenv | sort
 
@@ -83,6 +86,8 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 
+	unset ARM_CLIENT_SECRET
+	unset ARM_OBJECT_ID
 
 
 else
