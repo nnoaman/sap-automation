@@ -596,15 +596,14 @@ function ImportAndReRunApply {
 					echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
 					echo ""
 					# shellcheck disable=SC2086
-					if ! terraform -chdir="${terraform_module_directory}" import $importParameters -no-color "${moduleID}" "${azureResourceID}" | tee import_result.txt; then
+					if ! terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
 						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-							if ! terraform -chdir="${terraform_module_directory}" import $importParameters -no-color "${moduleID}" "${azureResourceID}"; then
+							if ! terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
 								import_return_value=$?
 							else
 								import_return_value=0
 							fi
 						fi
-						rm import_result.txt
 
 					fi
 				done

@@ -53,6 +53,8 @@ resource "azurerm_public_ip" "firewall" {
   lifecycle                                  {
                                                 create_before_destroy = true
                                              }
+
+  tags                                       =  var.infrastructure.tags
 }
 
 resource "azurerm_firewall" "firewall" {

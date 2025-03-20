@@ -70,6 +70,7 @@ resource "azurerm_service_plan" "appserviceplan" {
   location                                      = local.rg_appservice_location
   os_type                                       = "Windows"
   sku_name                                      = var.deployer.app_service_SKU
+  tags                                          = var.infrastructure.tags
 }
 
 

@@ -333,7 +333,7 @@ function install_deployer() {
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 		if [[ -n $errors_occurred ]]; then
-			return_value=10
+			return_value=0
 			# shellcheck disable=SC2086
 			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 				return_value=$?
