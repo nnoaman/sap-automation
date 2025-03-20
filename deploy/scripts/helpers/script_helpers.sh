@@ -565,16 +565,27 @@ function ImportAndReRunApply {
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 
 		if [[ -n $errors_occurred ]]; then
-			msi_error_count=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists.")) | length ' "$fileName")
-			error_count=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID")) | length //0' "$fileName")
+			msi_error_count=0
+			msi_errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists."))' "$fileName")
+			if [[ -z ${msi_errors_temp} ]]; then
+				readarray -t msi_errors < <(echo ${msi_errors_temp} | jq -c '.')
+				msi_error_count=${#msi_errors[@]}
+			fi
+
+			error_count=0
+
+			errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
+			if [[ -z ${errors_temp} ]]; then
+				readarray -t errors < <(echo ${errors_temp} | jq -c '.')
+				error_count=${#errors[@]}
+			fi
 			print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
 
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
-			if [[ -n ${existing} ]]; then
+			if [[  ${error_count} -gt 0 ]]; then
 
-				readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-				for item in "${existing_resources[@]}"; do
+				for item in "${errors[@]}"; do
 					moduleID=$(jq -c -r '.address ' <<<"$item")
 					azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
 					echo "Trying to import $azureResourceID into $moduleID"
