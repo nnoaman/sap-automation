@@ -101,7 +101,7 @@ resource "azurerm_app_configuration_key" "SAPMediaPath" {
                 id
               ]
             }
-
+}
 locals {
 
   parsed_id                            = provider::azurerm::parse_resource_id(coalesce(var.deployer.application_configuration_id,var.deployer_tfstate.deployer_app_config_id))
