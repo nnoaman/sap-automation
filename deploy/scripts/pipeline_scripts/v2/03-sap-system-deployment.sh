@@ -194,10 +194,6 @@ export terraform_storage_account_subscription_id
 export tfstate_resource_id
 
 export workload_key_vault
-echo ""
-echo "Variable group name:                 $VARIABLE_GROUP"
-echo "Variable group id:                   $VARIABLE_GROUP_ID"
-echo ""
 
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"

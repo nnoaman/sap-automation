@@ -108,6 +108,19 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
   principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
 }
 
+resource "azurerm_role_assignment" "role_assignment_msi_officer" {
+  provider                             = azurerm.main
+  count                                = var.enable_rbac_authorization_for_keyvault ? 1 : 0
+  scope                                = var.key_vault.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  role_definition_name                 = "Key Vault Secrets Officer"
+  principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
+}
+
+
+
 resource "azurerm_role_assignment" "role_assignment_spn" {
   provider                             = azurerm.main
   count                                = var.enable_rbac_authorization_for_keyvault && var.options.use_spn ? 1 : 0
