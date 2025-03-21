@@ -4,8 +4,6 @@
 
 green="\e[1;32m"
 reset="\e[0m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
 
 #External helper functions
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -14,7 +12,7 @@ parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_NAME
+
 banner_title="Remove SAP Workload Zone"
 
 #call stack has full script name when using source
@@ -35,6 +33,7 @@ export DEBUG
 set -eu
 
 echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $WORKLOAD_ZONE_FOLDERNAME"
+print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
@@ -86,6 +85,16 @@ NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
+echo -e "$green--- Configure devops CLI extension ---$reset"
+az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
+
+if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
+	az extension add --name azure-devops --output none --only-show-errors
+fi
+
+az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
+
+VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
 
 echo "System TFvars:                       $WORKLOAD_ZONE_TFVARS_FILENAME"
 echo "Environment:                         $ENVIRONMENT"
@@ -128,17 +137,6 @@ fi
 
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
-
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
-
-if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
-	az extension add --name azure-devops --output none --only-show-errors
-fi
-
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
-
-VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
 
 echo -e "$green--- Read parameter values ---$reset"
 
@@ -263,7 +261,7 @@ else
 		fi
 
 		echo -e "$green--- Deleting variables ---$reset"
-		if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
+		if [ -n "$VARIABLE_GROUP_ID"  ]; then
 			print_banner "Remove workload zone" "Deleting variables" "info"
 
 			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --out tsv)
@@ -279,4 +277,7 @@ else
 
 	fi
 fi
+
+print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
+
 exit $return_code
