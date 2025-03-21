@@ -11,14 +11,14 @@ data "azurerm_client_config" "current" {
 #                                                                             #
 ###############################################################################
 data "azurerm_key_vault_secret" "sid_pk" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployer
   count                                = local.use_local_credentials ? 0 : 1
   name                                 = var.landscape_tfstate.sid_public_key_secret_name
   key_vault_id                         = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "sid_username" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployer
   count                                = local.use_local_credentials ? 0 : 1
   name                                 = try(
                                            var.landscape_tfstate.sid_username_secret_name,
@@ -28,7 +28,7 @@ data "azurerm_key_vault_secret" "sid_username" {
 }
 
 data "azurerm_key_vault_secret" "sid_password" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployer
   count                                = local.use_local_credentials ? 0 : 1
   name                                 = try(
                                            var.landscape_tfstate.sid_password_secret_name,
