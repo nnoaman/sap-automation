@@ -488,7 +488,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
                                            azurerm_key_vault.kv_user[0].id
                                          )
 
-  tenant_id                            = local.service_principal.tenant_id
+  tenant_id                            = data.azurerm_client_config.current.tenant_id
   object_id                            = var.additional_users_to_add_to_keyvault_policies[count.index]
   secret_permissions                   = [
                                            "Get",
