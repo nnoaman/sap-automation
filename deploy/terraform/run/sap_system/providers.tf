@@ -75,10 +75,10 @@ provider "azurerm"                     {
 
 
 provider "azuread"                     {
-                                         client_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_id : null
-                                         client_secret       = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_secret : null
-                                         tenant_id           = local.spn.tenant_id
-                                         use_msi             = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? false : true
+                                         client_id                  = try(coalesce(data.azurerm_key_vault_secret.cp_client_id[0].value, data.azurerm_key_vault_secret.client_id[0].value), null)
+                                         client_secret              = try(coalesce(ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value, ephemeral.azurerm_key_vault_secret.client_secret[0].value), null)
+                                         tenant_id                  = try(coalesce(data.azurerm_key_vault_secret.cp_tenant_id[0].value, data.azurerm_key_vault_secret.tenant_id[0].value), null)
+                                         use_msi                    = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? false : true
                                        }
 
 terraform                              {

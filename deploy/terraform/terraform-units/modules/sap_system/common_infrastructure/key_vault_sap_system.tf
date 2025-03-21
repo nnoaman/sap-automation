@@ -1,6 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+data "azuread_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
+
 ###############################################################################
 #                                                                             #
 #                Retrieve secrets from workload zone key vault                #
@@ -48,15 +52,15 @@ resource "azurerm_key_vault" "sid_keyvault_user" {
                                            data.azurerm_resource_group.resource_group[0].name) : (
                                            azurerm_resource_group.resource_group[0].name
                                          )
-  tenant_id                            = local.service_principal.tenant_id
+  tenant_id                            = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days           = 7
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
   tags                                 = var.tags
 
   access_policy {
-                  tenant_id = local.service_principal.tenant_id
-                  object_id = local.service_principal.object_id
+                  tenant_id = data.azurerm_client_config.current.tenant_id
+                  object_id = data.azurerm_client_config.current.object_id
 
                   secret_permissions = [
                     "Delete",
