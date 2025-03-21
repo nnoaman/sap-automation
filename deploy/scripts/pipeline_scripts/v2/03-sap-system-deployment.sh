@@ -48,7 +48,7 @@ mkdir -p .sap_deployment_automation
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 if [ ! -f "$CONFIG_REPO_PATH/$tfvarsFile" ]; then
-	echo -e "$bold_red--- $SAP_SYSTEM_TFVARS_FILENAME was not found ---$reset"
+	print_banner "$banner_title" "$SAP_SYSTEM_TFVARS_FILENAME was not found" "error"
 	echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
 	exit 2
 fi
@@ -135,9 +135,11 @@ echo "Workload Zone Environment File:      $workload_environment_file_name"
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 
-az extension add --name azure-devops --output none --only-show-errors
+if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
+	az extension add --name azure-devops --output none --only-show-errors
+fi
 
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none
+az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 
@@ -149,7 +151,7 @@ export VARIABLE_GROUP_ID
 
 printf -v tempval '%s id:' "$VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
-echo "$val                 $VARIABLE_GROUP_ID"
+echo "$val             $VARIABLE_GROUP_ID"
 
 echo -e "$green--- Read parameter values ---$reset"
 
@@ -202,7 +204,6 @@ export tfstate_resource_id
 
 export workload_key_vault
 
-
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
@@ -229,7 +230,6 @@ else
 	echo -e "$bold_red--- Deployment failed ---$reset"
 	echo "##vso[task.logissue type=error]Deployment failed."
 fi
-return_code=$?
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]Return code from installer $return_code."
@@ -239,7 +239,6 @@ set +o errexit
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 cd "$CONFIG_REPO_PATH" || exit
-echo -e "$green--- Pull the latest content from DevOps ---$reset"
 # Pull changes
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
@@ -312,7 +311,7 @@ fi
 
 # file_name=${SID}_inventory.md
 # if [ -f ${SID}_inventory.md ]; then
-#   az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none
+#   az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
 #   # ToDo: Fix this later
 #   # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")

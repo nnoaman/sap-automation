@@ -146,7 +146,7 @@ if ! az extension list --query "[?contains(name, 'azure-devops')]" --output tabl
 	az extension add --name azure-devops --output none --only-show-errors
 fi
 
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project='$SYSTEM_TEAMPROJECT'
+az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project=$SYSTEM_TEAMPROJECTID
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 export VARIABLE_GROUP_ID
@@ -157,7 +157,7 @@ fi
 
 printf -v tempval '%s id:' "$VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
-echo "$val                 $VARIABLE_GROUP_ID"
+echo "$val             $VARIABLE_GROUP_ID"
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id

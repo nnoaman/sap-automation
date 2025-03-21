@@ -199,7 +199,7 @@ fi
 
 printf -v tempval '%s id:' "$VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
-echo "$val                 $VARIABLE_GROUP_ID"
+echo "$val             $VARIABLE_GROUP_ID"
 
 printf -v tempval '%s id:' "$PARENT_VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
