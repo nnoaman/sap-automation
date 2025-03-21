@@ -28,7 +28,7 @@ if printenv APPLICATION_CONFIGURATION_ID; then
 			echo "Running v2 script"
 			echo ""
 			if ! "${script_directory}/v2/$SCRIPT_NAME" "$@"; then
-				return_code$?
+				return_code=$?
 			fi
 		fi
 	else
