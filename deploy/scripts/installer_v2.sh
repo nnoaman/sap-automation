@@ -439,6 +439,21 @@ function persist_files() {
 
 }
 
+function test_for_removal() {
+	local local_return_code=0
+	local file_name=$2
+	local -a helper_scripts=("$@")
+	for resource in "${resources[@]}"; do
+		moduleId=$(echo "$resource" | cut -d'~' -f1)
+		description=$(echo "$resource" | cut -d'~' -f2)
+		if ! testIfResourceWouldBeRecreated "$moduleId" $file_name "$description"; then
+			fatal_errors=1
+			local_return_code=1
+		fi
+	done
+	return $local_return_code
+}
+
 function sdaf_installer() {
 	landscape_tfstate_key=""
 	landscape_tfstate_key_exists=false
@@ -654,7 +669,7 @@ function sdaf_installer() {
 			echo "Terraform state:                     remote"
 			print_banner "Installer" "The system has already been deployed and the state file is in Azure" "info"
 
-			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true ; then
+			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
 				return_value=$?
 				print_banner "Installer" "Terraform init failed." "error"
 				return $return_value
@@ -765,23 +780,44 @@ function sdaf_installer() {
 			save_config_vars "${system_config_information}" \
 				tfstate_resource_id
 		fi
-		# SAP Library
-		if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_account.storage_sapbits" "plan_output.log" "SAP Library Storage Account"; then
+
+		# Define an array resources
+		resources=(
+			"module.sap_library.azurerm_storage_account.storage_sapbits~SAP Library Storage Account"
+			"module.sap_library.azurerm_storage_container.storagecontainer_sapbits~SAP Library Storage Account container"
+			"module.sap_library.azurerm_storage_account.storage_tfstate~Terraform State Storage Account"
+			"module.sap_library.azurerm_storage_container.storagecontainer_sapbits~Terraform State Storage Account container"
+		)
+
+		# Call the function with the array
+		if ! test_for_removal "${resources[@]}" "plan_output.log"; then
 			fatal_errors=1
 		fi
+	fi
 
-		# SAP Library sapbits
-		if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_container.storagecontainer_sapbits" "plan_output.log" "SAP Library Storage Account container"; then
-			fatal_errors=1
-		fi
+	if [ "${deployment_system}" == sap_system ]; then
+		state_path="SYSTEM"
 
-		# Terraform State Library
-		if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_account.storage_tfstate" "plan_output.log" "Terraform State Storage Account"; then
-			fatal_errors=1
-		fi
+		# Define an array resources
+		resources=(
+			"module.hdb_node.azurerm_linux_virtual_machine.vm_dbnode~Database server(s)"
+			"module.hdb_node.azurerm_managed_disk.data_disk~Database server disk(s)"
+			"module.anydb_node.azurerm_windows_virtual_machine.dbserver~Database server(s)"
+			"module.anydb_node.azurerm_linux_virtual_machine.dbserver~Database server(s)"
+			"module.anydb_node.azurerm_managed_disk.disks~Database server disk(s)"
+			"module.app_tier.azurerm_windows_virtual_machine.app~Application server(s)"
+			"module.app_tier.azurerm_linux_virtual_machine.app~Application server(s)"
+			"module.app_tier.azurerm_managed_disk.app~Application server disk(s)"
+			"module.app_tier.azurerm_windows_virtual_machine.scs~SCS server(s)"
+			"module.app_tier.azurerm_linux_virtual_machine.scs~SCS server(s)"
+			"module.app_tier.azurerm_managed_disk.scs~SCS server disk(s)"
+			"module.app_tier.azurerm_windows_virtual_machine.web~Web server(s)"
+			"module.app_tier.azurerm_linux_virtual_machine.web~Web server(s)"
+			"module.app_tier.azurerm_managed_disk.web~Web server disk(s)"
+		)
 
-		# Terraform state container
-		if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_container.storagecontainer_tfstate" "plan_output.log" "Terraform State Storage Account container"; then
+		# Call the function with the array
+		if ! test_for_removal "${resources[@]}" "plan_output.log"; then
 			fatal_errors=1
 		fi
 	fi
@@ -789,69 +825,13 @@ function sdaf_installer() {
 	if [ "${deployment_system}" == sap_landscape ]; then
 		state_path="SYSTEM"
 
-		# HANA VM
-		if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_linux_virtual_machine.vm_dbnode" "plan_output.log" "Database server(s)"; then
-			fatal_errors=1
-		fi
+		# Define an array resources
+		resources=(
+			"module.sap_landscape.azurerm_key_vault.kv_user~Workload zone key vault"
+		)
 
-		# HANA VM disks
-		if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_managed_disk.data_disk" "plan_output.log" "Database server disk(s)"; then
-			fatal_errors=1
-		fi
-
-		# AnyDB server
-		if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_windows_virtual_machine.dbserver" "plan_output.log" "Database server(s)"; then
-			fatal_errors=1
-		fi
-
-		if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_linux_virtual_machine.dbserver" "plan_output.log" "Database server(s)"; then
-			fatal_errors=1
-		fi
-
-		# AnyDB disks
-		if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_managed_disk.disks" "plan_output.log" "Database server disk(s)"; then
-			fatal_errors=1
-		fi
-
-		# App server
-		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.app" "plan_output.log" "Application server(s)"; then
-			fatal_errors=1
-		fi
-
-		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.app" "plan_output.log" "Application server(s)"; then
-			fatal_errors=1
-		fi
-
-		# App server disks
-		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.app" "plan_output.log" "Application server disk(s)"; then
-			fatal_errors=1
-		fi
-
-		# SCS server
-		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.scs" "plan_output.log" "SCS server(s)"; then
-			fatal_errors=1
-		fi
-
-		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.scs" "plan_output.log" "SCS server(s)"; then
-			fatal_errors=1
-		fi
-
-		# SCS server disks
-		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.scs" "plan_output.log" "SCS server disk(s)"; then
-			fatal_errors=1
-		fi
-
-		# Web server
-		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.web" "plan_output.log" "Web server(s)"; then
-			fatal_errors=1
-		fi
-
-		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.web" "plan_output.log" "Web server(s)"; then
-			fatal_errors=1
-		fi
-
-		# Web dispatcher server disks
-		if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "plan_output.log" "Web server disk(s)"; then
+		# Call the function with the array
+		if ! test_for_removal "${resources[@]}" "plan_output.log"; then
 			fatal_errors=1
 		fi
 	fi
@@ -916,7 +896,7 @@ function sdaf_installer() {
 
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters ; then
+			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
 				return_value=$?
 			else
 				return_value=$?
@@ -945,8 +925,8 @@ function sdaf_installer() {
 					# shellcheck disable=SC2086
 					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
-						else
-							return_value=0
+					else
+						return_value=0
 					fi
 
 					sleep 10
@@ -1087,7 +1067,7 @@ function sdaf_installer() {
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	# Only run if script is executed directly, not when sourced
-	if sdaf_installer "$@" ; then
+	if sdaf_installer "$@"; then
 		echo "Script executed successfully."
 		exit 0
 	else

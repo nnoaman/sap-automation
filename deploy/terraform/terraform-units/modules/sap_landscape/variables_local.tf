@@ -113,9 +113,6 @@ locals {
                                                       try(file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, ""))
                                                     )
 
-  // Current service principal
-  service_principal                               = try(var.service_principal, {})
-
   // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of creating new key vaults
 
