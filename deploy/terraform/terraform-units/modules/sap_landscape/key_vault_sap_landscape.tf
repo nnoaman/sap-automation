@@ -137,7 +137,7 @@ resource "azurerm_key_vault_access_policy" "kv_user" {
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
-  tenant_id                            = local.service_principal.tenant_id
+  tenant_id                            = var.deployer_tfstate.deployer_uai.tenant_id
   object_id                            = var.deployer_tfstate.deployer_uai.principal_id
 
   secret_permissions                   = [
