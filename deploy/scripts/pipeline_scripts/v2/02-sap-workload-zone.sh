@@ -257,8 +257,8 @@ if [ 1 == $added ]; then
 	fi
 fi
 
-echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
+	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
 		echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
@@ -266,13 +266,12 @@ if [ 0 = $return_code ]; then
 		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 		echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
-fi
-
-if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"; then
-	echo "Variable APPLICATION_CONFIGURATION_ID was added to the $VARIABLE_GROUP variable group."
-else
-	echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
-	echo "Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"; then
+		echo "Variable APPLICATION_CONFIGURATION_ID was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
+	fi
 fi
 
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
