@@ -127,16 +127,9 @@ if ! az extension list --query "[?contains(name, 'azure-devops')]" --output tabl
 fi
 az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project=$SYSTEM_TEAMPROJECTID
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-export VARIABLE_GROUP_ID
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-	exit 2
-fi
 
-printf -v tempval '%s id:' "$VARIABLE_GROUP"
-printf -v val '%-20s' "${tempval}"
-echo "$val             $VARIABLE_GROUP_ID"
+VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
+export VARIABLE_GROUP_ID
 
 # Set logon variables
 if printenv CP_ARM_CLIENT_ID; then

@@ -75,15 +75,8 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
-echo -e "$green--- Get key_vault name ---$reset"
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
+VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
 export VARIABLE_GROUP_ID
-printf -v val '%-15s' "$(variable_group) id:"
-echo "$val                      $VARIABLE_GROUP_ID"
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-  echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-  exit 2
-fi
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
 

@@ -95,16 +95,9 @@ if [ -n "$POOL" ]; then
 fi
 echo ""
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
 
-printf -v tempval '%s id:' "$VARIABLE_GROUP"
-printf -v val '%-20s' "${tempval}"
-echo "$val             $VARIABLE_GROUP_ID"
+VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
+export VARIABLE_GROUP_ID
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"

@@ -197,13 +197,9 @@ else
 	az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --value "$CONTROL_PLANE_NAME" --output none --only-show-errors
 fi
 
-printf -v tempval '%s id:' "$VARIABLE_GROUP"
-printf -v val '%-20s' "${tempval}"
-echo "$val             $VARIABLE_GROUP_ID"
 
-printf -v tempval '%s id:' "$PARENT_VARIABLE_GROUP"
-printf -v val '%-20s' "${tempval}"
-echo "$val                 $PARENT_VARIABLE_GROUP_ID"
+VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
+export VARIABLE_GROUP_ID
 
 echo -e "$green--- Read parameter values ---$reset"
 

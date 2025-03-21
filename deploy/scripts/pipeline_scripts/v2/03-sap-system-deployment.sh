@@ -141,17 +141,8 @@ fi
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-	exit 2
-fi
+VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
 export VARIABLE_GROUP_ID
-
-printf -v tempval '%s id:' "$VARIABLE_GROUP"
-printf -v val '%-20s' "${tempval}"
-echo "$val             $VARIABLE_GROUP_ID"
 
 echo -e "$green--- Read parameter values ---$reset"
 
@@ -203,6 +194,10 @@ export terraform_storage_account_subscription_id
 export tfstate_resource_id
 
 export workload_key_vault
+echo ""
+echo "Variable group name:                 $VARIABLE_GROUP"
+echo "Variable group id:                   $VARIABLE_GROUP_ID"
+echo ""
 
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
