@@ -53,6 +53,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
   private_dns_zone_name                = var.dns_settings.dns_label
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = true
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
@@ -78,6 +79,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = false
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
@@ -103,6 +105,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = false
+  tags                                 = var.infrastructure.tags
 
 }
 
@@ -130,6 +133,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = false
+  tags                                 = var.infrastructure.tags
 }
 
 
@@ -157,6 +161,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault_agent" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
   virtual_network_id                   = var.dns_settings.additional_network_id
   registration_enabled                 = false
+  tags                                 = var.infrastructure.tags
 }
 
 
@@ -183,5 +188,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob_agent" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
   virtual_network_id                   = var.dns_settings.additional_network_id
   registration_enabled                 = false
+  tags                                 = var.infrastructure.tags
 }
 
