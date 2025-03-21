@@ -16,7 +16,7 @@ grand_parent_directory="$(dirname "$parent_directory")"
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_NAME
+
 banner_title="Remove Control Plane"
 
 DEBUG=False

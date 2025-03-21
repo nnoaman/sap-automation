@@ -6,7 +6,7 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_NAME
+
 
 source "${parent_directory}/deploy_utils.sh"
 set -e

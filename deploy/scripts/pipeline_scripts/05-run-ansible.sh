@@ -15,7 +15,7 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_NAME
+
 banner_title="SAP Configuration and Installation - Ansible"
 
 #call stack has full script name when using source

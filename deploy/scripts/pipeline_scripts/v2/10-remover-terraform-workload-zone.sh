@@ -203,7 +203,7 @@ echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
 echo "Terraform state file storage account:$terraform_storage_account_name"
 
-echo -e "$green--- Deploy the System ---$reset"
+echo -e "$green--- Remove the Workload zone ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
 return_code=10

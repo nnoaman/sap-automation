@@ -15,7 +15,7 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_NAME
+
 
 DEBUG=False
 

@@ -12,7 +12,7 @@ parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_NAME
+
 banner_title="Remove SAP System"
 
 #call stack has full script name when using source

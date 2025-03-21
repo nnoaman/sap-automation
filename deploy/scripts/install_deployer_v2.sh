@@ -29,7 +29,7 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
-readonly SCRIPT_NAME
+
 
 CONFIG_REPO_PATH="${script_directory}/.."
 CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
