@@ -124,6 +124,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	if [ -z "$key_vault_id" ]; then
 		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 	fi
+	az pipelines variable-group variable create --group-id "${PARENT_VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
 else
 	load_config_vars "${environment_file_name}" "keyvault"
 	key_vault="$keyvault"
