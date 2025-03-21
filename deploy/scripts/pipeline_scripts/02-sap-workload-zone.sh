@@ -9,6 +9,7 @@ SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_NAME
 
 source "${parent_directory}/deploy_utils.sh"
+set -e
 
 return_code=0
 
@@ -20,32 +21,24 @@ if printenv APPLICATION_CONFIGURATION_ID; then
 			echo ""
 			echo "Running v1 script"
 			echo ""
-			if ! "${script_directory}/v1/$SCRIPT_NAME" "$@"; then
-				return_code$?
-			fi
+			"${script_directory}/v1/$SCRIPT_NAME"
 		else
 			echo ""
 			echo "Running v2 script"
 			echo ""
-			if ! "${script_directory}/v2/$SCRIPT_NAME" "$@"; then
-				return_code=$?
-			fi
+			"${script_directory}/v2/$SCRIPT_NAME"
 		fi
 	else
 		echo ""
 		echo "Running v1 script"
 		echo ""
-		if ! "${script_directory}/v1/$SCRIPT_NAME" "$@"; then
-			return_code$?
-		fi
+		"${script_directory}/v1/$SCRIPT_NAME"
 	fi
 else
 	echo ""
 	echo "Running v1 script"
 	echo ""
-	if ! "${script_directory}/v1/$SCRIPT_NAME" "$@"; then
-		return_code$?
-	fi
+	"${script_directory}/v1/$SCRIPT_NAME"
 fi
 
 echo "Return code: $return_code"
