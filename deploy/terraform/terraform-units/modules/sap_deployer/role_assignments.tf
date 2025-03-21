@@ -130,6 +130,6 @@ resource "azurerm_role_assignment" "subscription_contributor_msi" {
   count                                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
   provider                             = azurerm.main
   scope                                = data.azurerm_subscription.primary.id
-  role_definition_name                 = "Reader"
+  role_definition_name                 = "Contributor"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }

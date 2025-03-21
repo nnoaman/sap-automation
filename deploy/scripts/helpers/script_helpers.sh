@@ -573,20 +573,23 @@ function ImportAndReRunApply {
 			fi
 
 			error_count=0
-			errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
+			errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} ' "$fileName")
 			if [[ -n ${errors_temp} ]]; then
 				readarray -t errors < <(echo ${errors_temp} | jq -c '.')
 				error_count=${#errors[@]}
 			fi
 			if [[ ${error_count} -gt 0 ]]; then
 				print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
+
 			else
 				print_banner "Installer" "Number of permission errors: $msi_error_count - can safely be ignored" "info"
 			fi
-
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
-			if [[ ${error_count} -gt 0 ]]; then
+
+
+			if [[ -n $existing ]]; then
+				readarray -t errors < <(echo ${existing} | jq -c '.')
 
 				for item in "${errors[@]}"; do
 					moduleID=$(jq -c -r '.address ' <<<"$item")
@@ -639,6 +642,7 @@ function ImportAndReRunApply {
 			if [ -f "$fileName" ]; then
 				errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 				if [[ -n $errors_occurred ]]; then
+				  import_return_value=5
 					existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
 					if [[ -n ${existing} ]]; then
 						import_return_value=0
