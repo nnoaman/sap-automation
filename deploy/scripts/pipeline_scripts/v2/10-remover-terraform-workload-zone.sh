@@ -147,6 +147,8 @@ export deployer_tfstate_key
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
+	application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
+
 	TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 	export TF_VAR_management_subscription_id
 
@@ -163,6 +165,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 else
 	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	load_config_vars "${workload_environment_file_name}" "keyvault"
+	# shellcheck disable=SC2154
 	key_vault="$keyvault"
 	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
