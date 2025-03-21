@@ -24,7 +24,7 @@ resource "azurerm_role_assignment" "blob_msi" {
 
 resource "azurerm_role_assignment" "dns_msi" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && length(var.deployer_tfstate.deployer_msi_id) > 0 && length(var.storage_account_tfstate.arm_id) == 0 ? 1 : 0
+  count                                = var.infrastructure.assign_permissions && length(var.deployer_tfstate.deployer_msi_id) > 0 ? 1 : 0
   scope                                = local.resource_group_exists ? (
                                                  data.azurerm_resource_group.library[0].id) : (
                                                  azurerm_resource_group.library[0].id
@@ -35,7 +35,7 @@ resource "azurerm_role_assignment" "dns_msi" {
 
 resource "azurerm_role_assignment" "resource_group_contributor_msi" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && length(var.deployer_tfstate.deployer_msi_id) > 0 && length(var.storage_account_tfstate.arm_id) == 0 ? 1 : 0
+  count                                = var.infrastructure.assign_permissions && length(var.deployer_tfstate.deployer_msi_id) > 0 ? 1 : 0
   scope                                = local.resource_group_exists ? (
                                                  data.azurerm_resource_group.library[0].id) : (
                                                  azurerm_resource_group.library[0].id
