@@ -65,7 +65,7 @@ password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-na
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
 
-echo "Extra parameters passed: " "$EXTRA_PARAMS"
+echo "Extra parameters passed: $EXTRA_PARAMS"
 
 base=$(basename "$ANSIBLE_FILE_PATH")
 
@@ -80,7 +80,7 @@ eval "${command}"
 
 EXTRA_PARAM_FILE=""
 
-if [ -f "$PARAMETERS_FOLDER"/extra-params.yaml ]; then
+if [ -f "$PARAMETERS_FOLDER/extra-params.yaml" ]; then
 	echo "Extra parameter file passed: $PARAMETERS_FOLDER/extra-params.yaml"
 
 	EXTRA_PARAM_FILE="-e @$PARAMETERS_FOLDER/extra-params.yaml"
@@ -123,7 +123,7 @@ command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey 
 redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS '$EXTRA_PARAMS'      \
 									$EXTRA_PARAM_FILE $ANSIBLE_FILE_PATH  -e 'kv_name=$vault_name'"
 
-echo "##[section]Executing [$redacted_command]..."
+echo "##[section]Executing [$command]..."
 echo "##[group]- output"
 eval "${command}"
 return_code=$?
