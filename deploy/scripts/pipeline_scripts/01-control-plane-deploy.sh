@@ -9,31 +9,38 @@ SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_NAME
 
 source "${parent_directory}/deploy_utils.sh"
+set -e
+
+return_code=0
 
 if printenv APPLICATION_CONFIGURATION_ID; then
 	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
 		resCheck=$(az resource show --ids "$APPLICATION_CONFIGURATION_ID" --query "id" --output tsv)
 		if [ -z "$resCheck" ]; then
+			echo ""
 			echo "Running v1 script"
-			if ! "${script_directory}/v1/$SCRIPT_NAME" "$@"; then
-				exit 1
-			fi
+			echo ""
+			"${script_directory}/v1/$SCRIPT_NAME"
 		else
+			echo ""
 			echo "Running v2 script"
-			if ! "${script_directory}/v2/$SCRIPT_NAME" "$@"; then
-				exit 1
-			fi
+			echo ""
+			"${script_directory}/v2/$SCRIPT_NAME"
 		fi
 	else
+		echo ""
 		echo "Running v1 script"
-		if ! "${script_directory}/v1/$SCRIPT_NAME" "$@"; then
-			exit 1
-		fi
+		echo ""
+		"${script_directory}/v1/$SCRIPT_NAME"
 	fi
 else
+	echo ""
 	echo "Running v1 script"
-	if ! "${script_directory}/v1/$SCRIPT_NAME" "$@"; then
-		exit 1
-	fi
+	echo ""
+	"${script_directory}/v1/$SCRIPT_NAME"
 fi
+
+echo "Return code: $return_code"
+
+exit $return_code
