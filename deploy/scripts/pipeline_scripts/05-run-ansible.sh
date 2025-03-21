@@ -55,6 +55,28 @@ az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 
 set -eu
 
+echo "##[section]Environment variables:"
+echo "AZURE_CLIENT_ID:                $AZURE_CLIENT_ID"
+echo "AZURE_TENANT_ID:                $AZURE_TENANT_ID"
+echo "AZURE_SUBSCRIPTION_ID:          $AZURE_SUBSCRIPTION_ID"
+echo "USE_MSI:                        $USE_MSI"
+echo "ANSIBLE_COLLECTIONS_PATH:       $ANSIBLE_COLLECTIONS_PATH"
+echo "ANSIBLE_PYTHON_INTERPRETER:     $ANSIBLE_PYTHON_INTERPRETER"
+echo "ANSIBLE_DISPLAY_SKIPPED_HOSTS:  $ANSIBLE_DISPLAY_SKIPPED_HOSTS"
+echo "ANSIBLE_HOST_KEY_CHECKING:      $ANSIBLE_HOST_KEY_CHECKING"
+echo "ANSIBLE_FILE_PATH:              $ANSIBLE_FILE_PATH"
+echo "ANSIBLE_CONFIG:                 $ANSIBLE_CONFIG"
+echo "PARAMETERS_FOLDER:              $PARAMETERS_FOLDER"
+echo "EXTRA_PARAMS:                   $EXTRA_PARAMS"
+echo "SAP_PARAMS:                     $SAP_PARAMS"
+echo "INVENTORY:                      $INVENTORY"
+echo "SSH_KEY_NAME:                   $SSH_KEY_NAME"
+echo "VAULT_NAME:                     $VAULT_NAME"
+echo "PASSWORD_KEY_NAME:              $PASSWORD_KEY_NAME"
+echo "USERNAME_KEY_NAME:              $USERNAME_KEY_NAME"
+echo "EXTRA_PARAMS:                   $EXTRA_PARAMS"
+echo "##[endsection]"
+
 if [ ! -f "$PARAMETERS_FOLDER"/sshkey ]; then
 	echo "##[section]Retrieving sshkey..."
 	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$vault_name" --subscription "$control_plane_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
