@@ -35,35 +35,35 @@ locals {
                                            local.SAPLibrary_subscription_id
                                            )
 
-  spn                                  = {
-                                           subscription_id = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value,
-                                           client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
-                                           client_secret   = var.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
-                                           tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
-                                         }
+  # spn                                  = {
+  #                                          subscription_id = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value,
+  #                                          client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
+  #                                          client_secret   = var.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
+  #                                          tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
+  #                                        }
 
-  cp_spn                               = {
-                                           subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id.value, null)
-                                           client_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null,
-                                           client_secret   = var.use_spn ? data.azurerm_key_vault_secret.cp_client_secret[0].value : null,
-                                           tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null
-                                         }
+  # cp_spn                               = {
+  #                                          subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id.value, null)
+  #                                          client_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null,
+  #                                          client_secret   = var.use_spn ? data.azurerm_key_vault_secret.cp_client_secret[0].value : null,
+  #                                          tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null
+  #                                        }
 
-  service_principal                    = {
-                                           subscription_id = local.spn.subscription_id,
-                                           tenant_id       = local.spn.tenant_id,
-                                           object_id       = var.use_spn ? data.azuread_service_principal.sp[0].object_id   : null,
-                                           client_id       = var.use_spn ? data.azuread_service_principal.sp[0].client_id   : null,
-                                           exists          = var.use_spn
-                                         }
+  # service_principal                    = {
+  #                                          subscription_id = local.spn.subscription_id,
+  #                                          tenant_id       = local.spn.tenant_id,
+  #                                          object_id       = var.use_spn ? data.azuread_service_principal.sp[0].object_id   : null,
+  #                                          client_id       = var.use_spn ? data.azuread_service_principal.sp[0].client_id   : null,
+  #                                          exists          = var.use_spn
+  #                                        }
 
-  account                              = {
-                                          subscription_id = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value,
-                                          tenant_id       = data.azurerm_client_config.current.tenant_id,
-                                          object_id       = data.azurerm_client_config.current.object_id,
-                                          client_id       = data.azurerm_client_config.current.client_id ,
-                                          exists          = false
-                                        }
+  # account                              = {
+  #                                         subscription_id = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value,
+  #                                         tenant_id       = data.azurerm_client_config.current.tenant_id,
+  #                                         object_id       = data.azurerm_client_config.current.object_id,
+  #                                         client_id       = data.azurerm_client_config.current.client_id ,
+  #                                         exists          = false
+  #                                       }
 
   custom_names                         = length(var.name_override_file) > 0 ? (
                                            jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))
