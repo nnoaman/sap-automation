@@ -2,7 +2,8 @@
 # Licensed under the MIT License.
 
 data "azuread_client_config" "current" {}
-
+data "azurerm_client_config" "current" {
+}
 
 #######################################4#######################################8
 #                                                                              #
@@ -26,7 +27,7 @@ resource "azurerm_key_vault" "kv_user" {
                                            data.azurerm_resource_group.resource_group[0].name) : (
                                            azurerm_resource_group.resource_group[0].name
                                          )
-  tenant_id                            = local.service_principal.tenant_id
+  tenant_id                            = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days           = var.soft_delete_retention_days
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
@@ -109,24 +110,24 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
   provider                             = azurerm.main
-  count                                = var.enable_rbac_authorization_for_keyvault && local.service_principal.object_id != "" && !var.options.use_spn ? 1 : 0
+  count                                = var.enable_rbac_authorization_for_keyvault && var.options.use_spn ? 1 : 0
   scope                                 = var.key_vault.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
   role_definition_name                 = "Key Vault Administrator"
-  principal_id                         = local.service_principal.object_id
+  principal_id                         = data.azurerm_client_config.current.client_id
 }
 
 resource "azurerm_role_assignment" "role_assignment_spn_officer" {
   provider                             = azurerm.main
-  count                                = var.enable_rbac_authorization_for_keyvault && local.service_principal.object_id != "" && !var.options.use_spn ? 1 : 0
+  count                                = var.enable_rbac_authorization_for_keyvault && var.options.use_spn ? 1 : 0
   scope                                 = var.key_vault.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
   role_definition_name                 = "Key Vault Secrets Officer"
-  principal_id                         = local.service_principal.object_id
+  principal_id                         = data.azurerm_client_config.current.client_id
 }
 
 resource "azurerm_key_vault_access_policy" "kv_user" {
@@ -152,13 +153,13 @@ resource "azurerm_key_vault_access_policy" "kv_user" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_spn" {
   provider                             = azurerm.main
-  count                                = var.service_principal.exists ? 1 : 0
+  count                                = !var.key_vault.exists && !var.enable_rbac_authorization_for_keyvault && var.options.use_spn ? 1 : 0
   key_vault_id                         = var.key_vault.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
-  tenant_id                            = var.service_principal.tenant_id
-  object_id                            = var.service_principal.object_id
+  tenant_id                            = data.azurerm_client_config.current.tenant_id
+  object_id                            = data.azurerm_client_config.current.client_id
 
   secret_permissions                   = [
                                           "Get",
@@ -174,7 +175,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_spn" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   provider                             = azurerm.main
-  count                                = var.key_vault.exists && !var.enable_rbac_authorization_for_keyvault ? (
+  count                                = !var.key_vault.exists && !var.enable_rbac_authorization_for_keyvault ? (
                                            0) : (
                                            length(var.deployer_tfstate) > 0 ? (
                                              length(var.deployer_tfstate.deployer_uai) == 2 ? (

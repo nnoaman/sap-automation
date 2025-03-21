@@ -188,8 +188,6 @@ variable "terraform_template_version"                   { description = "The ver
 
 variable "deployer_tfstate"                             { description = "Deployer remote tfstate file" }
 
-variable "service_principal"                            { description = "Current service principal used to authenticate to Azure" }
-
 variable "naming"                                       { description = "Defines the names for the resources" }
 
 variable "use_deployer"                                 { description = "Use the deployer" }
