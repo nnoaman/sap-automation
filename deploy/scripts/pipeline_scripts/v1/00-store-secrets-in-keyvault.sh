@@ -42,8 +42,6 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the SAP Workload zone defined in $ZONE"
 
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-
 cd "${CONFIG_REPO_PATH}" || exit
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
