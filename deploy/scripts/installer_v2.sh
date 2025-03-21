@@ -40,7 +40,6 @@ else
 	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
 	exit 1
 fi
-readonly CONFIG_DIR
 
 if printenv "TEST_ONLY"; then
 	TEST_ONLY="${TEST_ONLY}"
