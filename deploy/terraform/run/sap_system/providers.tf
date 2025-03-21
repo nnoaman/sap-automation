@@ -23,6 +23,15 @@ provider "azurerm"                     {
                                        }
 
 provider "azurerm"                     {
+                                         features {}
+                                         subscription_id            = coalesce(var.management_subscription_id,var.subscription_id, local.deployer_subscription_id)
+                                         storage_use_azuread        = true
+                                         use_msi                    = true
+                                         alias                      = "deployer"
+                                       }
+
+
+provider "azurerm"                     {
                                          features {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources      = var.prevent_deletion_if_contains_resources

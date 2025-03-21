@@ -54,7 +54,7 @@ module "sap_namegenerator" {
 module "common_infrastructure" {
   source                                        = "../../terraform-units/modules/sap_system/common_infrastructure"
   providers                                     = {
-                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.deployer                 = azurerm.deployer
                                                     azurerm.main                     = azurerm.system
                                                     azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                     azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
