@@ -216,13 +216,13 @@ output "configuration_settings"        {
 
 output "app_id_used"                   {
                                          description = "The App ID used in the deployment"
-                                         value       = local.spn.client_id
+                                         value       = try(data.azurerm_key_vault_secret.client_id[0].value, "")
                                          sensitive   = true
                                        }
 
 output "subscription_id_used"          {
                                          description = "The Subscription ID configured in the key vault"
-                                         value       = local.spn.subscription_id
+                                         value       = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
                                          sensitive   = true
                                        }
 
