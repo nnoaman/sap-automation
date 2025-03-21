@@ -96,10 +96,10 @@ az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTE
 
 VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
 
-echo "System TFvars:                       $WORKLOAD_ZONE_TFVARS_FILENAME"
-echo "Environment:                         $ENVIRONMENT"
+echo "Workload TFvars:                     $WORKLOAD_ZONE_TFVARS_FILENAME"
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
+echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 echo "Network:                             $NETWORK"
 

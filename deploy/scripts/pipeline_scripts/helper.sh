@@ -272,5 +272,5 @@ function get_variable_group_id() {
 	echo "Variable group name:                 $variable_group_name"
 	echo "Variable group id:                   $variable_group_id"
 	echo ""
-
+	echo "$variable_group_id"
 }
