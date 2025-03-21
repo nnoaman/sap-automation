@@ -481,8 +481,6 @@ locals {
                                            try(var.application_tier.authentication.type, "key") == "password"
                                          )
 
-  // Current service principal
-  service_principal                    = try(var.service_principal, {})
 
   ANF_pool_settings                    = var.NFS_provider == "ANF" ? (
                                            try(var.landscape_tfstate.ANF_pool_settings, null)

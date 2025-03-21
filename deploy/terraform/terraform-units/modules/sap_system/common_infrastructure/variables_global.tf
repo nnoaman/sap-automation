@@ -165,15 +165,6 @@ variable "is_single_node_hana"                   {
 
 variable "deployer_tfstate"                      { description = "Deployer remote tfstate file" }
 
-variable "service_principal"                     { description = "Current service principal used to authenticate to Azure" }
-
-/* Comment out code with users.object_id for the time being
-variable "deployer_user" {
-  description = "Details of the users"
-  default     = []
-}
-*/
-
 variable "naming"                                { description = "Defines the names for the resources" }
 
 variable "custom_disk_sizes_filename"            {

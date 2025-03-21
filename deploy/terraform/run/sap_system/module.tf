@@ -88,7 +88,6 @@ module "common_infrastructure" {
   sapmnt_private_endpoint_id                    = var.sapmnt_private_endpoint_id
   sapmnt_volume_size                            = var.sapmnt_volume_size
   scaleset_id                                   = var.scaleset_id
-  service_principal                             = var.use_spn ? local.service_principal : local.account
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
   use_private_endpoint                          = var.use_private_endpoint
