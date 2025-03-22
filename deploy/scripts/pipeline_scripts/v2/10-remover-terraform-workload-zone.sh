@@ -66,6 +66,8 @@ else
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_CLIENT_ID
 fi
+# Print the execution environment details
+print_header
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
@@ -118,14 +120,6 @@ echo "Location(filename):                  $LOCATION_IN_FILENAME"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
 
 echo ""
-
-echo "Agent pool:                          $THIS_AGENT"
-echo "Organization:                        $SYSTEM_COLLECTIONURI"
-echo "Project:                             $SYSTEM_TEAMPROJECT"
-echo ""
-echo "Azure CLI version:"
-echo "-------------------------------------------------"
-az --version
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
 	print_banner "$banner_title" "The 'environment' setting in $SAP_SYSTEM_TFVARS_FILENAME does not match the file name" "error" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"

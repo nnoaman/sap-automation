@@ -28,6 +28,9 @@ fi
 export DEBUG
 set -eu
 
+# Print the execution environment details
+print_header
+
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
 
@@ -100,21 +103,6 @@ echo "Deployer TFvars:                     $DEPLOYER_TFVARS_FILENAME"
 echo "Library Folder:                      $LIBRARY_FOLDERNAME"
 echo "Library TFvars:                      $LIBRARY_TFVARS_FILENAME"
 
-echo ""
-echo "Azure CLI version:"
-echo "-------------------------------------------------"
-az --version
-echo ""
-echo "Terraform version:"
-echo "-------------------------------------------------"
-if [ -f /opt/terraform/bin/terraform ]; then
-	tfPath="/opt/terraform/bin/terraform"
-else
-	tfPath=$(which terraform)
-fi
-
-"${tfPath}" --version
-
 cd "$CONFIG_REPO_PATH" || exit
 
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
@@ -127,7 +115,8 @@ if ! az extension list --query "[?contains(name, 'azure-devops')]" --output tabl
 fi
 az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project=$SYSTEM_TEAMPROJECTID
 
-if (get_variable_group_id "$VARIABLE_GROUP") ;
+GROUP_ID=0
+if get_variable_group_id "$VARIABLE_GROUP" ;
 then
 	VARIABLE_GROUP_ID=$GROUP_ID
 else

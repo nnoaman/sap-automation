@@ -85,21 +85,14 @@ else
 	export ARM_CLIENT_ID
 
 fi
+# Print the execution environment details
+print_header
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo ""
 
-echo "Agent pool:                          $THIS_AGENT"
-echo "Organization:                        $SYSTEM_COLLECTIONURI"
-echo "Project:                             $SYSTEM_TEAMPROJECT"
-echo ""
-echo "Azure CLI version:"
-echo "-------------------------------------------------"
-az --version
-
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
-
 
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
@@ -133,8 +126,9 @@ else
 
 fi
 
+GROUP_ID=0
+if get_variable_group_id "$VARIABLE_GROUP" ;
 
-if (get_variable_group_id "$VARIABLE_GROUP") ;
 then
 	VARIABLE_GROUP_ID=$GROUP_ID
 else

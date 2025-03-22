@@ -77,7 +77,8 @@ az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 
 echo -e "$green--- Get key_vault name ---$reset"
 
-if (get_variable_group_id "$VARIABLE_GROUP") ;
+GROUP_ID=0
+if get_variable_group_id "$VARIABLE_GROUP" ;
 then
 	VARIABLE_GROUP_ID=$GROUP_ID
 else

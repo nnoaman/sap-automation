@@ -275,3 +275,27 @@ function get_variable_group_id() {
 	export GROUP_ID
 	return 0
 }
+
+function print_header() {
+	echo ""
+
+	echo "Agent pool:                          $THIS_AGENT"
+	echo "Organization:                        $SYSTEM_COLLECTIONURI"
+	echo "Project:                             $SYSTEM_TEAMPROJECT"
+	echo ""
+	echo ""
+	echo "Azure CLI version:"
+	echo "-------------------------------------------------"
+	az --version
+	echo ""
+	echo "Terraform version:"
+	echo "-------------------------------------------------"
+	if [ -f /opt/terraform/bin/terraform ]; then
+		tfPath="/opt/terraform/bin/terraform"
+	else
+		tfPath=$(which terraform)
+	fi
+
+	"${tfPath}" --version
+
+}

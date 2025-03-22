@@ -145,15 +145,6 @@ echo "Location(filename):                  $LOCATION_IN_FILENAME"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
 echo "SID(filename):                       $SID_IN_FILENAME"
 
-echo ""
-
-echo "Agent pool:                          $THIS_AGENT"
-echo "Organization:                        $SYSTEM_COLLECTIONURI"
-echo "Project:                             $SYSTEM_TEAMPROJECT"
-echo ""
-echo "Azure CLI version:"
-echo "-------------------------------------------------"
-az --version
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
 	echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
@@ -187,7 +178,8 @@ fi
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
-if (get_variable_group_id "$VARIABLE_GROUP") ;
+GROUP_ID=0
+if get_variable_group_id "$VARIABLE_GROUP" ;
 then
 	VARIABLE_GROUP_ID=$GROUP_ID
 else

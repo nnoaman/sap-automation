@@ -95,7 +95,8 @@ if [ -n "$POOL" ]; then
 fi
 echo ""
 
-if (get_variable_group_id "$VARIABLE_GROUP") ;
+GROUP_ID=0
+if get_variable_group_id "$VARIABLE_GROUP" ;
 then
 	VARIABLE_GROUP_ID=$GROUP_ID
 else

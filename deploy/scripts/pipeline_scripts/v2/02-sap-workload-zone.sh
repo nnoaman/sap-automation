@@ -77,6 +77,8 @@ else
 	export ARM_CLIENT_ID
 
 fi
+# Print the execution environment details
+print_header
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
@@ -94,7 +96,8 @@ NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 
-if (get_variable_group_id "$VARIABLE_GROUP") ;
+GROUP_ID=0
+if get_variable_group_id "$VARIABLE_GROUP" ;
 then
 	VARIABLE_GROUP_ID=$GROUP_ID
 else
@@ -115,16 +118,6 @@ echo "Network:                             $NETWORK"
 echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
 echo "Location(filename):                  $LOCATION_IN_FILENAME"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
-
-echo ""
-
-echo "Agent pool:                          $THIS_AGENT"
-echo "Organization:                        $SYSTEM_COLLECTIONURI"
-echo "Project:                             $SYSTEM_TEAMPROJECT"
-echo ""
-echo "Azure CLI version:"
-echo "-------------------------------------------------"
-az --version
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
 	echo "##vso[task.logissue type=error]The environment setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$ENVIRONMENT' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"

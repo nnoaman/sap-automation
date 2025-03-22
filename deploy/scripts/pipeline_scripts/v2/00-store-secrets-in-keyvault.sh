@@ -75,21 +75,14 @@ else
 	print_banner "$banner_title" "Using Managed Identities for deployment" "info"
 fi
 
+# Print the execution environment details
+print_header
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
-echo ""
-
-echo "Agent pool:                          $THIS_AGENT"
-echo "Organization:                        $SYSTEM_COLLECTIONURI"
-echo "Project:                             $SYSTEM_TEAMPROJECT"
-echo ""
-echo "Azure CLI version:"
-echo "-------------------------------------------------"
-az --version
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
-if (get_variable_group_id "$VARIABLE_GROUP") ;
+GROUP_ID=0
+if get_variable_group_id "$VARIABLE_GROUP" ;
 then
 	VARIABLE_GROUP_ID=$GROUP_ID
 else

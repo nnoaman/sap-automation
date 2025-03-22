@@ -113,7 +113,8 @@ fi
 echo ""
 VARIABLE_GROUP="SDAF-$CONTROL_PLANE_NAME"
 
-if (get_variable_group_id "$VARIABLE_GROUP") ;
+GROUP_ID=0
+if get_variable_group_id "$VARIABLE_GROUP" ;
 then
 	VARIABLE_GROUP_ID=$GROUP_ID
 else
