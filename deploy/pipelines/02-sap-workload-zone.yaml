@@ -94,7 +94,6 @@ stages:
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
-              ARM_USE_MSI:                  true
               ZONE:                         ${{ upper(parameters.workload_zone_name) }}
 
 
@@ -137,5 +136,5 @@ stages:
               TEST_ONLY:                    ${{ parameters.test }}
               TF_IN_AUTOMATION:             true
               TF_LOG:                       $(TF_LOG)
+              TF_VAR_use_spn:               $(Use_MSI)
               USE_MSI:                      $(Use_MSI)
-              ARM_USE_MSI:                  true

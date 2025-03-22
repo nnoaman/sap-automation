@@ -65,5 +65,6 @@ stages:
               TEST_ONLY:                    ${{ parameters.test }}
               TF_IN_AUTOMATION:             true
               TF_LOG:                       $(TF_LOG)
+              TF_VAR_use_spn:               $(Use_MSI)
               USE_MSI:                      $(Use_MSI)
               WORKLOAD_ZONE_NAME:           ${{ parameters.workload_zone_name }}
