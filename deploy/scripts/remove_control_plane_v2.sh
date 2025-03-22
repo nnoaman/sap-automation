@@ -487,18 +487,15 @@ function remove_control_plane() {
 
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	credentialVariable=" -var use_spn=false "
+	use_spn="false"
 	if printenv TF_VAR_use_spn ; then
 		use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
-		if [ "$use_spn" == "true" ]; then
-			credentialVariable=" -var use_spn=true "
-		fi
 	fi
 
 
 	print_banner "Remove Control Plane " "Running Terraform destroy (library)" "info"
 
-	if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" -var use_deployer=false "${approve_parameter}" "${credentialVariable}"; then
+	if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" -var use_deployer=false -var "use_spn=$use_spn" "${credentialVariable}" "${approve_parameter}"; then
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
 	else
@@ -522,14 +519,8 @@ function remove_control_plane() {
 	else
 		print_banner "Remove Control Plane " "Reset Local File" "success"
 
-		STATE_SUBSCRIPTION=''
-		REMOTE_STATE_SA=''
-		REMOTE_STATE_RG=''
 		save_config_vars "${deployer_config_information}" \
-			tfstate_resource_id \
-			REMOTE_STATE_SA \
-			REMOTE_STATE_RG \
-			STATE_SUBSCRIPTION
+			tfstate_resource_id
 
 	fi
 
