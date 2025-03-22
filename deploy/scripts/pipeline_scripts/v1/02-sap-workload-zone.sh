@@ -63,22 +63,22 @@ echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
 	if ! printenv ARM_SUBSCRIPTION_ID; then
-		echo "##vso[task.logissue type=error]Variable WL_ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
 	if ! printenv ARM_CLIENT_ID; then
-		echo "##vso[task.logissue type=error]Variable WL_ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
 	if ! printenv ARM_CLIENT_SECRET; then
-		echo "##vso[task.logissue type=error]Variable WL_ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
 	if ! printenv ARM_TENANT_ID; then
-		echo "##vso[task.logissue type=error]Variable WL_ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
@@ -271,7 +271,7 @@ export tfstate_resource_id
 export workload_key_vault
 
 echo "Deployer state filename:             $deployer_tfstate_key"
-echo "Target subscription                  $WL_ARM_SUBSCRIPTION_ID"
+echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 
 echo "Terraform statefile subscription:    $STATE_SUBSCRIPTION"
 echo "Terraform statefile storage account: $REMOTE_STATE_SA"
@@ -294,11 +294,11 @@ echo -e "$green --- Set secrets ---$reset"
 
 if [ "$USE_MSI" != "true" ]; then
 	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}" --environment "${ENVIRONMENT}" \
-		--region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --spn_id "$WL_ARM_CLIENT_ID" --spn_secret "${WL_ARM_CLIENT_SECRET}" \
-		--tenant_id "$WL_ARM_TENANT_ID" --keyvault_subscription "$STATE_SUBSCRIPTION"
+		--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "${ARM_CLIENT_SECRET}" \
+		--tenant_id "$ARM_TENANT_ID" --keyvault_subscription "$STATE_SUBSCRIPTION"
 else
 	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}" --environment "${ENVIRONMENT}" \
-		--region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION" --msi
+		--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION" --msi
 fi
 secrets_set=$?
 echo "Set Secrets returned: $secrets_set"
@@ -359,7 +359,7 @@ if [ "$USE_MSI" != "true" ]; then
 			fi
 		fi
 	else
-		echo " ##vso[task.logissue type=warning]Service Principal $WL_ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $WL_ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
+		echo " ##vso[task.logissue type=warning]Service Principal $ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
 	fi
 fi
 
@@ -367,13 +367,13 @@ echo -e "$green--- Deploy the workload zone ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
 # Set logon variables
-ARM_CLIENT_ID="$WL_ARM_CLIENT_ID"
+ARM_CLIENT_ID="$ARM_CLIENT_ID"
 export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$WL_ARM_CLIENT_SECRET"
+ARM_CLIENT_SECRET="$ARM_CLIENT_SECRET"
 export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$WL_ARM_TENANT_ID
+ARM_TENANT_ID=$ARM_TENANT_ID
 export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
 export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
@@ -393,7 +393,7 @@ fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
-	--deployer_environment "$CONTROL_PLANE_NAME" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
+	--deployer_environment "$CONTROL_PLANE_NAME" --subscription "$ARM_SUBSCRIPTION_ID" \
 	--deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
 	--state_subscription "${STATE_SUBSCRIPTION}" \
 	--application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
