@@ -29,24 +29,63 @@ fi
 
 export DEBUG
 
+# Check if running on deployer
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "$(tf_version)"
+	configureNonDeployer "$TF_VERSION"
+
+	ARM_CLIENT_ID="$servicePrincipalId"
+	export ARM_CLIENT_ID
+	TF_VAR_spn_id=$ARM_CLIENT_ID
+	export TF_VAR_spn_id
+
+	if printenv servicePrincipalKey; then
+		unset ARM_OIDC_TOKEN
+		ARM_CLIENT_SECRET="$servicePrincipalKey"
+		export ARM_CLIENT_SECRET
+
+	else
+		ARM_OIDC_TOKEN="$idToken"
+		export ARM_OIDC_TOKEN
+		ARM_USE_OIDC=true
+		export ARM_USE_OIDC
+		unset ARM_CLIENT_SECRET
+	fi
+
+	ARM_TENANT_ID="$tenantId"
+	export ARM_TENANT_ID
+
+	ARM_USE_AZUREAD=true
+	export ARM_USE_AZUREAD
+else
+	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export PATH=$PATH:$path
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
+fi
+
 # Print the execution environment details
 print_header
 
 # Configure DevOps
 configure_devops
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
-
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
-
 
 cd "$CONFIG_REPO_PATH" || exit
 
@@ -84,13 +123,7 @@ echo -e "$green--- Information ---$reset"
 
 echo ""
 echo "Control Plane Name:                  ${CONTROL_PLANE_NAME}"
-echo "Agent:                               $THIS_AGENT"
-echo "Organization:                        $SYSTEM_COLLECTIONURI"
-echo "Project:                             $SYSTEM_TEAMPROJECT"
 echo "Environment file:                    $deployer_environment_file_name"
-if [ -n "$POOL" ]; then
-	echo "Deployer Agent Pool:                 $POOL"
-fi
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
@@ -100,36 +133,6 @@ fi
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
 	exit 2
-fi
-
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$TF_VERSION"
-
-	ARM_CLIENT_ID="$servicePrincipalId"
-	export ARM_CLIENT_ID
-	TF_VAR_spn_id=$ARM_CLIENT_ID
-	export TF_VAR_spn_id
-
-	if printenv servicePrincipalKey; then
-		unset ARM_OIDC_TOKEN
-		ARM_CLIENT_SECRET="$servicePrincipalKey"
-		export ARM_CLIENT_SECRET
-
-	else
-		ARM_OIDC_TOKEN="$idToken"
-		export ARM_OIDC_TOKEN
-		ARM_USE_OIDC=true
-		export ARM_USE_OIDC
-		unset ARM_CLIENT_SECRET
-	fi
-
-	ARM_TENANT_ID="$tenantId"
-	export ARM_TENANT_ID
-
-	ARM_USE_AZUREAD=true
-	export ARM_USE_AZUREAD
-
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -207,8 +210,8 @@ if [ 0 == $return_code ]; then
 		changed=1
 	fi
 
-	environment=$(echo $CONTROL_PLANE_NAME | cut -d"-" -f1)
-	region_code=$(echo $CONTROL_PLANE_NAME | cut -d"-" -f2)
+	environment=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
+	region_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
 
 	if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
 		rm ".sap_deployment_automation/${environment}${region_code}"
