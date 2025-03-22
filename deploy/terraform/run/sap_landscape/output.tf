@@ -398,12 +398,8 @@ output "control_plane_spn"                      {
                                                   value       = data.azurerm_key_vault_secret.cp_client_id[0].value
                                                 }
 
-output "this_spn"                      {
+output "this_spn"                               {
                                                   description = "Control plane ID"
                                                   value       = data.azurerm_key_vault_secret.client_id[0].value
                                                 }
 
-output "use_spn"                      {
-                                                  description = "Control plane ID"
-                                                  value       = var.use_spn
-                                                }
