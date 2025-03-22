@@ -223,13 +223,9 @@ echo "Return code from deployment:         ${return_code}"
 
 set +o errexit
 
-echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-# Pull changes
-git pull -q origin "$BUILD_SOURCEBRANCHNAME"
-
+echo -e "$green--- Pushing the changes to the repository ---$reset"
 # Pull changes if there are other deployment jobs
-
-echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 added=0
 

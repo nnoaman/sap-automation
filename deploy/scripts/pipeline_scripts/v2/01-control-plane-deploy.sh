@@ -73,25 +73,8 @@ fi
 terraform_storage_account_name=""
 terraform_storage_account_resource_group_name=$DEPLOYER_FOLDERNAME
 
-if [[ -f /etc/profile.d/deploy_server.sh ]]; then
-	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export PATH=$PATH:$path
-
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
-
-	ARM_TENANT_ID=$(grep -m 1 "export ARM_TENANT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_TENANT_ID
-
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-
-	unset ARM_CLIENT_SECRET
-	unset ARM_OBJECT_ID
-
-
-else
-
+# Check if running on deployer
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
 	echo -e "$green--- az login ---$reset"
 	if ! LogonToAzure false; then
@@ -99,7 +82,22 @@ else
 		echo "##vso[task.logissue type=error]az login failed."
 		exit 2
 	fi
-	return_code=$?
+else
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 
 fi
 # Print the execution environment details
@@ -117,28 +115,22 @@ fi
 export VARIABLE_GROUP_ID
 
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
-if [ -n "$TF_VAR_agent_pat" ]; then
-	echo "Deployer Agent PAT:                  IsDefined"
-fi
-if [ -n "$POOL" ]; then
-	echo "Deployer Agent Pool:                 $POOL"
-fi
 echo ""
 echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
 echo "Deployer TFvars:                     $DEPLOYER_TFVARS_FILENAME"
 echo "Library Folder:                      $LIBRARY_FOLDERNAME"
 echo "Library TFvars:                      $LIBRARY_TFVARS_FILENAME"
 
-
 cd "$CONFIG_REPO_PATH" || exit
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id
+if [ -z "${TF_VAR_ansible_core_version}" ]; then
+	export TF_VAR_ansible_core_version=2.16
+fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
-
-echo -e "$green--- Configuring variables ---$reset"
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
@@ -187,12 +179,6 @@ else
 	storage_account_parameter=
 fi
 
-echo -e "$green--- Validations ---$reset"
-
-if [ -z "${TF_VAR_ansible_core_version}" ]; then
-	export TF_VAR_ansible_core_version=2.16
-fi
-
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 
@@ -206,8 +192,6 @@ if [ -n "${key_vault}" ]; then
 		fi
 	fi
 fi
-
-echo -e "$green--- Control Plane deployment---$reset"
 
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 	# shellcheck disable=SC2001
@@ -245,6 +229,7 @@ if [ "$DEBUG" == True ]; then
   echo "ARM Environment variables:"
 	printenv | grep ARM_
 fi
+echo -e "$green--- Control Plane deployment---$reset"
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
 	--library_parameter_file "${library_configuration_file}" \
@@ -261,7 +246,7 @@ else
 
 fi
 
-echo -e "$green--- Pushing the changes back to the repository ---$reset"
+echo -e "$green--- Pushing the changes to the repository ---$reset"
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
 

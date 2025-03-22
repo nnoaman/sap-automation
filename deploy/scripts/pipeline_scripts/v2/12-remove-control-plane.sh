@@ -29,15 +29,57 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 	printenv | sort
 
 fi
+
+
 export DEBUG
 set -eu
+# Ensure that the exit status of a pipeline command is non-zero if any
+# stage of the pipefile has a non-zero exit status.
+set -o pipefail
+
 echo "##vso[build.updatebuildnumber]Removing the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+
+print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
+
+# Check if running on deployer
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "$(tf_version)"
+	echo -e "$green--- az login ---$reset"
+	if ! LogonToAzure false; then
+		print_banner "$banner_title" "Login to Azure failed" "error"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit 2
+	fi
+else
+	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export PATH=$PATH:$path
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
+fi
 
 # Print the execution environment details
 print_header
 
 # Configure DevOps
 configure_devops
+
+CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
+export "CONTROL_PLANE_NAME"
+
+VARIABLE_GROUP="SDAF-${CONTROL_PLANE_NAME}"
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
@@ -47,21 +89,11 @@ then
 fi
 export VARIABLE_GROUP_ID
 
-# Ensure that the exit status of a pipeline command is non-zero if any
-# stage of the pipefile has a non-zero exit status.
-set -o pipefail
-
 deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
-
-CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
-export "CONTROL_PLANE_NAME"
-
-if [[ -f /etc/profile.d/deploy_server.sh ]]; then
-	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export PATH=$PATH:$path
-fi
+TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
+export TF_VAR_deployer_tfstate_key
 
 echo -e "$green--- File Validations ---$reset"
 
@@ -77,40 +109,15 @@ if [ ! -f "${libraryTFvarsFile}" ]; then
 	exit 2
 fi
 
-TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
-export TF_VAR_deployer_tfstate_key
-
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
-
-# shellcheck disable=SC2005
 
 echo ""
 echo "Control Plane Name:                  ${CONTROL_PLANE_NAME}"
 echo "Environment file:                    $deployer_environment_file_name"
 
-echo -e "$green--- Configure devops CLI extension ---$reset"
-
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
 	exit 2
-fi
-
-echo -e "$green--- Validations ---$reset"
-
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
-	fi
-else
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -212,5 +219,6 @@ if [ 1 == $changed ]; then
 	fi
 
 fi
+print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
 exit $return_code
