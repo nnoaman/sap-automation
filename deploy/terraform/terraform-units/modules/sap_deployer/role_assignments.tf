@@ -1,6 +1,6 @@
 data "azuread_service_principal" "spn" {
   count                                = var.options.use_spn ? 1 : 0
-  client_id                            = data.azuread_service_principal.spn[0].id
+  object_id                            = var.spn.id
 }
 
 
