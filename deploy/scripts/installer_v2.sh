@@ -720,9 +720,18 @@ function sdaf_installer() {
 		fi
 	fi
 
-	printenv | grep TF_VAR
+	# Default to use MSI
+	credentialVariable=" -var use_spn=false "
+	if printenv TF_VAR_use_spn ; then
+		use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
+		if [ "$TF_VAR_use_spn" == "true" ]; then
+			credentialVariable=" -var use_spn=true "
+		fi
+	fi
 
-	allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
+
+
+	allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
 
 	if terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
 		return_value=${PIPESTATUS[0]}
@@ -877,8 +886,8 @@ function sdaf_installer() {
 
 		print_banner "Installer" "Running Terraform apply" "info"
 
-		allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
-		allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
+		allParameters=$(printf " -var-file=%s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}" "${approve} ")
+		allImportParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}" )
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
