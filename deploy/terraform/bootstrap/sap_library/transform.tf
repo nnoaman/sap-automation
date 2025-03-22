@@ -13,6 +13,8 @@ locals {
                                                }
                                            tags               = try(coalesce(var.resourcegroup_tags, var.tags, {}), {})
                                            assign_permissions = var.assign_permissions
+                                           spn_id             = var.spn_id
+
                                          }
   deployer                             = {
                                            use                          = var.use_deployer
