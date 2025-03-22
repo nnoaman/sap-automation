@@ -99,6 +99,7 @@ else
 	exit 2
 fi
 export VARIABLE_GROUP_ID
+echo $VARIABLE_GROUP_ID
 
 if (get_variable_group_id "$PARENT_VARIABLE_GROUP") ;
 then
@@ -109,6 +110,7 @@ else
 	exit 2
 fi
 export PARENT_VARIABLE_GROUP_ID
+echo $PARENT_VARIABLE_GROUP_ID
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
@@ -119,6 +121,7 @@ az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTE
 environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 
 echo $APPLICATION_CONFIGURATION_ID
+az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}"
 az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv
 echo "foo"
 
