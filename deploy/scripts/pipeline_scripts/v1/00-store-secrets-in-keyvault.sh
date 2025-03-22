@@ -122,17 +122,19 @@ environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PL
 APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	print_banner "$banner_title" "Using Application Configuration ID: $APPLICATION_CONFIGURATION_ID" "info"
+	application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
 
-	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
-	if [ -z "$key_vault_id" ]; then
-		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
-	fi
 	WZ_APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 	if [ -z "$WZ_APPLICATION_CONFIGURATION_ID" ]; then
 		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 		az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
 	else
 		az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
+	fi
+
+	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+	if [ -z "$key_vault_id" ]; then
+		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 	fi
 else
 	load_config_vars "${environment_file_name}" "keyvault"
