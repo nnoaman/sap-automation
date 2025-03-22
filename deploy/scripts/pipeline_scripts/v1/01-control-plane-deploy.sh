@@ -29,7 +29,17 @@ export DEBUG
 set -eu
 
 # Print the execution environment details
-print_header
+
+# Configure DevOps
+configure_devops
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
@@ -107,25 +117,6 @@ cd "$CONFIG_REPO_PATH" || exit
 
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
-
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
-if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
-	az extension add --name azure-devops --output none --only-show-errors
-fi
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project=$SYSTEM_TEAMPROJECTID
-
-GROUP_ID=0
-if get_variable_group_id "$VARIABLE_GROUP" ;
-then
-	VARIABLE_GROUP_ID=$GROUP_ID
-else
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
-
 
 # Set logon variables
 if printenv CP_ARM_CLIENT_ID; then

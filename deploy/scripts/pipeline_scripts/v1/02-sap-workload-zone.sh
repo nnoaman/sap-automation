@@ -16,7 +16,6 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-
 banner_title="Deploy Workload Zone"
 
 #call stack has full script name when using source
@@ -39,9 +38,31 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 export DEBUG
 
-set -eu
-
 echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
+
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
+if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
+set -eu
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
@@ -117,9 +138,6 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-# Print the execution environment details
-print_header
-
 echo -e "$green--- Read deployment details ---$reset"
 dos2unix -q tfvarsFile
 
@@ -171,47 +189,12 @@ workload_zone_name="${ENVIRONMENT}-${LOCATION_CODE_IN_FILENAME}-${NETWORK}"
 echo "Workload Zone Name:                  $workload_zone_name"
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$workload_zone_name"
 
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --output none
-
-if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
-	az extension add --name azure-devops --output none --only-show-errors
-fi
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
-
-PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
-
-if [ -z "${PARENT_VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP could not be found."
-	exit 2
-fi
-export PARENT_VARIABLE_GROUP_ID
-
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
-
 az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value")
 if [ -z "${az_var}" ]; then
 	az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --value "$CONTROL_PLANE_NAME" --output none --only-show-errors
 else
 	az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --value "$CONTROL_PLANE_NAME" --output none --only-show-errors
 fi
-
-GROUP_ID=0
-if get_variable_group_id "$VARIABLE_GROUP" ;
-then
-	VARIABLE_GROUP_ID=$GROUP_ID
-else
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
 
 echo -e "$green--- Read parameter values ---$reset"
 

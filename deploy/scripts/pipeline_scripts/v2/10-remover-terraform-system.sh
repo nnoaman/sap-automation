@@ -69,6 +69,17 @@ fi
 # Print the execution environment details
 print_header
 
+# Configure DevOps
+configure_devops
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
 echo -e "$green--- Read deployment details ---$reset"
 dos2unix -q tfvarsFile
 
@@ -131,27 +142,6 @@ fi
 
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
-
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
-
-if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
-	az extension add --name azure-devops --output none --only-show-errors
-fi
-
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
-
-GROUP_ID=0
-if get_variable_group_id "$VARIABLE_GROUP" ;
-then
-	VARIABLE_GROUP_ID=$GROUP_ID
-else
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
-
 
 echo -e "$green--- Read parameter values ---$reset"
 

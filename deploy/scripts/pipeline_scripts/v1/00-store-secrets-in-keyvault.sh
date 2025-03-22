@@ -14,7 +14,6 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-
 banner_title="Set Workload Zone Secrets"
 
 #call stack has full script name when using source
@@ -89,32 +88,28 @@ else
 fi
 # Print the execution environment details
 print_header
-GROUP_ID=0
-if get_variable_group_id "$VARIABLE_GROUP" ;
-then
-	VARIABLE_GROUP_ID=$GROUP_ID
-else
-	print_banner "$banner_title" "Variable group $VARIABLE_GROUP not found" "error"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-echo "this"
-export VARIABLE_GROUP_ID
-echo $VARIABLE_GROUP_ID
-echo $VARIABLE_GROUP
 
-if (get_variable_group_id "$PARENT_VARIABLE_GROUP") ;
-then
-	PARENT_VARIABLE_GROUP_ID=$GROUP_ID
+# Configure DevOps
+configure_devops
+
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
+if [ -z "${VARIABLE_GROUP_ID}" ]; then
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
+	exit 2
 else
+	echo "Variable group name:                 $VARIABLE_GROUP"
+	echo "Variable group id:                   $VARIABLE_GROUP_ID"
+fi
+
+PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
+if [ -z "${PARENT_VARIABLE_GROUP_ID}" ]; then
 	print_banner "$banner_title" "Variable group $PARENT_VARIABLE_GROUP not found" "error"
 	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 	exit 2
+else
+	echo "Parent variable group name:         $PARENT_VARIABLE_GROUP"
+	echo "Parent variable group id:           $PARENT_VARIABLE_GROUP_ID"
 fi
-echo "parent"
-export PARENT_VARIABLE_GROUP_ID
-echo $PARENT_VARIABLE_GROUP_ID
-echo $PARENT_VARIABLE_GROUP
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
@@ -124,14 +119,9 @@ az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTE
 
 environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 
-echo $APPLICATION_CONFIGURATION_ID
-az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}"
-az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv
-echo "foo"
-
 APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-  print_banner "$banner_title" "Using Application Configuration ID: $APPLICATION_CONFIGURATION_ID" "info"
+	print_banner "$banner_title" "Using Application Configuration ID: $APPLICATION_CONFIGURATION_ID" "info"
 
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$key_vault_id" ]; then
@@ -139,7 +129,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	fi
 	WZ_APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 	if [ -z "$WZ_APPLICATION_CONFIGURATION_ID" ]; then
-	echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 		az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
 	else
 		az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none

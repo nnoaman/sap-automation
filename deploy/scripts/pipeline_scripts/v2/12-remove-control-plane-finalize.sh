@@ -28,19 +28,24 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 
 export DEBUG
+
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
-
-function remove_variable()
-{
-	local variable_name="$2"
-	local variable_group"$1"
-	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group}" --query "$variable_name.value" --out tsv)
-	if [ ${#variable_value} != 0 ]; then
-		az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors
-	fi
-}
 
 
 cd "$CONFIG_REPO_PATH" || exit
@@ -87,23 +92,9 @@ if [ -n "$POOL" ]; then
 	echo "Deployer Agent Pool:                 $POOL"
 fi
 
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
-if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
-	az extension add --name azure-devops --output none --only-show-errors
-fi
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
-
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
-fi
-
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
-
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP could not be found."
-	exit 2
 fi
 
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then

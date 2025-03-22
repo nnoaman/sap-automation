@@ -38,6 +38,21 @@ fi
 export DEBUG
 set -eu
 
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
+VARIABLE_GROUP="SDAF-$CONTROL_PLANE_NAME"
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 step=0
@@ -81,13 +96,6 @@ fi
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
-if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
-	az extension add --name azure-devops --output none --only-show-errors
-fi
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
-
 echo -e "$green--- File Validations ---$reset"
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File "$deployer_tfvars_file_name" was not found ---$reset"
@@ -99,30 +107,6 @@ if [ ! -f $library_tfvars_file_name ]; then
 	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
-
-echo ""
-echo "Agent:                               $THIS_AGENT"
-echo "Organization:                        $SYSTEM_COLLECTIONURI"
-echo "Project:                             $SYSTEM_TEAMPROJECT"
-if [ -n "$TF_VAR_agent_pat" ]; then
-	echo "Deployer Agent PAT:                  IsDefined"
-fi
-if [ -n "$POOL" ]; then
-	echo "Deployer Agent Pool:                 $POOL"
-fi
-echo ""
-VARIABLE_GROUP="SDAF-$CONTROL_PLANE_NAME"
-
-GROUP_ID=0
-if get_variable_group_id "$VARIABLE_GROUP" ;
-then
-	VARIABLE_GROUP_ID=$GROUP_ID
-else
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
 
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"

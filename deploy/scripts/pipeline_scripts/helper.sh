@@ -261,6 +261,8 @@ function get_region_from_code() {
 function get_variable_group_id() {
 	local variable_group_name="$1"
 	local variable_group_id
+	var_name="$2"
+
 	unset GROUP_ID
 	variable_group_id=$(az pipelines variable-group list --query "[?name=='$variable_group_name'].id | [0]" --output tsv)
 	if [ -z "$variable_group_id" ]; then
@@ -271,8 +273,10 @@ function get_variable_group_id() {
 	echo "Variable group name:                 $variable_group_name"
 	echo "Variable group id:                   $variable_group_id"
 	echo ""
-	GROUP_ID=$variable_group_id
-	export GROUP_ID
+
+	typeset -g "${var_name}" # declare the specified variable as global
+
+	eval "${var_name}=${variable_group_id}" # set the variable in global context
 	return 0
 }
 
@@ -283,6 +287,12 @@ function print_header() {
 	echo "Organization:                        $SYSTEM_COLLECTIONURI"
 	echo "Project:                             $SYSTEM_TEAMPROJECT"
 	echo ""
+	if [ -n "$TF_VAR_agent_pat" ]; then
+		echo "Deployer Agent PAT:                  IsDefined"
+	fi
+	if [ -n "$POOL" ]; then
+		echo "Deployer Agent Pool:                 $POOL"
+	fi
 	echo ""
 	echo "Azure CLI version:"
 	echo "-------------------------------------------------"
@@ -298,4 +308,24 @@ function print_header() {
 
 	"${tfPath}" --version
 
+}
+
+function configure_devops() {
+	echo -e "$green--- Configure devops CLI extension ---$reset"
+	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
+
+	if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
+		az extension add --name azure-devops --output none --only-show-errors
+	fi
+
+	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
+}
+
+function remove_variable() {
+	local variable_name="$2"
+	local variable_group"$1"
+	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group}" --query "$variable_name.value" --out tsv)
+	if [ ${#variable_value} != 0 ]; then
+		az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors
+	fi
 }

@@ -5,7 +5,6 @@
 green="\e[1;32m"
 reset="\e[0m"
 echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors --output none
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
@@ -13,16 +12,14 @@ if [ "$SYSTEM_DEBUG" = True ]; then
   export debug
 fi
 
-ENVIRONMENT=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-echo "Environment:                           $ENVIRONMENT"
+# Print the execution environment details
+print_header
 
-LOCATION=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-echo "Location:                              $LOCATION"
-
-NETWORK=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-echo "Network:                               $NETWORK"
+# Configure DevOps
+configure_devops
 
 SID=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $4}' | xargs)
+echo "System:                                $SAP_SYSTEM_FOLDERNAME"
 echo "SID:                                   $SID"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit

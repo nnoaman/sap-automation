@@ -4,8 +4,6 @@
 
 green="\e[1;32m"
 reset="\e[0m"
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors --output none
 
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
@@ -23,7 +21,18 @@ fi
 
 export AZURE_DEVOPS_EXT_PAT
 
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
 
 return_code=0
 
@@ -77,51 +86,24 @@ if [ 1 == $changed ]; then
 		return_code=1
 	fi
 fi
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt
-
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-
-prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
-
-echo "Variable Group:                        $VARIABLE_GROUP_ID"
 
 if [ -n "$VARIABLE_GROUP_ID" ]; then
 	echo "Deleting variables"
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Account_Name.value")
-	if [ -n "${az_var}" ]; then
-		az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
-	fi
 
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Subscription.value")
-	if [ -n "${az_var}" ]; then
-		az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Subscription --yes --only-show-errors >/dev/null 2>&1
-	fi
+	remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
+	remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
+	remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
+	remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
+	remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
+	remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
+	remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
+	remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
+	remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
+	remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
+	remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
+	remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
+	remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
 
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Deployer_State_FileName.value")
-	if [ -n "${az_var}" ]; then
-		az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_State_FileName --yes --only-show-errors >/dev/null 2>&1
-	fi
-
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Deployer_Key_Vault.value")
-	if [ -n "${az_var}" ]; then
-		az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --yes --only-show-errors >/dev/null 2>&1
-	fi
-
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Key_Vault.value")
-	if [ -n "${az_var}" ]; then
-		az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Key_Vault" --yes --only-show-errors
-	fi
-
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Zone_State_FileName.value")
-	if [ -n "${az_var}" ]; then
-		az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Zone_State_FileName" --yes --only-show-errors
-	fi
-
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Secret_Prefix.value")
-	if [ -n "${az_var}" ]; then
-		az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "${prefix}Workload_Secret_Prefix" --yes --only-show-errors
-	fi
 fi
 
 exit $return_code

@@ -11,8 +11,6 @@ script_directory="$(dirname "${full_script_path}")"
 
 source "${script_directory}/helper.sh"
 
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors --output none
 
 deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
@@ -32,18 +30,23 @@ else
 	AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 fi
 
-function remove_variable() {
-	local variable_name="$2"
-	local variable_group"$1"
-	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group}" --query "$variable_name.value" --out tsv)
-	if [ ${#variable_value} != 0 ]; then
-		az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors
-	fi
-}
 
+AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 export AZURE_DEVOPS_EXT_PAT
 
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
+if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
 
 return_code=0
 
@@ -56,9 +59,6 @@ echo "Location:                              $LOCATION"
 NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 echo "Network:                               $NETWORK"
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
-
-echo "Variable group:                        $VARIABLE_GROUP_ID"
 variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_SUBSCRIPTION_ID.value" --out tsv)
 if [ -z "$variable_value" ]; then
 	subscription=$ARM_SUBSCRIPTION_ID

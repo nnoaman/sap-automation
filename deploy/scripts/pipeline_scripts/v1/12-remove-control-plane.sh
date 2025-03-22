@@ -7,7 +7,6 @@ echo "##vso[build.updatebuildnumber]Removing the control plane defined in $DEPLO
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
-cyan="\e[1;36m"
 
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -29,6 +28,25 @@ export DEBUG
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
+
+echo "Using SYSTEM_ACCESSTOKEN for authentication"
+AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
+
+export AZURE_DEVOPS_EXT_PAT
+
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
 
 deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
@@ -88,31 +106,12 @@ echo "Environment file:                    $deployer_environment_file_name"
 REMOTE_STATE_SA=""
 REMOTE_STATE_RG=$LIBRARY_FOLDERNAME
 
-echo -e "$green--- Configure devops CLI extension ---$reset"
-
-echo "Using SYSTEM_ACCESSTOKEN for authentication"
-AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-
-export AZURE_DEVOPS_EXT_PAT
-
-az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
-if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
-	az extension add --name azure-devops --output none --only-show-errors
-fi
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none --only-show-errors
-
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
 fi
 
 echo -e "$green--- Information ---$reset"
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
-
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP could not be found."
-	exit 2
-fi
 
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
@@ -122,33 +121,33 @@ fi
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
-	if [ -z "$CP_ARM_CLIENT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$CP_ARM_CLIENT_ID" == '$$(CP_ARM_CLIENT_ID)' ]; then
+	if [ -z "$ARM_CLIENT_ID" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ -z "$CP_ARM_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+	if [ "$ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ "$CP_ARM_CLIENT_SECRET" == '$$(CP_ARM_CLIENT_SECRET)' ]; then
+	if [ -z "$ARM_CLIENT_SECRET" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ -z "$CP_ARM_TENANT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+	if [ "$ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ "$CP_WL_ARM_TENANT_ID" == '$$(CP_ARM_TENANT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+	if [ -z "$ARM_TENANT_ID" ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+		exit 2
+	fi
+
+	if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
@@ -156,14 +155,14 @@ fi
 
 if [ "$USE_MSI" != "true" ]; then
 	# Set logon variables
-	ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
+	ARM_CLIENT_ID="$ARM_CLIENT_ID"
 	export ARM_CLIENT_ID
-	ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
+	ARM_CLIENT_SECRET="$ARM_CLIENT_SECRET"
 	export ARM_CLIENT_SECRET
-	ARM_TENANT_ID=$CP_ARM_TENANT_ID
+	ARM_TENANT_ID=$ARM_TENANT_ID
 	export ARM_TENANT_ID
 fi
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
 export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
@@ -181,7 +180,7 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
 export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
