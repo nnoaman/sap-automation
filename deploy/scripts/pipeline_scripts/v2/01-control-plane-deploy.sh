@@ -116,7 +116,6 @@ then
 fi
 export VARIABLE_GROUP_ID
 
-echo -e "$green--- Information ---$reset"
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 if [ -n "$TF_VAR_agent_pat" ]; then
 	echo "Deployer Agent PAT:                  IsDefined"
@@ -132,9 +131,6 @@ echo "Library TFvars:                      $LIBRARY_TFVARS_FILENAME"
 
 
 cd "$CONFIG_REPO_PATH" || exit
-
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id
@@ -211,7 +207,7 @@ if [ -n "${key_vault}" ]; then
 	fi
 fi
 
-echo -e "$green--- Preparing for the Control Plane deployment---$reset"
+echo -e "$green--- Control Plane deployment---$reset"
 
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 	# shellcheck disable=SC2001
@@ -265,7 +261,7 @@ else
 
 fi
 
-echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+echo -e "$green--- Pushing the changes back to the repository ---$reset"
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
 

@@ -287,6 +287,8 @@ function get_variable_group_id() {
 	fi
 
 	echo ""
+  echo -e "$green--- Parameters ---$reset"
+  echo -e "$green--------------------------------------------------------------------------------$reset"
 	echo "Variable group name:                 $variable_group_name"
 	echo "Variable group id:                   $variable_group_id"
 	echo ""
