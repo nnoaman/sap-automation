@@ -40,12 +40,12 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
 }
 
 resource "azurerm_role_assignment" "resource_group_contributor_spn" {
-  count                                = var.assign_subscription_permissions && length(data.azuread_service_principal.spn[0].id) > 0 ? 1 : 0
+  count                                = var.assign_subscription_permissions && length(var.spn_id) > 0 ? 1 : 0
   provider                             = azurerm.main
   scope                                = data.azurerm_subscription.primary.id
   role_definition_name                 = "Contributor"
   principal_type                       = "ServicePrincipal"
-  principal_id                         = data.azuread_service_principal.spn[0].id
+  principal_id                         = var.spn_id
 }
 
 
@@ -63,7 +63,7 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "User Access Administrator"
   principal_type                       = "ServicePrincipal"
-  principal_id                         = data.azuread_service_principal.spn[0].id
+  principal_id                         = var.spn_id
 }
 
 
@@ -95,7 +95,7 @@ resource "azurerm_role_assignment" "appconf_dataowner_spn" {
   scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   role_definition_name                 = "App Configuration Data Owner"
   principal_type                       = "ServicePrincipal"
-  principal_id                         = data.azuread_service_principal.spn[0].id
+  principal_id                         = var.spn_id
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi" {
@@ -112,7 +112,7 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Administrator"
   principal_type                       = "ServicePrincipal"
-  principal_id                         = data.azuread_service_principal.spn[0].id
+  principal_id                         = var.spn_id
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi_officer" {
