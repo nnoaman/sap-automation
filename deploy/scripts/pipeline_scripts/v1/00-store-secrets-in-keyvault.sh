@@ -119,6 +119,8 @@ az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTE
 environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 
 echo $APPLICATION_CONFIGURATION_ID
+az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv
+echo "foo"
 
 APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
