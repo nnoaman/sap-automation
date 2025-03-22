@@ -89,6 +89,7 @@ else
 		step=0
 	fi
 fi
+
 echo "Step:                                $step"
 
 if [ 0 != "${step}" ]; then
