@@ -66,7 +66,9 @@ stages:
               ARM_TENANT_ID:                   $(ParameterValidation.ARM_TENANT_ID)
               ARM_USE_MSI:                     true
               AZURE_DEVOPS_EXT_PAT:            $(System.AccessToken)
+              CLIENT_ID:                       $(ParameterValidation.ARM_CLIENT_ID)
               CONFIG_REPO_PATH:                ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              OBJECT_ID:                       $(ParameterValidation.ARM_OBJECT_ID)
               SAP_AUTOMATION_REPO_PATH:        ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:              $(System.AccessToken)
               TF_IN_AUTOMATION:                true
@@ -110,8 +112,11 @@ stages:
 
             displayName:               Remove control plane
             env:
+              ARM_USE_MSI:                     true
               AZURE_DEVOPS_EXT_PAT:            $(System.AccessToken)
+              CLIENT_ID:                       $(ParameterValidation.ARM_CLIENT_ID)
               CONFIG_REPO_PATH:                ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              OBJECT_ID:                       $(ParameterValidation.ARM_OBJECT_ID)
               SAP_AUTOMATION_REPO_PATH:        ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:              $(System.AccessToken)
               TF_IN_AUTOMATION:                true
@@ -119,4 +124,3 @@ stages:
               TF_VAR_app_registration_app_id:  $(APP_REGISTRATION_APP_ID)
               USE_MSI:                         $(Use_MSI)
               key_vault:                       $(Deployer_Key_Vault)
-              ARM_USE_MSI:                     true
