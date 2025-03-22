@@ -146,20 +146,15 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
-msi_flag=""
 if [ "$USE_MSI" != "true" ]; then
 	TF_VAR_use_spn=false
 	export TF_VAR_use_spn
 	echo "Deployment using:                    Managed Identity"
-
 else
 	TF_VAR_use_spn=true
 	export TF_VAR_use_spn
 	echo "Deployment using:                    Service Principal"
 fi
-
-
-echo -e "$green--- Read parameter values ---$reset"
 
 dos2unix -q "${workload_environment_file_name}"
 
@@ -197,8 +192,8 @@ export tfstate_resource_id
 
 echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 echo ""
-echo "Terraform parameter information"
-echo "---------------------------------------------------------------------"
+echo -e "$green Terraform parameter information"
+echo "-------------------------------------------------------------------------------$reset"
 echo ""
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer statefile:                  $deployer_tfstate_key"
