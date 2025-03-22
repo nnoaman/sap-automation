@@ -5,7 +5,7 @@ terraform {
   required_providers {
     azurerm = {
       source                = "hashicorp/azurerm"
-      configuration_aliases = [azurerm.main, azurerm.deployer, azurerm.deployerspn, azurerm.dnsmanagement, azurerm.peering, azurerm.privatelinkdnsmanagement]
+      configuration_aliases = [azurerm.main, azurerm.deployerspn, azurerm.dnsmanagement, azurerm.privatelinkdnsmanagement]
     }
 
     azapi = {
