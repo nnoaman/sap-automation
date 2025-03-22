@@ -34,7 +34,7 @@ echo ""
 # Configure DevOps
 configure_devops
 
-if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
