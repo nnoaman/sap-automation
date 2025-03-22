@@ -98,7 +98,7 @@ resource "azurerm_management_lock" "keyvault" {
 
 
 resource "azurerm_role_assignment" "role_assignment_msi" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployerspn
   count                                = var.enable_rbac_authorization_for_keyvault ? 1 : 0
   scope                                = var.key_vault.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
@@ -109,7 +109,7 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi_officer" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployerspn
   count                                = var.enable_rbac_authorization_for_keyvault ? 1 : 0
   scope                                = var.key_vault.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
@@ -122,7 +122,7 @@ resource "azurerm_role_assignment" "role_assignment_msi_officer" {
 
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployerspn
   count                                = var.enable_rbac_authorization_for_keyvault && var.options.use_spn ? 1 : 0
   scope                                 = var.key_vault.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
@@ -133,7 +133,7 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
 }
 
 resource "azurerm_role_assignment" "role_assignment_spn_officer" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployerspn
   count                                = var.enable_rbac_authorization_for_keyvault && var.options.use_spn ? 1 : 0
   scope                                 = var.key_vault.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
@@ -144,7 +144,7 @@ resource "azurerm_role_assignment" "role_assignment_spn_officer" {
 }
 
 resource "azurerm_key_vault_access_policy" "kv_user" {
-  provider                             = azurerm.deployer
+  provider                             = azurerm.main
   count                                = 0
   key_vault_id                         = var.key_vault.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
@@ -218,7 +218,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
 }
 
 resource "azurerm_role_assignment" "kv_user_msi_rbac" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployerspn
   count                                = var.key_vault.exists && var.enable_rbac_authorization_for_keyvault ? (
                                            0) : (
                                            length(var.deployer_tfstate) > 0 ? (
@@ -239,7 +239,7 @@ resource "azurerm_role_assignment" "kv_user_msi_rbac" {
 }
 
 resource "azurerm_role_assignment" "kv_user_msi_rbac_secret_officer" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployerspn
   count                                = var.key_vault.exists && var.enable_rbac_authorization_for_keyvault ? (
                                            0) : (
                                            length(var.deployer_tfstate) > 0 ? (
