@@ -89,6 +89,19 @@ print_header
 # Configure DevOps
 configure_devops
 
+CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
+export "CONTROL_PLANE_NAME"
+VARIABLE_GROUP="SDAF-${CONTROL_PLANE_NAME}"
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
+
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
@@ -249,9 +262,11 @@ if [ 0 == $return_code ]; then
 		fi
 	fi
 	echo -e "$green--- Deleting variables ---$reset"
-	if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
+	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		echo "Deleting variables"
 
+		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
@@ -264,8 +279,6 @@ if [ 0 == $return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
-		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
-		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
 
 	fi
 
