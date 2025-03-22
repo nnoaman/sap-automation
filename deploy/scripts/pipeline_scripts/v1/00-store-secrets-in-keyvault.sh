@@ -23,6 +23,8 @@ source "${grand_parent_directory}/deploy_utils.sh"
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
+echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the SAP Workload zone defined in $ZONE"
+
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
@@ -35,9 +37,29 @@ fi
 export DEBUG
 set -eu
 
-print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+# Print the execution environment details
+print_header
 
-echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the SAP Workload zone defined in $ZONE"
+# Configure DevOps
+configure_devops
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
+if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
+	exit 2
+fi
+export PARENT_VARIABLE_GROUP_ID
+
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 cd "${CONFIG_REPO_PATH}" || exit
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
@@ -85,30 +107,6 @@ else
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_CLIENT_ID
 
-fi
-# Print the execution environment details
-print_header
-
-# Configure DevOps
-configure_devops
-
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-	exit 2
-else
-	echo "Variable group name:                 $VARIABLE_GROUP"
-	echo "Variable group id:                   $VARIABLE_GROUP_ID"
-fi
-
-PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
-if [ -z "${PARENT_VARIABLE_GROUP_ID}" ]; then
-	print_banner "$banner_title" "Variable group $PARENT_VARIABLE_GROUP not found" "error"
-	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
-	exit 2
-else
-	echo "Parent variable group name:         $PARENT_VARIABLE_GROUP"
-	echo "Parent variable group id:           $PARENT_VARIABLE_GROUP_ID"
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -159,7 +157,7 @@ fi
 
 if [ "$USE_MSI" != "true" ]; then
 
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${CONTROL_PLANE_NAME}" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${ZONE}" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --client_tenant_id "$TENANT_ID" --ado; then
 		return_code=$?
 	else
