@@ -113,7 +113,16 @@ fi
 echo ""
 VARIABLE_GROUP="SDAF-$CONTROL_PLANE_NAME"
 
-VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
+if (get_variable_group_id "$VARIABLE_GROUP") ;
+then
+	VARIABLE_GROUP_ID=$GROUP_ID
+else
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"

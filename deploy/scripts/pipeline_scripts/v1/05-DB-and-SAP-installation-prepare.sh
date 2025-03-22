@@ -77,7 +77,16 @@ az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 
 echo -e "$green--- Get key_vault name ---$reset"
 
-VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
+if (get_variable_group_id "$VARIABLE_GROUP") ;
+then
+	VARIABLE_GROUP_ID=$GROUP_ID
+else
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
 

@@ -94,8 +94,16 @@ NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 
-VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
+if (get_variable_group_id "$VARIABLE_GROUP") ;
+then
+	VARIABLE_GROUP_ID=$GROUP_ID
+else
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
 export VARIABLE_GROUP_ID
+
 
 echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
 echo "Environment:                         $ENVIRONMENT"

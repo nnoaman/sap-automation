@@ -178,7 +178,16 @@ fi
 
 az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project=$SYSTEM_TEAMPROJECTID
 
-VARIABLE_GROUP_ID=$(get_variable_group_id "$VARIABLE_GROUP")
+if (get_variable_group_id "$VARIABLE_GROUP") ;
+then
+	VARIABLE_GROUP_ID=$GROUP_ID
+else
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
 
 echo -e "$green--- Read parameter values ---$reset"
 

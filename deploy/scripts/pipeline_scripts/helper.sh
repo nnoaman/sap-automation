@@ -261,16 +261,17 @@ function get_region_from_code() {
 function get_variable_group_id() {
 	local variable_group_name="$1"
 	local variable_group_id
+	unset GROUP_ID
 	variable_group_id=$(az pipelines variable-group list --query "[?name=='$variable_group_name'].id | [0]" --output tsv)
-
-	if [ -z "${variable_group_id}" ]; then
-		echo "##vso[task.logissue type=error]Variable group $variable_group_name could not be found."
-		exit 2
+	if [ -z "$variable_group_id" ]; then
+		return 1
 	fi
 
 	echo ""
 	echo "Variable group name:                 $variable_group_name"
 	echo "Variable group id:                   $variable_group_id"
 	echo ""
-	echo "$variable_group_id"
+	GROUP_ID=$variable_group_id
+	export GROUP_ID
+	return 0
 }
