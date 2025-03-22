@@ -71,10 +71,21 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		exit 2
 	fi
 else
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
+	TF_VAR_MSI_client_id=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export TF_VAR_MSI_client_id
 
 fi
 # Print the execution environment details
@@ -144,16 +155,6 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
   print_banner "$banner_title" "Naming mismatch" "error" "The 'network_logical_name' setting in the tfvars file is not a part of the $WORKLOAD_ZONE_TFVARS_FILENAME file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	echo "##vso[task.logissue type=error]The network_logical_name setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$NETWORK' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	exit 2
-fi
-
-if [ "$USE_MSI" == "true" ]; then
-	TF_VAR_use_spn=false
-	export TF_VAR_use_spn
-	echo "Deployment using:                    Managed Identity"
-else
-	TF_VAR_use_spn=true
-	export TF_VAR_use_spn
-	echo "Deployment using:                    Service Principal"
 fi
 
 dos2unix -q "${workload_environment_file_name}"

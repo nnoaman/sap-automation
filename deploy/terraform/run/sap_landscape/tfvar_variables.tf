@@ -492,6 +492,11 @@ variable "use_spn"                              {
                                                   default     = null
                                                 }
 
+variable "MSI_client_id"                        {
+                                                  description = "If provided, the client id of the managed identity to be used for the deployment"
+                                                  default     = null
+                                                }
+
 variable "user_assigned_identity_id"            {
                                                   description = "If provided defines the user assigned identity to assign to the virtual machines"
                                                   default     = ""
