@@ -43,7 +43,7 @@ resource "azurerm_role_assignment" "resource_group_contributor_spn" {
   provider                             = azurerm.main
   scope                                = data.azurerm_subscription.primary.id
   role_definition_name                 = "Contributor"
-  principal_type                       = ServicePrincipal
+  principal_type                       = "ServicePrincipal"
   principal_id                         = var.spn_id
 }
 
@@ -61,7 +61,7 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   count                                = var.assign_subscription_permissions ? 1 : 0
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "User Access Administrator"
-  principal_type                       = ServicePrincipal
+  principal_type                       = "ServicePrincipal"
   principal_id                         = var.spn_id
 }
 
@@ -93,7 +93,7 @@ resource "azurerm_role_assignment" "appconf_dataowner_spn" {
   count                                = var.assign_subscription_permissions && var.infrastructure.application_configuration_deployment ? 1 : 0
   scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   role_definition_name                 = "App Configuration Data Owner"
-  principal_type                       = ServicePrincipal
+  principal_type                       = "ServicePrincipal"
   principal_id                         = var.spn_id
 }
 
@@ -110,7 +110,7 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
   count                                = var.assign_subscription_permissions && var.key_vault.enable_rbac_authorization ? 1 : 0
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Administrator"
-  principal_type                       = ServicePrincipal
+  principal_type                       = "ServicePrincipal"
   principal_id                         = var.spn_id
 }
 
