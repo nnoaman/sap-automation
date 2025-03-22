@@ -11,7 +11,6 @@ script_directory="$(dirname "${full_script_path}")"
 
 source "${script_directory}/helper.sh"
 
-
 deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
@@ -29,9 +28,6 @@ else
 	echo "Using SYSTEM_ACCESSTOKEN for authentication"
 	AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 fi
-
-
-AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 export AZURE_DEVOPS_EXT_PAT
 
 # Print the execution environment details
@@ -40,7 +36,7 @@ print_header
 # Configure DevOps
 configure_devops
 
-if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
@@ -59,12 +55,7 @@ echo "Location:                              $LOCATION"
 NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 echo "Network:                               $NETWORK"
 
-variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_SUBSCRIPTION_ID.value" --out tsv)
-if [ -z "$variable_value" ]; then
-	subscription=$ARM_SUBSCRIPTION_ID
-else
-	subscription=$variable_value
-fi
+subscription=$ARM_SUBSCRIPTION_ID
 echo "Subscription:                          $subscription"
 
 resourceGroupName=$(az group list --subscription "$subscription" --query "[?name=='$LIBRARY_FOLDERNAME'].name | [0]")
