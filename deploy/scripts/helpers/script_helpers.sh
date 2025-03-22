@@ -609,6 +609,7 @@ function ImportAndReRunApply {
 
 					fi
 				done
+				rm "$fileName"
 				# shellcheck disable=SC2086
 				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters; then
 					import_return_value=$?
