@@ -573,7 +573,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                                            var.naming.resource_suffixes.keyvault_private_link,
                                            var.naming.resource_suffixes.nic
                                          )
-
+  tags                                 = var.tags
   private_service_connection {
                                name = format("%s%s%s",
                                  var.naming.resource_prefixes.keyvault_private_svc,
@@ -601,5 +601,6 @@ resource "azurerm_private_endpoint" "kv_user" {
                                         private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
                                       }
                                     }
+
 }
 

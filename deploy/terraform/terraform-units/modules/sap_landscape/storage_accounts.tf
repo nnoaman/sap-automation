@@ -412,7 +412,7 @@ resource "azurerm_private_endpoint" "transport" {
                                             azurerm_subnet.app[0].id)) : (
                                           ""
                                         )
-
+  tags                                 = var.tags
   private_service_connection {
                                name = format("%s%s%s",
                                         var.naming.resource_prefixes.storage_private_svc_transport,
@@ -597,6 +597,7 @@ resource "azurerm_private_endpoint" "install" {
                                           local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
                                           ""
                                         )
+  tags                                 = var.tags
 
   private_service_connection {
                                name = format("%s%s%s",
