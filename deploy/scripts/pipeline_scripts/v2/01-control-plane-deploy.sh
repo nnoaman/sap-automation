@@ -233,7 +233,7 @@ export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
 msi_flag=""
-if [ "$USE_MSI" != "true" ]; then
+if [ "$USE_MSI" == "true" ]; then
 	msi_flag=" --msi "
 	TF_VAR_use_spn=false
 	export TF_VAR_use_spn

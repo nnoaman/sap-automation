@@ -197,6 +197,17 @@ echo "Terraform state file storage account:$terraform_storage_account_name"
 tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 export tfstate_resource_id
 
+
+if [ "$USE_MSI" == "true" ]; then
+	TF_VAR_use_spn=false
+	export TF_VAR_use_spn
+	echo "Deployment using:                    Managed Identity"
+else
+	TF_VAR_use_spn=true
+	export TF_VAR_use_spn
+	echo "Deployment using:                    Service Principal"
+fi
+
 echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \

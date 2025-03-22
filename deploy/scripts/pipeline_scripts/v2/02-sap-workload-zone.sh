@@ -146,7 +146,7 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
-if [ "$USE_MSI" != "true" ]; then
+if [ "$USE_MSI" == "true" ]; then
 	TF_VAR_use_spn=false
 	export TF_VAR_use_spn
 	echo "Deployment using:                    Managed Identity"
