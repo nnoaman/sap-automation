@@ -12,12 +12,20 @@ cyan="\e[1;36m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
-top_directory="$(dirname "$parent_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
+
+
+banner_title="Deploy Workload Zone"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
-source "${parent_directory}/deploy_utils.sh"
-source "${script_directory}/helper.sh"
+source "${grand_parent_directory}/deploy_utils.sh"
+
+#call stack has full script name when using source
+source "${parent_directory}/helper.sh"
+
 
 DEBUG=False
 
@@ -42,6 +50,8 @@ if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_
 	echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_TFVARS_FILENAME was not found."
 	exit 2
 fi
+
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
@@ -454,5 +464,5 @@ if [ 1 == $added ]; then
 	fi
 
 fi
-
+print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 exit $return_code
