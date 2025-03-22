@@ -148,9 +148,9 @@ else
 	export ARM_CLIENT_ID
 fi
 
-if printenv CLIENT_ID; then
-	if is_valid_guid "$CLIENT_ID"; then
-		TF_VAR_spn_id="$CLIENT_ID"
+if printenv OBJECT_ID; then
+	if is_valid_guid "$OBJECT"; then
+		TF_VAR_spn_id="$OBJECT"
 		export TF_VAR_spn_id
 	fi
 fi

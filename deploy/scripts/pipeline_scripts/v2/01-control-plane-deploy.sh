@@ -99,8 +99,15 @@ else
 	fi
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_CLIENT_ID
-
 fi
+
+if printenv OBJECT_ID; then
+	if is_valid_guid "$OBJECT_ID"; then
+		TF_VAR_spn_id="$OBJECT_ID"
+		export TF_VAR_spn_id
+	fi
+fi
+
 # Print the execution environment details
 print_header
 
