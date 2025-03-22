@@ -636,11 +636,13 @@ function ImportAndReRunApply {
 				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
 
 				if [[ -n $current_errors ]]; then
+				  echo "Errors occurred during the apply phase"
+					echo "-------------------------------------------------------------------------------------"
 					readarray -t errors < <(echo ${current_errors} | jq -c '.')
 
 					for item in "${errors[@]}"; do
 						errorMessage=$(jq -c -r '.summary ' <<<"$item")
-						print_banner "ImportAndReRunApply" "Error: $errorMessage" "error"
+						echo "Error: $errorMessage"
 					done
 				fi
 
@@ -654,11 +656,13 @@ function ImportAndReRunApply {
 				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
 
 				if [[ -n $current_errors ]]; then
+				  echo "Errors occurred during the apply phase"
+					echo "-------------------------------------------------------------------------------------"
 					readarray -t errors < <(echo ${current_errors} | jq -c '.')
 
 					for item in "${errors[@]}"; do
 						errorMessage=$(jq -c -r '.summary ' <<<"$item")
-						print_banner "ImportAndReRunApply" "Error: $errorMessage" "error"
+						echo "Error: $errorMessage"
 					done
 				fi
 			fi
