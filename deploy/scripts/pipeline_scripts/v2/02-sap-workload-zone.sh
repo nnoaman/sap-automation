@@ -204,7 +204,6 @@ if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "
 	--ado --auto-approve; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
-
 else
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME failed" "error"

@@ -555,11 +555,6 @@ function sdaf_installer() {
 
 	fi
 
-	if [ "${deployment_system}" != sap_deployer ]; then
-		echo "Deployer Keyvault ID:                $TF_VAR_deployer_kv_user_arm_id"
-
-	fi
-
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${deployment_system}"
 	cd "${param_dirname}" || exit
 
@@ -577,8 +572,6 @@ function sdaf_installer() {
 
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	terraform --version
-	echo ""
 	echo "Terraform details"
 	echo "-------------------------------------------------------------------------"
 	echo "Subscription:                        ${terraform_storage_account_subscription_id}"
@@ -918,7 +911,6 @@ function sdaf_installer() {
 			errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 			if [[ -n $errors_occurred ]]; then
-				return_value=0
 				if [ -n "${approve}" ]; then
 
 					# shellcheck disable=SC2086

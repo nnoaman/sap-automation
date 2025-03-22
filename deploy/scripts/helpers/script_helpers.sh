@@ -559,6 +559,7 @@ function ImportAndReRunApply {
 	local applyParameters=$4
 
 	import_return_value=0
+	print_banner "ImportAndReRunApply" "In function ImportAndReRunApply" "info"
 
 	if [ -f "$fileName" ]; then
 
@@ -603,8 +604,6 @@ function ImportAndReRunApply {
 						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
 							if ! terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
 								import_return_value=$?
-							else
-								import_return_value=0
 							fi
 						fi
 
@@ -612,7 +611,9 @@ function ImportAndReRunApply {
 				done
 				# shellcheck disable=SC2086
 				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters; then
+					import_return_value=$?
 					print_banner "Installer" "Terraform plan failed" "error"
+
 				fi
 
 				print_banner "Installer" "Re-running Terraform apply after import" "info"
@@ -637,7 +638,7 @@ function ImportAndReRunApply {
 				if [ -f "$fileName" ]; then
 					rm "$fileName"
 				fi
-				import_return_value=0
+				import_return_value=5
 			fi
 			if [ -f "$fileName" ]; then
 				errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
@@ -662,6 +663,8 @@ function ImportAndReRunApply {
 		fi
 
 	fi
+
+	print_banner "ImportAndReRunApply" "Exiting function ImportAndReRunApply" "info"
 
 	return $import_return_value
 }
