@@ -588,7 +588,6 @@ function ImportAndReRunApply {
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
 
-
 			if [[ -n $existing ]]; then
 				readarray -t errors < <(echo ${existing} | jq -c '.')
 
@@ -632,30 +631,39 @@ function ImportAndReRunApply {
 					if [ -f "$fileName" ]; then
 						rm "$fileName"
 					fi
-					import_return_value=0
 				fi
 			else
+				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
+
+				if [[ -n $current_errors ]]; then
+					readarray -t errors < <(echo ${current_errors} | jq -c '.')
+
+					for item in "${errors[@]}"; do
+						errorMessage=$(jq -c -r '.summary ' <<<"$item")
+						print_banner "ImportAndReRunApply" "Error: $errorMessage" "error"
+					done
+				fi
+
 				if [ -f "$fileName" ]; then
 					rm "$fileName"
 				fi
 				import_return_value=5
 			fi
 			if [ -f "$fileName" ]; then
-				errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
-				if [[ -n $errors_occurred ]]; then
-				  import_return_value=5
-					existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
-					if [[ -n ${existing} ]]; then
-						import_return_value=0
-					fi
-				else
-					if [ -f "$fileName" ]; then
-						rm "$fileName"
-					fi
+
+				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
+
+				if [[ -n $current_errors ]]; then
+					readarray -t errors < <(echo ${current_errors} | jq -c '.')
+
+					for item in "${errors[@]}"; do
+						errorMessage=$(jq -c -r '.summary ' <<<"$item")
+						print_banner "ImportAndReRunApply" "Error: $errorMessage" "error"
+					done
 				fi
 			fi
 		else
-			print_banner "Installer" "No errors" "info"
+			print_banner "ImportAndReRunApply" "No errors" "info"
 			if [ -f "$fileName" ]; then
 				rm "$fileName"
 			fi
