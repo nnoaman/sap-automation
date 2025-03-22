@@ -49,7 +49,7 @@ variable "prevent_deletion_if_contains_resources" {
 
 variable "use_spn"                               {
                                                   description = "Log in using a service principal when performing the deployment"
-                                                  default     = false
+
                                                  }
 
 variable "MSI_id"                               {
