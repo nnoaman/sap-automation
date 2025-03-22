@@ -6,7 +6,6 @@ echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPL
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
-cyan="\e[1;36m"
 
 # External helper functions
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -99,9 +98,7 @@ else
 	echo "Deploy Web App:                      false"
 	USE_WEBAPP=false
 fi
-if printenv APP_REGISTRATION_APP_ID; then
-	APP_REGISTRATION_APP_ID=$APP_REGISTRATION_APP_ID
-else
+if ! printenv APP_REGISTRATION_APP_ID; then
 	APP_REGISTRATION_APP_ID=""
 fi
 TF_VAR_use_webapp=$USE_WEBAPP
@@ -245,8 +242,6 @@ mkdir -p .sap_deployment_automation
 echo "SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH" >.sap_deployment_automation/config
 export SAP_AUTOMATION_REPO_PATH
 
-ip_added=0
-
 if [ -n "${key_vault}" ]; then
 
 	key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
@@ -254,7 +249,6 @@ if [ -n "${key_vault}" ]; then
 		if [ "azure pipelines" = "$THIS_AGENT" ]; then
 			this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 			az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
-			ip_added=1
 		fi
 	fi
 fi
@@ -339,7 +333,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	added=1
 
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
-	local_backend=$(grep "\"type\": \"local\"" DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate || true)
+	local_backend=$(grep "\"type\": \"local\"" "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
 
 	if [ -n "$local_backend" ]; then
 		echo "Deployer Terraform state:              local"
@@ -386,7 +380,7 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
 	added=1
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
-	local_backend=$(grep "\"type\": \"local\"" LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate || true)
+	local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
 	if [ -n "$local_backend" ]; then
 		echo "Library Terraform state:               local"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then

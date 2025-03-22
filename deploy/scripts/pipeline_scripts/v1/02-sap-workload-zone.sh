@@ -349,16 +349,6 @@ fi
 echo -e "$green--- Deploy the workload zone ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
-# Set logon variables
-ARM_CLIENT_ID="$ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	echo -e "$green--- az login ---$reset"

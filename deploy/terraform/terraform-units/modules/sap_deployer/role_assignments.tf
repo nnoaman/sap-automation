@@ -86,7 +86,7 @@ resource "azurerm_role_assignment" "appconf_dataowner_msi" {
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
-resource "azurerm_role_assignment" "appconf_dataowner_spn " {
+resource "azurerm_role_assignment" "appconf_dataowner_spn" {
   provider                             = azurerm.main
   count                                = var.assign_subscription_permissions && var.infrastructure.application_configuration_deployment ? 1 : 0
   scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id

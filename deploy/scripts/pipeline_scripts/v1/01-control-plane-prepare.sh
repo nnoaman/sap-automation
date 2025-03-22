@@ -45,7 +45,7 @@ export VARIABLE_GROUP_ID
 file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
-if [ -z "${TF_VAR_ansible_core_version}" ]; then
+if [ -z "${TF_VAR_ansible_core_version}" ] ; then
 	TF_VAR_ansible_core_version=2.16
 	export TF_VAR_ansible_core_version
 fi
@@ -62,18 +62,17 @@ library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRA
 
 CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
 
-if [ ! -f "$deployer_tfvars_file_name" ]; then
-	echo -e "$bold_red--- File "$deployer_tfvars_file_name" was not found ---$reset"
+if [ ! -f "$deployer_tfvars_file_name" ] ; then
+	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
 	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
 	exit 2
 fi
 
-if [ ! -f $library_tfvars_file_name ]; then
+if [ ! -f "$library_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
 	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
-
 
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
@@ -150,8 +149,8 @@ else
 fi
 
 if printenv CLIENT_ID; then
-	if is_valid_guid $CLIENT_ID; then
-		TF_VAR_spn_id=$CLIENT_ID
+	if is_valid_guid "$CLIENT_ID"; then
+		TF_VAR_spn_id="$CLIENT_ID"
 		export TF_VAR_spn_id
 	fi
 fi
@@ -195,7 +194,7 @@ else
 	echo "Deployer Key Vault:                  undefined"
 fi
 
-if [ $FORCE_RESET == True ]; then
+if [ "$FORCE_RESET" == True ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
 	echo "Running on:            $THIS_AGENT"
 	sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
@@ -258,7 +257,7 @@ else
 fi
 return_code=$?
 echo ""
-echo -e "${cyan}Deploy_controlplane returned:        $return_code${reset_formatting}"
+echo -e "${cyan}Deploy_controlplane returned:        $return_code${reset}"
 echo ""
 
 set -eu

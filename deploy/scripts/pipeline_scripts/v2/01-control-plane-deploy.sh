@@ -4,6 +4,7 @@
 
 echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
+bold_red="\e[1;31m"
 reset="\e[0m"
 
 # External helper functions
@@ -55,9 +56,9 @@ if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILEN
 	exit 2
 fi
 
-if [ -z $CONTROL_PLANE_NAME ]; then
+if [ -z "$CONTROL_PLANE_NAME" ]; then
 	CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
-	export $CONTROL_PLANE_NAME
+	export CONTROL_PLANE_NAME
 fi
 
 application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
@@ -274,7 +275,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	added=1
 
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
-	local_backend=$(grep "\"type\": \"local\"" DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate || true)
+	local_backend=$(grep "\"type\": \"local\"" "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
 
 	if [ -n "$local_backend" ]; then
 		echo "Deployer Terraform state:              local"
@@ -321,7 +322,7 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
 	added=1
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
-	local_backend=$(grep "\"type\": \"local\"" LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate || true)
+	local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
 	if [ -n "$local_backend" ]; then
 		echo "Library Terraform state:               local"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
