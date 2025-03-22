@@ -12,6 +12,7 @@ module "sap_landscape" {
   providers                                    = {
                                                    azurerm.main                     = azurerm.workload
                                                    azurerm.deployer                 = azurerm
+                                                   azurerm.deployerspn              = azurerm.deployerspn
                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                    azurerm.peering                  = azurerm.peering
                                                    azapi.api                        = azapi.api
