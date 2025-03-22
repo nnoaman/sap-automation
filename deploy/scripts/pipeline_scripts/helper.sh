@@ -22,6 +22,7 @@ function print_banner() {
 
 	local type="${3:-info}"
 	local secondary_message="${4:-''}"
+	local tertiary_message="${5:-''}"
 
 	length=${#secondary_message}
 	if ((length % 2 == 0)); then
@@ -29,6 +30,14 @@ function print_banner() {
 	else
 		secondary_message="$secondary_message"
 	fi
+
+	length=${#tertiary_message}
+	if ((length % 2 == 0)); then
+		tertiary_message="$tertiary_message "
+	else
+		tertiary_message="$tertiary_message"
+	fi
+
 
 	local boldred="\e[1;31m"
 	local cyan="\e[1;36m"
@@ -73,10 +82,18 @@ function print_banner() {
 	echo "#                                                                               #"
 	echo -e "#${color}${centered_message}${reset}#"
 	echo "#                                                                               #"
+
+
 	if [ ${#secondary_message} -gt 3 ]; then
 		local centered_secondary_message
 		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
 		echo -e "#${color}${centered_secondary_message}${reset}#"
+		echo "#                                                                               #"
+	fi
+	if [ ${#tertiary_message} -gt 3 ]; then
+		local centered_tertiary_message
+		centered_tertiary_message=$(printf "%*s%s%*s" $padding_tertiary_message "" "$tertiary_message" $padding_tertiary_message "")
+		echo -e "#${color}${centered_tertiary_message}${reset}#"
 		echo "#                                                                               #"
 	fi
 	echo "#################################################################################"

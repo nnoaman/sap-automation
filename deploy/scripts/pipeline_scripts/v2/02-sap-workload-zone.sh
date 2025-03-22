@@ -104,46 +104,51 @@ LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
+deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
+export deployer_tfstate_key
+
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 
-echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
-echo "Environment:                         $ENVIRONMENT"
-echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
-echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
-echo "Location:                            $LOCATION"
-echo "Network:                             $NETWORK"
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 
-echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
-echo "Location(filename):                  $LOCATION_IN_FILENAME"
-echo "Network(filename):                   $NETWORK_IN_FILENAME"
+echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
+echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
+echo "Control plane environment file:      $deployer_environment_file_name"
+echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
+echo "Workload Zone Environment file:      $workload_environment_file_name"
+
+echo ""
+
+echo "Environment:                         $ENVIRONMENT"
+echo "Environment in file:                 $ENVIRONMENT_IN_FILENAME"
+echo "Location:                            $LOCATION"
+echo "Location in file:                    $LOCATION_IN_FILENAME"
+echo "Network:                             $NETWORK"
+echo "Network in file:                     $NETWORK_IN_FILENAME"
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
+  print_banner "$banner_title" "Environment mismatch" "error" "The environment setting in the tfvars file is not a part of the $WORKLOAD_ZONE_TFVARS_FILENAME file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	echo "##vso[task.logissue type=error]The environment setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$ENVIRONMENT' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
+  print_banner "$banner_title" "Location mismatch" "error" "The 'location' setting in the tfvars file is not represented in the $WORKLOAD_ZONE_TFVARS_FILENAME file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	echo "##vso[task.logissue type=error]The location setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$LOCATION' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	exit 2
 fi
 
 if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
+  print_banner "$banner_title" "Naming mismatch" "error" "The 'network_logical_name' setting in the tfvars file is not a part of the $WORKLOAD_ZONE_TFVARS_FILENAME file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	echo "##vso[task.logissue type=error]The network_logical_name setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$NETWORK' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	exit 2
 fi
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
-echo "Control plane environment File:      $deployer_environment_file_name"
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
-echo "Workload Zone Environment File:      $workload_environment_file_name"
-
 echo -e "$green--- Read parameter values ---$reset"
 
 dos2unix -q "${workload_environment_file_name}"
-
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
-export deployer_tfstate_key
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
@@ -177,13 +182,16 @@ export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
 export tfstate_resource_id
 
-echo "Deployer statefile:                  $deployer_tfstate_key"
-echo "Workload statefile:                  $landscape_tfstate_key"
-
 echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
-
+echo ""
+echo "Terraform parameter information"
+echo "---------------------------------------------------------------------"
+echo ""
+echo "Workload statefile:                  $landscape_tfstate_key"
+echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
 echo "Terraform state file storage account:$terraform_storage_account_name"
+
 if [ -z "$tfstate_resource_id" ]; then
 	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 	export tfstate_resource_id
