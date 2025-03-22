@@ -87,22 +87,33 @@ else
 fi
 # Print the execution environment details
 print_header
+GROUP_ID=0
+if get_variable_group_id "$VARIABLE_GROUP" ;
+
+then
+	VARIABLE_GROUP_ID=$GROUP_ID
+else
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
+if (get_variable_group_id "$PARENT_VARIABLE_GROUP") ;
+then
+	PARENT_VARIABLE_GROUP_ID=$GROUP_ID
+else
+	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
+	exit 2
+fi
+export PARENT_VARIABLE_GROUP_ID
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo ""
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
-
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-	exit 2
-fi
-
-if [ -z "${PARENT_VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP could not be found."
-	exit 2
-fi
 
 environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 
@@ -125,28 +136,6 @@ else
 	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 
 fi
-
-GROUP_ID=0
-if get_variable_group_id "$VARIABLE_GROUP" ;
-
-then
-	VARIABLE_GROUP_ID=$GROUP_ID
-else
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
-
-if (get_variable_group_id "$PARENT_VARIABLE_GROUP") ;
-then
-	PARENT_VARIABLE_GROUP_ID=$GROUP_ID
-else
-	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
-	exit 2
-fi
-export PARENT_VARIABLE_GROUP_ID
 
 echo -e "$green--- Read parameter values ---$reset"
 
