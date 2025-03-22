@@ -146,6 +146,19 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
+msi_flag=""
+if [ "$USE_MSI" != "true" ]; then
+	TF_VAR_use_spn=false
+	export TF_VAR_use_spn
+	echo "Deployment using:                    Managed Identity"
+
+else
+	TF_VAR_use_spn=true
+	export TF_VAR_use_spn
+	echo "Deployment using:                    Service Principal"
+fi
+
+
 echo -e "$green--- Read parameter values ---$reset"
 
 dos2unix -q "${workload_environment_file_name}"

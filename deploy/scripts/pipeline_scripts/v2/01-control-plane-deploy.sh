@@ -243,7 +243,6 @@ else
 	TF_VAR_use_spn=true
 	export TF_VAR_use_spn
 	echo "Deployer using:                      Service Principal"
-
 fi
 
 if [ "$DEBUG" == True ]; then
