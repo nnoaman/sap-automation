@@ -98,8 +98,10 @@ else
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
+echo "this"
 export VARIABLE_GROUP_ID
 echo $VARIABLE_GROUP_ID
+echo $VARIABLE_GROUP
 
 if (get_variable_group_id "$PARENT_VARIABLE_GROUP") ;
 then
@@ -109,8 +111,10 @@ else
 	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 	exit 2
 fi
+echo "parent"
 export PARENT_VARIABLE_GROUP_ID
 echo $PARENT_VARIABLE_GROUP_ID
+echo $PARENT_VARIABLE_GROUP
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
