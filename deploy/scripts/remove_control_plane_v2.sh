@@ -490,7 +490,7 @@ function remove_control_plane() {
 
 	print_banner "Remove Control Plane " "Running Terraform destroy (library)" "info"
 
-	if terraform -chdir="${terraform_module_directory}" destroy -var-file="${library_parameter_file}" -var use_deployer=false "${approve_parameter}"; then
+	if terraform -chdir="${terraform_module_directory}" destroy -input false -var-file="${library_parameter_file}" -var use_deployer=false "${approve_parameter}"; then
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
 	else
@@ -549,7 +549,7 @@ function remove_control_plane() {
 
 		print_banner "Remove Control Plane " "Running Terraform destroy (deployer)" "info"
 
-		if terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" "${extra_vars}" "${approve_parameter}"; then
+		if terraform -chdir="${terraform_module_directory}" destroy -input false -var-file="${var_file}" "${extra_vars}" "${approve_parameter}"; then
 			return_value=$?
 			print_banner "Remove Control Plane " "Terraform destroy (deployer) succeeded" "success"
 			if [ -f "${param_dirname}/terraform.tfstate" ]; then
