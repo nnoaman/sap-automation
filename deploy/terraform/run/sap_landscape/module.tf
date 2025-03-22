@@ -14,8 +14,8 @@ module "sap_landscape" {
                                                    azurerm.deployer                 = azurerm.deployer
                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                    azurerm.peering                  = azurerm.peering
-                                                   azapi.api                        = azapi.api
                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
+                                                   azapi.api                        = azapi.api
                                                  }
 
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
