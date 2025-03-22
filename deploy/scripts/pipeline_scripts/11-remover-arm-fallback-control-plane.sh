@@ -47,16 +47,16 @@ export VARIABLE_GROUP_ID
 return_code=0
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-echo "Environment:                           $ENVIRONMENT"
+echo "Environment:                         $ENVIRONMENT"
 
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-echo "Location:                              $LOCATION"
+echo "Location:                            $LOCATION"
 
 NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-echo "Network:                               $NETWORK"
+echo "Network:                             $NETWORK"
 
 subscription=$ARM_SUBSCRIPTION_ID
-echo "Subscription:                          $subscription"
+echo "Subscription:                        $subscription"
 
 resourceGroupName=$(az group list --subscription "$subscription" --query "[?name=='$LIBRARY_FOLDERNAME'].name | [0]")
 if [ ${#resourceGroupName} != 0 ]; then
