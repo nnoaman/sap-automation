@@ -50,7 +50,7 @@ ephemeral "azurerm_key_vault_secret" "client_secret" {
   key_vault_id                         = local.spn_key_vault_arm_id
 }
 
-ephemeral "azurerm_key_vault_secret" "tenant_id" {
+data "azurerm_key_vault_secret" "tenant_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-tenant-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
   key_vault_id                         = local.spn_key_vault_arm_id
@@ -65,7 +65,7 @@ data "azurerm_key_vault_secret" "cp_subscription_id" {
                                        }
 }
 
-ephemeral "azurerm_key_vault_secret" "cp_client_id" {
+data "azurerm_key_vault_secret" "cp_client_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
   key_vault_id                         = local.spn_key_vault_arm_id
@@ -78,7 +78,7 @@ ephemeral "azurerm_key_vault_secret" "cp_client_secret" {
   key_vault_id                         = local.spn_key_vault_arm_id
 }
 
-ephemeral "azurerm_key_vault_secret" "cp_tenant_id" {
+data "azurerm_key_vault_secret" "cp_tenant_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-tenant-id", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
   key_vault_id                         = local.spn_key_vault_arm_id

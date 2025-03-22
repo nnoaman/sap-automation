@@ -391,3 +391,9 @@ output "control_plane_name"                     {
                                                                           data.terraform_remote_state.deployer[0].outputs.control_plane_name
                                                      )
                                                 }
+
+
+output "control_plane_spn"                      {
+                                                  description = "Control plane ID"
+                                                  value       = try(coalesce(data.azurerm_key_vault_secret.cp_client_id[0].value, data.azurerm_key_vault_secret.client_id[0].value), null)
+                                                }
