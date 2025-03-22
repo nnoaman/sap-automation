@@ -11,7 +11,7 @@ module "sap_landscape" {
   depends_on                                   = [ module.sap_namegenerator ]
   providers                                    = {
                                                    azurerm.main                     = azurerm.workload
-                                                   azurerm.deployerspn              = azurerm.deployerspn
+                                                   azurerm.deployer                 = azurerm.deployer
                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                    azurerm.peering                  = azurerm.peering
                                                    azapi.api                        = azapi.api
