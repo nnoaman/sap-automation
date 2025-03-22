@@ -116,7 +116,7 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Administrator"
   principal_type                       = "ServicePrincipal"
-  principal_id                         = data.azuread_service_principal.spn[0].principal_id
+  principal_id                         = data.azuread_service_principal.spn[0].object_id
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi_officer" {
