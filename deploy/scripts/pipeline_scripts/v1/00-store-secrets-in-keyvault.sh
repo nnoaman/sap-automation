@@ -166,7 +166,7 @@ if [ "$USE_MSI" != "true" ]; then
 		exit $return_code
 	fi
 else
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${CONTROL_PLANE_NAME}" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${ZONE}" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --msi --ado; then
 		return_code=$?
 	else
