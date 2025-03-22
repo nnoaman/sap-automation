@@ -31,7 +31,7 @@ export DEBUG
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
+
 	configureNonDeployer "$TF_VERSION"
 
 	ARM_CLIENT_ID="$servicePrincipalId"
