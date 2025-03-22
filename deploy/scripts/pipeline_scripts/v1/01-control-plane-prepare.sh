@@ -45,6 +45,11 @@ export VARIABLE_GROUP_ID
 file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
+if [ -z "${TF_VAR_ansible_core_version}" ]; then
+	TF_VAR_ansible_core_version=2.16
+	export TF_VAR_ansible_core_version
+fi
+
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
@@ -56,6 +61,19 @@ deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DE
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
 CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
+
+if [ ! -f "$deployer_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File "$deployer_tfvars_file_name" was not found ---$reset"
+	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
+if [ ! -f $library_tfvars_file_name ]; then
+	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
+	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
 
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
@@ -79,21 +97,7 @@ if [ 0 != "${step}" ]; then
 	exit 0
 fi
 
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
-
-
-echo -e "$green--- File Validations ---$reset"
-if [ ! -f "$deployer_tfvars_file_name" ]; then
-	echo -e "$bold_red--- File "$deployer_tfvars_file_name" was not found ---$reset"
-	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
-	exit 2
-fi
-if [ ! -f $library_tfvars_file_name ]; then
-	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
-	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
-	exit 2
-fi
 
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -147,8 +151,6 @@ fi
 
 # Reset the account if sourcing was done
 if printenv ARM_SUBSCRIPTION_ID; then
-	ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-	export ARM_SUBSCRIPTION_ID
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 fi
@@ -220,11 +222,6 @@ if [ $FORCE_RESET == True ]; then
 fi
 
 echo -e "$green--- Variables ---$reset"
-
-if [ -z "${TF_VAR_ansible_core_version}" ]; then
-	TF_VAR_ansible_core_version=2.16
-	export TF_VAR_ansible_core_version
-fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	# shellcheck disable=SC2001
