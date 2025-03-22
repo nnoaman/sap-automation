@@ -70,6 +70,12 @@ else
 	export ARM_CLIENT_ID
 fi
 
+if printenv CLIENT_ID; then
+	if is_valid_guid "$CLIENT_ID"; then
+		TF_VAR_spn_id="$CLIENT_ID"
+		export TF_VAR_spn_id
+	fi
+fi
 # Print the execution environment details
 print_header
 
