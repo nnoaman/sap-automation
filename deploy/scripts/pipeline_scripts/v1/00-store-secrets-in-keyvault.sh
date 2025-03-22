@@ -4,8 +4,6 @@
 
 green="\e[1;32m"
 reset="\e[0m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
 
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -50,21 +48,25 @@ if [ "$USE_MSI" != "true" ]; then
 
 	if ! printenv ARM_SUBSCRIPTION_ID; then
 		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
 		exit 2
 	fi
 
 	if ! printenv CLIENT_ID; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group" "error"
 		exit 2
 	fi
 
 	if ! printenv CLIENT_SECRET; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group" "error"
 		exit 2
 	fi
 
 	if ! printenv TENANT_ID; then
 		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
 		exit 2
 	fi
 fi
@@ -89,11 +91,10 @@ fi
 print_header
 GROUP_ID=0
 if get_variable_group_id "$VARIABLE_GROUP" ;
-
 then
 	VARIABLE_GROUP_ID=$GROUP_ID
 else
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	print_banner "$banner_title" "Variable group $VARIABLE_GROUP not found" "error"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -103,7 +104,7 @@ if (get_variable_group_id "$PARENT_VARIABLE_GROUP") ;
 then
 	PARENT_VARIABLE_GROUP_ID=$GROUP_ID
 else
-	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+	print_banner "$banner_title" "Variable group $PARENT_VARIABLE_GROUP not found" "error"
 	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -119,6 +120,7 @@ environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PL
 
 APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+  print_banner "$banner_title" "Using Application Configuration ID: $APPLICATION_CONFIGURATION_ID" "info"
 
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$key_vault_id" ]; then
@@ -126,6 +128,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	fi
 	WZ_APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 	if [ -z "$WZ_APPLICATION_CONFIGURATION_ID" ]; then
+	echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 		az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
 	else
 		az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
