@@ -724,7 +724,7 @@ function sdaf_installer() {
 	credentialVariable=" -var use_spn=false "
 	if printenv TF_VAR_use_spn ; then
 		use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
-		if [ "$TF_VAR_use_spn" == "true" ]; then
+		if [ "$use_spn" == "true" ]; then
 			credentialVariable=" -var use_spn=true "
 		fi
 	fi
