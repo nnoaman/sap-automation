@@ -613,13 +613,12 @@ function ImportAndReRunApply {
 				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters; then
 					import_return_value=$?
 					print_banner "Installer" "Terraform plan failed" "error"
-
 				fi
 
 				print_banner "Installer" "Re-running Terraform apply after import" "info"
 
 				# shellcheck disable=SC2086
-				if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee -a "$fileName"; then
+				if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
 					import_return_value=${PIPESTATUS[0]}
 				else
 					import_return_value=${PIPESTATUS[0]}
