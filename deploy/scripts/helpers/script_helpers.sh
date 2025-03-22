@@ -613,23 +613,29 @@ function ImportAndReRunApply {
 				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters; then
 					import_return_value=$?
 					print_banner "Installer" "Terraform plan failed" "error"
+				else
+					print_banner "Installer" "Terraform plan succeeded" "success"
+					import_return_value=$?
 				fi
 
-				print_banner "Installer" "Re-running Terraform apply after import" "info"
+				if [ $import_return_value -eq 2 ]; then
 
-				# shellcheck disable=SC2086
-				if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
-					import_return_value=${PIPESTATUS[0]}
-				else
-					import_return_value=${PIPESTATUS[0]}
-				fi
-				if [ $import_return_value -eq 1 ]; then
-					print_banner "Installer" "Errors during the apply phase after importing resources" "error"
-				else
-					# return code 2 is ok
-					print_banner "Installer" "Terraform apply succeeded" "success"
-					if [ -f "$fileName" ]; then
-						rm "$fileName"
+					print_banner "Installer" "Re-running Terraform apply after import" "info"
+
+					# shellcheck disable=SC2086
+					if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
+						import_return_value=${PIPESTATUS[0]}
+					else
+						import_return_value=${PIPESTATUS[0]}
+					fi
+					if [ $import_return_value -eq 1 ]; then
+						print_banner "Installer" "Errors during the apply phase after importing resources" "error"
+					else
+						# return code 2 is ok
+						print_banner "Installer" "Terraform apply succeeded" "success"
+						if [ -f "$fileName" ]; then
+							rm "$fileName"
+						fi
 					fi
 				fi
 			else
@@ -653,7 +659,6 @@ function ImportAndReRunApply {
 				import_return_value=5
 			fi
 			if [ -f "$fileName" ]; then
-
 				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
 
 				if [[ -n $current_errors ]]; then
@@ -667,7 +672,14 @@ function ImportAndReRunApply {
 						echo "Error: $errorMessage"
 						echo "##vso[task.logissue type=error]Error: $errorMessage"
 					done
+				else
+					print_banner "ImportAndReRunApply" "No errors" "info"
+					if [ -f "$fileName" ]; then
+						rm "$fileName"
+					fi
+					import_return_value=0
 				fi
+
 			fi
 		else
 			print_banner "ImportAndReRunApply" "No errors" "info"

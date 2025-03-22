@@ -201,6 +201,7 @@ stages:
               FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:         true
               OBJECT_ID:                      $(ParameterValidation.ARM_OBJECT_ID)
+              CLIENT_ID:                      $(ParameterValidation.ARM_CLIENT_ID)
               POOL:                           $(POOL)
               SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:             $(System.AccessToken)

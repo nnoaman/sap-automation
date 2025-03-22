@@ -149,6 +149,14 @@ else
 	export ARM_CLIENT_ID
 fi
 
+if printenv CLIENT_ID; then
+	if is_valid_guid $CLIENT_ID; then
+		TF_VAR_spn_id=$CLIENT_ID
+		export TF_VAR_spn_id
+	fi
+fi
+
+
 # Reset the account if sourcing was done
 if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"

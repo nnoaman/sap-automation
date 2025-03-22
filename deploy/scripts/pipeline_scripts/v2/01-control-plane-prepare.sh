@@ -45,8 +45,7 @@ print_header
 configure_devops
 
 VARIABLE_GROUP="SDAF-$CONTROL_PLANE_NAME"
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
@@ -108,11 +107,8 @@ if [ ! -f $library_tfvars_file_name ]; then
 	exit 2
 fi
 
-
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
-
-# Check if running on deployer
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -141,7 +137,13 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
+fi
 
+if printenv CLIENT_ID; then
+	if is_valid_guid $CLIENT_ID; then
+		TF_VAR_spn_id=$CLIENT_ID
+		export TF_VAR_spn_id
+	fi
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -174,7 +176,6 @@ if [ -n "$key_vault" ]; then
 else
 	echo "Deployer Key Vault:                  undefined"
 fi
-
 
 echo -e "$green--- Variables ---$reset"
 

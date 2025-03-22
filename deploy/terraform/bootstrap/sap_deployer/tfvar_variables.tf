@@ -440,7 +440,8 @@ variable "auto_configure_deployer"                    {
 
 variable "spn_id"                                     {
                                                         description = "SPN ID to be used for the deployment"
-                                                        default     = ""
+                                                        nullable    = true
+
                                                       }
 
 variable "public_network_access_enabled"              {

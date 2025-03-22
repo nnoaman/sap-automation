@@ -38,6 +38,15 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
+resource "azurerm_role_assignment" "resource_group_contributor_spn" {
+  count                                = var.assign_subscription_permissions && length(var.spn_id) > 0 ? 1 : 0
+  provider                             = azurerm.main
+  scope                                = data.azurerm_subscription.primary.id
+  role_definition_name                 = "Contributor"
+  principal_id                         = var.spn_id
+}
+
+
 resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   provider                             = azurerm.main
   count                                = var.assign_subscription_permissions ? 1 : 0
@@ -45,6 +54,15 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   role_definition_name                 = "User Access Administrator"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
+
+resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
+  provider                             = azurerm.main
+  count                                = var.assign_subscription_permissions ? 1 : 0
+  scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+  role_definition_name                 = "User Access Administrator"
+  principal_id                         = var.spn_id
+}
+
 
 
 resource "azurerm_role_assignment" "appconf_dataowner" {
@@ -66,15 +84,30 @@ resource "azurerm_role_assignment" "appconf_dataowner_msi" {
                                           )
   role_definition_name                 = "App Configuration Data Owner"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+}
 
+resource "azurerm_role_assignment" "appconf_dataowner_spn " {
+  provider                             = azurerm.main
+  count                                = var.assign_subscription_permissions && var.infrastructure.application_configuration_deployment ? 1 : 0
+  scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
+  role_definition_name                 = "App Configuration Data Owner"
+  principal_id                         = var.spn_id
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi" {
   provider                             = azurerm.main
-  count                                = var.key_vault.enable_rbac_authorization ? 1 : 0
+  count                                = var.assign_subscription_permissions && var.key_vault.enable_rbac_authorization ? 1 : 0
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Administrator"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+}
+
+resource "azurerm_role_assignment" "role_assignment_spn" {
+  provider                             = azurerm.main
+  count                                = var.assign_subscription_permissions && var.key_vault.enable_rbac_authorization ? 1 : 0
+  scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  role_definition_name                 = "Key Vault Administrator"
+  principal_id                         = var.spn_id
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi_officer" {
@@ -127,9 +160,10 @@ resource "azurerm_role_assignment" "subscription_contributor_system_identity" {
 }
 
 resource "azurerm_role_assignment" "subscription_contributor_msi" {
-  count                                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
+  count                                = var.assign_subscription_permissions ? 1 : 0
   provider                             = azurerm.main
   scope                                = data.azurerm_subscription.primary.id
   role_definition_name                 = "Contributor"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
+
