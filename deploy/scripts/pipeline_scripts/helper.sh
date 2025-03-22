@@ -301,6 +301,8 @@ function get_variable_group_id() {
 
 function print_header() {
 	echo ""
+	local green="\e[1;32m"
+	local reset="\e[0m"
 
 	echo "Agent pool:                          $THIS_AGENT"
 	echo "Organization:                        $SYSTEM_COLLECTIONURI"
@@ -313,12 +315,12 @@ function print_header() {
 		echo "Deployer Agent Pool:                 $POOL"
 	fi
 	echo ""
-	echo "Azure CLI version:"
-	echo "-------------------------------------------------"
+	echo -e "${green}Azure CLI version:${reset}"
+	echo -e "${green}-------------------------------------------------${reset}"
 	az --version
 	echo ""
-	echo "Terraform version:"
-	echo "-------------------------------------------------"
+	echo -e "${green}Terraform version:${reset}"
+	echo -e "${green}-------------------------------------------------${reset}"
 	if [ -f /opt/terraform/bin/terraform ]; then
 		tfPath="/opt/terraform/bin/terraform"
 	else
