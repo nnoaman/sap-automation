@@ -287,10 +287,10 @@ function print_header() {
 	echo "Organization:                        $SYSTEM_COLLECTIONURI"
 	echo "Project:                             $SYSTEM_TEAMPROJECT"
 	echo ""
-	if [ -n "$TF_VAR_agent_pat" ]; then
+	if printenv TF_VAR_agent_pat ; then
 		echo "Deployer Agent PAT:                  IsDefined"
 	fi
-	if [ -n "$POOL" ]; then
+	if printenv POOL ; then
 		echo "Deployer Agent Pool:                 $POOL"
 	fi
 	echo ""
