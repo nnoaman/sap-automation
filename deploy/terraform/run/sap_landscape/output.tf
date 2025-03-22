@@ -395,7 +395,12 @@ output "control_plane_name"                     {
 
 output "control_plane_spn"                      {
                                                   description = "Control plane ID"
-                                                  value       = var.use_spn ? coalesce(data.azurerm_key_vault_secret.cp_client_id[0].value, data.azurerm_key_vault_secret.client_id[0].value) : "No SPN, deployment with MSI"
+                                                  value       = data.azurerm_key_vault_secret.cp_client_id[0].value
+                                                }
+
+output "this_spn"                      {
+                                                  description = "Control plane ID"
+                                                  value       = data.azurerm_key_vault_secret.client_id[0].value
                                                 }
 
 output "use_spn"                      {
