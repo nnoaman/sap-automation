@@ -5,6 +5,12 @@
 green="\e[1;32m"
 reset="\e[0m"
 
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
+
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
 	debug=true
@@ -20,6 +26,15 @@ else
 fi
 
 export AZURE_DEVOPS_EXT_PAT
+
+banner_title="Remove Workload Zone"
+
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${parent_directory}/deploy_utils.sh"
+
+#call stack has full script name when using source
+source "${script_directory}/helper.sh"
 
 # Print the execution environment details
 print_header
@@ -95,13 +110,7 @@ if [ -n "$VARIABLE_GROUP_ID" ]; then
 	remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
 	remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
 	remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
-	remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
-	remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
-	remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
-	remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
 	remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
-	remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
-	remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
 	remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
 
 fi

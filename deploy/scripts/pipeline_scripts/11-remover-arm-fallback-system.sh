@@ -4,19 +4,31 @@
 
 green="\e[1;32m"
 reset="\e[0m"
-echo -e "$green--- Configure devops CLI extension ---$reset"
+
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-  set -x
-  debug=true
-  export debug
+	set -x
+	debug=true
+	export debug
 fi
+
+banner_title="Remove SAP System"
+
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${parent_directory}/deploy_utils.sh"
+
+#call stack has full script name when using source
+source "${script_directory}/helper.sh"
 
 # Print the execution environment details
 print_header
 
-# Configure DevOps
-configure_devops
 
 SID=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $4}' | xargs)
 echo "System:                                $SAP_SYSTEM_FOLDERNAME"
