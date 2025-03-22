@@ -144,7 +144,8 @@ resource "azurerm_network_security_group" "storage" {
   location                             = local.SAP_virtualnetwork_exists ? (
                                            data.azurerm_virtual_network.vnet_sap[0].location) : (
                                            azurerm_virtual_network.vnet_sap[0].location
-  tags                                 = var.tags                                         )
+                                        )
+  tags                                 = var.tags
 }
 
 # Associates SAP storage nsg to SAP storage subnet
