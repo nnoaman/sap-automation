@@ -97,8 +97,6 @@ echo ""
 echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset"
 echo ""
 
-echo -e "$green--- File Validations ---$reset"
-
 if [ ! -f "$deployerTFvarsFile" ]; then
 	echo -e "$bold_red--- File ${deployerTFvarsFile} was not found ---$reset"
 	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
