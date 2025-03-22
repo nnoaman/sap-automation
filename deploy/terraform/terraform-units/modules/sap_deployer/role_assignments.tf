@@ -1,7 +1,3 @@
-data "azuread_service_principal" "spn" {
-  count                                = var.options.use_spn ? 1 : 0
-  object_id                            = var.spn_id
-}
 
 
 #######################################4#######################################8

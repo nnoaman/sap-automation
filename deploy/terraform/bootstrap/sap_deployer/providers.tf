@@ -19,6 +19,11 @@ Description:
 data "azurerm_client_config" "current" {
 
                                        }
+data "azuread_service_principal" "spn" {
+  count                                = var.options.use_spn &&  length(var.spn_id) > 0 ? 1 : 0
+  object_id                            = var.spn_id
+}
+
 
 provider "azurerm"                     {
                                          features {
@@ -73,6 +78,8 @@ provider "azurerm"                     {
                                          storage_use_azuread        = true
                                        }
 
+provider "azuread"                     {
+                                       }
 
 terraform                              {
                                          required_version = ">= 1.0"

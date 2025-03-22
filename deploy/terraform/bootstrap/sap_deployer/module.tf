@@ -50,7 +50,7 @@ module "sap_deployer" {
   sa_connection_string                         = var.sa_connection_string
   set_secret_expiry                            = var.set_secret_expiry
   soft_delete_retention_days                   = var.soft_delete_retention_days
-  spn_id                                       = var.spn_id
+  spn_id                                       = try(data.azuread_service_principal.spn[0].object_id, var.spn_id)
   ssh-timeout                                  = var.ssh-timeout
   state_filename_prefix                        = module.sap_namegenerator.naming.prefix.DEPLOYER
   subnets_to_add                               = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
