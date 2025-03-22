@@ -99,8 +99,6 @@ fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-# Set logon variables
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
@@ -114,7 +112,6 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		unset ARM_OIDC_TOKEN
 		ARM_CLIENT_SECRET="$servicePrincipalKey"
 		export ARM_CLIENT_SECRET
-
 	else
 		ARM_OIDC_TOKEN="$idToken"
 		export ARM_OIDC_TOKEN
@@ -128,46 +125,29 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
-fi
-if printenv USE_MSI; then
-	if [ $USE_MSI == "true" ]; then
-		if printenv CP_ARM_CLIENT_ID; then
-			ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-			export ARM_CLIENT_ID
-			TF_VAR_spn_id=$CP_ARM_CLIENT_ID
-			export TF_VAR_spn_id
-		fi
-		if printenv CP_ARM_CLIENT_SECRET; then
-			ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-			export ARM_CLIENT_SECRET
-		fi
-		if printenv CP_ARM_TENANT_ID; then
-			ARM_TENANT_ID="$CP_ARM_TENANT_ID"
-			export ARM_TENANT_ID
-		fi
-
-		if printenv CP_ARM_SUBSCRIPTION_ID; then
-			ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-			export ARM_SUBSCRIPTION_ID
-		fi
-	fi
-
 else
-	USE_MSI="false"
-fi
-echo -e "$green--- az login ---$reset"
-LogonToAzure "$USE_MSI"
-
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
+	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export PATH=$PATH:$path
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 fi
 
 # Reset the account if sourcing was done
-if printenv CP_ARM_SUBSCRIPTION_ID; then
-	ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+if printenv ARM_SUBSCRIPTION_ID; then
+	ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
 	export ARM_SUBSCRIPTION_ID
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
