@@ -72,6 +72,7 @@ stages:
               FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:         true
               POOL:                           $(POOL)
+              OBJECT_ID:                      $(ARM_OBJECT_ID)
               SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
               TF_IN_AUTOMATION:               true
