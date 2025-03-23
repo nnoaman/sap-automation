@@ -138,7 +138,7 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
                                            azurerm_key_vault.kv_user[0].id
                                          )
   role_definition_name                 = "Key Vault Administrator"
-  principal_id                         = data.azurerm_client_config.current.client_id
+  principal_id                         = var.options.spn_id
 
   timeouts                             {
                                           read   = "1m"
@@ -156,7 +156,7 @@ resource "azurerm_role_assignment" "role_assignment_spn_officer" {
                                            azurerm_key_vault.kv_user[0].id
                                          )
   role_definition_name                 = "Key Vault Secrets Officer"
-  principal_id                         = data.azurerm_client_config.current.client_id
+  principal_id                         = var.options.spn_id
   timeouts                             {
                                           read   = "1m"
                                           create = "5m"
@@ -193,7 +193,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_spn" {
                                            azurerm_key_vault.kv_user[0].id
                                          )
   tenant_id                            = data.azurerm_client_config.current.tenant_id
-  object_id                            = data.azurerm_client_config.current.client_id
+  object_id                            = var.options.spn_id
 
   secret_permissions                   = [
                                           "Get",

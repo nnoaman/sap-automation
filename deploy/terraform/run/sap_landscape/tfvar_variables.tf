@@ -1071,3 +1071,8 @@ variable "assign_permissions"                         {
                                                         default     = false
                                                         type        = bool
                                                       }
+
+variable "spn_id"                                     {
+                                                        description = "SPN ID to be used for the deployment"
+                                                        default     = ""
+                                                      }

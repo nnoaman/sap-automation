@@ -127,6 +127,7 @@ stages:
             env:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
               ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              OBJECT_ID:                    $(ARM_OBJECT_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
