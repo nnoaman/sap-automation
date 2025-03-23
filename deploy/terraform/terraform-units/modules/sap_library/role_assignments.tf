@@ -72,7 +72,7 @@ resource "azurerm_role_assignment" "resource_group_contributor_spn" {
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && length(var.infrastructure.spn_id) > 0 ? 1 : 0
+  count                                = var.infrastructure.assign_permissions && length(var.infrastructure.spn_id) > 0 ? 0 : 0
   scope                                = local.resource_group_exists ? (
                                                  data.azurerm_resource_group.library[0].id) : (
                                                  azurerm_resource_group.library[0].id

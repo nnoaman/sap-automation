@@ -51,7 +51,7 @@ resource "azurerm_role_assignment" "resource_group_contributor_spn" {
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions ? 1 : 0
+  count                                = var.assign_subscription_permissions ? 0 : 0
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "User Access Administrator"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
@@ -82,7 +82,7 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions ? 1 : 0
+  count                                = var.assign_subscription_permissions ? 0 : 0
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "User Access Administrator"
   principal_type                       = "ServicePrincipal"
