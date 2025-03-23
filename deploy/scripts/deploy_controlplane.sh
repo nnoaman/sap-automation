@@ -361,6 +361,8 @@ if [ -n "${subscription}" ]; then
 				step=0
 				save_config_var "step" "${deployer_config_information}"
 				exit 10
+			else
+				return_code=$?
 			fi
 		else
 			if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
@@ -369,6 +371,8 @@ if [ -n "${subscription}" ]; then
 				step=0
 				save_config_var "step" "${deployer_config_information}"
 				exit 10
+			else
+				return_code=$?
 			fi
 		fi
 		return_code=$?
@@ -456,7 +460,7 @@ if [ 1 -eq $step ] || [ 3 -eq $step ]; then
 		if [ -f ./.terraform/terraform.tfstate ]; then
 			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 			if [ -n "$azure_backend" ]; then
-			  echo "Terraform state:                     remote"
+				echo "Terraform state:                     remote"
 
 				terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
 				terraform -chdir="${terraform_module_directory}" init -upgrade=true
@@ -745,7 +749,6 @@ if [ 3 -eq "$step" ]; then
 		fi
 	fi
 
-
 	cd "${current_directory}" || exit
 	export step=4
 	save_config_var "step" "${deployer_config_information}"
@@ -815,7 +818,6 @@ if [ 4 -eq $step ]; then
 			return_code=$?
 		fi
 	fi
-
 
 	cd "$root_dirname" || exit
 
