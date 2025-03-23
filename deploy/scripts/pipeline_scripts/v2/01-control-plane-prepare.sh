@@ -240,11 +240,11 @@ if [ "$DEBUG" == True ]; then
 fi
 echo -e "$green--- Control Plane deployment---$reset"
 
+
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
 	--library_parameter_file "${library_configuration_file}" \
 	--subscription "$ARM_SUBSCRIPTION_ID" \
-	--auto-approve --ado "$msi_flag" --only_deployer \
-	"${storage_account_parameter}" "${keyvault_parameter}"; then
+	--auto-approve --ado "$msi_flag" --only_deployer; then
 	return_code=$?
 	echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
 	echo "Return code from deploy_control_plane_v2 $return_code."
@@ -256,15 +256,12 @@ else
 fi
 return_code=$?
 echo ""
-echo -e "${cyan}Deploy_controlplane returned:        $return_code${reset}"
+echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset}"
 echo ""
 
 set -eu
 
 if [ -f "${deployer_environment_file_name}" ]; then
-
-	APPLICATION_CONFIGURATION_ID=$(grep -m1 "^APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	export APPLICATION_CONFIGURATION_ID
 
 	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -z "$file_deployer_tfstate_key" ]; then
@@ -295,8 +292,8 @@ git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
 
-if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
-	git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
+if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
+	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
 	added=1
 fi
 
