@@ -459,6 +459,8 @@ function sdaf_installer() {
 	called_from_ado=0
 	extra_vars=""
 	WORKLOAD_ZONE_NAME=""
+	local green="\e[0;32m"
+	local reset="\e[0m"
 
 	# Define an array of helper scripts
 	helper_scripts=(
@@ -572,8 +574,9 @@ function sdaf_installer() {
 
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	echo "Terraform details"
-	echo "-------------------------------------------------------------------------"
+	echo ""
+	echo -e "${green}Terraform details"
+	echo -e "-------------------------------------------------------------------------${reset}"
 	echo "Subscription:                        ${terraform_storage_account_subscription_id}"
 	echo "Storage Account:                     ${terraform_storage_account_name}"
 	echo "Resource Group:                      ${terraform_storage_account_resource_group_name}"

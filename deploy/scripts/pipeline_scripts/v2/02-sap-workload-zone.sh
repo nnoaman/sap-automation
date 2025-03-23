@@ -205,15 +205,15 @@ echo -e "-----------------------------------------------------------------------
 echo ""
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer statefile:                  $deployer_tfstate_key"
-echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
-echo "Terraform state file storage account:$terraform_storage_account_name"
+echo "Terraform statefile subscription:    $terraform_storage_account_subscription_id"
+echo "Terraform statefile storage account: $terraform_storage_account_name"
 
 if [ -z "$tfstate_resource_id" ]; then
 	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 	export tfstate_resource_id
 fi
 
-echo -e "$green--- Deploy the Workload Zone ---$reset"
+print_banner "$banner_title" "--- Deploying the Workload Zone ---$" "info"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
