@@ -241,8 +241,8 @@ fi
 echo -e "$green--- Control Plane deployment---$reset"
 
 
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
-	--library_parameter_file "${library_configuration_file}" \
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_tfvars_file_name}" \
+	--library_parameter_file "${library_tfvars_file_name}" \
 	--subscription "$ARM_SUBSCRIPTION_ID" \
 	--auto-approve --ado "$msi_flag" --only_deployer; then
 	return_code=$?
