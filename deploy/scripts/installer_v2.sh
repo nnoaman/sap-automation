@@ -494,6 +494,7 @@ function sdaf_installer() {
 	echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
 	if [ -n "${WORKLOAD_ZONE_NAME}" ]; then
 		echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
+		landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 	fi
 	key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
@@ -577,9 +578,9 @@ function sdaf_installer() {
 	echo ""
 	echo -e "${green}Terraform details:"
 	echo -e "-------------------------------------------------------------------------${reset}"
-	echo "Subscription:                        ${terraform_storage_account_subscription_id}"
-	echo "Storage Account:                     ${terraform_storage_account_name}"
-	echo "Resource Group:                      ${terraform_storage_account_resource_group_name}"
+	echo "Statefile subscription:              ${terraform_storage_account_subscription_id}"
+	echo "Statefile storage account:           ${terraform_storage_account_name}"
+	echo "Statefile resource group:            ${terraform_storage_account_resource_group_name}"
 	echo "State file:                          ${key}.terraform.tfstate"
 	echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 	echo "Deployer state file:                 ${deployer_tfstate_key}"

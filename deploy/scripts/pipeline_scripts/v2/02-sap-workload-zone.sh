@@ -196,16 +196,6 @@ export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
 export tfstate_resource_id
 
-echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
-echo ""
-echo -e "${green}Terraform parameter information:"
-echo -e "-------------------------------------------------------------------------------$reset"
-echo ""
-echo "Workload statefile:                  $landscape_tfstate_key"
-echo "Deployer statefile:                  $deployer_tfstate_key"
-echo "Statefile subscription:              $terraform_storage_account_subscription_id"
-echo "Statefile storage account:           $terraform_storage_account_name"
-
 if [ -z "$tfstate_resource_id" ]; then
 	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 	export tfstate_resource_id
