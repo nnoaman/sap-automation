@@ -26,7 +26,10 @@ provider "azurerm"                     {
                                          features {}
                                          subscription_id            = coalesce(var.management_subscription_id,var.subscription_id, local.deployer_subscription_id)
                                          storage_use_azuread        = true
-                                         use_msi                    = true
+                                         client_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null
+                                         client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value : null
+                                         tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value: null
+                                         use_msi                    = !var.use_spn
                                          alias                      = "deployer"
                                        }
 

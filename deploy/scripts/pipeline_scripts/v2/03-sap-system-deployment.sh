@@ -186,9 +186,8 @@ export tfstate_resource_id
 export workload_key_vault
 
 echo ""
-echo -e "${green}Terraform parameter information"
+echo -e "${green}Terraform parameter information:"
 echo -e "-------------------------------------------------------------------------------$reset"
-echo ""
 
 echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
 echo "Deployer statefile:                  $deployer_tfstate_key"
