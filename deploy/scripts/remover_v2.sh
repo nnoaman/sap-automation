@@ -533,7 +533,7 @@ function sdaf_remover() {
 
 		allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
-		echo "Listing the resources in the state file"
+		# echo "Listing the resources in the state file"
 
 		# if terraform -chdir="${terraform_module_directory}" state list; then
 

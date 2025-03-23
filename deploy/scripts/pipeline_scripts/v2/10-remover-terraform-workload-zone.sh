@@ -218,7 +218,7 @@ echo "Workload Key vault:                  ${workload_key_vault}"
 echo "Statefile subscription:              $terraform_storage_account_subscription_id"
 echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
-echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
+echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 return_code=10

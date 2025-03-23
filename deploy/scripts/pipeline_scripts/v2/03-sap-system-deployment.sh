@@ -216,7 +216,7 @@ echo "Workload Key vault:                  ${workload_key_vault}"
 echo "Statefile subscription:              $terraform_storage_account_subscription_id"
 echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
-echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
+echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \

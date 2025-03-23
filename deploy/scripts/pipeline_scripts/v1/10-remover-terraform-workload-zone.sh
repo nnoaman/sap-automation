@@ -41,8 +41,6 @@ export VARIABLE_GROUP_ID
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
@@ -202,7 +200,7 @@ echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
 echo "Workload Key vault:                  ${workload_key_vault}"
-echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
+echo "Target subscription :                $ARM_SUBSCRIPTION_ID"
 
 echo "Terraform state file subscription:   $STATE_SUBSCRIPTION"
 echo "Terraform state file storage account:$REMOTE_STATE_SA"
