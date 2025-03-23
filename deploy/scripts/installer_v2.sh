@@ -487,6 +487,7 @@ function sdaf_installer() {
 		parallelism=$TF_PARALLELLISM
 	fi
 
+echo ""
 	echo -e "${green}Deployment information:"
 	echo -e "-------------------------------------------------------------------------------$reset"
 	echo "Parameter file:                      $parameterFilename"

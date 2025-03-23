@@ -49,7 +49,20 @@ if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_
 	exit 2
 fi
 
-echo -e "$green--- Validations ---$reset"
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -61,30 +74,32 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		exit 2
 	fi
 else
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_CLIENT_ID
 fi
-# Print the execution environment details
-print_header
 
-# Configure DevOps
-configure_devops
-
-
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-	exit 2
-else
-	echo "Variable group name:                 $VARIABLE_GROUP"
-	echo "Variable group id:                   $VARIABLE_GROUP_ID"
+if printenv OBJECT_ID; then
+	if is_valid_guid "$OBJECT_ID"; then
+		TF_VAR_spn_id="$OBJECT_ID"
+		export TF_VAR_spn_id
+	fi
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-echo -e "$green--- Read deployment details ---$reset"
 dos2unix -q tfvarsFile
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
@@ -100,16 +115,26 @@ NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
+
+deployer_tfstate_key=$CONTROL_PLANE_NAME-INFRASTRUCTURE.terraform.tfstate
+export deployer_tfstate_key
+
+echo ""
+echo -e "${green}Deployment details:"
+echo -e "-------------------------------------------------------------------------------$reset"
+
 
 echo "Workload TFvars:                     $WORKLOAD_ZONE_TFVARS_FILENAME"
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
+echo "Workload Zone Environment File:      $workload_environment_file_name"
+echo ""
 echo "Environment:                         $ENVIRONMENT"
-echo "Location:                            $LOCATION"
-echo "Network:                             $NETWORK"
-
 echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
+echo "Location:                            $LOCATION"
 echo "Location(filename):                  $LOCATION_IN_FILENAME"
+echo "Network:                             $NETWORK"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
 
 echo ""
@@ -132,15 +157,7 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
-echo "Workload Zone Environment File:      $workload_environment_file_name"
-
-echo -e "$green--- Read parameter values ---$reset"
-
 dos2unix -q "${workload_environment_file_name}"
-
-deployer_tfstate_key=$CONTROL_PLANE_NAME-INFRASTRUCTURE.terraform.tfstate
-export deployer_tfstate_key
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
@@ -191,18 +208,19 @@ export tfstate_resource_id
 
 export workload_key_vault
 
+echo ""
+echo -e "${green}Terraform parameter information:"
+echo -e "-------------------------------------------------------------------------------$reset"
 echo "Deployer state file:                 $deployer_tfstate_key"
 echo "Workload state file:                 $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
 echo "Workload Key vault:                  ${workload_key_vault}"
+echo "Statefile subscription:              $terraform_storage_account_subscription_id"
+echo "Statefile storage account:           $terraform_storage_account_name"
+echo ""
 echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 
-echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
-echo "Terraform state file storage account:$terraform_storage_account_name"
-
-echo -e "$green--- Remove the Workload zone ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
-
 return_code=10
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \

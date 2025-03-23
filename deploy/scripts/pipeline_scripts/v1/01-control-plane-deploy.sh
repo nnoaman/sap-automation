@@ -76,6 +76,7 @@ if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILEN
 	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
+
 echo ""
 echo -e "${green}Deployment information:"
 echo -e "-------------------------------------------------------------------------------$reset"
