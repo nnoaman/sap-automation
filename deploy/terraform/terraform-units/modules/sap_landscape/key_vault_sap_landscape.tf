@@ -1,8 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-data "azuread_client_config" "current" {}
+data "azuread_client_config" "current" {
+  provider                            = azurerm.main
+}
 data "azurerm_client_config" "current" {
+  provider                            = azurerm.main
+
 }
 
 #######################################4#######################################8
