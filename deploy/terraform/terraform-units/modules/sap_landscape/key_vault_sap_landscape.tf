@@ -477,6 +477,8 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_spn_officer,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
                                            time_sleep.wait_for_private_endpoints
                                          ]
   count                                = 1
