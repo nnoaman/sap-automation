@@ -122,7 +122,7 @@ deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
 
 echo ""
-echo -e "${green}Deployment information:"
+echo -e "${green}Deployment details:"
 echo -e "-------------------------------------------------------------------------------$reset"
 
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"

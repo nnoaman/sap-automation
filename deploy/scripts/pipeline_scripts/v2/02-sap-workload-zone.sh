@@ -128,6 +128,8 @@ export landscape_tfstate_key
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
+echo -e "${green}Deployment details:"
+echo -e "-------------------------------------------------------------------------${reset}"
 
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "Control plane environment file:      $deployer_environment_file_name"

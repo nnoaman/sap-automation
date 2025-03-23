@@ -100,20 +100,28 @@ SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
 WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
+deployer_tfstate_key=$CONTROL_PLANE_NAME-INFRASTRUCTURE.terraform.tfstate
 
-echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
-echo "Environment:                         $ENVIRONMENT"
+export deployer_tfstate_key
+
+
+echo ""
+echo -e "${green}Deployment details:"
+echo -e "-------------------------------------------------------------------------------$reset"
+
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
-echo "Location:                            $LOCATION"
-echo "Network:                             $NETWORK"
-echo "SID:                                 $SID"
+echo "Workload Zone Environment File:      $workload_environment_file_name"
 
+echo "Environment:                         $ENVIRONMENT"
 echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
+echo "Location:                            $LOCATION"
 echo "Location(filename):                  $LOCATION_IN_FILENAME"
+echo "Network:                             $NETWORK"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
+echo "SID:                                 $SID"
 echo "SID(filename):                       $SID_IN_FILENAME"
-
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
 	echo "##vso[task.logissue type=error]The 'environment' setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-SID"
@@ -140,16 +148,9 @@ if [ "$SID" != "$SID_IN_FILENAME" ]; then
 	exit 2
 fi
 
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
-echo "Workload Zone Environment File:      $workload_environment_file_name"
-
 echo -e "$green--- Read parameter values ---$reset"
 
 dos2unix -q "${workload_environment_file_name}"
-
-deployer_tfstate_key=$CONTROL_PLANE_NAME-INFRASTRUCTURE.terraform.tfstate
-
-export deployer_tfstate_key
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
@@ -193,14 +194,20 @@ export tfstate_resource_id
 
 export workload_key_vault
 
-echo "Deployer state file:                 $deployer_tfstate_key"
-echo "Workload state file:                 $landscape_tfstate_key"
+echo ""
+echo -e "${green}Terraform parameter information:"
+echo -e "-------------------------------------------------------------------------------$reset"
+
+echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
+echo "Deployer statefile:                  $deployer_tfstate_key"
+echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
 echo "Workload Key vault:                  ${workload_key_vault}"
+echo "Statefile subscription:              $terraform_storage_account_subscription_id"
+echo "Statefile storage account:           $terraform_storage_account_name"
+echo ""
 echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 
-echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
-echo "Terraform state file storage account:$terraform_storage_account_name"
 
 echo -e "$green--- Remove the System ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
