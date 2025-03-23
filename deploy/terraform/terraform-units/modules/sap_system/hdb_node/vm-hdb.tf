@@ -313,7 +313,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployer
   count                                = (
                                            var.use_msi_for_clusters &&
                                            length(var.fencing_role_name) > 0 &&
@@ -329,7 +329,7 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi_ha" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployer
   count                                = (
                                           var.use_msi_for_clusters &&
                                           length(var.fencing_role_name) > 0 &&

@@ -261,7 +261,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
 }
 
 resource "azurerm_role_assignment" "scs" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployer
   depends_on                           = [ azurerm_linux_virtual_machine.scs  ]
   count                                = (
                                            var.use_msi_for_clusters &&
@@ -283,7 +283,7 @@ resource "azurerm_role_assignment" "scs" {
 }
 
 resource "azurerm_role_assignment" "scs_ha" {
-  provider                             = azurerm.main
+  provider                             = azurerm.deployer
   depends_on                           = [ azurerm_linux_virtual_machine.scs  ]
   count                                = (
                                             var.use_msi_for_clusters &&
