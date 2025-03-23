@@ -39,19 +39,9 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
-resource "azurerm_role_assignment" "resource_group_contributor_spn" {
-  count                                = var.assign_subscription_permissions && length(var.spn_id) > 0 ? 1 : 0
-  provider                             = azurerm.main
-  scope                                = data.azurerm_subscription.primary.id
-  role_definition_name                 = "Contributor"
-  principal_type                       = "ServicePrincipal"
-  principal_id                         = var.spn_id
-}
-
-
 resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions ? 0 : 0
+  count                                = var.assign_subscription_permissions ? 1 : 0
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "User Access Administrator"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
