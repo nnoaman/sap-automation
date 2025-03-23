@@ -28,11 +28,9 @@ if [[ "${DEBUG:-false}" == 'true' ]]; then
 fi
 
 # Constants
-script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-readonly script_directory
+readonly script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 SCRIPT_NAME="$(basename "$0")"
-
 
 if printenv "CONFIG_REPO_PATH"; then
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
@@ -487,6 +485,8 @@ function sdaf_installer() {
 		parallelism=$TF_PARALLELLISM
 	fi
 
+  echo -e "${green}Deployment information:"
+  echo -e "-------------------------------------------------------------------------------$reset"
 	echo "Parameter file:                      $parameterFilename"
 	echo "Current directory:                   $(pwd)"
 	echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
@@ -530,8 +530,6 @@ function sdaf_installer() {
 
 	param_dirname=$(pwd)
 	export TF_DATA_DIR="${param_dirname}/.terraform"
-
-	#§init "${CONFIG_DIR}" "${generic_config_information}" "${system_config_information}"
 
 	var_file="${param_dirname}"/"${parameterFilename}"
 

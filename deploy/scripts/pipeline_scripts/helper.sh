@@ -332,6 +332,7 @@ function print_header() {
 }
 
 function configure_devops() {
+	echo ""
 	echo -e "$green--- Configure devops CLI extension ---$reset"
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 
