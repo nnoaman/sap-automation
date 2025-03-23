@@ -219,7 +219,6 @@ resource "azurerm_role_assignment" "subscription_contributor_msi" {
 
 resource "azurerm_role_assignment" "r1" {
   provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions && !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   principal_type                       = "ServicePrincipal"
   role_definition_name                 = "Virtual Machine Local User Login"
@@ -228,7 +227,6 @@ resource "azurerm_role_assignment" "r1" {
 
 resource "azurerm_role_assignment" "r2" {
   provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions && !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   principal_type                       = "ServicePrincipal"
   role_definition_name                 = "VM Restore Operator"
@@ -237,7 +235,6 @@ resource "azurerm_role_assignment" "r2" {
 
 resource "azurerm_role_assignment" "r3" {
   provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions && !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Virtual Machine User Login"
   principal_type                       = "ServicePrincipal"
