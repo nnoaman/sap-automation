@@ -263,7 +263,7 @@ function install_deployer() {
 
 	# shellcheck disable=SC2086
 
-	if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log; then
+	if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee plan_output.log; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
@@ -304,18 +304,12 @@ function install_deployer() {
 	if [ -n "${approve}" ]; then
 		# shellcheck disable=SC2086
 		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-			$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee -a apply_output.json; then
+			$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee apply_output.json; then
 			return_value=${PIPESTATUS[0]}
-		else
-			return_value=${PIPESTATUS[0]}
-		fi
-
-		if [ $return_value -eq 1 ]; then
-			print_banner "$banner_title" "Terraform apply failed." "error"
-		else
 			print_banner "$banner_title" "Terraform apply succeeded" "success"
-			# return code 2 is ok
-			return_value=0
+		else
+			return_value=${PIPESTATUS[0]}
+			print_banner "$banner_title" "Terraform apply failed." "error"
 		fi
 	else
 		# shellcheck disable=SC2086
@@ -326,7 +320,6 @@ function install_deployer() {
 			return_value=$?
 			print_banner "$banner_title" "Terraform apply failed." "error"
 		fi
-
 	fi
 
 	if [ -f apply_output.json ]; then
