@@ -137,7 +137,6 @@ fi
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 
-echo -e "$green--- Read parameter values ---$reset"
 
 deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
@@ -213,7 +212,6 @@ else
 	echo "Deployment using:                    Service Principal"
 fi
 
-echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \

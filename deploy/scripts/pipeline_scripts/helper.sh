@@ -38,7 +38,6 @@ function print_banner() {
 		tertiary_message="$tertiary_message"
 	fi
 
-
 	local boldred="\e[1;31m"
 	local cyan="\e[1;36m"
 	local green="\e[1;32m"
@@ -82,7 +81,6 @@ function print_banner() {
 	echo "#                                                                               #"
 	echo -e "#${color}${centered_message}${reset}#"
 	echo "#                                                                               #"
-
 
 	if [ ${#secondary_message} -gt 3 ]; then
 		local centered_secondary_message
@@ -287,8 +285,8 @@ function get_variable_group_id() {
 	fi
 
 	echo ""
-  echo -e "${green}Variable group information:"
-  echo -e "--------------------------------------------------------------------------------${reset}"
+	echo -e "${green}Variable group information:"
+	echo -e "--------------------------------------------------------------------------------${reset}"
 	echo "Variable group name:                 $variable_group_name"
 	echo "Variable group id:                   $variable_group_id"
 	echo ""
@@ -303,15 +301,18 @@ function print_header() {
 	echo ""
 	local green="\e[1;32m"
 	local reset="\e[0m"
+	echo ""
+	echo -e "${green}DevOps information:"
+	echo -e "-------------------------------------------------------------------------------$reset"
 
 	echo "Agent pool:                          $THIS_AGENT"
 	echo "Organization:                        $SYSTEM_COLLECTIONURI"
 	echo "Project:                             $SYSTEM_TEAMPROJECT"
 	echo ""
-	if printenv TF_VAR_agent_pat ; then
+	if printenv TF_VAR_agent_pat; then
 		echo "Deployer Agent PAT:                  IsDefined"
 	fi
-	if printenv POOL ; then
+	if printenv POOL; then
 		echo "Deployer Agent Pool:                 $POOL"
 	fi
 	echo ""
