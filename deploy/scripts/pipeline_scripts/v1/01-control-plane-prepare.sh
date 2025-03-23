@@ -153,9 +153,9 @@ if printenv OBJECT_ID; then
 	if is_valid_guid "$OBJECT"; then
 		TF_VAR_spn_id="$OBJECT"
 		export TF_VAR_spn_id
+		echo "Service Principal Object id:         $OBJECT"
 	fi
 fi
-
 
 # Reset the account if sourcing was done
 if printenv ARM_SUBSCRIPTION_ID; then

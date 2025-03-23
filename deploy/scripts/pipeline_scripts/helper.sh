@@ -344,7 +344,7 @@ function configure_devops() {
 
 function remove_variable() {
 	local variable_name="$2"
-	local variable_group"$1"
+	local variable_group="$1"
 	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group}" --query "$variable_name.value" --out tsv)
 	if [ ${#variable_value} != 0 ]; then
 		az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors
