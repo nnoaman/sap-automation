@@ -131,11 +131,11 @@ export landscape_tfstate_key
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 
-echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "Control plane environment file:      $deployer_environment_file_name"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment file:      $workload_environment_file_name"
+echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
 
 echo ""
 

@@ -65,8 +65,6 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$PATH:$path
 fi
 
-echo -e "$green--- File Validations ---$reset"
-
 if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
 	echo -e "$bold_red--- File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found ---$reset"
 	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
@@ -78,8 +76,11 @@ if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILEN
 	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
+echo ""
+echo -e "${green}Deployment information:"
+echo -e "-------------------------------------------------------------------------------$reset"
 
-echo -e "$green--- Information ---$reset"
+
 echo "Environment:                         ${ENVIRONMENT}"
 echo "Location:                            ${LOCATION}"
 echo "Agent:                               $THIS_AGENT"
@@ -105,6 +106,9 @@ TF_VAR_use_webapp=$USE_WEBAPP
 export TF_VAR_use_webapp
 
 echo ""
+echo -e "${green}Terraform information:"
+echo -e "-------------------------------------------------------------------------------$reset"
+
 echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
 echo "Deployer TFvars:                     $DEPLOYER_TFVARS_FILENAME"
 echo "Library Folder:                      $LIBRARY_FOLDERNAME"
