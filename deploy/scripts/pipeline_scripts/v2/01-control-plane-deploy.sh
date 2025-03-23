@@ -74,6 +74,27 @@ fi
 terraform_storage_account_name=""
 terraform_storage_account_resource_group_name=$DEPLOYER_FOLDERNAME
 
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
+echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
+echo ""
+echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
+echo "Deployer TFvars:                     $DEPLOYER_TFVARS_FILENAME"
+echo "Library Folder:                      $LIBRARY_FOLDERNAME"
+echo "Library TFvars:                      $LIBRARY_TFVARS_FILENAME"
+
+
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
@@ -106,27 +127,6 @@ else
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_CLIENT_ID
 fi
-
-# Print the execution environment details
-print_header
-
-# Configure DevOps
-configure_devops
-
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
-
-echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
-echo ""
-echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
-echo "Deployer TFvars:                     $DEPLOYER_TFVARS_FILENAME"
-echo "Library Folder:                      $LIBRARY_FOLDERNAME"
-echo "Library TFvars:                      $LIBRARY_TFVARS_FILENAME"
-
 cd "$CONFIG_REPO_PATH" || exit
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
