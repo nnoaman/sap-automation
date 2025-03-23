@@ -321,6 +321,8 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_role_assignment.role_assignment_spn_officer,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_private_endpoint.kv_user,
                                            time_sleep.wait_for_private_endpoints
                                          ]
@@ -350,6 +352,8 @@ resource "azurerm_key_vault_secret" "sid_pk" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_role_assignment.role_assignment_spn_officer,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_private_endpoint.kv_user,
                                            time_sleep.wait_for_private_endpoints
                                          ]
@@ -390,6 +394,8 @@ resource "azurerm_key_vault_secret" "sid_username" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_role_assignment.role_assignment_spn_officer,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_private_endpoint.kv_user,
                                            time_sleep.wait_for_private_endpoints
                                          ]
@@ -428,6 +434,8 @@ resource "azurerm_key_vault_secret" "sid_password" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_role_assignment.role_assignment_spn_officer,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_private_endpoint.kv_user,
                                            time_sleep.wait_for_private_endpoints
                                          ]
