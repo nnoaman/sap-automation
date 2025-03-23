@@ -66,6 +66,7 @@ if [ ! -f "$CONFIG_REPO_PATH/$tfvarsFile" ]; then
 	exit 2
 fi
 
+# Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
 	echo -e "$green--- az login ---$reset"
@@ -75,12 +76,30 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		exit 2
 	fi
 else
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_CLIENT_ID
-
 fi
+
+if printenv OBJECT_ID; then
+	if is_valid_guid "$OBJECT_ID"; then
+		TF_VAR_spn_id="$OBJECT_ID"
+		export TF_VAR_spn_id
+	fi
+fi
+
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
@@ -97,6 +116,10 @@ SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
 WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
+
+deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
+export deployer_tfstate_key
 
 echo ""
 echo -e "${green}Deployment information:"
@@ -104,6 +127,7 @@ echo -e "-----------------------------------------------------------------------
 
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
+echo "Workload Zone Environment File:      $workload_environment_file_name"
 
 echo "Environment:                         $ENVIRONMENT"
 echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
@@ -133,13 +157,6 @@ if [ "$SID" != "$SID_IN_FILENAME" ]; then
 	echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
 	exit 2
 fi
-
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
-echo "Workload Zone Environment File:      $workload_environment_file_name"
-
-
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
-export deployer_tfstate_key
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
@@ -196,21 +213,10 @@ echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
 echo "Workload Key vault:                  ${workload_key_vault}"
-echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
-echo "Terraform state file storage account:$terraform_storage_account_name"
+echo "Statefile subscription:              $terraform_storage_account_subscription_id"
+echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
 echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
-
-
-if [ "$USE_MSI" == "true" ]; then
-	TF_VAR_use_spn=false
-	export TF_VAR_use_spn
-	echo "Deployment using:                    Managed Identity"
-else
-	TF_VAR_use_spn=true
-	export TF_VAR_use_spn
-	echo "Deployment using:                    Service Principal"
-fi
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
