@@ -19,11 +19,6 @@ Description:
 data "azurerm_client_config" "current" {
 
                                        }
-data "azuread_service_principal" "spn" {
-  count                                = var.use_spn &&  length(var.spn_id) > 0 ? 1 : 0
-  object_id                            = var.spn_id
-}
-
 
 provider "azurerm"                     {
                                          features {
