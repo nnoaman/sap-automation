@@ -58,14 +58,9 @@ variable "use_spn"                               {
 
                                                  }
 
-variable "MSI_id"                               {
-                                                   description = "The id of the managed identity"
-                                                   default     = ""
-                                                 }
-
-variable "MSI_tenant_id"                        {
-                                                   description = "The tenant id of the managed identity"
-                                                   default     = ""
+variable "spn_id"                                {
+                                                   description = "SPN ID to be used for the deployment"
+                                                   nullable    = true
                                                  }
 
 variable "subscription_id"                       {
