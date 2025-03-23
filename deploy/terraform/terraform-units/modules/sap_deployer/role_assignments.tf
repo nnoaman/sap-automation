@@ -111,16 +111,6 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   #                                           EOT
 }
 
-
-
-resource "azurerm_role_assignment" "appconf_dataowner" {
-  provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions && var.bootstrap && var.infrastructure.application_configuration_deployment ? 1 : 0
-  scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
-  role_definition_name                 = "App Configuration Data Owner"
-  principal_id                         = data.azurerm_client_config.current.object_id
-}
-
 resource "azurerm_role_assignment" "appconf_dataowner_msi" {
   provider                             = azurerm.main
   count                                = var.assign_subscription_permissions && var.infrastructure.application_configuration_deployment ? 1 : 0
@@ -197,8 +187,6 @@ resource "azurerm_role_assignment" "role_assignment_webapp" {
   role_definition_name                 = "Key Vault Secrets User"
   principal_id                         = azurerm_windows_web_app.webapp[0].identity[0].principal_id
 }
-
-
 
 # // Add role to be able to deploy resources
 resource "azurerm_role_assignment" "subscription_contributor_system_identity" {
