@@ -209,6 +209,7 @@ locals {
   options                              = {
                                            enable_secure_transfer = true
                                            use_spn                = var.use_spn
+                                           assign_permissions     = var.assign_permissions
                                          }
   key_vault_temp =                       {
                                            exists                 = length(var.user_keyvault_id) > 0

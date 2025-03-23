@@ -53,7 +53,6 @@ output "diagnostics_account_id"                  {
                                                     value       = module.sap_deployer.diagnostics_account_id
                                                  }
 
-
 ###############################################################################
 #                                                                             #
 #                                 Deployer                                    #
@@ -169,8 +168,6 @@ output "deployer_sshkey_secret_name"             {
                                                    value       = module.sap_deployer.ppk_secret_name
                                                  }
 
-
-
 ###############################################################################
 #                                                                             #
 #                                 Firewall                                    #
@@ -247,7 +244,6 @@ output "Agent_IP"                                {
                                                     description = "The IP address of the agent"
                                                     value       = var.Agent_IP
                                                  }
-
 
 ###############################################################################
 #                                                                             #

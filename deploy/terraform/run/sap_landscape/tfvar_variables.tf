@@ -53,14 +53,11 @@ variable "Description"                          {
                                                   default     = ""
                                                 }
 
-
 variable "subscription_id"                      {
                                                   description = "This is the target subscription for the deployment"
                                                   type        = string
                                                   default     = ""
                                                 }
-
-
 variable "management_subscription_id"           {
                                                   description = "This is the management subscription used by the deployment"
                                                   type        = string
@@ -94,7 +91,6 @@ variable "resourcegroup_tags"                   {
                                                   description = "Tags to be applied to the resource group"
                                                   default     = {}
                                                 }
-
 
 #######################################4#######################################8
 #                                                                              #
@@ -169,7 +165,6 @@ variable "peer_with_control_plane_vnet"         {
                                                   type        = bool
                                                   default     = true
                                                 }
-
 
 #######################################4#######################################8
 #                                                                              #
@@ -664,6 +659,24 @@ variable "register_storage_accounts_keyvaults_with_dns" {
                                                      type        = bool
                                                    }
 
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "shared_access_key_enabled_nfs"        {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
 
 #########################################################################################
 #                                                                                       #
@@ -1019,24 +1032,6 @@ variable "deployer_tfstate_key"                   {
                                                     default = ""
                                                   }
 
-variable "shared_access_key_enabled"            {
-                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = false
-                                                  type        = bool
-                                                }
-
-variable "shared_access_key_enabled_nfs"        {
-                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = false
-                                                  type        = bool
-                                                }
-
-variable "data_plane_available"                 {
-                                                  description = "Boolean value indicating if storage account access is via data plane"
-                                                  default     = true
-                                                  type        = bool
-                                                }
-
 variable "custom_random_id"                     {
                                                   description = "If provided, the value of the custom random id"
                                                   default     = ""
@@ -1064,3 +1059,15 @@ variable "control_plane_name"                   {
                                                   default     = ""
                                                 }
 
+
+#######################################4#######################################8
+#                                                                              #
+#  Miscellaneous settings                                                      #
+#                                                                              #
+#######################################4#######################################8
+
+variable "assign_permissions"                         {
+                                                        description = "Boolean flag indicating if the subscription permissions should be assigned"
+                                                        default     = false
+                                                        type        = bool
+                                                      }
