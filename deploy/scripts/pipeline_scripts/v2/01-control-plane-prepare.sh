@@ -169,11 +169,6 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 	export TF_VAR_management_subscription_id
 
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-	if [ -z "$tfstate_resource_id" ]; then
-		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
-	fi
-
 fi
 
 if [ "$FORCE_RESET" == True ]; then
@@ -182,6 +177,11 @@ if [ "$FORCE_RESET" == True ]; then
 	sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
 	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
 	sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
+
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	if [ -z "$tfstate_resource_id" ]; then
+		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+	fi
 
 	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
 	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
