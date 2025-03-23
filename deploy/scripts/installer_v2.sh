@@ -439,15 +439,17 @@ function persist_files() {
 function test_for_removal() {
 	local local_return_code=0
 	local file_name=$2
-	local -a helper_scripts=("$@")
-	for resource in "${resources[@]}"; do
-		moduleId=$(echo "$resource" | cut -d'~' -f1)
-		description=$(echo "$resource" | cut -d'~' -f2)
-		if ! testIfResourceWouldBeRecreated "$moduleId" $file_name "$description"; then
-			fatal_errors=1
-			local_return_code=1
-		fi
-	done
+	if [ -f "$file_name" ]; then
+		local -a helper_scripts=("$@")
+		for resource in "${resources[@]}"; do
+			moduleId=$(echo "$resource" | cut -d'~' -f1)
+			description=$(echo "$resource" | cut -d'~' -f2)
+			if ! testIfResourceWouldBeRecreated "$moduleId" $file_name "$description"; then
+				fatal_errors=1
+				local_return_code=1
+			fi
+		done
+	fi
 	return $local_return_code
 }
 
@@ -485,8 +487,8 @@ function sdaf_installer() {
 		parallelism=$TF_PARALLELLISM
 	fi
 
-  echo -e "${green}Deployment information:"
-  echo -e "-------------------------------------------------------------------------------$reset"
+	echo -e "${green}Deployment information:"
+	echo -e "-------------------------------------------------------------------------------$reset"
 	echo "Parameter file:                      $parameterFilename"
 	echo "Current directory:                   $(pwd)"
 	echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
@@ -723,7 +725,7 @@ function sdaf_installer() {
 
 	# Default to use MSI
 	credentialVariable=" -var use_spn=false "
-	if printenv TF_VAR_use_spn ; then
+	if printenv TF_VAR_use_spn; then
 		use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
 		if [ "$use_spn" == "true" ]; then
 			credentialVariable=" -var use_spn=true "
@@ -886,7 +888,7 @@ function sdaf_installer() {
 		print_banner "Installer" "Running Terraform apply" "info"
 
 		allParameters=$(printf " -var-file=%s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}" "${approve} ")
-		allImportParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}" )
+		allImportParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
