@@ -37,7 +37,7 @@ resource "time_sleep" "wait_for_appconf_dataowner_assignment" {
 
   depends_on                           = [
                                            azurerm_role_assignment.appconf_dataowner_msi,
-                                           azurerm_role_assignment.appconf_dataowner
+                                           azurerm_role_assignment.appconf_dataowner_spn
                                          ]
 }
 
