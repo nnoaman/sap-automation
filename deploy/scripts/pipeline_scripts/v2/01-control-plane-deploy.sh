@@ -105,6 +105,7 @@ if printenv OBJECT_ID; then
 	if is_valid_guid "$OBJECT_ID"; then
 		TF_VAR_spn_id="$CLIENT_ID"
 		export TF_VAR_spn_id
+		echo "Service Principal Object id:         $OBJECT_ID"
 	fi
 fi
 

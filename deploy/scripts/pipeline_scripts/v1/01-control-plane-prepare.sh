@@ -150,11 +150,11 @@ else
 fi
 
 if printenv OBJECT_ID; then
-	echo "Service Principal Object id:         $OBJECT"
-	if is_valid_guid "$OBJECT"; then
-		TF_VAR_spn_id="$OBJECT"
-		export TF_VAR_spn_id
 
+	if is_valid_guid "$OBJECT_ID"; then
+		TF_VAR_spn_id="$OBJECT_ID"
+		export TF_VAR_spn_id
+		echo "Service Principal Object id:         $OBJECT_ID"
 	fi
 fi
 
