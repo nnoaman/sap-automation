@@ -30,7 +30,7 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
 	DEBUG=True
 	TF_LOG=DEBUG
-  export TF_LOG
+	export TF_LOG
 
 	echo "Environment variables:"
 	printenv | sort
@@ -96,17 +96,15 @@ else
 		ARM_USE_MSI=false
 		export ARM_USE_MSI
 		echo "Deployment using:                    Service Principal"
+		TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
+		if is_valid_guid $TF_VAR_spn_id; then
+			export TF_VAR_spn_id
+			echo "Service Principal Object id:         $TF_VAR_spn_id"
+		fi
+
 	fi
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_CLIENT_ID
-fi
-
-if printenv OBJECT_ID; then
-	if is_valid_guid "$OBJECT_ID"; then
-		TF_VAR_spn_id="$CLIENT_ID"
-		export TF_VAR_spn_id
-		echo "Service Principal Object id:         $OBJECT_ID"
-	fi
 fi
 
 # Print the execution environment details
@@ -115,8 +113,7 @@ print_header
 # Configure DevOps
 configure_devops
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
@@ -235,7 +232,7 @@ else
 fi
 
 if [ "$DEBUG" == True ]; then
-  echo "ARM Environment variables:"
+	echo "ARM Environment variables:"
 	printenv | grep ARM_
 fi
 echo -e "$green--- Control Plane deployment---$reset"

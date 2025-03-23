@@ -149,13 +149,10 @@ else
 	export ARM_CLIENT_ID
 fi
 
-if printenv OBJECT_ID; then
-
-	if is_valid_guid "$OBJECT_ID"; then
-		TF_VAR_spn_id="$OBJECT_ID"
-		export TF_VAR_spn_id
-		echo "Service Principal Object id:         $OBJECT_ID"
-	fi
+TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
+if is_valid_guid $TF_VAR_spn_id; then
+	export TF_VAR_spn_id
+	echo "Service Principal Object id:         $TF_VAR_spn_id"
 fi
 
 # Reset the account if sourcing was done
