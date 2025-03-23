@@ -106,6 +106,11 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
                                          )
   role_definition_name                 = "Key Vault Administrator"
   principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
+  timeouts                             {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                       }
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi_officer" {
@@ -117,6 +122,11 @@ resource "azurerm_role_assignment" "role_assignment_msi_officer" {
                                          )
   role_definition_name                 = "Key Vault Secrets Officer"
   principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
+  timeouts                             {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                       }
 }
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
@@ -128,6 +138,13 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
                                          )
   role_definition_name                 = "Key Vault Administrator"
   principal_id                         = data.azurerm_client_config.current.client_id
+
+  timeouts                             {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                       }
+
 }
 
 resource "azurerm_role_assignment" "role_assignment_spn_officer" {
@@ -139,6 +156,11 @@ resource "azurerm_role_assignment" "role_assignment_spn_officer" {
                                          )
   role_definition_name                 = "Key Vault Secrets Officer"
   principal_id                         = data.azurerm_client_config.current.client_id
+  timeouts                             {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                       }
 }
 
 resource "azurerm_key_vault_access_policy" "kv_user" {
@@ -234,6 +256,11 @@ resource "azurerm_role_assignment" "kv_user_msi_rbac" {
 
   role_definition_name                 = "Key Vault Administrator"
   principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
+  timeouts                             {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                       }
 }
 
 resource "azurerm_role_assignment" "kv_user_msi_rbac_secret_officer" {
@@ -255,6 +282,11 @@ resource "azurerm_role_assignment" "kv_user_msi_rbac_secret_officer" {
 
   role_definition_name                 = "Key Vault Secrets Officer"
   principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
+  timeouts                             {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                       }
 }
 
 ###############################################################################
@@ -523,6 +555,11 @@ resource "azurerm_role_assignment" "kv_user_additional_users" {
 
   role_definition_name                 = "Key Vault Secrets Officer"
   principal_id                         = var.additional_users_to_add_to_keyvault_policies[count.index]
+  timeouts                             {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                       }
 }
 
 
