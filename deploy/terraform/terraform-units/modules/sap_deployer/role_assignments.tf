@@ -55,7 +55,30 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "User Access Administrator"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+  condition_version                    = "2.0"
+  condition                            = <<-EOT
+                                            (
+                                             (
+                                              !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'})
+                                             )
+                                             OR
+                                             (
+                                              @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9, f58310d9-a9f6-439a-9e8d-f62e7b41a168}
+                                             )
+                                            )
+                                            AND
+                                            (
+                                             (
+                                              !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'})
+                                             )
+                                             OR
+                                             (
+                                              @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9, f58310d9-a9f6-439a-9e8d-f62e7b41a168}
+                                             )
+                                            )
+                                            EOT
 }
+
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   provider                             = azurerm.main
@@ -64,6 +87,28 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   role_definition_name                 = "User Access Administrator"
   principal_type                       = "ServicePrincipal"
   principal_id                         = var.spn_id
+  condition_version                    = "2.0"
+  condition                            = <<-EOT
+                                            (
+                                             (
+                                              !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'})
+                                             )
+                                             OR
+                                             (
+                                              @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9, f58310d9-a9f6-439a-9e8d-f62e7b41a168}
+                                             )
+                                            )
+                                            AND
+                                            (
+                                             (
+                                              !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'})
+                                             )
+                                             OR
+                                             (
+                                              @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9, f58310d9-a9f6-439a-9e8d-f62e7b41a168}
+                                             )
+                                            )
+                                            EOT
 }
 
 
@@ -172,3 +217,29 @@ resource "azurerm_role_assignment" "subscription_contributor_msi" {
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
+resource "azurerm_role_assignment" "r1" {
+  provider                             = azurerm.main
+  count                                = var.assign_subscription_permissions && !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0
+  scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+  principal_type                       = "ServicePrincipal"
+  role_definition_name                 = "Virtual Machine Local User Login"
+  principal_id                         = "f9bd0299-f746-4c20-a4f4-94e991c781df"
+}
+
+resource "azurerm_role_assignment" "r2" {
+  provider                             = azurerm.main
+  count                                = var.assign_subscription_permissions && !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0
+  scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+  principal_type                       = "ServicePrincipal"
+  role_definition_name                 = "VM Restore Operator"
+  principal_id                         = "e6805b7d-88a1-44f7-83bf-e3d83a8e841a"
+}
+
+resource "azurerm_role_assignment" "r3" {
+  provider                             = azurerm.main
+  count                                = var.assign_subscription_permissions && !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0
+  scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+  role_definition_name                 = "Virtual Machine User Login"
+  principal_type                       = "ServicePrincipal"
+  principal_id                         = "d4519e68-bd32-4b85-9e06-f957504e53ba"
+}
