@@ -200,8 +200,8 @@ export tfstate_resource_id
 
 echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 echo ""
-echo -e "$green Terraform parameter information"
-echo "-------------------------------------------------------------------------------$reset"
+echo -e "${green}Terraform parameter information"
+echo -e "-------------------------------------------------------------------------------$reset"
 echo ""
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer statefile:                  $deployer_tfstate_key"

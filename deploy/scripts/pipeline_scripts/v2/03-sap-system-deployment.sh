@@ -98,17 +98,17 @@ WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 
-echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
-echo "Environment:                         $ENVIRONMENT"
+
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
-echo "Location:                            $LOCATION"
-echo "Network:                             $NETWORK"
-echo "SID:                                 $SID"
 
+echo "Environment:                         $ENVIRONMENT"
 echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
+echo "Location:                            $LOCATION"
 echo "Location(filename):                  $LOCATION_IN_FILENAME"
+echo "Network:                             $NETWORK"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
+echo "SID:                                 $SID"
 echo "SID(filename):                       $SID_IN_FILENAME"
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
@@ -185,17 +185,20 @@ export tfstate_resource_id
 
 export workload_key_vault
 
+echo ""
+echo -e "${green}Terraform parameter information"
+echo -e "-------------------------------------------------------------------------------$reset"
+echo ""
+
+echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
 echo "Workload Key vault:                  ${workload_key_vault}"
-echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
-
 echo "Terraform state file subscription:   $terraform_storage_account_subscription_id"
 echo "Terraform state file storage account:$terraform_storage_account_name"
-
-tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-export tfstate_resource_id
+echo ""
+echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 
 
 if [ "$USE_MSI" == "true" ]; then
@@ -279,8 +282,8 @@ if [ -f "${SID}_resource_names.json" ]; then
 	added=1
 fi
 
-if [ -f $SAP_SYSTEM_TFVARS_FILENAME ]; then
-	git add $SAP_SYSTEM_TFVARS_FILENAME
+if [ -f "$SAP_SYSTEM_TFVARS_FILENAME" ]; then
+	git add "$SAP_SYSTEM_TFVARS_FILENAME"
 	added=1
 fi
 
