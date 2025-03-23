@@ -36,8 +36,7 @@ print_header
 # Configure DevOps
 configure_devops
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
@@ -155,7 +154,7 @@ if [ 0 == $return_code ]; then
 			echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
 		fi
 		echo -e "$green--- Deleting variables ---$reset"
-		if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
+		if [ -n "$VARIABLE_GROUP_ID" ]; then
 			echo "Deleting variables"
 
 			remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
