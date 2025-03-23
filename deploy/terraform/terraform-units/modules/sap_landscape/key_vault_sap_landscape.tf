@@ -119,8 +119,6 @@ resource "azurerm_role_assignment" "role_assignment_msi_officer" {
   principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
 }
 
-
-
 resource "azurerm_role_assignment" "role_assignment_spn" {
   provider                             = azurerm.deployer
   count                                = var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions && var.options.use_spn ? 1 : 0
