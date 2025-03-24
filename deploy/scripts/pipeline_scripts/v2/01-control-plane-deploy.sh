@@ -87,13 +87,6 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 export VARIABLE_GROUP_ID
 
-echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
-echo ""
-echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
-echo "Deployer TFvars:                     $DEPLOYER_TFVARS_FILENAME"
-echo "Library Folder:                      $LIBRARY_FOLDERNAME"
-echo "Library TFvars:                      $LIBRARY_TFVARS_FILENAME"
-
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -155,6 +148,17 @@ fi
 
 TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
 export TF_VAR_deployer_kv_user_arm_id
+
+echo ""
+echo -e "${green}Terraform parameter information:"
+echo -e "-------------------------------------------------------------------------------$reset"
+
+echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
+echo ""
+echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
+echo "Deployer tfVars:                     $DEPLOYER_TFVARS_FILENAME"
+echo "Library Folder:                      $LIBRARY_FOLDERNAME"
+echo "Library tfVars:                      $LIBRARY_TFVARS_FILENAME"
 
 if [ -n "${key_vault}" ]; then
 	echo "Deployer Key Vault:                  ${key_vault}"
