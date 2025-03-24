@@ -106,7 +106,8 @@ resource "azurerm_windows_web_app" "webapp" {
   app_settings = {
     "CollectionUri"                            = var.agent_ado_url
     "IS_PIPELINE_DEPLOYMENT"                   = false
-    "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"   = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : null
+    "ASPNETCORE_ENVIRONMENT"                   = "PRODUCTION"
+    "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"   = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
     "WEBSITE_AUTH_CUSTOM_AUTHORIZATION"        = true
     "WHICH_ENV"                                = length(var.deployer.user_assigned_identity_id) > 0 ? "DATA" : "LOCAL"
     "AZURE_TENANT_ID"                          = data.azurerm_client_config.deployer.tenant_id
