@@ -466,7 +466,7 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   content_type                         = "configuration"
   name                                 = "deployer-kv-name"
   value                                = local.deployer_keyvault_user_name
-  key_vault_id                         = local.user_keyvault_exist ? (
+  key_vault_id                         = var.key_vault.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
