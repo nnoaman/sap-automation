@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
+using Microsoft.TeamFoundation.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SDAFWebApp.Models;
@@ -191,7 +192,10 @@ namespace SDAFWebApp.Controllers
                     landscape.Id = Helper.GenerateId(landscape);
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
-                    landscape.subscription_id = landscape.subscription_id.Replace("/subscriptions/", "");
+                    if (!landscape.subscription_id.IsNullOrEmpty())
+                    {
+                        landscape.subscription_id = landscape.subscription_id.Replace("/subscriptions/", "");
+                    }
                     landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
 
                     string locationCode = Helper.MapRegion(landscape.location.ToLower());
@@ -253,7 +257,11 @@ namespace SDAFWebApp.Controllers
                 
 
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
-                landscape.subscription_id = landscape.subscription_id.Replace("/subscriptions/", "");
+                if (!landscape.subscription_id.IsNullOrEmpty())
+                {
+                    landscape.subscription_id = landscape.subscription_id.Replace("/subscriptions/", "");
+                }
+
                 string content = Helper.ConvertToTerraform(landscape);
 
                 await restHelper.UpdateRepo(path, content);

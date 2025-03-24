@@ -25,6 +25,11 @@ namespace SDAFWebApp.Services
                 client = tableStorageService.GetTableClient(settings.LandscapeCollectionName).Result;
                 tfvarsBlobContainerClient = tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName).Result;
             }
+            catch (System.AggregateException aggEx)
+            {
+                throw new Exception($"Error initializing LandscapeService: {aggEx.Message}", aggEx);
+            }
+
             catch (RequestFailedException ex)
             {
                 throw new Exception($"Error initializing LandscapeService: {ex.Message}", ex);

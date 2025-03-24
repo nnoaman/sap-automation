@@ -15,6 +15,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.TeamFoundation.Common;
 
 namespace SDAFWebApp.Controllers
 {
@@ -201,7 +202,10 @@ namespace SDAFWebApp.Controllers
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
-                    system.subscription_id = system.subscription_id.Replace("/subscriptions/","");
+                    if (!system.subscription_id.IsNullOrEmpty())
+                    {
+                        system.subscription_id = system.subscription_id.Replace("/subscriptions/", "");
+                    }
                     system.environment = system.workloadZoneName.Split('-')[0];
                     SystemEntity systemEntity = new(system);
                     await _systemService.CreateAsync(systemEntity);
@@ -287,7 +291,10 @@ namespace SDAFWebApp.Controllers
                 }
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";
-                system.subscription_id = system.subscription_id.Replace("/subscriptions/", "");
+                if (!system.subscription_id.IsNullOrEmpty())
+                {
+                    system.subscription_id = system.subscription_id.Replace("/subscriptions/", "");
+                }
                 string content = Helper.ConvertToTerraform(system);
 
                 await restHelper.UpdateRepo(path, content);
@@ -450,7 +457,10 @@ namespace SDAFWebApp.Controllers
                                 system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
                         }
-                        system.subscription_id = system.subscription_id.Replace("/subscriptions/", "");
+                        if (!system.subscription_id.IsNullOrEmpty())
+                        {
+                            system.subscription_id = system.subscription_id.Replace("/subscriptions/", "");
+                        }
                         await SubmitNewAsync(system);
                         string id = system.Id;
                         string path = $"/SYSTEM/{id}/{id}.tfvars";
