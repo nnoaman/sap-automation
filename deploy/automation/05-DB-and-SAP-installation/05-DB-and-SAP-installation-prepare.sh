@@ -9,7 +9,7 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 
-#External helper functions
+# External helper functions
 . ${SAP_AUTOMATION_REPO_PATH}/deploy/pipelines/helper.sh
 
 DEBUG=False
