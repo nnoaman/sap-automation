@@ -256,7 +256,8 @@ locals {
                                            flow_timeout_in_minutes = var.network_flow_timeout_in_minutes
                                            enable_route_propagation = var.network_enable_route_propagation
                                            arm_id        = var.network_arm_id
-                                           address_space = tolist(split(",", var.network_address_space))
+                                           address_space = can(tostring(var.network_address_space)) ? tolist(split(",", var.network_address_space)) : var.network_address_space
+
                                          }
 
   subnet_admin                         = {
