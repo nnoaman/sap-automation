@@ -9,9 +9,6 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 
-# External helper functions
-. ${SAP_AUTOMATION_REPO_PATH}/deploy/pipelines/helper.sh
-
 DEBUG=False
 
 function check_required_inputs() {
@@ -43,7 +40,7 @@ function check_required_inputs() {
 
     success=0
     for var in "${REQUIRED_VARS[@]}"; do
-        if [[ -z "${!var}" ]]; then
+        if [ -z "${!var+x}" ] || [ -z "${!var}" ]; then
             success=1
             log_warning "Missing required variable: ${var}"
         fi
@@ -97,7 +94,7 @@ SID=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $4}' | xargs)
 
 cd "$CONFIG_REPO_PATH" || exit
 
-environment_file_name=".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}"
+environment_file_name=".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}"
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
 if [[ $(get_platform) = devops ]]; then
