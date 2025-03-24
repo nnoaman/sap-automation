@@ -140,6 +140,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Convert")]
         public async Task<IActionResult> ConvertFileToObject(string id, string sourceController)
         {
+            string jsonString = string.Empty;
             try
             {
                 // Convert a file to a landscape or system object
@@ -149,7 +150,7 @@ namespace SDAFWebApp.Controllers
                 id = id[..id.IndexOf('.')];
                 byte[] bytes = file.Content;
                 string bitString = Encoding.UTF8.GetString(bytes);
-                string jsonString = Helper.TfvarToJson(bitString);
+                jsonString = Helper.TfvarToJson(bitString);
                 if (file.Id.EndsWith("INFRASTRUCTURE.tfvars"))
                 {
                     LandscapeModel landscape = JsonSerializer.Deserialize<LandscapeModel>(jsonString);
@@ -167,7 +168,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = "Error converting file: " + e.Message;
+                System.Diagnostics.Trace.TraceInformation(jsonString);
+                TempData["error"] = "Error converting file: " + jsonString + e.Message;
             }
             return RedirectToAction("Index", sourceController);
         }

@@ -127,7 +127,7 @@ namespace SDAFWebApp.Controllers
                 {
                     if (t.Key != null && t.Key.Length > 0)
                     {
-                        str.AppendLine($"  \"{t.Key}\" = \"{t.Value}\",");
+                        str.AppendLine($"  {t.Key} = \"{t.Value}\",");
                     }
                 }
                 str.Append('}');
@@ -359,7 +359,6 @@ namespace SDAFWebApp.Controllers
 
             return true;
         }
-
         public static string TfvarToJson(string hclString)
         {
             StringReader stringReader = new(hclString);
@@ -378,7 +377,7 @@ namespace SDAFWebApp.Controllers
                 {
                     continue;
                 }
-                else if (currLine.StartsWith('}'))
+                else if (currLine.TrimStart().StartsWith('}'))
                 {
                     jsonString.Remove(jsonString.Length - 3, 1);
                     jsonString.AppendLine("},");
@@ -398,7 +397,7 @@ namespace SDAFWebApp.Controllers
                         if (key.EndsWith("tags\""))
                         {
                             value += "[";
-                            currLine = stringReader.ReadLine();
+                            currLine = stringReader.ReadLine().Trim();
                             while (!currLine.StartsWith('}'))
                             {
                                 equalIndex = currLine.IndexOf('=');
@@ -411,7 +410,7 @@ namespace SDAFWebApp.Controllers
                                 value += "{";
                                 value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
                                 value += "},";
-                                currLine = stringReader.ReadLine();
+                                currLine = stringReader.ReadLine().TrimStart();
                             }
                             value = value.Trim(',');
                             value += "],";
@@ -419,7 +418,7 @@ namespace SDAFWebApp.Controllers
                         else if (key.EndsWith("configuration_settings\""))
                         {
                             value += "[";
-                            currLine = stringReader.ReadLine();
+                            currLine = stringReader.ReadLine().Trim();
                             while (!currLine.StartsWith('}'))
                             {
                                 equalIndex = currLine.IndexOf('=');
@@ -432,7 +431,7 @@ namespace SDAFWebApp.Controllers
                                 value += "{";
                                 value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
                                 value += "},";
-                                currLine = stringReader.ReadLine();
+                                currLine = stringReader.ReadLine().TrimStart();
                             }
                             value = value.Trim(',');
                             value += "],";
