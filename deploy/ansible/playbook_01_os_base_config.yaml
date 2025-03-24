@@ -319,13 +319,13 @@
             os_version_supported_for_sbd: >-
                                        {% if scs_cluster_type in ['ASD', 'ISCSI'] or database_cluster_type in ['ASD', 'ISCSI'] %}
                                          {% if ansible_os_family | upper == "REDHAT" %}
-                                           {{ ansible_distribution_version | version('8.8', '>=') or
-                                               ansible_distribution_version | version('9.0', '>=') }}
+                                           {{ ansible_distribution_version is version('8.8', '>=') or
+                                               ansible_distribution_version is version('9.0', '>=') }}
                                          {% elif ansible_os_family | upper == "SUSE" %}
                                            {% if scs_cluster_type == "ASD" or database_cluster_type == "ASD" %}
-                                             {{ ansible_distribution_version | version('15.1', '>=') }}
+                                             {{ ansible_distribution_version is version('15.1', '>=') }}
                                            {% elif scs_cluster_type == "ISCSI" or database_cluster_type == "ISCSI" %}
-                                             {{ ansible_distribution_version | version('12.3', '>=') }}
+                                             {{ ansible_distribution_version is version('12.3', '>=') }}
                                            {% else %}
                                              false
                                            {% endif %}
