@@ -268,6 +268,8 @@ function retrieve_parameters() {
 function remove_control_plane() {
 	step=0
 	ado_flag="none"
+	local green="\e[1;32m"
+	local reset="\e[0m"
 
 	# Define an array of helper scripts
 	helper_scripts=(
@@ -280,7 +282,6 @@ function remove_control_plane() {
 
 	# Parse command line arguments
 	parse_arguments "$@"
-	echo "ADO flag:                            ${ado_flag}"
 
 	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
 
@@ -302,11 +303,15 @@ function remove_control_plane() {
 	retrieve_parameters
 
 	echo ""
+	echo -e "${green}Terraform parameter information:"
+	echo -e "-------------------------------------------------------------------------------$reset"
+	echo ""
 	echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 	echo "Region code:                         ${region_code}"
 	echo "Deployer State File:                 ${deployer_tfstate_key}"
 	echo "Library State File:                  ${library_tfstate_key}"
 	echo "Deployer Subscription:               $ARM_SUBSCRIPTION_ID"
+	echo "ADO flag:                            ${ado_flag}"
 
 	key=$(echo "${deployer_parameter_file}" | cut -d. -f1)
 
@@ -317,8 +322,8 @@ function remove_control_plane() {
 	fi
 
 	echo ""
-	echo "Terraform details"
-	echo "-------------------------------------------------------------------------"
+	echo -e "${green}Terraform details"
+	echo "-------------------------------------------------------------------------${reset}"
 	echo "Subscription:                        ${terraform_storage_account_subscription_id}"
 	echo "Storage Account:                     ${terraform_storage_account_name}"
 	echo "Resource Group:                      ${terraform_storage_account_resource_group_name}"

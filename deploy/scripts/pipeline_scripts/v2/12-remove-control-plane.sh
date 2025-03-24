@@ -115,10 +115,6 @@ if [ ! -f "${libraryTFvarsFile}" ]; then
 	exit 2
 fi
 
-echo ""
-echo "Control Plane Name:                  ${CONTROL_PLANE_NAME}"
-echo "Environment file:                    $deployer_environment_file_name"
-
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
 	exit 2
@@ -138,7 +134,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	sudo rm -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 fi
 
-echo -e "$green--- Running the remove region script that destroys SAP library ---$reset"
+echo -e "$green--- Running the remove remove_control_plane_v2 that destroys SAP library ---$reset"
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
 	--deployer_parameter_file "$deployerTFvarsFile" \
