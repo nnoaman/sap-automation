@@ -92,7 +92,7 @@ else
 fi
 end_group
 
-start_group "Download SAP Workload Zone"
+start_group "Download SAP Bill of Materials"
 sample_path=${SAMPLE_REPO_PATH}/SAP
 command="ansible-playbook '-e "download_directory=${GITHUB_WORKSPACE}" -e "BOM_directory=${sample_path}" -e "bom_base_name=${bom_base_name}" -e "deployer_kv_name=${kv_name}" -e "check_storage_account=${re_download}"' $ExtraParams ${SAP_AUTOMATION_REPO_PATH}/deploy/ansible/playbook_bom_downloader.yaml"
 #command="ansible --version"
