@@ -453,6 +453,29 @@ resource "azurerm_key_vault_secret" "sid_password" {
                                          )
 }
 
+resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           azurerm_key_vault_access_policy.kv_user_spn,
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_role_assignment.role_assignment_spn_officer,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
+                                         ]
+  content_type                         = "configuration"
+  name                                 = "deployer-kv-name"
+  value                                = local.deployer_keyvault_user_name
+  key_vault_id                         = local.user_keyvault_exist ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+}
+
 data "azurerm_key_vault_secret" "sid_password" {
   provider                             = azurerm.main
   depends_on                           = [
