@@ -97,11 +97,13 @@ SID=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $4}' | xargs)
 deployer_environment=$(echo ${DEPLOYER_FOLDER} | awk -F'-' '{print $1}' | xargs)
 deployer_location=$(echo ${DEPLOYER_FOLDER} | awk -F'-' '{print $2}' | xargs)
 deployer_environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${deployer_environment}${deployer_location}
+echo "Deployer Environment File: ${deployer_environment_file_name}"
 
 cd "$CONFIG_REPO_PATH" || exit
 
-environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}"
-parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
+environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
+
+parameters_filename=$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml
 
 if [[ $(get_platform) = devops ]]; then
 	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
@@ -200,13 +202,6 @@ echo "Hosts file:                          ${SID}_hosts.yaml"
 echo "sap_parameters_file:                 $parameters_filename"
 echo "Configuration file:                  $environment_file_name"
 
-cd "$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
-
-start_group "Add BOM Base Name and SAP FQDN to sap-parameters.yaml"
-sed -i 's|bom_base_name:.*|bom_base_name:                '"$BOM_BASE_NAME"'|' sap-parameters.yaml
-echo "Bill of Materials:                                 ${BOM_BASE_NAME}"
-end_group
-
 start_group "Get connection details"
 mkdir -p artifacts
 
@@ -271,10 +266,16 @@ echo "Workload Key Vault:                  ${workload_key_vault}"
 echo "Control Plane Subscription:          ${control_plane_subscription}"
 echo "Workload Prefix:                     ${workload_prefix}"
 
+cd "$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
+
+start_group "Add BOM Base Name and SAP FQDN to sap-parameters.yaml"
+sed -i 's|bom_base_name:.*|bom_base_name:                '"$BOM_BASE_NAME"'|' sap-parameters.yaml
+echo "Bill of Materials:                                 ${BOM_BASE_NAME}"
+end_group
+
 : "${EXTRA_PARAMETERS:=}"
 : "${PIPELINE_EXTRA_PARAMETERS:=}"
 
-# Fix the test condition and handle parameters
 if [[ -n "${EXTRA_PARAMETERS}" && "${EXTRA_PARAMETERS}" != '$(EXTRA_PARAMETERS)' ]]; then
     if [[ $(get_platform) = devops ]]; then
         echo "##vso[task.logissue type=warning]Extra parameters were provided - '${EXTRA_PARAMETERS}'"
