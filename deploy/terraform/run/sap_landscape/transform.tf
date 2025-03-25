@@ -243,10 +243,10 @@ locals {
 
 
   diagnostics_storage_account          = {
-                                           arm_id = var.diagnostics_storage_account_arm_id
+                                           id = var.diagnostics_storage_account_arm_id
                                          }
   witness_storage_account              = {
-                                           arm_id = var.witness_storage_account_arm_id
+                                           id = var.witness_storage_account_arm_id
                                          }
 
   virtual_networks                     = {  }

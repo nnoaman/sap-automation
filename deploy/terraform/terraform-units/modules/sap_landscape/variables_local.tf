@@ -75,10 +75,10 @@ locals {
                                                         local.resource_suffixes.nat_gateway
                                                       )
                                                     )
-  nat_gateway_arm_id                              = length(var.infrastructure.nat_gateway.arm_id) > 0 ? (
-                                                      var.infrastructure.nat_gateway.arm_id) : ""
-  nat_gateway_public_ip_arm_id                    = length(var.infrastructure.nat_gateway.public_ip_arm_id) > 0 ? (
-                                                      var.infrastructure.nat_gateway.public_ip_arm_id) : ""
+  nat_gateway_arm_id                              = length(var.infrastructure.nat_gateway.id) > 0 ? (
+                                                      var.infrastructure.nat_gateway.id) : ""
+  nat_gateway_public_ip_arm_id                    = length(var.infrastructure.nat_gateway.public_ip_id) > 0 ? (
+                                                      var.infrastructure.nat_gateway.public_ip_id) : ""
   nat_gateway_public_ip_zones                     = length(var.infrastructure.nat_gateway.public_ip_zones) > 0 ? (
                                                       var.infrastructure.nat_gateway.public_ip_zones) : []
   nat_gateway_idle_timeout_in_minutes             = var.infrastructure.nat_gateway.idle_timeout_in_minutes
