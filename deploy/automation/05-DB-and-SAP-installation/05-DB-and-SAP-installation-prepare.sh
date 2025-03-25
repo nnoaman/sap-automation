@@ -93,6 +93,10 @@ LOCATION=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $2}' | xa
 NETWORK=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $3}' | xargs)
 SID=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $4}' | xargs)
 
+deployer_environment=$(echo ${DEPLOYER_FOLDER} | awk -F'-' '{print $1}' | xargs)
+deployer_location=$(echo ${DEPLOYER_FOLDER} | awk -F'-' '{print $2}' | xargs)
+deployer_environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${deployer_environment}${deployer_location}
+
 cd "$CONFIG_REPO_PATH" || exit
 
 environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}"
