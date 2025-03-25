@@ -99,9 +99,11 @@
       register:                        cluster_status_xml
       retries:                         12
       delay:                           10
-      until:                           >-
-                                       cluster_status_xml.stdout is regex('<node [^>]*online="true"[^>]*health="green"[^>]*name="' + primary_instance_name + '"') and
-                                       cluster_status_xml.stdout is regex('<node [^>]*online="true"[^>]*health="green"[^>]*name="' + secondary_instance_name + '"')
+      until: >-
+                                       cluster_status_xml.rc == 0 and
+                                       cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"') | length >= 2 and
+                                       primary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"')) and
+                                       secondary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"'))
       changed_when:                    false
 
     - name:                            "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
