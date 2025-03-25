@@ -219,20 +219,48 @@ if [[ $(get_platform) = devops ]]; then
 	workload_prefix=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${environment_file_name}" "workload_zone_prefix" || true)
 	control_plane_subscription=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${environment_file_name}" "STATE_SUBSCRIPTION" || true)
 else
-    workload_key_vault=$(get_value_with_key "workloadkeyvault" "${environment_file_name}" || true)
-    if [ -z "${workload_key_vault}" ]; then
-        workload_key_vault=$(config_value_with_key "workloadkeyvault" "${environment_file_name}" || true)
+    # First try get_value_with_key, then fall back to config_value_with_key
+    var=$(get_value_with_key "Workload_Key_Vault")
+    if [ -z ${var} ]; then
+        workload_key_vault=$(config_value_with_key "workloadkeyvault")
+    else
+        workload_key_vault=${var}
     fi
 
-    workload_prefix=$(get_value_with_key "workload_zone_prefix" "${environment_file_name}" || true)
-    if [ -z "${workload_prefix}" ]; then
-        workload_prefix=$(config_value_with_key "${NETWORK}Workload_Secret_Prefix" "${environment_file_name}" || true)
+    var=$(get_value_with_key "${prefix}Workload_Secret_Prefix")
+    if [ -z ${var} ]; then
+        workload_prefix=$(config_value_with_key "workload_zone_prefix")
+    else
+        workload_prefix=${var}
     fi
 
-    control_plane_subscription=$(get_value_with_key "STATE_SUBSCRIPTION" "${environment_file_name}" || true)
-    if [ -z "${control_plane_subscription}" ]; then
-        control_plane_subscription=$(config_value_with_key "STATE_SUBSCRIPTION" "${environment_file_name}" || true)
+    var=$(get_value_with_key "STATE_SUBSCRIPTION")
+    if [ -z ${var} ]; then
+        control_plane_subscription=$(config_value_with_key "STATE_SUBSCRIPTION")
+    else
+        control_plane_subscription=${var}
     fi
+fi
+
+# Log the values we found for debugging
+echo "DEBUG: Found workload_key_vault = ${workload_key_vault}"
+echo "DEBUG: Found workload_prefix = ${workload_prefix}"
+echo "DEBUG: Found control_plane_subscription = ${control_plane_subscription}"
+
+# Ensure we have values for required variables
+if [ -z "${workload_key_vault}" ]; then
+    echo -e "${bold_red}Error: Could not determine workload key vault${reset}"
+    exit 1
+fi
+
+if [ -z "${workload_prefix}" ]; then
+    echo -e "${bold_red}Error: Could not determine workload prefix${reset}"
+    exit 1
+fi
+
+if [ -z "${control_plane_subscription}" ]; then
+    echo -e "${bold_red}Error: Could not determine control plane subscription${reset}"
+    exit 1
 fi
 
 echo "SID:                                 ${SID}"
