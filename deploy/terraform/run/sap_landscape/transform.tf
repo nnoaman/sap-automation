@@ -157,7 +157,7 @@ locals {
 
   resource_group                       = {
                                             name   = try(var.infrastructure.resource_group.name, var.resourcegroup_name)
-                                            arm_id = try(var.infrastructure.resource_group.arm_id, var.resourcegroup_arm_id)
+                                            id     = try(var.infrastructure.resource_group.arm_id, var.resourcegroup_arm_id)
                                          }
   resource_group_defined               = (
                                            length(local.resource_group.name) +
@@ -167,7 +167,7 @@ locals {
   ams_instance                        = {
                                            name                    = var.ams_instance_name
                                            create_ams_instance     = var.create_ams_instance
-                                           ams_laws_arm_id         = var.ams_laws_arm_id
+                                           ams_laws_id             = var.ams_laws_arm_id
                                         }
 
   nat_gateway                         = {
@@ -176,7 +176,7 @@ locals {
                                            arm_id                  = try(var.nat_gateway_arm_id, "")
                                            region                  = lower(coalesce(var.location, try(var.infrastructure.region, "")))
                                            public_ip_zones         = try(var.nat_gateway_public_ip_zones, ["1", "2", "3"])
-                                           public_ip_arm_id        = try(var.nat_gateway_public_ip_arm_id, "")
+                                           public_ip_id            = try(var.nat_gateway_public_ip_arm_id, "")
                                            idle_timeout_in_minutes = var.nat_gateway_idle_timeout_in_minutes
                                            ip_tags                 = try(var.nat_gateway_public_ip_tags, {})
                                          }
@@ -228,7 +228,7 @@ locals {
                                            ) : (
                                            ""
                                          )
-   key_vault                            = {
+  key_vault                            = {
                                            id                                     = var.user_keyvault_id
                                            exists                                 = length(var.user_keyvault_id) > 0 ? true : false
                                            private_key_secret_name                = var.workload_zone_private_key_secret_name
@@ -251,160 +251,129 @@ locals {
 
   virtual_networks                     = {  }
   sap                                  = {
-                                           name          = var.network_name
-                                           logical_name  = var.network_logical_name
-                                           flow_timeout_in_minutes = var.network_flow_timeout_in_minutes
+                                           name                     = var.network_name
+                                           logical_name             = var.network_logical_name
+                                           flow_timeout_in_minutes  = var.network_flow_timeout_in_minutes
                                            enable_route_propagation = var.network_enable_route_propagation
-                                           arm_id        = var.network_arm_id
-                                           address_space = can(tostring(var.network_address_space)) ? tolist(split(",", var.network_address_space)) : var.network_address_space
+                                           id                       = var.network_arm_id
+                                           exists                   = length(var.network_arm_id) > 0
+                                           address_space            = can(tostring(var.network_address_space)) ? tolist(split(",", var.network_address_space)) : [var.network_address_space]
 
                                          }
 
   subnet_admin                         = {
-                                             "name"    = var.admin_subnet_name
-                                             "arm_id"  = var.admin_subnet_arm_id
-                                             "prefix"  = var.admin_subnet_address_prefix
-                                             "defined" = length(var.admin_subnet_address_prefix) > 0
-                                              "nsg"    = {
-                                                           "name"   = var.admin_subnet_nsg_name
-                                                           "arm_id" = var.admin_subnet_nsg_arm_id
-                                                         }
+                                             name                   = var.admin_subnet_name
+                                             id                     = var.admin_subnet_arm_id
+                                             prefix                 = var.admin_subnet_address_prefix
+                                             defined                = length(var.admin_subnet_arm_id) > 0 ? false : length(var.admin_subnet_address_prefix) > 0
+                                             exists                 = length(var.admin_subnet_arm_id) > 0
+                                             nsg                    = {
+                                                                        name   = var.admin_subnet_nsg_name
+                                                                        id     = var.admin_subnet_nsg_arm_id
+                                                                        exists = length(var.admin_subnet_nsg_arm_id) > 0
+                                                                      }
                                          }
 
   subnet_db                            = {
-                                             "name"    = var.db_subnet_name
-                                             "arm_id"  = var.db_subnet_arm_id
-                                             "prefix"  = var.db_subnet_address_prefix
-                                             "defined" = length(var.db_subnet_address_prefix) > 0
-                                              "nsg"    = {
-                                                           "name"   = var.db_subnet_nsg_name
-                                                           "arm_id" = var.db_subnet_nsg_arm_id
-                                                         }
+                                             name                   = var.db_subnet_name
+                                             id                     = var.db_subnet_arm_id
+                                             prefix                 = var.db_subnet_address_prefix
+                                             defined                = length(var.db_subnet_arm_id) > 0 ? false : length(var.db_subnet_address_prefix) > 0
+                                             exists                 = length(var.db_subnet_arm_id) > 0
+                                             nsg                    = {
+                                                                        name   = var.db_subnet_nsg_name
+                                                                        id     = var.db_subnet_nsg_arm_id
+                                                                        exists = length(var.db_subnet_nsg_arm_id) > 0
+                                                                      }
                                          }
 
   subnet_app                           = {
-                                             "name"    = var.app_subnet_name
-                                             "arm_id"  = var.app_subnet_arm_id
-                                             "prefix"  = var.app_subnet_address_prefix
-                                             "defined" = length(var.app_subnet_address_prefix) > 0
-                                              "nsg"    = {
-                                                           "name"   = var.app_subnet_nsg_name
-                                                           "arm_id" = var.app_subnet_nsg_arm_id
-                                                         }
+                                             name                   = var.app_subnet_name
+                                             id                     = var.app_subnet_arm_id
+                                             prefix                 = var.app_subnet_address_prefix
+                                             defined                = length(var.app_subnet_arm_id) > 0 ? false : length(var.app_subnet_address_prefix) > 0
+                                             exists                 = length(var.app_subnet_arm_id) > 0
+                                             nsg                    = {
+                                                                        name   = var.app_subnet_nsg_name
+                                                                        id     = var.app_subnet_nsg_arm_id
+                                                                        exists = length(var.app_subnet_nsg_arm_id) > 0
+                                                                      }
                                          }
 
   subnet_web                           = {
-                                             "name"    = var.web_subnet_name
-                                             "arm_id"  = var.web_subnet_arm_id
-                                             "prefix"  = var.web_subnet_address_prefix
-                                             "defined" = length(var.web_subnet_address_prefix) > 0
-                                              "nsg"     = {
-                                                            "name"   = var.web_subnet_nsg_name
-                                                            "arm_id" = var.web_subnet_nsg_arm_id
-                                                          }
+                                             name                   = var.web_subnet_name
+                                             id                     = var.web_subnet_arm_id
+                                             prefix                 = var.web_subnet_address_prefix
+                                             defined                = length(var.web_subnet_arm_id) > 0 ? false : length(var.web_subnet_address_prefix) > 0
+                                             exists                 = length(var.web_subnet_arm_id) > 0
+                                             nsg                    = {
+                                                                        name   = var.web_subnet_nsg_name
+                                                                        id     = var.web_subnet_nsg_arm_id
+                                                                        exists = length(var.web_subnet_nsg_arm_id) > 0
+                                                                      }
                                          }
 
   subnet_storage                       = {
-                                             "name"    = var.storage_subnet_name
-                                             "arm_id"  = var.storage_subnet_arm_id
-                                             "prefix"  = var.storage_subnet_address_prefix
-                                             "defined" = length(var.storage_subnet_address_prefix) > 0
-                                             "nsg"     = {
-                                                           "name"   = var.storage_subnet_nsg_name
-                                                           "arm_id" = var.storage_subnet_nsg_arm_id
-                                                         }
+                                             name                   = var.storage_subnet_name
+                                             id                     = var.storage_subnet_arm_id
+                                             prefix                 = var.storage_subnet_address_prefix
+                                             defined                = length(var.storage_subnet_arm_id) > 0 ? false : length(var.storage_subnet_address_prefix) > 0
+                                             exists                 = length(var.storage_subnet_arm_id) > 0
+                                             nsg                    = {
+                                                                        name   = var.storage_subnet_nsg_name
+                                                                        id     = var.storage_subnet_nsg_arm_id
+                                                                        exists = length(var.storage_subnet_nsg_arm_id) > 0
+                                                                      }
                                           }
 
   subnet_anf                           = {
-                                            "name"    = var.anf_subnet_name
-                                            "arm_id"  = var.anf_subnet_arm_id
-                                            "prefix"  = var.anf_subnet_address_prefix
-                                            "defined" = length(var.anf_subnet_address_prefix) > 0
-                                            "nsg"     = {
-                                                          "name"   = var.anf_subnet_nsg_name
-                                                          "arm_id" = var.anf_subnet_nsg_arm_id
-                                                        }
+                                             name                   = var.anf_subnet_name
+                                             id                     = var.anf_subnet_arm_id
+                                             prefix                 = var.anf_subnet_address_prefix
+                                             defined                = length(var.anf_subnet_arm_id) > 0  ? false : length(var.anf_subnet_address_prefix) > 0
+                                             exists                 = length(var.anf_subnet_arm_id) > 0
+                                             nsg                    = {
+                                                                        name   = var.anf_subnet_nsg_name
+                                                                        id     = var.anf_subnet_nsg_arm_id
+                                                                        exists = length(var.anf_subnet_nsg_arm_id) > 0
+                                                                      }
                                          }
 
   subnet_iscsi                         = {
-                                            "name"    = var.iscsi_subnet_name
-                                            "arm_id"  = var.iscsi_subnet_arm_id
-                                            "prefix"  = var.iscsi_subnet_address_prefix
-                                            "defined" = length(var.iscsi_subnet_address_prefix) > 0
-                                            "nsg"     = {
-                                                          "name"   = var.iscsi_subnet_nsg_name
-                                                          "arm_id" = var.iscsi_subnet_nsg_arm_id
-                                                        }
+                                             name                   = var.iscsi_subnet_name
+                                             id                     = var.iscsi_subnet_arm_id
+                                             prefix                 = var.iscsi_subnet_address_prefix
+                                             defined                = length(var.iscsi_subnet_arm_id) > 0 ? false : length(var.iscsi_subnet_address_prefix) > 0
+                                             exists                 = length(var.iscsi_subnet_arm_id) > 0
+                                             nsg                    = {
+                                                                        name   = var.iscsi_subnet_nsg_name
+                                                                        id     = var.iscsi_subnet_nsg_arm_id
+                                                                        exists = length(var.iscsi_subnet_nsg_arm_id) > 0
+                                                                      }
                                          }
   subnet_ams                         =   {
-                                            "name"    = var.ams_subnet_name
-                                            "arm_id"  = var.ams_subnet_arm_id
-                                            "prefix"  = var.ams_subnet_address_prefix
-                                            "defined" = length(var.ams_subnet_address_prefix) > 0
-                                            "nsg"     = {
-                                                          "name"   = var.ams_subnet_nsg_name
-                                                          "arm_id" = var.ams_subnet_nsg_arm_id
-                                                        }
+                                             name                   = var.ams_subnet_name
+                                             id                     = var.ams_subnet_arm_id
+                                             prefix                 = var.ams_subnet_address_prefix
+                                             defined                = length(var.ams_subnet_arm_id) > 0 ? false : length(var.ams_subnet_address_prefix) > 0
+                                             exists                 = length(var.ams_subnet_arm_id) > 0
+                                             nsg                    = {
+                                                                        name   = var.ams_subnet_nsg_name
+                                                                        id     = var.ams_subnet_nsg_arm_id
+                                                                        exists = length(var.ams_subnet_nsg_arm_id) > 0
+                                                                      }
                                          }
 
-  all_subnets                          = merge(local.sap, (
-                                         local.subnet_admin.defined ? (
-                                           {
-                                             "subnet_admin" = local.subnet_admin
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_db.defined ? (
-                                           {
-                                             "subnet_db" = local.subnet_db
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_app.defined ? (
-                                           {
-                                             "subnet_app" = local.subnet_app
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_web.defined ? (
-                                           {
-                                             "subnet_web" = local.subnet_web
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_storage.defined ? (
-                                           {
-                                             "subnet_storage" = local.subnet_storage
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_anf.defined ? (
-                                           {
-                                             "subnet_anf" = local.subnet_anf
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_ams.defined ? (
-                                           {
-                                             "subnet_ams" = local.subnet_ams
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_iscsi.defined ? (
-                                           {
-                                             "subnet_iscsi" = local.subnet_iscsi
-                                           }
-                                           ) : (
-                                           null
-                                         )
-                                         )
+  all_subnets                          = merge(local.sap, {
+                                             subnet_admin           = local.subnet_admin,
+                                             subnet_db              = local.subnet_db,
+                                             subnet_app             = local.subnet_app,
+                                             subnet_web             = local.subnet_web,
+                                             subnet_storage         = local.subnet_storage,
+                                             subnet_anf             = local.subnet_anf,
+                                             subnet_ams             = local.subnet_ams,
+                                             subnet_iscsi           = local.subnet_iscsi
+  }
                                        )
 
 
@@ -470,7 +439,7 @@ locals {
   ANF_settings                         = {
                                           use               = var.NFS_provider == "ANF"
                                           name              = var.ANF_account_name
-                                          arm_id            = var.ANF_account_arm_id
+                                          id                = var.ANF_account_arm_id
                                           pool_name         = var.ANF_pool_name
                                           use_existing_pool = var.ANF_use_existing_pool
                                           service_level     = var.ANF_service_level

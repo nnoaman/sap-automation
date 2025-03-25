@@ -40,7 +40,7 @@ resource "azurerm_app_configuration_key" "VirtualNetworkResourceId" {
   configuration_store_id               = data.azurerm_app_configuration.app_config.id
   key                                  = format("%s_VirtualNetworkResourceId", var.naming.prefix.WORKLOAD_ZONE)
   label                                = var.naming.prefix.WORKLOAD_ZONE
-  value                                = local.SAP_virtualnetwork_exists ? (
+  value                                = var.infrastructure.virtual_networks.sap.exists ? (
                                                 try(data.azurerm_virtual_network.vnet_sap[0].id, "")) : (
                                                 try(azurerm_virtual_network.vnet_sap[0].id, "")
                                               )

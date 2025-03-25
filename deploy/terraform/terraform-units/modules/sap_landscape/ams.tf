@@ -4,20 +4,20 @@
 // Imports data of existing AMS subnet
 data "azurerm_subnet" "ams" {
   provider                             = azurerm.main
-  count                                = length(local.ams_subnet_arm_id) > 0 ? 1 : 0
-  name                                 = split("/", local.ams_subnet_arm_id)[10]   # Get the Subnet from actual arm_id
-  virtual_network_name                 = split("/", local.ams_subnet_arm_id)[8]    # Get the Network from actual arm_id
-  resource_group_name                  = split("/", local.ams_subnet_arm_id)[4]    # Get RG name from actual arm_id
+  count                                = var.infrastructure.virtual_networks.sap.subnet_ams.exists ? 1 : 0
+  name                                 = split("/", var.infrastructure.virtual_networks.sap.subnet_ams.id)[10]   # Get the Subnet from actual arm_id
+  virtual_network_name                 = split("/", var.infrastructure.virtual_networks.sap.subnet_ams.id)[8]    # Get the Network from actual arm_id
+  resource_group_name                  = split("/", var.infrastructure.virtual_networks.sap.subnet_ams.id)[4]    # Get RG name from actual arm_id
 }
 
 resource "azurerm_subnet_route_table_association" "ams" {
   provider                             = azurerm.main
-  count                                = local.create_ams_instance && local.ams_subnet_defined && !local.SAP_virtualnetwork_exists && !local.ams_subnet_existing ?  (local.create_nat_gateway ? 0 : 1)  : 0
+  count                                = local.create_ams_instance && var.infrastructure.virtual_networks.sap.subnet_ams.defined && !var.infrastructure.virtual_networks.sap.exists ? (local.create_nat_gateway ? 0 : 1)  : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.ams
                                          ]
-  subnet_id                            = local.ams_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_ams.arm_id : azurerm_subnet.ams[0].id
+  subnet_id                            = azurerm_subnet.ams[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 
@@ -41,7 +41,7 @@ resource "azapi_resource" "ams_instance" {
                                                             managedResourceGroupConfiguration: {
                                                               name: "managedrg-ams"
                                                             },
-                                                           monitorSubnet: length(local.ams_subnet_arm_id) > 0 ? local.ams_subnet_arm_id : azurerm_subnet.ams[0].id,
+                                                           monitorSubnet: var.infrastructure.virtual_networks.sap.subnet_ams.exists ? var.infrastructure.virtual_networks.sap.subnet_ams.id : azurerm_subnet.ams[0].id,
                                                           }
                                           })
 }

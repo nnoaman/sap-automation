@@ -34,7 +34,7 @@ locals {
 
   deployer_public_ip_address                      = try(var.deployer_tfstate.deployer_public_ip_address, "")
   deployer_subnet_management_id                   = try(var.deployer_tfstate.subnet_mgmt_id, "")
-  deployer_virtualnetwork_id                      = try(var.deployer_tfstate.vnet_mgmt_id, "")
+  deployer_virtual_network_id                     = try(var.deployer_tfstate.vnet_mgmt_id, "")
   management_subnet_exists                        = length(local.deployer_subnet_management_id) > 0
 
 
@@ -85,21 +85,14 @@ locals {
   nat_gateway_public_ip_tags                      = var.infrastructure.nat_gateway.ip_tags
 
   // SAP vnet
-  SAP_virtualnetwork_id                           = try(var.infrastructure.virtual_networks.sap.arm_id, "")
-  SAP_virtualnetwork_exists                       = length(local.SAP_virtualnetwork_id) > 0
-  SAP_virtualnetwork_name                         = local.SAP_virtualnetwork_exists ? (
-                                                      try(split("/", local.SAP_virtualnetwork_id)[8], "")) : (
+  SAP_virtual_network_name                        = var.infrastructure.virtual_networks.sap.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.id)[8], "")) : (
                                                       coalesce(
                                                         var.infrastructure.virtual_networks.sap.name,
                                                         format("%s%s%s", var.naming.resource_prefixes.vnet, local.prefix, local.resource_suffixes.vnet)
                                                       )
                                                     )
 
-  network_address_space                           = local.SAP_virtualnetwork_exists ? [""] : var.infrastructure.virtual_networks.sap.address_space
-
-  network_flow_timeout_in_minutes                 = var.infrastructure.virtual_networks.sap.flow_timeout_in_minutes
-
-  network_enable_route_propagation                = var.infrastructure.virtual_networks.sap.enable_route_propagation
 
   // By default, Ansible ssh key for SID uses generated public key.
   // Provide sshkey.path_to_public_key and path_to_private_key overides it
@@ -193,17 +186,8 @@ locals {
   #
   ##############################################################################################
 
-  admin_subnet_defined                            = (
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_admin.arm_id, "")) +
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_admin.prefix, ""))
-                                                    ) > 0
-  admin_subnet_arm_id                             = local.admin_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_admin.arm_id, "")) : (
-                                                      ""
-                                                    )
-  admin_subnet_existing                           = length(local.admin_subnet_arm_id) > 0
-  admin_subnet_name                               = local.admin_subnet_existing ? (
-                                                      try(split("/", local.admin_subnet_arm_id)[10], "")) : (
+  admin_subnet_name                               = var.infrastructure.virtual_networks.sap.subnet_admin.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_admin.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_admin.name) : (
                                                         format("%s%s%s%s",
@@ -217,10 +201,6 @@ locals {
                                                         )
                                                       )
                                                     )
-  admin_subnet_prefix                             = local.admin_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_admin.prefix, "")) : (
-                                                      ""
-                                                    )
 
   ##############################################################################################
   #
@@ -228,13 +208,8 @@ locals {
   #
   ##############################################################################################
 
-  admin_subnet_nsg_arm_id                         = local.admin_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.arm_id, "")) : (
-                                                      ""
-                                                    )
-  admin_subnet_nsg_exists                         = length(local.admin_subnet_nsg_arm_id) > 0
-  admin_subnet_nsg_name                           = local.admin_subnet_nsg_exists ? (
-                                                    try(split("/", local.admin_subnet_nsg_arm_id)[8], "")) : (
+  admin_subnet_nsg_name                           = var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists ? (
+                                                    try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id)[8], "")) : (
                                                     length(try(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.name, "")) > 0 ? (
                                                       var.infrastructure.virtual_networks.sap.subnet_admin.nsg.name) : (
                                                       format("%s%s%s%s",
@@ -254,18 +229,8 @@ locals {
   #  Database subnet - Check if locally provided
   #
   ##############################################################################################
-
-  database_subnet_defined                         = (
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_db.arm_id, "")) +
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_db.prefix, ""))
-                                                    ) > 0
-  database_subnet_arm_id                          = local.database_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_db.arm_id, "")) : (
-                                                      ""
-                                                    )
-  database_subnet_existing                        = length(local.database_subnet_arm_id) > 0
-  database_subnet_name                            = local.database_subnet_existing ? (
-                                                      try(split("/", local.database_subnet_arm_id)[10], "")) : (
+  database_subnet_name                            = var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_db.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_db.name) : (
                                                         format("%s%s%s%s",
@@ -280,11 +245,6 @@ locals {
                                                       )
                                                     )
 
-  database_subnet_prefix                          = local.database_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_db.prefix, "")) : (
-                                                      ""
-                                                    )
-
   ##############################################################################################
   #
   #  Database subnet NSG - Check if locally provided
@@ -292,13 +252,8 @@ locals {
   ##############################################################################################
 
 
-  database_subnet_nsg_arm_id                      = local.database_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_db.nsg.arm_id, "")) : (
-                                                      ""
-                                                    )
-  database_subnet_nsg_exists                      = length(local.database_subnet_nsg_arm_id) > 0
-  database_subnet_nsg_name                        = local.database_subnet_nsg_exists ? (
-                                                      try(split("/", local.database_subnet_nsg_arm_id)[8], "")) : (
+  database_subnet_nsg_name                        = var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.nsg.id)[8], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_db.nsg.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_db.nsg.name) : (
                                                         format("%s%s%s%s",
@@ -319,17 +274,8 @@ locals {
   #
   ##############################################################################################
 
-  application_subnet_defined                      = (
-                                                     length(try(var.infrastructure.virtual_networks.sap.subnet_app.arm_id, "")) +
-                                                     length(try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, ""))
-                                                   ) > 0
-  application_subnet_arm_id                       = local.application_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_app.arm_id, "")) : (
-                                                      ""
-                                                    )
-  application_subnet_existing                     = length(local.application_subnet_arm_id) > 0
-  application_subnet_name                         = local.application_subnet_existing ? (
-                                                      try(split("/", local.application_subnet_arm_id)[10], "")) : (
+  application_subnet_name                         = var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_app.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_app.name) : (
                                                         format("%s%s%s%s",
@@ -344,12 +290,6 @@ locals {
                                                       )
 
                                                     )
-  application_subnet_prefix                       = local.application_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, "")) : (
-                                                      ""
-                                                    )
-
-  create_application_subnet                       = local.application_subnet_defined && !local.application_subnet_existing
 
   ##############################################################################################
   #
@@ -357,12 +297,7 @@ locals {
   #
   ##############################################################################################
 
-  application_subnet_nsg_arm_id                   = local.application_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_app.nsg.arm_id, "")) : (
-                                                      ""
-                                                    )
-  application_subnet_nsg_exists                   = length(local.application_subnet_nsg_arm_id) > 0
-  application_subnet_nsg_name                     = local.application_subnet_nsg_exists ? (
+  application_subnet_nsg_name                     = var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists ? (
                                                       try(split("/", local.application_subnet_nsg_arm_id)[8], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_app.nsg.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_app.nsg.name) : (
@@ -384,17 +319,8 @@ locals {
   #
   ##############################################################################################
 
-  web_subnet_defined                              = (
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_web.arm_id, "")) +
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_web.prefix, ""))
-                                                    ) > 0
-  web_subnet_arm_id                               = local.web_subnet_defined ? (
-                                                       try(var.infrastructure.virtual_networks.sap.subnet_web.arm_id, "")) : (
-                                                       ""
-                                                     )
-  web_subnet_existing                             = length(local.web_subnet_arm_id) > 0
-  web_subnet_name                                 = local.web_subnet_existing ? (
-                                                      try(split("/", local.web_subnet_arm_id)[10], "")) : (
+  web_subnet_name                                 = var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_web.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_web.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_web.name) : (
                                                         format("%s%s%s%s",
@@ -408,10 +334,6 @@ locals {
                                                         )
                                                       )
                                                     )
-  web_subnet_prefix                               = local.web_subnet_defined ? (
-                                                       try(var.infrastructure.virtual_networks.sap.subnet_web.prefix, "")) : (
-                                                       ""
-                                                     )
 
   ##############################################################################################
   #
@@ -419,14 +341,8 @@ locals {
   #
   ##############################################################################################
 
-  web_subnet_nsg_arm_id                           = local.web_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_web.nsg.arm_id, "")) : (
-                                                      ""
-                                                    )
-  web_subnet_nsg_exists                           = length(local.web_subnet_nsg_arm_id) > 0
-
-  web_subnet_nsg_name                             = local.web_subnet_nsg_exists ? (
-                                                      try(split("/", local.web_subnet_nsg_arm_id)[8], "")) : (
+  web_subnet_nsg_name                             = var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_web.nsg.id)[8], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_web.nsg.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_web.nsg.name) : (
                                                         format("%s%s%s%s",
@@ -447,17 +363,8 @@ locals {
   #
   ##############################################################################################
 
-  storage_subnet_defined                          = (
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_storage.arm_id, "")) +
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_storage.prefix, ""))
-                                                    ) > 0
-  storage_subnet_arm_id                           = local.storage_subnet_defined ? (
-                                                       try(var.infrastructure.virtual_networks.sap.subnet_storage.arm_id, "")) : (
-                                                       ""
-                                                     )
-  storage_subnet_existing                         = length(local.storage_subnet_arm_id) > 0
-  storage_subnet_name                             = local.storage_subnet_existing ? (
-                                                      try(split("/", local.storage_subnet_arm_id)[10], "")) : (
+  storage_subnet_name                             = var.infrastructure.virtual_networks.sap.subnet_storage.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_storage.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_storage.name) : (
                                                         format("%s%s%s%s",
@@ -471,10 +378,6 @@ locals {
                                                         )
                                                       )
                                                     )
-  subnet_cidr_storage                           = local.storage_subnet_defined ? (
-                                                       try(var.infrastructure.virtual_networks.sap.subnet_storage.prefix, "")) : (
-                                                       ""
-                                                     )
 
   ##############################################################################################
   #
@@ -482,14 +385,8 @@ locals {
   #
   ##############################################################################################
 
-  storage_subnet_nsg_arm_id                       = local.storage_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.arm_id, "")) : (
-                                                      ""
-                                                    )
-  storage_subnet_nsg_exists                       = length(local.storage_subnet_nsg_arm_id) > 0
-
-  storage_subnet_nsg_name                         = local.storage_subnet_nsg_exists ? (
-                                                      try(split("/", local.storage_subnet_nsg_arm_id)[8], "")) : (
+  storage_subnet_nsg_name                         = var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id)[8], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_storage.nsg.name) : (
                                                         format("%s%s%s%s",
@@ -510,18 +407,8 @@ locals {
   #
   ##############################################################################################
 
-
-  ANF_subnet_defined                              = (
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_anf.arm_id, "")) +
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_anf.prefix, ""))
-                                                    ) > 0
-  ANF_subnet_arm_id                               = local.ANF_subnet_defined ? (
-                                                       try(var.infrastructure.virtual_networks.sap.subnet_anf.arm_id, "")) : (
-                                                       ""
-                                                     )
-  ANF_subnet_existing                             = length(local.ANF_subnet_arm_id) > 0
-  ANF_subnet_name                                 = local.ANF_subnet_existing ? (
-                                                      try(split("/", local.ANF_subnet_arm_id)[10], "")) : (
+  ANF_subnet_name                                 = var.infrastructure.virtual_networks.sap.subnet_anf.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_anf.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_anf.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_anf.name) : (
                                                         format("%s%s%s%s",
@@ -535,18 +422,9 @@ locals {
                                                         )
                                                       )
                                                     )
-  ANF_subnet_prefix                               = local.ANF_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_anf.prefix, "")) : (
-                                                      ""
-                                                    )
-  ANF_subnet_nsg_arm_id                           = local.ANF_subnet_defined ? (
-                                                       try(var.infrastructure.virtual_networks.sap.subnet_anf.nsg.arm_id, "")) : (
-                                                       ""
-                                                     )
-  ANF_subnet_nsg_exists                           = length(local.ANF_subnet_nsg_arm_id) > 0
 
-  ANF_subnet_nsg_name                             = local.ANF_subnet_nsg_exists ? (
-                                                      try(split("/", local.ANF_subnet_nsg_arm_id)[8], "")) : (
+  ANF_subnet_nsg_name                             = var.infrastructure.virtual_networks.sap.subnet_anf.nsg.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_anf.nsg.id)[8], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_anf.nsg.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_anf.nsg.name) : (
                                                         format("%s%s%s%s",
@@ -567,18 +445,8 @@ locals {
   #
   ##############################################################################################
 
-
-  ams_subnet_defined                              = (
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_ams.arm_id, "")) +
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_ams.prefix, ""))
-                                                    ) > 0
-  ams_subnet_arm_id                               = local.ams_subnet_defined ? (
-                                                       try(var.infrastructure.virtual_networks.sap.subnet_ams.arm_id, "")) : (
-                                                       ""
-                                                     )
-  ams_subnet_existing                             = length(local.ams_subnet_arm_id) > 0
-  ams_subnet_name                                 = local.ams_subnet_existing ? (
-                                                      try(split("/", local.ams_subnet_arm_id)[10], "")) : (
+  ams_subnet_name                                 = var.infrastructure.virtual_networks.sap.subnet_ams.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_ams.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_ams.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_ams.name) : (
                                                         format("%s%s%s%s",
@@ -591,10 +459,6 @@ locals {
                                                           local.resource_suffixes.ams_subnet
                                                         )
                                                       )
-                                                    )
-  ams_subnet_prefix                               = local.ams_subnet_defined ? (
-                                                      try(var.infrastructure.virtual_networks.sap.subnet_ams.prefix, "")) : (
-                                                      ""
                                                     )
 
   # Store the Deployer KV in workload zone KV
@@ -674,15 +538,15 @@ locals {
                                                       }
                                                     ) : null
 
-  // iSCSI subnet
-  enable_sub_iscsi                                = (
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_iscsi.arm_id, "")) +
-                                                      length(try(var.infrastructure.virtual_networks.sap.subnet_iscsi.prefix, ""))
-                                                    ) > 0
-  sub_iscsi_arm_id                                = try(var.infrastructure.virtual_networks.sap.subnet_iscsi.arm_id, "")
-  sub_iscsi_exists                                = length(local.sub_iscsi_arm_id) > 0
-  sub_iscsi_name                                  = local.sub_iscsi_exists ? (
-                                                      try(split("/", local.sub_iscsi_arm_id)[10], "")) : (
+
+  ##############################################################################################
+  #
+  #  iSCSI subnet - Check if locally provided
+  #
+  ##############################################################################################
+
+  sub_iscsi_name                                  = var.infrastructure.virtual_networks.sap.subnet_iscsi.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_iscsi.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_iscsi.name) : (
                                                         format("%s%s%s%s",
@@ -696,7 +560,6 @@ locals {
                                                         )
                                                       )
                                                     )
-  sub_iscsi_prefix                                = local.sub_iscsi_exists ? "" : try(var.infrastructure.virtual_networks.sap.subnet_iscsi.prefix, "")
 
   // iSCSI NSG
   var_sub_iscsi_nsg                               = try(var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg, {arm_id=""})

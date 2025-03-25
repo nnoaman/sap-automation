@@ -15,17 +15,17 @@
 // Creates iSCSI subnet of SAP VNET
 resource "azurerm_subnet" "iscsi" {
   provider                             = azurerm.main
-  count                                = local.enable_sub_iscsi ? (local.sub_iscsi_exists ? 0 : 1) : 0
+  count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.defined ? 1 : 0
   name                                 = local.sub_iscsi_name
-  resource_group_name                  = local.SAP_virtualnetwork_exists ? (
+  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? (
                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
                                         )
-  virtual_network_name                 = local.SAP_virtualnetwork_exists ? (
+  virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? (
                                            data.azurerm_virtual_network.vnet_sap[0].name) : (
                                            azurerm_virtual_network.vnet_sap[0].name
                                          )
-  address_prefixes                     = [local.sub_iscsi_prefix]
+  address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_iscsi.prefix]
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -38,10 +38,10 @@ resource "azurerm_subnet" "iscsi" {
 // Imports data of existing SAP iSCSI subnet
 data "azurerm_subnet" "iscsi" {
   provider                             = azurerm.main
-  count                                = local.enable_sub_iscsi ? (local.sub_iscsi_exists ? 1 : 0) : 0
-  name                                 = split("/", local.sub_iscsi_arm_id)[10]
-  resource_group_name                  = split("/", local.sub_iscsi_arm_id)[4]
-  virtual_network_name                 = split("/", local.sub_iscsi_arm_id)[8]
+  count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.exists ? 1 : 0
+  name                                 = split("/", var.infrastructure.virtual_networks.sap.subnet_iscsi.id)[10]
+  resource_group_name                  = split("/", var.infrastructure.virtual_networks.sap.subnet_iscsi.id)[4]
+  virtual_network_name                 = split("/", var.infrastructure.virtual_networks.sap.subnet_iscsi.id)[8]
 }
 
 // Creates SAP iSCSI subnet nsg
@@ -72,12 +72,12 @@ data "azurerm_network_security_group" "iscsi" {
 
 resource "azurerm_subnet_route_table_association" "iscsi" {
   provider                             = azurerm.main
-  count                                = local.enable_iscsi && !local.SAP_virtualnetwork_exists && !local.sub_iscsi_exists ?  (local.create_nat_gateway ? 0 : 1)  : 0
+  count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.defined && !var.infrastructure.virtual_networks.sap.exists  ? (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.iscsi
                                          ]
-  subnet_id                            = local.sub_iscsi_exists ? var.infrastructure.virtual_networks.sap.sub_iscsi.arm_id : azurerm_subnet.iscsi[0].id
+  subnet_id                            = azurerm_subnet.iscsi[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 
@@ -109,15 +109,15 @@ resource "azurerm_network_interface" "iscsi" {
 
   ip_configuration {
                      name = "ipconfig1"
-                     subnet_id = local.sub_iscsi_exists ? (
+                     subnet_id = var.infrastructure.virtual_networks.sap.subnet_iscsi.exists ? (
                        data.azurerm_subnet.iscsi[0].id) : (
                        azurerm_subnet.iscsi[0].id
                      )
                      private_ip_address = local.use_DHCP ? (
                        null) : (
-                       local.sub_iscsi_exists ? (
+                       var.infrastructure.virtual_networks.sap.subnet_iscsi.exists ? (
                          local.iscsi_nic_ips[count.index]) : (
-                         cidrhost(local.sub_iscsi_prefix, tonumber(count.index) + 4)
+                         cidrhost(var.infrastructure.virtual_networks.sap.subnet_iscsi.prefix, tonumber(count.index) + 4)
                        )
                      )
                      private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
@@ -127,12 +127,12 @@ resource "azurerm_network_interface" "iscsi" {
 // Add SSH network security rule
 resource "azurerm_network_security_rule" "nsr_controlplane_iscsi" {
   provider                             = azurerm.main
-  count                                = local.enable_sub_iscsi ? local.sub_iscsi_nsg_exists ? 0 : 1 : 0
+  count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.defined ? !local.sub_iscsi_nsg_exists ? 0 : 1 : 0
   depends_on                           = [
                                            azurerm_network_security_group.iscsi
                                          ]
   name                                 = "ConnectivityToISCSISubnetFromControlPlane-ssh-rdp-winrm"
-  resource_group_name                  = local.SAP_virtualnetwork_exists ? (
+  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? (
                                            data.azurerm_virtual_network.vnet_sap[0].resource_group_name
                                            ) : (
                                            azurerm_virtual_network.vnet_sap[0].resource_group_name
@@ -147,11 +147,11 @@ resource "azurerm_network_security_rule" "nsr_controlplane_iscsi" {
   source_address_prefixes              = compact(concat(
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
                                            var.deployer_tfstate.subnet_bastion_address_prefixes,
-                                           local.SAP_virtualnetwork_exists ? (
+                                           var.infrastructure.virtual_networks.sap.exists ? (
                                              flatten(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
                                              flatten(azurerm_virtual_network.vnet_sap[0].address_space)
                                            )))
-  destination_address_prefixes         = local.sub_iscsi_exists ? data.azurerm_subnet.iscsi[0].address_prefixes : azurerm_subnet.iscsi[0].address_prefixes
+  destination_address_prefixes         = var.infrastructure.virtual_networks.sap.subnet_iscsi.exists ? data.azurerm_subnet.iscsi[0].address_prefixes : azurerm_subnet.iscsi[0].address_prefixes
 }
 
 

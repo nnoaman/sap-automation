@@ -49,10 +49,10 @@ resource "azurerm_key_vault" "kv_user" {
             virtual_network_subnet_ids = compact(
                                             [
                                               local.database_subnet_defined ? (
-                                                local.database_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
+                                                local.database_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
                                                 ""
                                                 ), local.application_subnet_defined ? (
-                                                local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
+                                                local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
                                                 ""
                                               ),
                                               local.deployer_subnet_management_id,
@@ -518,7 +518,7 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                           "/[^A-Za-z0-9-]/",
                                           ""
                                         )
-  value                                = length(var.witness_storage_account.arm_id) > 0 ? (
+  value                                = length(var.witness_storage_account.id) > 0 ? (
                                            data.azurerm_storage_account.witness_storage[0].primary_access_key) : (
                                            azurerm_storage_account.witness_storage[0].primary_access_key
                                          )
@@ -601,7 +601,6 @@ resource "azurerm_role_assignment" "kv_user_additional_users" {
 resource "azurerm_private_endpoint" "kv_user" {
   provider                             = azurerm.main
   count                                = (length(var.keyvault_private_endpoint_id) == 0 &&
-                                           local.create_application_subnet &&
                                            var.use_private_endpoint &&
                                            !var.key_vault.exists
                                          ) ? 1 : 0
@@ -628,8 +627,8 @@ resource "azurerm_private_endpoint" "kv_user" {
                                            azurerm_resource_group.resource_group[0].location
                                          )
 
-  subnet_id                            = local.application_subnet_existing ? (
-                                           var.infrastructure.virtual_networks.sap.subnet_app.arm_id) : (
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_app.id) : (
                                            azurerm_subnet.app[0].id
                                          )
 
