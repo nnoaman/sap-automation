@@ -2,25 +2,32 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
-
 green="\e[1;32m"
 reset="\e[0m"
-bold_red="\e[1;31m"
 
-# External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+#External helper functions
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
+
+banner_title="Remove SAP Workload Zone"
 
 #call stack has full script name when using source
-source "${script_directory}/helper.sh"
+source "${parent_directory}/helper.sh"
+source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-  set -x
-  DEBUG=True
+	set -x
+	set -o errexit
+	DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
+
 fi
 export DEBUG
 set -eu
@@ -52,81 +59,39 @@ if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_
 fi
 
 echo -e "$green--- Validations ---$reset"
-if [ "$USE_MSI" != "true" ]; then
-
-  if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$ARM_CLIENT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$ARM_CLIENT_SECRET" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$ARM_TENANT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
-    exit 2
-  fi
-fi
-
-# Set logon variables
-ARM_CLIENT_ID="$ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)" || true
-  echo -e "$green--- az login ---$reset"
-  LogonToAzure false || true
+	configureNonDeployer "$(tf_version)"
+	echo -e "$green--- az login ---$reset"
+	if ! LogonToAzure false; then
+		print_banner "$banner_title" "Login to Azure failed" "error"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit 2
+	fi
 else
-  LogonToAzure "$USE_MSI" || true
-fi
-return_code=$?
-if [ 0 != $return_code ]; then
-  echo -e "$bold_red--- Login failed ---$reset"
-  echo "##vso[task.logissue type=error]az login failed."
-  exit $return_code
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 fi
 
-ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
+if printenv OBJECT_ID; then
+	if is_valid_guid "$OBJECT_ID"; then
+		TF_VAR_spn_id="$OBJECT_ID"
+		export TF_VAR_spn_id
+	fi
+fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read deployment details ---$reset"
@@ -142,6 +107,13 @@ LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
+
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+echo "Workload Zone Environment File:      $workload_environment_file_name"
+
+echo ""
+echo -e "${green}Deployment details:"
+echo -e "-------------------------------------------------------------------------------$reset"
 
 echo "Workload TFvars:                     $WORKLOAD_ZONE_TFVARS_FILENAME"
 echo "Environment:                         $ENVIRONMENT"
@@ -169,9 +141,6 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
   exit 2
 fi
 
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
-echo "Workload Zone Environment File:      $workload_environment_file_name"
-
 echo -e "$green--- Read parameter values ---$reset"
 
 dos2unix -q "${workload_environment_file_name}"
@@ -196,6 +165,9 @@ export workload_key_vault
 landscape_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key" || true)
 export landscape_tfstate_key
 
+echo ""
+echo -e "${green}Terraform parameter information:"
+echo -e "-------------------------------------------------------------------------------$reset"
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
@@ -286,5 +258,6 @@ if [ 0 == $return_code ]; then
     fi
   fi
 fi
+print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
 exit $return_code
