@@ -164,7 +164,7 @@ if [[ $(get_platform) = devops ]]; then
 	fi
 	key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
 else
-    var=$(get_value_with_key "Deployer_Key_Vault") "${environment_file_name}")
+    var=$(get_value_with_key "Deployer_Key_Vault") "${environment_file_name}"
     if [ -z ${var} ]; then
         key_vault=$(config_value_with_key "keyvault")
     else
