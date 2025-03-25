@@ -164,7 +164,12 @@ if [[ $(get_platform) = devops ]]; then
 	fi
 	key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
 else
-	key_vault=$(config_value_with_key "Deployer_Key_Vault" "${environment_file_name}")
+    var=$(get_value_with_key "Deployer_Key_Vault") "${environment_file_name}")
+    if [ -z ${var} ]; then
+        key_vault=$(config_value_with_key "keyvault")
+    else
+        key_vault=${var}
+    fi
 fi
 echo "Deployer Key Vault: ${key_vault}"
 end_group
@@ -201,6 +206,8 @@ end_group
 start_group "Get connection details"
 mkdir -p artifacts
 
+dos2unix -q ${environment_file_name}
+
 prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
 
 if [[ $(get_platform) = devops ]]; then
@@ -208,9 +215,25 @@ if [[ $(get_platform) = devops ]]; then
 	workload_prefix=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${environment_file_name}" "workload_zone_prefix" || true)
 	control_plane_subscription=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${environment_file_name}" "STATE_SUBSCRIPTION" || true)
 else
-	workload_key_vault=$(config_value_with_key "Workload_Key_Vault" "${environment_file_name}")
-	workload_prefix=$(config_value_with_key "${NETWORK}Workload_Secret_Prefix" "${environment_file_name}")
-	control_plane_subscription=$(config_value_with_key "Terraform_Remote_Storage_Subscription" "${environment_file_name}")
+    var=$(get_value_with_key "workloadkeyvault")
+    if [ -z ${var} ]; then
+        workload_key_vault=$(config_value_with_key "Workload_Key_Vault")
+    else
+        workload_key_vault=${var}
+    fi
+    var=$(get_value_with_key "workload_zone_prefix")
+    if [ -z ${var} ]; then
+        workload_prefix=$(config_value_with_key "${NETWORK}Workload_Secret_Prefix")
+    else
+        workload_prefix=${var}
+    fi
+
+    var=$(get_value_with_key "STATE_SUBSCRIPTION")
+    if [ -z ${var} ]; then
+        control_plane_subscription=$(config_value_with_key "Terraform_Remote_Storage_Subscription")
+    else
+        control_plane_subscription=${var}
+    fi
 fi
 
 echo "SID:                                 ${SID}"
