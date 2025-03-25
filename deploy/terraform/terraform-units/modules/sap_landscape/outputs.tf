@@ -245,7 +245,7 @@ output "workload_zone_prefix"                   {
 
 output "storageaccount_name"                    {
                                                   description = "Diagnostics storage account name"
-                                                  value       = length(var.diagnostics_storage_account.arm_id) > 0 ? (
+                                                  value       = length(var.diagnostics_storage_account.id) > 0 ? (
                                                                   data.azurerm_storage_account.storage_bootdiag[0].name) : (
                                                                   try(azurerm_storage_account.storage_bootdiag[0].name, "")
                                                                 )
@@ -253,7 +253,7 @@ output "storageaccount_name"                    {
 
 output "storageaccount_resourcegroup_name"      {
                                                   description = "Diagnostics storage account's resource group name"
-                                                  value       = length(var.diagnostics_storage_account.arm_id) > 0 ? (
+                                                  value       = length(var.diagnostics_storage_account.id) > 0 ? (
                                                                   data.azurerm_storage_account.storage_bootdiag[0].resource_group_name) : (
                                                                   try(azurerm_storage_account.storage_bootdiag[0].resource_group_name, "")
                                                                 )
@@ -261,7 +261,7 @@ output "storageaccount_resourcegroup_name"      {
 
 output "storage_bootdiag_endpoint"              {
                                                   description = "Diagnostics storage account's private endpoint's Azure resource identifier"
-                                                  value       = length(var.diagnostics_storage_account.arm_id) > 0 ? (
+                                                  value       = length(var.diagnostics_storage_account.id) > 0 ? (
                                                                   data.azurerm_storage_account.storage_bootdiag[0].primary_blob_endpoint) : (
                                                                   try(azurerm_storage_account.storage_bootdiag[0].primary_blob_endpoint, "")
                                                                 )
@@ -270,8 +270,8 @@ output "storage_bootdiag_endpoint"              {
 //Witness Info
 output "witness_storage_account"                {
                                                   description = "Witness storage account"
-                                                  value       = length(var.witness_storage_account.arm_id) > 0 ? (
-                                                                  split("/", var.witness_storage_account.arm_id)[8]) : (
+                                                  value       = length(var.witness_storage_account.id) > 0 ? (
+                                                                  split("/", var.witness_storage_account.id)[8]) : (
                                                                   var.naming.storageaccount_names.WORKLOAD_ZONE.witness_storageaccount_name
                                                                 )
                                                 }
@@ -279,7 +279,7 @@ output "witness_storage_account"                {
 output "witness_storage_account_key"            {
                                                   description = "Witness storage account key"
                                                   sensitive   = true
-                                                  value       = length(var.witness_storage_account.arm_id) > 0 ? (
+                                                  value       = length(var.witness_storage_account.id) > 0 ? (
                                                                   data.azurerm_storage_account.witness_storage[0].primary_access_key) : (
                                                                   try(azurerm_storage_account.witness_storage[0].primary_access_key, "")
                                                                 )

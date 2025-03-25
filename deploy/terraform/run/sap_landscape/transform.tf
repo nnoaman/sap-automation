@@ -173,7 +173,7 @@ locals {
   nat_gateway                         = {
                                            create_nat_gateway      = var.deploy_nat_gateway
                                            name                    = var.nat_gateway_name
-                                           arm_id                  = try(var.nat_gateway_arm_id, "")
+                                           id                      = try(var.nat_gateway_arm_id, "")
                                            region                  = lower(coalesce(var.location, try(var.infrastructure.region, "")))
                                            public_ip_zones         = try(var.nat_gateway_public_ip_zones, ["1", "2", "3"])
                                            public_ip_id            = try(var.nat_gateway_public_ip_arm_id, "")
