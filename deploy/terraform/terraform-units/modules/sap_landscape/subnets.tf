@@ -189,7 +189,7 @@ resource "azurerm_subnet_route_table_association" "admin" {
 
 resource "azurerm_subnet_route_table_association" "db" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.virtual_networks.sap.subnet_db.defined && !var.infrastructure.virtual_networks.sap.exists && ? (local.create_nat_gateway ? 0 : 1) : 0
+  count                                = var.infrastructure.virtual_networks.sap.subnet_db.defined && !var.infrastructure.virtual_networks.sap.exists ? (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.db

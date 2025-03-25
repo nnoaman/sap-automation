@@ -517,7 +517,7 @@ resource "azurerm_storage_account_network_rules" "install" {
                                                 ]) : null
 
   virtual_network_subnet_ids           = var.public_network_access_enabled ? compact([
-                                                  var.infrastructure.virtual_networks.sap.subnet_db.defined. ? (
+                                                  var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
                                                     var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
                                                     null
                                                     ), var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
