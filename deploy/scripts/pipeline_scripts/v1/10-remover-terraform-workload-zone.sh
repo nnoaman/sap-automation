@@ -59,57 +59,6 @@ if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_
 fi
 
 echo -e "$green--- Validations ---$reset"
-if [ "$USE_MSI" != "true" ]; then
-
-  if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$ARM_CLIENT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$ARM_CLIENT_SECRET" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$ARM_TENANT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
-    exit 2
-  fi
-fi
-
-export ARM_SUBSCRIPTION_ID
-
-# Check if running on deployer
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
