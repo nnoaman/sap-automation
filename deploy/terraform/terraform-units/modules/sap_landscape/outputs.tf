@@ -47,7 +47,7 @@ output "created_resource_group_subscription_id" {
 
 output "vnet_sap_id"                            {
                                                   description = "Azure resource identifier for the Virtual Network"
-                                                  value       = local.SAP_virtualnetwork_exists ? (
+                                                  value       = var.infrastructure.virtual_networks.sap.exists ? (
                                                                   data.azurerm_virtual_network.vnet_sap[0].id) : (
                                                                   azurerm_virtual_network.vnet_sap[0].id
                                                                 )
@@ -60,7 +60,7 @@ output "random_id"                              {
 
 output "route_table_id"                         {
                                                   description = "Azure resource identifier for the route table"
-                                                  value       = local.SAP_virtualnetwork_exists ? (
+                                                  value       = var.infrastructure.virtual_networks.sap.exists ? (
                                                                    "") : (
                                                                    try(azurerm_route_table.rt[0].id, "")
                                                                  )
@@ -68,120 +68,120 @@ output "route_table_id"                         {
 
 output "admin_subnet_id"                        {
                                                   description = "Azure resource identifier for the admin subnet"
-                                                  value       = local.admin_subnet_defined ? (
-                                                                  local.admin_subnet_existing ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_admin.arm_id) : (
-                                                                    try(azurerm_subnet.admin[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_admin.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_admin.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_admin.id) : (
+                                                                    azurerm_subnet.admin[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
 
 output "app_subnet_id"                          {
                                                   description = "Azure resource identifier for the app subnet"
-                                                  value       = local.application_subnet_defined ? (
-                                                                  local.application_subnet_existing ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_app.arm_id) : (
-                                                                    try(azurerm_subnet.app[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_app.id) : (
+                                                                    azurerm_subnet.app[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
 
 output "db_subnet_id"                           {
                                                   description = "Azure resource identifier for the db subnet"
-                                                  value       = local.database_subnet_defined ? (
-                                                                  local.database_subnet_existing ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_db.arm_id) : (
-                                                                    try(azurerm_subnet.db[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_db.id) : (
+                                                                    azurerm_subnet.db[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
 
 output "web_subnet_id"                          {
                                                   description = "Azure resource identifier for the web subnet"
-                                                  value       = local.web_subnet_defined ? (
-                                                                  local.web_subnet_existing ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_web.arm_id) : (
-                                                                    try(azurerm_subnet.web[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_web.id) : (
+                                                                    azurerm_subnet.web[0].id)) : (
                                                                   ""
-                                                                 )
+                                                                )
                                                 }
 
 output "storage_subnet_id"                      {
                                                   description = "Azure resource identifier for the storage subnet"
-                                                  value       = local.storage_subnet_defined ? (
-                                                                  local.storage_subnet_existing ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_storage.arm_id) : (
-                                                                    try(azurerm_subnet.storage[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_storage.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_storage.id) : (
+                                                                    azurerm_subnet.storage[0].id)) : (
                                                                   ""
-                                                                 )
+                                                                )
                                                 }
 
 output "anf_subnet_id"                          {
                                                   description = "Azure resource identifier for the anf subnet"
-                                                  value       = var.NFS_provider == "ANF" && local.ANF_subnet_defined ? (
-                                                                  local.ANF_subnet_existing ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_anf.arm_id) : (
-                                                                    try(azurerm_subnet.anf[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_anf.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_anf.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_anf.id) : (
+                                                                    azurerm_subnet.anf[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
 
 output "ams_subnet_id"                          {
                                                   description = "Azure resource identifier for the ams subnet"
-                                                  value       = local.ams_subnet_defined ? (
-                                                                  local.ams_subnet_existing ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_ams.arm_id) : (
-                                                                    try(azurerm_subnet.ams[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_ams.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_ams.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_ams.id) : (
+                                                                    azurerm_subnet.ams[0].id)) : (
                                                                   ""
-                                                                  )
+                                                                )
                                                 }
 
 output "admin_nsg_id"                           {
                                                   description = "Azure resource identifier for the admin subnet network security group"
-                                                  value       = local.admin_subnet_defined ? (
-                                                                  local.admin_subnet_nsg_exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_admin.nsg.arm_id) : (
-                                                                    try(azurerm_network_security_group.admin[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_admin.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id) : (
+                                                                    azurerm_network_security_group.admin[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
 
 output "app_nsg_id"                             {
                                                   description = "Azure resource identifier for the app subnet network security group"
-                                                  value       = local.application_subnet_defined ? (
-                                                                  local.application_subnet_nsg_exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_app.nsg.arm_id) : (
-                                                                    try(azurerm_network_security_group.app[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_app.nsg.id) : (
+                                                                    azurerm_network_security_group.app[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
 
 output "db_nsg_id"                              {
                                                   description = "Azure resource identifier for the database subnet network security group"
-                                                  value       = local.database_subnet_defined ? (
-                                                                  local.database_subnet_nsg_exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_db.nsg.arm_id) : (
-                                                                    try(azurerm_network_security_group.db[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_db.nsg.id) : (
+                                                                    azurerm_network_security_group.db[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
 
 output "web_nsg_id"                             {
                                                   description = "Azure resource identifier for the web subnet network security group"
-                                                  value       = local.web_subnet_defined ? (
-                                                                  local.web_subnet_nsg_exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_web.nsg.arm_id) : (
-                                                                    try(azurerm_network_security_group.web[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_web.nsg.id) : (
+                                                                    azurerm_network_security_group.web[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
 
 output "storage_nsg_id"                         {
                                                   description = "Azure resource identifier for the storage subnet network security group"
-                                                  value       = local.storage_subnet_defined ? (
-                                                                  local.storage_subnet_nsg_exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_storage.nsg.arm_id) : (
-                                                                    try(azurerm_network_security_group.storage[0].id, ""))) : (
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id) : (
+                                                                    azurerm_network_security_group.storage[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
@@ -354,8 +354,8 @@ output "ANF_pool_settings"                      {
                                                                        try(azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb, 0)
                                                                      )
 
-                                                                     subnet_id = local.ANF_subnet_defined ? (
-                                                                       local.ANF_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_anf.arm_id : try(azurerm_subnet.anf[0].id, "")) : (
+                                                                     subnet_id = var.infrastructure.virtual_networks.sap.subnet_anf.defined ? (
+                                                                       var.infrastructure.virtual_networks.sap.subnet_anf.exists ? var.infrastructure.virtual_networks.sap.subnet_anf.arm_id : try(azurerm_subnet.anf[0].id, "")) : (
                                                                        ""
                                                                      )
 

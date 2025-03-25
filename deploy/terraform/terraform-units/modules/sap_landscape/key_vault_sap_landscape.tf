@@ -48,11 +48,11 @@ resource "azurerm_key_vault" "kv_user" {
                                           )
             virtual_network_subnet_ids = compact(
                                             [
-                                              local.database_subnet_defined ? (
-                                                local.database_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
+                                              var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
+                                                var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
                                                 ""
-                                                ), local.application_subnet_defined ? (
-                                                local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
+                                                ), var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
+                                                var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
                                                 ""
                                               ),
                                               local.deployer_subnet_management_id,
