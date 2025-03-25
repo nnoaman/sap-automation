@@ -16,7 +16,7 @@
 resource "azurerm_subnet" "iscsi" {
   provider                             = azurerm.main
   count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.defined ? 1 : 0
-  name                                 = local.sub_iscsi_name
+  name                                 = local.iscsi_subnet_name
   resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? (
                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
@@ -47,8 +47,8 @@ data "azurerm_subnet" "iscsi" {
 // Creates SAP iSCSI subnet nsg
 resource "azurerm_network_security_group" "iscsi" {
   provider                             = azurerm.main
-  count                                = local.enable_sub_iscsi ? (local.sub_iscsi_nsg_exists ? 0 : 1) : 0
-  name                                 = local.sub_iscsi_nsg_name
+  count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.defined ? (var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.exists ? 0 : 1) : 0
+  name                                 = local.iscsi_subnet_nsg_name
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.resource_group[0].name) : (
                                            azurerm_resource_group.resource_group[0].name
@@ -63,9 +63,9 @@ resource "azurerm_network_security_group" "iscsi" {
 // Imports the SAP iSCSI subnet nsg data
 data "azurerm_network_security_group" "iscsi" {
   provider                             = azurerm.main
-  count                                = local.enable_sub_iscsi ? (local.sub_iscsi_nsg_exists ? 1 : 0) : 0
-  name                                 = split("/", local.sub_iscsi_nsg_arm_id)[8]
-  resource_group_name                  = split("/", local.sub_iscsi_nsg_arm_id)[4]
+  count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.exists ? 1 : 0
+  name                                 = split("/", var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.id)[8]
+  resource_group_name                  = split("/", var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.id)[4]
 }
 
 
@@ -127,7 +127,7 @@ resource "azurerm_network_interface" "iscsi" {
 // Add SSH network security rule
 resource "azurerm_network_security_rule" "nsr_controlplane_iscsi" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.defined ? !local.sub_iscsi_nsg_exists ? 0 : 1 : 0
+  count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.defined ? !var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.exists ? 0 : 1 : 0
   depends_on                           = [
                                            azurerm_network_security_group.iscsi
                                          ]
@@ -160,7 +160,7 @@ resource "azurerm_network_interface_security_group_association" "iscsi" {
   provider                             = azurerm.main
   count                                = local.iscsi_count
   network_interface_id                 = azurerm_network_interface.iscsi[count.index].id
-  network_security_group_id            = local.sub_iscsi_nsg_exists ? (
+  network_security_group_id            = var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.exists ? (
                                             data.azurerm_network_security_group.iscsi[0].id) : (
                                             azurerm_network_security_group.iscsi[0].id
                                           )

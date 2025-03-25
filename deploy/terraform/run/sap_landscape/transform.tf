@@ -161,7 +161,7 @@ locals {
                                          }
   resource_group_defined               = (
                                            length(local.resource_group.name) +
-                                           length(local.resource_group.arm_id)
+                                           length(local.resource_group.id)
                                          ) > 0
 
   ams_instance                        = {

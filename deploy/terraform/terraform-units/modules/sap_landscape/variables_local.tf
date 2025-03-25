@@ -545,7 +545,7 @@ locals {
   #
   ##############################################################################################
 
-  sub_iscsi_name                                  = var.infrastructure.virtual_networks.sap.subnet_iscsi.exists ? (
+  iscsi_subnet_name                                  = var.infrastructure.virtual_networks.sap.subnet_iscsi.exists ? (
                                                       try(split("/", var.infrastructure.virtual_networks.sap.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_iscsi.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_iscsi.name) : (
@@ -562,11 +562,8 @@ locals {
                                                     )
 
   // iSCSI NSG
-  var_sub_iscsi_nsg                               = try(var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg, {arm_id=""})
-  sub_iscsi_nsg_arm_id                            = try(var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.arm_id, "")
-  sub_iscsi_nsg_exists                            = length(local.sub_iscsi_nsg_arm_id) > 0
-  sub_iscsi_nsg_name                              = local.sub_iscsi_nsg_exists ? (
-                                                      try(split("/", local.sub_iscsi_nsg_arm_id)[8], "")) : (
+  iscsi_subnet_nsg_name                              = var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.id)[8], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.name ) : (
                                                         format("%s%s%s%s",
@@ -651,7 +648,7 @@ locals {
                                                       )]
                                                     )
 
-  use_Azure_native_DNS                            = length(var.dns_settings.dns_label) > 0 && !var.dns_settings.use_custom_dns_a_registration && !local.SAP_virtualnetwork_exists
+  use_Azure_native_DNS                            = length(var.dns_settings.dns_label) > 0 && !var.dns_settings.use_custom_dns_a_registration && !var.infrastructure.virtual_networks.sap.exists
 
 
   use_AFS_for_shared                             = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
