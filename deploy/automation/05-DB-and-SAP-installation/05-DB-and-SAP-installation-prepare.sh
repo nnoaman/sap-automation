@@ -237,7 +237,7 @@ else
 fi
 
 echo "SID:                                 ${SID}"
-echo "Folder:                              $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
+echo "Folder:                              $CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 echo "Workload Key Vault:                  ${workload_key_vault}"
 echo "Control Plane Subscription:          ${control_plane_subscription}"
 echo "Workload Prefix:                     ${workload_prefix}"
