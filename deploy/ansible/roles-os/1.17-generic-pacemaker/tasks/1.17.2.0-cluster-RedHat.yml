@@ -92,15 +92,17 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
 
-    # '*' is a special character in regexp and needs to be escaped for literal matching
-    # if we are worried about character spacing across distros we can match for '\* Online:'
+    # switch to using pcs status xml for RHEL 8.x and 9.x
     - name:                            "1.17 Generic Pacemaker - Wait until cluster has stabilized"
       when:                            ansible_distribution_major_version in ["8", "9"]
-      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
-      register:                        cluster_stable_check
+      ansible.builtin.shell:           set -o pipefail && pcs status xml
+      register:                        cluster_status_xml
       retries:                         12
       delay:                           10
-      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
+      until:                           >-
+                                       cluster_status_xml.stdout is regex('<node [^>]*online="true"[^>]*health="green"[^>]*name="' + primary_instance_name + '"') and
+                                       cluster_status_xml.stdout is regex('<node [^>]*online="true"[^>]*health="green"[^>]*name="' + secondary_instance_name + '"')
+      changed_when:                    false
 
     - name:                            "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
       ansible.builtin.command:         pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
