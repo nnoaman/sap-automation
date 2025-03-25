@@ -298,7 +298,7 @@ locals {
   ##############################################################################################
 
   application_subnet_nsg_name                     = var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists ? (
-                                                      try(split("/", local.application_subnet_nsg_arm_id)[8], "")) : (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_app.nsg.id)[8], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_app.nsg.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_app.nsg.name) : (
                                                         format("%s%s%s%s",
