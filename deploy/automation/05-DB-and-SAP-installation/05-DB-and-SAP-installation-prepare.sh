@@ -212,7 +212,10 @@ mkdir -p artifacts
 
 prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
 
+echo -e "$green--- Convert config files to UX format ---$resetformatting"
+dos2unix -q ${deployer_environment_file_name}
 dos2unix -q ${environment_file_name}
+echo -e "$green--- Read parameter values ---${resetformatting}"
 
 if [[ $(get_platform) = devops ]]; then
 	workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${environment_file_name}" "workloadkeyvault" || true)
