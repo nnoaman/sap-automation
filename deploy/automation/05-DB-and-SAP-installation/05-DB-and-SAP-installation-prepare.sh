@@ -210,30 +210,32 @@ end_group
 start_group "Get connection details"
 mkdir -p artifacts
 
-dos2unix -q ${environment_file_name}
-
 prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
+
+dos2unix -q ${environment_file_name}
 
 if [[ $(get_platform) = devops ]]; then
 	workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${environment_file_name}" "workloadkeyvault" || true)
 	workload_prefix=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${environment_file_name}" "workload_zone_prefix" || true)
 	control_plane_subscription=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${environment_file_name}" "STATE_SUBSCRIPTION" || true)
 else
-    workload_key_vault=$(get_value_with_key "workloadkeyvault" "${environment_file_name}" || true)
-    if [ -z "${workload_key_vault}" ]; then
-        workload_key_vault=$(config_value_with_key "Workload_Key_Vault" "${environment_file_name}" || true)
+    var=$(get_value_with_key "Workload_Key_Vault")
+    if [ -z ${var} ]; then
+        workload_key_vault=$(config_value_with_key "workloadkeyvault")
+    else
+        workload_key_vault=${var}
     fi
 
-    var=$(get_value_with_key "workload_zone_prefix")
+    var=$(get_value_with_key "${prefix}Workload_Secret_Prefix")
     if [ -z ${var} ]; then
-        workload_prefix=$(config_value_with_key "${prefix}Workload_Secret_Prefix")
+        workload_prefix=$(config_value_with_key "workload_zone_prefix")
     else
         workload_prefix=${var}
     fi
 
-    var=$(get_value_with_key "STATE_SUBSCRIPTION")
+    var=$(get_value_with_key "Terraform_Remote_Storage_Subscription")
     if [ -z ${var} ]; then
-        control_plane_subscription=$(config_value_with_key "Terraform_Remote_Storage_Subscription")
+        control_plane_subscription=$(config_value_with_key "STATE_SUBSCRIPTION")
     else
         control_plane_subscription=${var}
     fi
