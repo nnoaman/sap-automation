@@ -15,6 +15,9 @@ function check_required_inputs() {
     REQUIRED_VARS=(
         "SAP_AUTOMATION_REPO_PATH"
         "AZURE_SUBSCRIPTION_ID"
+        "AZURE_CLIENT_ID"
+        "AZURE_CLIENT_SECRET"
+        "AZURE_TENANT_ID"
         "DEPLOYER_FOLDER"
         "SAP_SYSTEM_CONFIGURATION_NAME"
         "BOM_BASE_NAME"
@@ -75,6 +78,10 @@ end_group
 
 export USE_MSI=false
 export VARIABLE_GROUP_ID=${DEPLOYER_FOLDER}
+export ARM_CLIENT_ID=$AZURE_CLIENT_ID
+export ARM_CLIENT_SECRET=$AZURE_CLIENT_SECRET
+export ARM_TENANT_ID=$AZURE_TENANT_ID
+export ARM_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID
 
 start_group "Setup platform dependencies"
 # Will return vars which we need to export afterwards
@@ -114,16 +121,33 @@ fi
 start_group "Azure Login"
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	LogonToAzure false
+    echo -e "$green--- az login ---$resetformatting"
+    az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        echo -e "$boldred--- Login failed ---$resetformatting"
+        exit_error "az login failed." $return_code
+    fi
+    az account set --subscription $ARM_SUBSCRIPTION_ID
 else
-	LogonToAzure "$USE_MSI"
-fi
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
+    if [ $USE_MSI != "true" ]; then
+        echo -e "$cyan--- Using SPN ---$resetformatting"
+        export ARM_USE_MSI=false
+        az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+
+        return_code=$?
+        if [ 0 != $return_code ]; then
+            echo -e "$boldred--- Login failed ---$resetformatting"
+            exit_error "az login failed." $return_code
+            exit $return_code
+        fi
+        az account set --subscription $ARM_SUBSCRIPTION_ID
+    else
+        echo -e "$cyan--- Using MSI ---$resetformatting"
+        source /etc/profile.d/deploy_server.sh
+        unset ARM_TENANT_ID
+        export ARM_USE_MSI=true
+    fi
 fi
 end_group
 
