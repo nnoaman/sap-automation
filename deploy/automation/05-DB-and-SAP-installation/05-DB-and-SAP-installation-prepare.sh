@@ -220,23 +220,23 @@ if [[ $(get_platform) = devops ]]; then
 	control_plane_subscription=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${environment_file_name}" "STATE_SUBSCRIPTION" || true)
 else
     # First try get_value_with_key, then fall back to config_value_with_key
-    var=$(get_value_with_key "Workload_Key_Vault")
+    var=$(get_value_with_key "workloadkeyvaul")
     if [ -z ${var} ]; then
-        workload_key_vault=$(config_value_with_key "workloadkeyvault")
+        workload_key_vault=$(config_value_with_key "Workload_Key_Vault")
     else
         workload_key_vault=${var}
     fi
 
-    var=$(get_value_with_key "${prefix}Workload_Secret_Prefix")
+    var=$(get_value_with_key "workload_zone_prefix")
     if [ -z ${var} ]; then
-        workload_prefix=$(config_value_with_key "workload_zone_prefix")
+        workload_prefix=$(config_value_with_key "${prefix}Workload_Secret_Prefix")
     else
         workload_prefix=${var}
     fi
 
     var=$(get_value_with_key "STATE_SUBSCRIPTION")
     if [ -z ${var} ]; then
-        control_plane_subscription=$(config_value_with_key "STATE_SUBSCRIPTION")
+        control_plane_subscription=$(config_value_with_key "Terraform_Remote_Storage_Subscription")
     else
         control_plane_subscription=${var}
     fi
