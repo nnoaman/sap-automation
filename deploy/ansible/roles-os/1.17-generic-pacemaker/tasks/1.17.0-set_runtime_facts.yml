@@ -263,17 +263,25 @@
 
 # @TODO: Use this variable to determine the cluster stonith type
 # 'sybase' databases do not have the code to cluster them. It can be added in the future.
+# Changed YAML block scalar from >- to |-:
+# > folds newlines to spaces, but preserves blank lines & trailing newlines
+# | preserves all newlines literally
+# The - chomping indicator strips all trailing newlines
+
+# Adjusted the indentation in the Jinja2 template so the actual values
+# are at the start of their lines without any indentation, which ensures
+# no unwanted whitespace is included.
 - name:                                           "1.17 Generic Pacemaker - Determine STONITH type for pacemaker cluster initialization"
   ansible.builtin.set_fact:
-    cluster_stonith_type: >-
+    cluster_stonith_type: |-
                                                   {% set db_tiers = ['hana', 'db2'] %}
                                                   {% set scs_tiers = ['scs', 'ers'] %}
                                                   {% if (node_tier in db_tiers or db_tiers | intersect(supported_tiers)) and database_cluster_type is defined %}
-                                                    {{ database_cluster_type }}
+                                                  {{ database_cluster_type }}
                                                   {% elif (node_tier in scs_tiers or scs_tiers | intersect(supported_tiers)) and scs_cluster_type is defined %}
-                                                    {{ scs_cluster_type }}
+                                                  {{ scs_cluster_type }}
                                                   {% else %}
-                                                    "UNDEFINED"
+                                                  UNDEFINED
                                                   {% endif %}
 
 # Debug: Display the cluster stonith type
@@ -288,20 +296,20 @@
                                                   - ansible_os_family | upper == "REDHAT" or ansible_os_family | upper == "SUSE"
                                                   - cluster_stonith_type in ['ASD', 'ISCSI']
   ansible.builtin.set_fact:
-    os_version_supported_for_sbd: >-
+    os_version_supported_for_sbd: |-
                                                   {% if ansible_os_family | upper == "REDHAT" %}
-                                                    {{ ansible_distribution_version is version('8.8', '>=') or
-                                                       ansible_distribution_version is version('9.0', '>=') }}
+                                                  {{ ansible_distribution_version is version('8.8', '>=') or
+                                                     ansible_distribution_version is version('9.0', '>=') }}
                                                   {% elif ansible_os_family | upper == "SUSE" %}
-                                                    {% if cluster_stonith_type == "ASD" %}
-                                                      {{ ansible_distribution_version is version('15.1', '>=') }}
-                                                    {% elif cluster_stonith_type == "ISCSI" %}
-                                                      {{ ansible_distribution_version is version('12.5', '>=') }}
-                                                    {% else %}
-                                                      false
-                                                    {% endif %}
+                                                  {% if cluster_stonith_type == "ASD" %}
+                                                  {{ ansible_distribution_version is version('15.1', '>=') }}
+                                                  {% elif cluster_stonith_type == "ISCSI" %}
+                                                  {{ ansible_distribution_version is version('12.5', '>=') }}
                                                   {% else %}
-                                                    false
+                                                  false
+                                                  {% endif %}
+                                                  {% else %}
+                                                  false
                                                   {% endif %}
 
 # Debug: Display the OS version support for SBD STONITH
