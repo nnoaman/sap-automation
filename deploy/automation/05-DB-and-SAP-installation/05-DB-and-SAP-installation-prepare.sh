@@ -15,15 +15,9 @@ function check_required_inputs() {
     REQUIRED_VARS=(
         "SAP_AUTOMATION_REPO_PATH"
         "AZURE_SUBSCRIPTION_ID"
-        "AZURE_CLIENT_ID"
-        "AZURE_CLIENT_SECRET"
-        "AZURE_TENANT_ID"
         "DEPLOYER_FOLDER"
-        "SAP_SYSTEM_FOLDERNAME"
-        "SAP_SYSTEM_TFVARS_FILENAME"
         "SAP_SYSTEM_CONFIGURATION_NAME"
         "BOM_BASE_NAME"
-        "ARM_SUBSCRIPTION_ID"
     )
 
     case $(get_platform) in
