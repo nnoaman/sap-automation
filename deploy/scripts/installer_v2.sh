@@ -746,7 +746,7 @@ echo ""
 		print_banner "Installer" "Error when running plan" "error" "Terraform plan return code: $return_value"
 		return $return_value
 	else
-		print_banner "Installer" "Terraform plan succeeded." "success"
+		print_banner "Installer" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 	fi
 
 	if [ 2 -eq $return_value ]; then
