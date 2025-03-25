@@ -132,7 +132,7 @@ namespace SDAFWebApp.Controllers
         public async Task UpdateRepo(string path, string content)
         {
             string getUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/refs/?filter=heads/{branch}";
-            string postUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/pushes?api-version=5.1";
+            string postUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/pushes?api-version=7.1";
             string ooId;
 
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
@@ -469,9 +469,6 @@ namespace SDAFWebApp.Controllers
                 {
                     case System.Net.HttpStatusCode.Unauthorized:
                         errorMessage = "Unauthorized, please ensure that the MSI/Personal Access Token has sufficient permissions and that it has not expired.";
-                        break;
-                    case System.Net.HttpStatusCode.NotFound:
-                        errorMessage = "Could not find the template.";
                         break;
                     default:
                         errorMessage = JsonDocument.Parse(responseBody).RootElement.GetProperty("message").ToString();

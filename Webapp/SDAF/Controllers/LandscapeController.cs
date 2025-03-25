@@ -231,12 +231,12 @@ namespace SDAFWebApp.Controllers
             {
                 LandscapeModel landscape = await GetById(id, partitionKey);
                 landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
+                landscape.workloadZoneName = id.Replace("-INFRASTRUCTURE", "");
 
                 landscapeView.SapObject = landscape;
 
-                List<SelectListItem> workloadZoneNames = restHelper.GetEnvironmentsList().Result;
-                ViewBag.WorkloadZoneNames = workloadZoneNames;
-
+                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                ViewBag.environments = environments;
 
                 return View(landscapeView);
             }
@@ -254,8 +254,7 @@ namespace SDAFWebApp.Controllers
             try
             {
                 LandscapeModel landscape = await GetById(id, partitionKey);
-                
-
+               
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
                 if (!landscape.subscription_id.IsNullOrEmpty())
                 {
