@@ -62,8 +62,8 @@ locals {
                                                           local.resource_suffixes.ams_instance
                                                         )
                                                       )
-  ams_laws_arm_id                                 = length(var.infrastructure.ams_instance.ams_laws_arm_id) > 0 ? (
-                                                      var.infrastructure.ams_instance.ams_laws_arm_id) : ""
+  ams_laws_arm_id                                 = length(var.infrastructure.ams_instance.ams_laws_id) > 0 ? (
+                                                      var.infrastructure.ams_instance.ams_laws_id) : ""
 
   // NAT Gateway
   create_nat_gateway                              = var.infrastructure.nat_gateway.create_nat_gateway
