@@ -82,6 +82,7 @@ export ARM_CLIENT_ID=$AZURE_CLIENT_ID
 export ARM_CLIENT_SECRET=$AZURE_CLIENT_SECRET
 export ARM_TENANT_ID=$AZURE_TENANT_ID
 export ARM_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID
+export deployerfolder=$DEPLOYER_FOLDER
 
 start_group "Setup platform dependencies"
 # Will return vars which we need to export afterwards
@@ -199,12 +200,11 @@ echo "Hosts file:                          ${SID}_hosts.yaml"
 echo "sap_parameters_file:                 $parameters_filename"
 echo "Configuration file:                  $environment_file_name"
 
-start_group "Get Files from the Repository"
 cd "$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
-end_group
 
 start_group "Add BOM Base Name and SAP FQDN to sap-parameters.yaml"
-sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|' sap-parameters.yaml
+sed -i 's|bom_base_name:.*|bom_base_name:                '"$BOM_BASE_NAME"'|' sap-parameters.yaml
+echo "Bill of Materials:                                 ${BOM_BASE_NAME}"
 end_group
 
 start_group "Get connection details"
