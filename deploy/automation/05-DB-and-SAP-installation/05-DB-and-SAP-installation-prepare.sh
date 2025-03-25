@@ -203,7 +203,6 @@ echo "sap_parameters_file:                 $parameters_filename"
 echo "Configuration file:                  $environment_file_name"
 
 start_group "Get connection details"
-mkdir -p artifacts
 
 prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
 
@@ -267,6 +266,8 @@ echo "Control Plane Subscription:          ${control_plane_subscription}"
 echo "Workload Prefix:                     ${workload_prefix}"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
+
+mkdir -p artifacts
 
 start_group "Add BOM Base Name and SAP FQDN to sap-parameters.yaml"
 sed -i 's|bom_base_name:.*|bom_base_name:                '"$BOM_BASE_NAME"'|' sap-parameters.yaml
