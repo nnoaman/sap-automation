@@ -219,24 +219,19 @@ if [[ $(get_platform) = devops ]]; then
 	workload_prefix=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${environment_file_name}" "workload_zone_prefix" || true)
 	control_plane_subscription=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${environment_file_name}" "STATE_SUBSCRIPTION" || true)
 else
-    var=$(get_value_with_key "workloadkeyvault")
-    if [ -z ${var} ]; then
-        workload_key_vault=$(config_value_with_key "Workload_Key_Vault")
-    else
-        workload_key_vault=${var}
-    fi
-    var=$(get_value_with_key "workload_zone_prefix")
-    if [ -z ${var} ]; then
-        workload_prefix=$(config_value_with_key "${NETWORK}Workload_Secret_Prefix")
-    else
-        workload_prefix=${var}
+    workload_key_vault=$(get_value_with_key "workloadkeyvault" "${environment_file_name}" || true)
+    if [ -z "${workload_key_vault}" ]; then
+        workload_key_vault=$(config_value_with_key "workloadkeyvault" "${environment_file_name}" || true)
     fi
 
-    var=$(get_value_with_key "STATE_SUBSCRIPTION")
-    if [ -z ${var} ]; then
-        control_plane_subscription=$(config_value_with_key "Terraform_Remote_Storage_Subscription")
-    else
-        control_plane_subscription=${var}
+    workload_prefix=$(get_value_with_key "workload_zone_prefix" "${environment_file_name}" || true)
+    if [ -z "${workload_prefix}" ]; then
+        workload_prefix=$(config_value_with_key "${NETWORK}Workload_Secret_Prefix" "${environment_file_name}" || true)
+    fi
+
+    control_plane_subscription=$(get_value_with_key "STATE_SUBSCRIPTION" "${environment_file_name}" || true)
+    if [ -z "${control_plane_subscription}" ]; then
+        control_plane_subscription=$(config_value_with_key "STATE_SUBSCRIPTION" "${environment_file_name}" || true)
     fi
 fi
 
@@ -246,13 +241,17 @@ echo "Workload Key Vault:                  ${workload_key_vault}"
 echo "Control Plane Subscription:          ${control_plane_subscription}"
 echo "Workload Prefix:                     ${workload_prefix}"
 
-if [ $EXTRA_PARAMETERS = '$(EXTRA_PARAMETERS)' ]; then
-	new_parameters=$PIPELINE_EXTRA_PARAMETERS
+: "${EXTRA_PARAMETERS:=}"
+: "${PIPELINE_EXTRA_PARAMETERS:=}"
+
+# Fix the test condition and handle parameters
+if [[ -n "${EXTRA_PARAMETERS}" && "${EXTRA_PARAMETERS}" != '$(EXTRA_PARAMETERS)' ]]; then
+    if [[ $(get_platform) = devops ]]; then
+        echo "##vso[task.logissue type=warning]Extra parameters were provided - '${EXTRA_PARAMETERS}'"
+    fi
+    new_parameters="${EXTRA_PARAMETERS} ${PIPELINE_EXTRA_PARAMETERS}"
 else
-	if [[ $(get_platform) = devops ]]; then
-		echo "##vso[task.logissue type=warning]Extra parameters were provided - '$EXTRA_PARAMETERS'"
-	fi
-	new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
+    new_parameters="${PIPELINE_EXTRA_PARAMETERS}"
 fi
 
 if [[ $(get_platform) = devops ]]; then
