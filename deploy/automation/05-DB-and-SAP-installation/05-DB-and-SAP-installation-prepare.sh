@@ -222,6 +222,7 @@ else
     workload_key_vault=$(get_value_with_key "workloadkeyvault" "${environment_file_name}" || true)
     if [ -z "${workload_key_vault}" ]; then
         workload_key_vault=$(config_value_with_key "Workload_Key_Vault" "${environment_file_name}" || true)
+    fi
 
     var=$(get_value_with_key "workload_zone_prefix")
     if [ -z ${var} ]; then
