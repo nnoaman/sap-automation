@@ -168,7 +168,7 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                System.Diagnostics.Trace.TraceInformation(jsonString);
+                // System.Diagnostics.Trace.TraceInformation(jsonString);
                 TempData["error"] = "Error converting file: " + jsonString + e.Message;
             }
             return RedirectToAction("Index", sourceController);
