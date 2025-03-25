@@ -165,11 +165,21 @@
       changed_when:                    pcs_cluster_start_result.rc == 0
       failed_when:                     pcs_cluster_start_result.rc != 0
 
-    - name:                            "1.17 Generic Pacemaker - Wait until cluster has stabilized"
-      when:                            pcs_create_sbd_result.rc == 0
-      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
-      register:                        cluster_stable_check
-
+    # switch to using pcs status xml for RHEL 8.x and 9.x
+    - name:                            "1.17 Generic Pacemaker - Wait until cluster has stabilized [SBD]"
+      when:
+                                       - ansible_distribution_major_version in ["8", "9"]
+                                       - pcs_create_sbd_result.rc == 0
+      ansible.builtin.shell:           set -o pipefail && pcs status xml
+      register:                        cluster_status_xml
+      retries:                         12
+      delay:                           10
+      until: >-
+                                       cluster_status_xml.rc == 0 and
+                                       cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"') | length >= 2 and
+                                       primary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"')) and
+                                       secondary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"[^>]*health="green"'))
+      changed_when:                    false
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | SBD - END                                                                  |
