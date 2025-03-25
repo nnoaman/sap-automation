@@ -224,7 +224,7 @@ else
         workload_key_vault=${var}
     fi
 
-    var=$(get_value_with_key "${prefix}Workload_Secret_Prefix")
+    var=$(get_value_with_key "${NETWORK}Workload_Secret_Prefix")
     if [ -z ${var} ]; then
         workload_prefix=$(config_value_with_key "workload_zone_prefix")
     else
