@@ -650,36 +650,36 @@ function sdaf_installer() {
 					return_value=$?
 					print_banner "Installer" "Terraform local init succeeded" "success"
 				fi
+			fi
 
-				terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
+			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 
-				if terraform -chdir="${terraform_module_directory}" init -force-copy \
-					--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
-					--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
-					--backend-config "storage_account_name=${terraform_storage_account_name}" \
-					--backend-config "container_name=tfstate" \
-					--backend-config "key=${key}.terraform.tfstate"; then
-					return_value=$?
-					print_banner "Installer" "Terraform init succeeded." "success"
+			if terraform -chdir="${terraform_module_directory}" init -force-copy \
+				--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
+				--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
+				--backend-config "storage_account_name=${terraform_storage_account_name}" \
+				--backend-config "container_name=tfstate" \
+				--backend-config "key=${key}.terraform.tfstate"; then
+				return_value=$?
+				print_banner "Installer" "Terraform init succeeded." "success"
 
-					allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
-				else
-					return_value=$?
-					print_banner "Installer" "Terraform init failed" "error"
-					return $return_value
-				fi
+				allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 			else
-				echo "Terraform state:                     remote"
-				print_banner "Installer" "The system has already been deployed and the state file is in Azure" "info"
+				return_value=$?
+				print_banner "Installer" "Terraform init failed" "error"
+				return $return_value
+			fi
+		else
+			echo "Terraform state:                     remote"
+			print_banner "Installer" "The system has already been deployed and the state file is in Azure" "info"
 
-				if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
-					return_value=$?
-					print_banner "Installer" "Terraform init failed." "error"
-					return $return_value
-				else
-					return_value=$?
-					print_banner "Installer" "Terraform init succeeded." "success"
-				fi
+			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
+				return_value=$?
+				print_banner "Installer" "Terraform init failed." "error"
+				return $return_value
+			else
+				return_value=$?
+				print_banner "Installer" "Terraform init succeeded." "success"
 			fi
 		fi
 	fi
