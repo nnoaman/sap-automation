@@ -535,10 +535,10 @@ all_subnets                          = merge(local.sap, (
                                            )
                                          )
 
-    key_vault                            = {
+  key_vault                            = {
                                            user                                   = {
-                                                                                      id     = var.user_keyvault_id
-                                                                                      exists = length(var.user_keyvault_id) > 0
+                                                                                      id     = coalesce(data.terraform_remote_state.landscape.outputs.landscape_key_vault_user_arm_id, var.user_keyvault_id)
+                                                                                      exists = length(coalesce(data.terraform_remote_state.landscape.outputs.landscape_key_vault_user_arm_id, var.user_keyvault_id)) > 0
                                                                                     }
                                            spn                                    = {
                                                                                       id     = coalesce(data.azurerm_app_configuration_key.credentials_vault[0].value,var.spn_keyvault_id)
