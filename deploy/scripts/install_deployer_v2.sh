@@ -243,9 +243,10 @@ function install_deployer() {
 					return_value=$?
 					print_banner "$banner_title" "Terraform init succeeded." "success"
 				else
+					return_value=$?
 					print_banner "$banner_title" "Terraform init failed." "error"
 					unset TF_DATA_DIR
-					return $?
+					return $return_value
 				fi
 			fi
 		fi
