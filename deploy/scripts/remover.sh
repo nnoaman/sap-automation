@@ -390,6 +390,10 @@ if [ -f .terraform/terraform.tfstate ]; then
 			exit 1
 		fi
 	else
+		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+
 		if terraform -chdir="${terraform_module_directory}" init -reconfigure \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
