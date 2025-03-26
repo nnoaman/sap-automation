@@ -374,11 +374,11 @@ function persist_files() {
 
 	if [ "$useSAS" = "true" ]; then
 		echo "Storage Account authentication:      key"
-		az storage blob upload --file "${parameterFilename}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterFilename_name}" \
+		az storage blob upload --file "${parameterFilename}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterFilename}" \
 			--subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
 	else
 		echo "Storage Account authentication:      Entra ID"
-		az storage blob upload --file "${parameterFilename}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterFilename_name}" \
+		az storage blob upload --file "${parameterFilename}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterFilename}" \
 			--subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 
@@ -989,6 +989,8 @@ echo ""
 	if [ -f apply_output.json ]; then
 		rm apply_output.json
 	fi
+
+	persist_files
 
 	if [ 0 -ne $return_value ]; then
 		print_banner "Installer" "Errors during the apply phase" "error"
