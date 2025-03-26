@@ -237,14 +237,11 @@ locals {
                                                                                       id     = var.spn_keyvault_id
                                                                                       exists = length(var.spn_keyvault_id) > 0
                                                                                     }
-                                           spn_key_vault_id_exists                = length(var.spn_keyvault_id)
                                            private_key_secret_name                = var.workload_zone_private_key_secret_name
                                            public_key_secret_name                 = var.workload_zone_public_key_secret_name
                                            username_secret_name                   = var.workload_zone_username_secret_name
                                            password_secret_name                   = var.workload_zone_password_secret_name
                                            enable_rbac_authorization              = var.enable_rbac_authorization_for_keyvault
-                                           keyvault_id_for_system_credentials     = local.user_keyvault
-                                           keyvault_id_for_deployment_credentials = local.keyvault_containing_the_spns
                                            set_secret_expiry                      = var.set_secret_expiry
                                         }
 

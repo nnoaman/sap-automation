@@ -127,7 +127,7 @@ output "landscape_key_vault_private_arm_id"      {
 
 output "landscape_key_vault_spn_arm_id"          {
                                                    description = "Azure resource identifier for the deployment credential keyvault"
-                                                   value       = local.spn_key_vault_arm_id
+                                                   value       = var.spn_keyvault_id
                                                  }
 
 output "landscape_key_vault_user_arm_id"         {

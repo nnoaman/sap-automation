@@ -535,19 +535,22 @@ all_subnets                          = merge(local.sap, (
                                            )
                                          )
 
-  key_vault                            = merge(local.key_vault_temp, (
-                                           local.user_keyvault_specified ? (
-                                             {
-                                               kv_user_id = local.user_keyvault
-                                             }
-                                           ) : null), (
-                                           local.spn_keyvault_specified ? (
-                                             {
-                                               kv_spn_id = local.spn_kv
-                                             }
-                                           ) : null
-                                           )
-                                         )
+    key_vault                            = {
+                                           user                                   = {
+                                                                                      id     = var.user_keyvault_id
+                                                                                      exists = length(var.user_keyvault_id) > 0
+                                                                                    }
+                                           spn                                    = {
+                                                                                      id     = var.spn_keyvault_id
+                                                                                      exists = length(var.spn_keyvault_id) > 0
+                                                                                    }
+                                          #  private_key_secret_name                = var.workload_zone_private_key_secret_name
+                                          #  public_key_secret_name                 = var.workload_zone_public_key_secret_name
+                                          #  username_secret_name                   = var.workload_zone_username_secret_name
+                                          #  password_secret_name                   = var.workload_zone_password_secret_name
+                                          #  enable_rbac_authorization              = var.enable_rbac_authorization_for_keyvault
+                                          #  set_secret_expiry                      = var.set_secret_expiry
+                                        }
 
   options                              = merge(local.options_temp, (local.disk_encryption_set_defined ? (
                                            {
