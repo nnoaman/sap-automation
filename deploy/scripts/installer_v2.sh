@@ -363,10 +363,10 @@ function persist_files() {
 	print_banner "Installer" "Backup tfvars to storage account" "info"
 
 	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --query allowSharedKeyAccess --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
-	auth_flag=" login "
+	auth_flag=login
 
 	if [ "$useSAS" = "true" ]; then
-		auth_flag=" key"
+		auth_flag=key
 		echo "Storage Account authentication:      key"
 		container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists)
 	else
