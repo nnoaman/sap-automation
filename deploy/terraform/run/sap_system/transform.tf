@@ -541,8 +541,8 @@ all_subnets                          = merge(local.sap, (
                                                                                       exists = length(var.user_keyvault_id) > 0
                                                                                     }
                                            spn                                    = {
-                                                                                      id     = var.spn_keyvault_id
-                                                                                      exists = length(var.spn_keyvault_id) > 0
+                                                                                      id     = coalesce(data.azurerm_app_configuration_key.credentials_vault[0].value,var.spn_keyvault_id)
+                                                                                      exists = length(coalesce(data.azurerm_app_configuration_key.credentials_vault[0].value,var.spn_keyvault_id)) > 0
                                                                                     }
                                           #  private_key_secret_name                = var.workload_zone_private_key_secret_name
                                           #  public_key_secret_name                 = var.workload_zone_public_key_secret_name
