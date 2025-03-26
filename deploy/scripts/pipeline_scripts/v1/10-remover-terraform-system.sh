@@ -8,13 +8,19 @@ reset="\e[0m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
-# External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+#External helper functions
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
+
+banner_title="Remove SAP System"
 
 #call stack has full script name when using source
-source "${script_directory}/helper.sh"
+source "${parent_directory}/helper.sh"
+source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=False
 
@@ -39,79 +45,39 @@ if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FI
 fi
 
 echo -e "$green--- Validations ---$reset"
-if [ "$USE_MSI" != "true" ]; then
-
-  if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$ARM_CLIENT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$ARM_CLIENT_SECRET" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$ARM_TENANT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ "$ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-    exit 2
-  fi
-
-  if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
-    exit 2
-  fi
-fi
-
-# Set logon variables
-ARM_CLIENT_ID="$ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)" || true
-  echo -e "$green--- az login ---$reset"
-  LogonToAzure false || true
+	configureNonDeployer "$(tf_version)"
+	echo -e "$green--- az login ---$reset"
+	if ! LogonToAzure false; then
+		print_banner "$banner_title" "Login to Azure failed" "error"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit 2
+	fi
 else
-  LogonToAzure "$USE_MSI" || true
-fi
-return_code=$?
-if [ 0 != $return_code ]; then
-  echo -e "$bold_red--- Login failed ---$reset"
-  echo "##vso[task.logissue type=error]az login failed."
-  exit $return_code
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 fi
 
+if printenv OBJECT_ID; then
+	if is_valid_guid "$OBJECT_ID"; then
+		TF_VAR_spn_id="$OBJECT_ID"
+		export TF_VAR_spn_id
+	fi
+fi
 # Print the execution environment details
 print_header
 
