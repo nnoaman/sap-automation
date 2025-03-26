@@ -359,6 +359,9 @@ function sdaf_remover() {
 	if printenv "TF_PARALLELLISM"; then
 		parallelism=$TF_PARALLELLISM
 	fi
+	echo ""
+	echo -e "${green}Deployment information:"
+	echo -e "-------------------------------------------------------------------------------$reset"
 
 	echo "Parameter file:                      $parameterFilename"
 	echo "Current directory:                   $(pwd)"
@@ -453,15 +456,10 @@ function sdaf_remover() {
 		exit 1
 	fi
 
-	# This is used to tell Terraform if this is a new deployment or an update
-	deployment_parameter=""
-	# This is used to tell Terraform the version information from the state file
-	version_parameter=""
-
 	terraform --version
 	echo ""
-	echo "Terraform details"
-	echo "-------------------------------------------------------------------------"
+	echo -e "${green}Terraform details:"
+	echo -e "-------------------------------------------------------------------------------$reset"
 	echo "Subscription:                        ${terraform_storage_account_subscription_id}"
 	echo "Storage Account:                     ${terraform_storage_account_name}"
 	echo "Resource Group:                      ${terraform_storage_account_resource_group_name}"
