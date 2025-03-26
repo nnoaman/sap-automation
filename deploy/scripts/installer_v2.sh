@@ -759,7 +759,7 @@ function sdaf_installer() {
 	if [ 2 -eq $return_value ]; then
 		apply_needed=1
 	else
-		apply_needed=0
+		apply_needed=1
 	fi
 
 	state_path="SYSTEM"
