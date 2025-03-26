@@ -1554,5 +1554,6 @@ variable "application_configuration_id"         {
 
 variable "control_plane_name"                   {
                                                   description = "The name of the control plane"
-                                                  default     = ""
+                                                  nullable    = true
+
                                                 }

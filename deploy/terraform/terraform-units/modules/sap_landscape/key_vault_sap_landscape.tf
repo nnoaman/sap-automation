@@ -73,10 +73,9 @@ resource "azurerm_key_vault" "kv_user" {
 data "azurerm_key_vault" "kv_user" {
   provider                             = azurerm.main
   count                                = var.key_vault.user.exists ? 1 : 0
-  name                                 = split("/", var.key_vault.user.id)[8])
-  resource_group_name                  = split("/", var.key_vault.user.id)[4])
+  name                                 = split("/", var.key_vault.user.id)[8]
+  resource_group_name                  = split("/", var.key_vault.user.id)[4]
 }
-
 
 resource "azurerm_management_lock" "keyvault" {
   provider                             = azurerm.main
