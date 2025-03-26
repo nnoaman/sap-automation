@@ -180,6 +180,19 @@ echo "Terraform state file storage account:$REMOTE_STATE_SA"
 tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 export tfstate_resource_id
 
+if [ -n "${REMOTE_STATE_SA}" ]; then
+	useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+
+	if [ "$useSAS" = "true" ]; then
+		echo "Storage Account Authentication:      Key"
+		export ARM_USE_AZUREAD=false
+	else
+		echo "Storage Account Authentication:      Entra ID"
+		export ARM_USE_AZUREAD=true
+	fi
+fi
+
+
 echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
 
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit

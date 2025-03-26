@@ -255,8 +255,14 @@ if [ -f .terraform/terraform.tfstate ]; then
 	added=1
 fi
 
-if [ -f $WORKLOAD_ZONE_TFVARS_FILENAME ]; then
-	git add $WORKLOAD_ZONE_TFVARS_FILENAME
+if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
+	git add ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}"
+	added=1
+fi
+
+
+if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
+	git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
 	added=1
 fi
 

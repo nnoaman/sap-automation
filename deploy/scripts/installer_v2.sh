@@ -304,11 +304,17 @@ function parse_arguments() {
 
 	if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
 		system_config_information="${CONFIG_DIR}/${WORKLOAD_ZONE_NAME}"
+		touch "${system_config_information}"
+		save_config_vars  "${system_config_information}" landscape_tfstate_key_exists
+
 		# network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3)
 	else
 		system_config_information="${CONFIG_DIR}/${CONTROL_PLANE_NAME}"
+		touch "${system_config_information}"
 		# management_network_logical_name=$(echo $CONTROL_PLANE_NAME | cut -d'-' -f3)
 	fi
+	save_config_vars  "${system_config_information}" deployer_tfstate_key APPLICATION_CONFIGURATION_ID CONTROL_PLANE_NAME
+
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	if valid_region_name "${region}"; then
 		# Convert the region to the correct code
