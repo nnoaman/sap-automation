@@ -78,6 +78,9 @@ if printenv OBJECT_ID; then
 		export TF_VAR_spn_id
 	fi
 fi
+
+ARM_USE_AZUREAD=true
+export ARM_USE_AZUREAD
 # Print the execution environment details
 print_header
 
