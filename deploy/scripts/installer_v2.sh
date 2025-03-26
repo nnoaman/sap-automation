@@ -999,6 +999,11 @@ function sdaf_installer() {
 
 	persist_files
 
+	if [ $DEBUG == True ]; then
+		echo "Terraform state file:"
+		terraform -chdir="${terraform_module_directory}" output -json
+	fi
+
 	if [ 0 -ne $return_value ]; then
 		print_banner "Installer" "Errors during the apply phase" "error"
 		unset TF_DATA_DIR
