@@ -356,6 +356,8 @@ function persist_files() {
 	#                                                                               #
 	#################################################################################
 
+	print_banner "Installer" "Backup tfvars to storage account" "info"
+
 	if [ "$useSAS" = "true" ]; then
 		container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists)
 	else
