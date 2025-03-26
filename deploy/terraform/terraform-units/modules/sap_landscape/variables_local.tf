@@ -97,11 +97,11 @@ locals {
   // By default, Ansible ssh key for SID uses generated public key.
   // Provide sshkey.path_to_public_key and path_to_private_key overides it
 
-  sid_public_key                                  = var.key_vault.exists ? (
+  sid_public_key                                  = var.key_vault.user.exists ? (
                                                       data.azurerm_key_vault_secret.sid_pk[0].value) : (
                                                       try(file(var.authentication.path_to_public_key), try(tls_private_key.sid[0].public_key_openssh, ""))
                                                     )
-  sid_private_key                                 = var.key_vault.exists ? (
+  sid_private_key                                 = var.key_vault.user.exists ? (
                                                       data.azurerm_key_vault_secret.sid_ppk[0].value) : (
                                                       try(file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, ""))
                                                     )
@@ -164,12 +164,12 @@ locals {
                                                     )
 
   // Extract information from the specified key vault arm ids
-  user_keyvault_name                              = var.key_vault.exists ? (
-                                                      split("/", var.key_vault.id)[8]) : (
+  user_keyvault_name                              = var.key_vault.user.exists ? (
+                                                      split("/", var.key_vault.user.id)[8]) : (
                                                       local.landscape_keyvault_names.user_access
                                                     )
 
-  user_keyvault_resourcegroup_name                = var.key_vault.exists ? (
+  user_keyvault_resourcegroup_name                = var.key_vault.user.exists ? (
                                                       split("/", var.key_vault.id)[4]) : (
                                                       ""
                                                     )

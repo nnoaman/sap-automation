@@ -18,7 +18,7 @@ resource "azurerm_app_configuration_key" "KeyVaultResourceId" {
   configuration_store_id               = data.azurerm_app_configuration.app_config.id
   key                                  = format("%s_KeyVaultResourceId", var.naming.prefix.WORKLOAD_ZONE)
   label                                = var.naming.prefix.WORKLOAD_ZONE
-  value                                = length(try(var.key_vault.keyvault_id_for_system_credentials, "")) > 0 ? (
+  value                                = var.key_vault.user.exists ? (
                                               try(data.azurerm_key_vault.kv_user[0].id, "")) : (
                                               try(azurerm_key_vault.kv_user[0].id, "")
                                             )

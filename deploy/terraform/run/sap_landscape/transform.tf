@@ -229,8 +229,15 @@ locals {
                                            ""
                                          )
   key_vault                            = {
-                                           id                                     = var.user_keyvault_id
-                                           exists                                 = length(var.user_keyvault_id) > 0 ? true : false
+                                           user                                   = {
+                                                                                      id     = var.user_keyvault_id
+                                                                                      exists = length(var.user_keyvault_id) > 0
+                                                                                    }
+                                           spn                                    = {
+                                                                                      id     = var.spn_keyvault_id
+                                                                                      exists = length(var.spn_keyvault_id) > 0
+                                                                                    }
+                                           spn_key_vault_id_exists                = length(var.spn_keyvault_id)
                                            private_key_secret_name                = var.workload_zone_private_key_secret_name
                                            public_key_secret_name                 = var.workload_zone_public_key_secret_name
                                            username_secret_name                   = var.workload_zone_username_secret_name
