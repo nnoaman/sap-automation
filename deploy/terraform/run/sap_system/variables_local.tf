@@ -33,7 +33,7 @@ locals {
 
   // Retrieve the arm_id of deployer's Key Vault
   spn_key_vault_arm_id               = trimspace(coalesce(
-                                         local.key_vault.spn.id,
+                                         var.spn_keyvault_id,
                                          try(data.terraform_remote_state.landscape.outputs.landscape_key_vault_spn_arm_id, ""),
                                          try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, ""),
                                          " "
