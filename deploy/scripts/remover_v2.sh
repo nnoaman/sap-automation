@@ -362,7 +362,7 @@ function sdaf_remover() {
 	fi
 	echo ""
 	echo -e "${green}Deployment information:"
-	echo -e "-------------------------------------------------------------------------------$reset"
+	echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 	echo "Parameter file:                      $parameterFilename"
 	echo "Current directory:                   $(pwd)"
@@ -460,7 +460,7 @@ function sdaf_remover() {
 	terraform --version
 	echo ""
 	echo -e "${green}Terraform details:"
-	echo -e "-------------------------------------------------------------------------------$reset"
+	echo -e "-------------------------------------------------------------------------------$reset_formatting"
 	echo "Subscription:                        ${terraform_storage_account_subscription_id}"
 	echo "Storage Account:                     ${terraform_storage_account_name}"
 	echo "Resource Group:                      ${terraform_storage_account_resource_group_name}"
