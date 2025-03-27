@@ -128,12 +128,12 @@ output "anf_subnet_id"                          {
 
 output "ams_subnet_id"                          {
                                                   description = "Azure resource identifier for the ams subnet"
-                                                  value       = var.infrastructure.virtual_networks.sap.subnet_ams.defined ? (
+                                                  value       = local.create_ams_instance ? var.infrastructure.virtual_networks.sap.subnet_ams.defined ? (
                                                                   var.infrastructure.virtual_networks.sap.subnet_ams.exists ? (
                                                                     var.infrastructure.virtual_networks.sap.subnet_ams.id) : (
                                                                     azurerm_subnet.ams[0].id)) : (
                                                                   ""
-                                                                )
+                                                                ) : ""
                                                 }
 
 output "admin_nsg_id"                           {
