@@ -52,7 +52,6 @@ variable "soft_delete_retention_days"  { description = "The number of days that 
 #                                                                                       #
 #########################################################################################
 
-variable "app_registration_app_id"     { description = "App registration app id" }
 variable "sa_connection_string"        { description = "Storage account connection string" }
 
 variable "webapp_client_secret"        { description = "App registration client secret" }
