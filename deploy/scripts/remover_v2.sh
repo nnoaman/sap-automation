@@ -4,6 +4,7 @@
 
 #colors for terminal
 bold_red="\e[1;31m"
+green="\e[1;32m"
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
