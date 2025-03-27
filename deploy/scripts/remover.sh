@@ -456,7 +456,7 @@ if [ "$resource_group_exist" ]; then
 			"$deployer_tfstate_key_parameter"
 
 		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
-		terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
+		terraform -chdir="${terraform_module_directory}" destroy -refresh=false -var-file="${var_file}" \
 			"$deployer_tfstate_key_parameter"
 
 	elif [ "$deployment_system" == "sap_library" ]; then
@@ -478,7 +478,7 @@ if [ "$resource_group_exist" ]; then
 		terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
 			"$deployer_tfstate_key_parameter"
 
-		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false \
+		terraform -chdir="${terraform_bootstrap_directory}" destroy -refresh=false -var-file="${var_file}" "${approve}" -var use_deployer=false \
 			"$deployer_tfstate_key_parameter"
 	elif [ "$deployment_system" == "sap_landscape" ]; then
 
@@ -538,7 +538,7 @@ if [ "$resource_group_exist" ]; then
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=$?
 			else
 				return_value=$?
@@ -552,7 +552,7 @@ if [ "$resource_group_exist" ]; then
 
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters -parallelism="$parallelism"; then
 				return_value=$?
 			else
 				return_value=$?
@@ -578,7 +578,7 @@ if [ "$resource_group_exist" ]; then
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=$?
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
@@ -592,7 +592,7 @@ if [ "$resource_group_exist" ]; then
 			fi
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters -parallelism="$parallelism"; then
 				return_value=$?
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"

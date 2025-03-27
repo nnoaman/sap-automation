@@ -521,7 +521,7 @@ function sdaf_remover() {
 	print_banner "Remover" "Running Terraform destroy" "info"
 
 	if [ "$deployment_system" == "sap_deployer" ]; then
-		terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}"
+		terraform -chdir="${terraform_module_directory}" destroy -refresh=false -var-file="${var_file}"
 
 	elif [ "$deployment_system" == "sap_library" ]; then
 		terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
@@ -590,7 +590,7 @@ function sdaf_remover() {
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=$?
 				print_banner "Remover" "Terraform destroy succeeded" "success"
 			else
@@ -606,7 +606,7 @@ function sdaf_remover() {
 
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters -parallelism="$parallelism"; then
 				print_banner "Remover" "Terraform destroy succeeded" "success"
 				return_value=$?
 			else
@@ -620,7 +620,7 @@ function sdaf_remover() {
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=${PIPESTATUS[0]}
 				print_banner "Remover" "Terraform destroy succeeded" "success"
 			else
@@ -629,7 +629,7 @@ function sdaf_remover() {
 			fi
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters -parallelism="$parallelism"; then
 				return_value=$?
 				print_banner "Remover" "Terraform destroy succeeded" "success"
 			else
