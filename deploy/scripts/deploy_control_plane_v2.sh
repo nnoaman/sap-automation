@@ -753,7 +753,7 @@ function deploy_control_plane() {
 		fi
 	fi
 
-	printf -v kvname '%-40s' "${keyvault}"
+	printf -v kvname '%-40s' "${DEPLOYER_KEYVAULT}"
 	printf -v storage_account '%-40s' "${terraform_storage_account_name}"
 	echo ""
 	echo "#########################################################################################"
@@ -776,14 +776,14 @@ Date : "${now}"
 | ----------------------- | -------------------- |
 | Environment             | $environment         |
 | Location                | $region              |
-| Keyvault Name           | ${keyvault}          |
+| Keyvault Name           | ${DEPLOYER_KEYVAULT} |
 | Terraform state         | ${storage_account}   |
 
 EOF
 
 	cat "${deployer_config_information}".md
 
-	deployer_keyvault="${keyvault}"
+	deployer_keyvault="${DEPLOYER_KEYVAULT}"
 	export deployer_keyvault
 
 	terraform_state_storage_account="${terraform_storage_account_name}"
