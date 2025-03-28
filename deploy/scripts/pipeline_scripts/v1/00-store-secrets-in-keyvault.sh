@@ -136,10 +136,8 @@ if printenv PARENT_VARIABLE_GROUP_ID; then
 		fi
 	fi
 else
-	load_config_vars "${environment_file_name}" "keyvault"
-	key_vault="$keyvault"
-	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
-
+	load_config_vars "${environment_file_name}" "DEPLOYER_KEYVAULT"
+	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
 
 echo -e "$green--- Read parameter values ---$reset"
