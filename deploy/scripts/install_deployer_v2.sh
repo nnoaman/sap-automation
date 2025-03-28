@@ -241,7 +241,7 @@ function install_deployer() {
 				unset TF_DATA_DIR
 				return 10
 			else
-				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -backend-config "path=${param_dirname}/terraform.tfstate"; then
 					return_value=$?
 					print_banner "$banner_title" "Terraform init succeeded." "success"
 				else
