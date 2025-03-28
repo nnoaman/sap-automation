@@ -82,7 +82,11 @@ if [ ! -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 
 	fi
 fi
+echo ""
+echo -e "${green}Parameter information:"
+echo -e "-------------------------------------------------------------------------------$reset"
 
+echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
