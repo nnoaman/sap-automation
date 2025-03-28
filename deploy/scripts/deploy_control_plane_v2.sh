@@ -686,13 +686,6 @@ function deploy_control_plane() {
 
 	init "${CONFIG_DIR}" "${generic_config_information}" "${deployer_config_information}"
 
-	if [ -z $APPLICATION_CONFIGURATION_ID ]; then
-		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
-		export APPLICATION_CONFIGURATION_ID
-	else
-		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
-	fi
-
 	relative_path="${deployer_dirname}"
 	TF_DATA_DIR="${relative_path}"/.terraform
 	export TF_DATA_DIR
