@@ -61,9 +61,19 @@ if [ -z "$CONTROL_PLANE_NAME" ]; then
 	export CONTROL_PLANE_NAME
 fi
 
+ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+
 if printenv APPLICATION_CONFIGURATION_ID; then
 	application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
 fi
+
+if [ ! -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
+	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
+		cp ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+	fi
+fi
+
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"

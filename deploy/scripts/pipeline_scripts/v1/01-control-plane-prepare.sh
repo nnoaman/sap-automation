@@ -36,8 +36,7 @@ echo ""
 # Configure DevOps
 configure_devops
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
@@ -47,7 +46,7 @@ export VARIABLE_GROUP_ID
 file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
-if [ -z "${TF_VAR_ansible_core_version}" ] ; then
+if [ -z "${TF_VAR_ansible_core_version}" ]; then
 	TF_VAR_ansible_core_version=2.16
 	export TF_VAR_ansible_core_version
 fi
@@ -64,7 +63,7 @@ library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRA
 
 CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
 
-if [ ! -f "$deployer_tfvars_file_name" ] ; then
+if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
 	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
 	exit 2
@@ -100,7 +99,6 @@ if [ 0 != "${step}" ]; then
 fi
 
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
-
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
@@ -302,11 +300,16 @@ if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 	added=1
 fi
 
+if [ ! -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
+	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
+		cp ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+	fi
+fi
+
 if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
 	added=1
 fi
-
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
