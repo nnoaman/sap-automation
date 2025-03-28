@@ -59,6 +59,9 @@ if printenv PARENT_VARIABLE_GROUP_ID >/dev/null; then
 	export PARENT_VARIABLE_GROUP_ID
 fi
 
+ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f 1)
+REGION_CODE=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f 2)
+
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 cd "${CONFIG_REPO_PATH}" || exit
@@ -116,6 +119,13 @@ echo ""
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
 environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+
+if [ ! -f "$environment_file_name" ]; then
+  if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}" ]; then
+	  cp "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}" "$environment_file_name"
+	fi
+fi
+
 if printenv PARENT_VARIABLE_GROUP_ID; then
 	APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
