@@ -251,25 +251,38 @@ fi
 
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
 set +eu
-
-if [ "$USE_MSI" != "true" ]; then
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
-		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" \
-		--spn_secret "$ARM_CLIENT_SECRET" --tenant_id "$ARM_TENANT_ID" \
-		--auto-approve --ado --only_deployer
+msi_flag=""
+if [ "$USE_MSI" == "true" ]; then
+	msi_flag=" --msi "
+	TF_VAR_use_spn=false
+	export TF_VAR_use_spn
+	echo "Deployer using:                      Managed Identity"
 
 else
-	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-		--deployer_parameter_file "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" \
-		--library_parameter_file "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
+	TF_VAR_use_spn=true
+	export TF_VAR_use_spn
+	echo "Deployer using:                      Service Principal"
 fi
-return_code=$?
+
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_tfvars_file_name}" \
+	--library_parameter_file "${library_tfvars_file_name}" \
+	--subscription "$ARM_SUBSCRIPTION_ID" \
+	--auto-approve --ado "$msi_flag" --only_deployer; then
+	return_code=$?
+	echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
+	echo "Return code from deploy_control_plane_v2 $return_code."
+else
+	return_code=$?
+	echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
+	echo "Return code from deploy_control_plane_v2 $return_code."
+
+fi
 echo ""
-echo -e "${cyan}Deploy_controlplane returned:        $return_code${reset}"
+echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset}"
 echo ""
+
+set -eu
+
 
 set -eu
 

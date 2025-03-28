@@ -254,7 +254,6 @@ else
 	echo "Return code from deploy_control_plane_v2 $return_code."
 
 fi
-return_code=$?
 echo ""
 echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset}"
 echo ""

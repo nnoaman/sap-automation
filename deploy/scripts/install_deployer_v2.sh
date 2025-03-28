@@ -229,12 +229,12 @@ function install_deployer() {
 	allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 	allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
-	if [ ! -d ./.terraform/ ]; then
+	if [ ! -d .terraform/ ]; then
 		print_banner "$banner_title" "New deployment" "info"
 		terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 		return_value=$?
 	else
-		if [ -f ./.terraform/terraform.tfstate ]; then
+		if [ -f .terraform/terraform.tfstate ]; then
 			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 			if [ -n "$azure_backend" ]; then
 				print_banner "$banner_title" "State already migrated to Azure" "warning"
