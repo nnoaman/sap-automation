@@ -236,9 +236,9 @@ locals {
   assign_subscription_permissions      = try(var.deployer_assign_subscription_permissions, false)
 
   app_service                          = {
-                                           use = var.app_service_deployment
-                                           app_id = var.app_registration_app_id
-                                           client_secret = var.webapp_client_secret
+                                           use                 = var.app_service_deployment
+                                           app_registration_id = var.app_registration_app_id
+                                           client_secret       = var.webapp_client_secret
                                          }
 
   dns_settings                         = {
