@@ -199,6 +199,7 @@ stages:
               CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:             ${{ parameters.control_plane_name }}
               DEPLOYER_TFSTATE_KEY:           "${{ parameters.control_plane_name }}-INFRASTRUCTURE.terraform.tfstate"
+              DEPLOYER_KEYVAULT:              $(DEPLOYER_KEYVAULT)
               FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:         true
               OBJECT_ID:                      $(ParameterValidation.ARM_OBJECT_ID)
