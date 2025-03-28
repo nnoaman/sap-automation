@@ -294,6 +294,17 @@ if [[ $(get_platform) = devops ]]; then
 	echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
 	echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${control_plane_subscription}"
 fi
+
+if [[ $(get_platform) = github ]]; then
+    {
+        echo "SSH_KEY_NAME=${workload_prefix}-sid-sshkey"
+        echo "VAULT_NAME=${workload_key_vault}"
+        echo "PASSWORD_KEY_NAME=${workload_prefix}-sid-password"
+        echo "USERNAME_KEY_NAME=${workload_prefix}-sid-username"
+        echo "NEW_PARAMETERS=${new_parameters}"
+        echo "CP_SUBSCRIPTION=${control_plane_subscription}"
+    } >> "$GITHUB_OUTPUT"
+fi
 end_group
 
 az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
