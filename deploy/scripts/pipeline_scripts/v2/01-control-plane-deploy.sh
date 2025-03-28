@@ -177,7 +177,7 @@ if [ -n "$tfstate_resource_id" ]; then
 	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 	echo "Terraform storage account:           $terraform_storage_account_name"
-	storage_account_parameter=" --storageaccountname ${terraform_storage_account_name} "
+	storage_account_parameter=" --terraform_storage_account_name ${terraform_storage_account_name} "
 
 	export terraform_storage_account_name
 	export terraform_storage_account_resource_group_name
@@ -243,7 +243,7 @@ echo -e "$green--- Control Plane deployment---$reset"
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
 	--library_parameter_file "${library_configuration_file}" \
-	--subscription "$ARM_SUBSCRIPTION_ID" \
+	--subscription "$terraform_storage_account_subscription_id" \
 	--auto-approve --ado "$msi_flag" \
 	"${storage_account_parameter}" "${keyvault_parameter}"; then
 	return_code=$?
