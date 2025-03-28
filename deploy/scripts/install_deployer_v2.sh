@@ -29,14 +29,14 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
-
+CONTROL_PLANE_NAME=""
 
 CONFIG_REPO_PATH="${script_directory}/.."
 CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 readonly CONFIG_DIR
 
 #Internal helper functions
-function showhelp {
+function show_deployer_help {
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -88,7 +88,7 @@ function parse_arguments() {
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
-		showhelp
+		show_deployer_help
 		exit 1
 	fi
 
@@ -108,8 +108,8 @@ function parse_arguments() {
 			shift
 			;;
 		-h | --help)
-			showhelp
-			exit 3
+			show_deployer_help
+			return 3
 			;;
 		--)
 			shift
@@ -119,25 +119,16 @@ function parse_arguments() {
 	done
 
 	if [ ! -f "${parameter_file_name}" ]; then
+
 		printf -v val %-40.40s "$parameter_file_name"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo "#               Parameter file does not exist: ${val} #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
+		print_banner "Bootstrap Deployer " "Parameter file does not exist: $parameter_file_name" "error"
 		return 2 #No such file or directory
 	fi
 
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}"/.terraform
 	if [ "$param_dirname" != '.' ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo "#   Please run this command from the folder containing the parameter file               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
+	  print_banner "Bootstrap Deployer " "Parameter file is not in the current directory: $parameter_file_name" "error"
 		return 3
 	fi
 
@@ -206,6 +197,9 @@ function install_deployer() {
 	init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
 	var_file="${param_dirname}"/"${parameter_file_name}"
+	echo ""
+	echo -e "${green}Deployment information:"
+	echo -e "-------------------------------------------------------------------------------$reset"
 
 	echo "Configuration file:                  $parameter_file_name"
 	echo "Deployment region:                   $region"
