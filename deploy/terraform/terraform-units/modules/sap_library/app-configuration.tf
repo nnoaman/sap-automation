@@ -8,6 +8,7 @@
 #######################################4#######################################8
 
 data  "azurerm_app_configuration" "app_config" {
+  count                                = application_configuration_deployed
   provider                             = azurerm.deployer
   name                                 = local.app_config_name
   resource_group_name                  = local.app_config_resource_group_name
@@ -15,7 +16,8 @@ data  "azurerm_app_configuration" "app_config" {
 
 resource "azurerm_app_configuration_key" "libraryStateFileName" {
   provider                             = azurerm.deployer
-  configuration_store_id               = data.azurerm_app_configuration.app_config.id
+  count                                = application_configuration_deployed
+  configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_LibraryStateFileName", var.state_filename_prefix)
   label                                = var.state_filename_prefix
   value                                = format("%s-SAP_LIBRARY.terraform.tfstate",var.naming.prefix.LIBRARY)
@@ -36,7 +38,8 @@ resource "azurerm_app_configuration_key" "libraryStateFileName" {
 
 resource "azurerm_app_configuration_key" "terraformRemoteStateStorageAccountId" {
   provider                             = azurerm.deployer
-  configuration_store_id               = data.azurerm_app_configuration.app_config.id
+  count                                = application_configuration_deployed
+  configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_TerraformRemoteStateStorageAccountId", var.state_filename_prefix)
   label                                = var.state_filename_prefix
   value                                = length(var.storage_account_tfstate.arm_id) > 0 ? (
@@ -60,7 +63,8 @@ resource "azurerm_app_configuration_key" "terraformRemoteStateStorageAccountId" 
 
 resource "azurerm_app_configuration_key" "SAPLibraryStorageAccountId" {
   provider                             = azurerm.deployer
-  configuration_store_id               = data.azurerm_app_configuration.app_config.id
+  count                                = application_configuration_deployed
+  configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SAPLibraryStorageAccountId", var.state_filename_prefix)
   label                                = var.state_filename_prefix
   value                                = length(var.storage_account_tfstate.arm_id) > 0 ? (
@@ -83,7 +87,8 @@ resource "azurerm_app_configuration_key" "SAPLibraryStorageAccountId" {
 
 resource "azurerm_app_configuration_key" "SAPMediaPath" {
   provider                             = azurerm.deployer
-  configuration_store_id               = data.azurerm_app_configuration.app_config.id
+  count                                = application_configuration_deployed
+  configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SAPMediaPath", var.state_filename_prefix)
   label                                = var.state_filename_prefix
   value                                = format("https://%s.blob.core.windows.net/%s", length(var.storage_account_sapbits.arm_id) > 0 ?
@@ -103,8 +108,8 @@ resource "azurerm_app_configuration_key" "SAPMediaPath" {
             }
 }
 locals {
-
-  parsed_id                            = provider::azurerm::parse_resource_id(coalesce(var.deployer.application_configuration_id,var.deployer_tfstate.deployer_app_config_id))
-  app_config_name                      = local.parsed_id["resource_name"]
-  app_config_resource_group_name       = local.parsed_id["resource_group_name"]
+  application_configuration_deployed   = length(var.deployer_tfstate.deployer_app_config_id) > 0
+  parsed_id                            = local.application_configuration_deployed ? provider::azurerm::parse_resource_id(coalesce(var.deployer.application_configuration_id, var.deployer_tfstate.deployer_app_config_id)) : null
+  app_config_name                      = local.application_configuration_deployed ? local.parsed_id["resource_name"] : ""
+  app_config_resource_group_name       = local.application_configuration_deployed ? local.parsed_id["resource_group_name"] : ""
 }

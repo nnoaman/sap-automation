@@ -165,11 +165,11 @@ echo -e "${green}Terraform parameter information:"
 echo -e "-------------------------------------------------------------------------------$reset"
 
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
-echo ""
 echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
 echo "Deployer tfVars:                     $DEPLOYER_TFVARS_FILENAME"
 echo "Library Folder:                      $LIBRARY_FOLDERNAME"
 echo "Library tfVars:                      $LIBRARY_TFVARS_FILENAME"
+echo ""
 
 if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
@@ -254,7 +254,7 @@ echo -e "$green--- Control Plane deployment---$reset"
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
 	--library_parameter_file "${library_configuration_file}" \
-	--subscription "$ARM_SUBSCRIPTION_ID" \
+	--subscription "$terraform_storage_account_subscription_id" \
 	--auto-approve --ado "$msi_flag" \
 	"${storage_account_parameter}" "${keyvault_parameter}"; then
 	return_code=$?
@@ -264,7 +264,6 @@ else
 	return_code=$?
 	echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
 	echo "Return code from deploy_control_plane_v2 $return_code."
-
 fi
 
 echo -e "$green--- Pushing the changes to the repository ---$reset"
