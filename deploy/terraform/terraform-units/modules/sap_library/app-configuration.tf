@@ -8,7 +8,7 @@
 #######################################4#######################################8
 
 data  "azurerm_app_configuration" "app_config" {
-  count                                = local.application_configuration_deployed
+  count                                = local.application_configuration_deployed ? 1 : 0
   provider                             = azurerm.deployer
   name                                 = local.app_config_name
   resource_group_name                  = local.app_config_resource_group_name
@@ -16,7 +16,7 @@ data  "azurerm_app_configuration" "app_config" {
 
 resource "azurerm_app_configuration_key" "libraryStateFileName" {
   provider                             = azurerm.deployer
-  count                                = local.application_configuration_deployed
+  count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_LibraryStateFileName", var.state_filename_prefix)
   label                                = var.state_filename_prefix
@@ -38,7 +38,7 @@ resource "azurerm_app_configuration_key" "libraryStateFileName" {
 
 resource "azurerm_app_configuration_key" "terraformRemoteStateStorageAccountId" {
   provider                             = azurerm.deployer
-  count                                = local.application_configuration_deployed
+  count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_TerraformRemoteStateStorageAccountId", var.state_filename_prefix)
   label                                = var.state_filename_prefix
@@ -63,7 +63,7 @@ resource "azurerm_app_configuration_key" "terraformRemoteStateStorageAccountId" 
 
 resource "azurerm_app_configuration_key" "SAPLibraryStorageAccountId" {
   provider                             = azurerm.deployer
-  count                                = local.application_configuration_deployed
+  count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SAPLibraryStorageAccountId", var.state_filename_prefix)
   label                                = var.state_filename_prefix
@@ -87,7 +87,7 @@ resource "azurerm_app_configuration_key" "SAPLibraryStorageAccountId" {
 
 resource "azurerm_app_configuration_key" "SAPMediaPath" {
   provider                             = azurerm.deployer
-  count                                = local.application_configuration_deployed
+  count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SAPMediaPath", var.state_filename_prefix)
   label                                = var.state_filename_prefix
