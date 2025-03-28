@@ -219,12 +219,13 @@ function bootstrap_deployer() {
 		fi
 	fi
 
-	load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
-	export APPLICATION_CONFIGURATION_ID
-	load_config_vars "${deployer_config_information}" "keyvault"
+	load_config_vars "${deployer_config_information}" "DEPLOYER_KEYVAULT"
+	echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
 
-	echo "Key vault:                           ${keyvault}"
-	echo "Application configuration Id         ${APPLICATION_CONFIGURATION_ID}"
+	load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
+	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+		echo "Application configuration Id         ${APPLICATION_CONFIGURATION_ID}"
+	fi
 
 	echo "##vso[task.setprogress value=20;]Progress Indicator"
 	cd "$root_dirname" || exit
