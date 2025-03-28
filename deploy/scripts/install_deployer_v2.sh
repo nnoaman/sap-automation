@@ -384,8 +384,8 @@ function install_deployer() {
 		print_banner "$banner_title" "Keyvault to use for deployment credentials: $val" "info"
 
 		save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+		export DEPLOYER_KEYVAULT
 	fi
-	export DEPLOYER_KEYVAULT
 
 	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
 	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
