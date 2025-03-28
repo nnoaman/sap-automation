@@ -143,12 +143,13 @@ az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+	DEPLOYER_KEYVAULT=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$key_vault_id" ]; then
 		echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 	fi
 	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	export tfstate_resource_id
 else
 	echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT"
@@ -182,12 +183,12 @@ terraform_storage_account_subscription_id=$ARM_SUBSCRIPTION_ID
 
 echo "Terraform state subscription:        $terraform_storage_account_subscription_id"
 
-if [ -n "$tfstate_resource_id" ]; then
+if printenv tfstate_resource_id ; then
 	terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 	echo "Terraform storage account:           $terraform_storage_account_name"
-	storage_account_parameter=" --storageaccountname ${terraform_storage_account_name} "
+	storage_account_parameter=" --terraform_storage_account_name ${terraform_storage_account_name} "
 
 	export terraform_storage_account_name
 	export terraform_storage_account_resource_group_name
