@@ -190,6 +190,17 @@ if [[ $(get_platform) = devops ]]; then
 	echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
 fi
 
+if [[ $(get_platform) = github ]]; then
+    {
+        echo "## Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
+        echo "SID=${SID}"
+        echo "SAP_PARAMETERS=sap-parameters.yaml"
+        echo "FOLDER=$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
+        echo "HOSTS=${SID}_hosts.yaml"
+        echo "KV_NAME=$key_vault"
+    } >> "$GITHUB_OUTPUT"
+fi
+
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 echo "Virtual network logical name:        $NETWORK"
