@@ -142,7 +142,6 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 else
 	echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT"
-	key_vault="$keyvault"
 	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
 	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
@@ -161,9 +160,9 @@ echo "Deployer tfVars:                     $DEPLOYER_TFVARS_FILENAME"
 echo "Library Folder:                      $LIBRARY_FOLDERNAME"
 echo "Library tfVars:                      $LIBRARY_TFVARS_FILENAME"
 
-if [ -n "${key_vault}" ]; then
-	echo "Deployer Key Vault:                  ${key_vault}"
-	keyvault_parameter=" --keyvault ${key_vault} "
+if [ -n "${DEPLOYER_KEYVAULT}" ]; then
+	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+	keyvault_parameter=" --keyvault ${DEPLOYER_KEYVAULT} "
 else
 	echo "Deployer Key Vault:                  undefined"
 	exit 2
@@ -193,13 +192,13 @@ fi
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 
-if [ -n "${key_vault}" ]; then
+if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 
-	key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 	if [ -n "${key_vault_id}" ]; then
 		if [ "azure pipelines" = "$THIS_AGENT" ]; then
 			this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-			az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
+			az keyvault network-rule add --name "${DEPLOYER_KEYVAULT}" --ip-address "${this_ip}" --only-show-errors --output none
 		fi
 	fi
 fi
