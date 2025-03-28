@@ -246,7 +246,7 @@ function install_library() {
 	init "${automation_config_directory}" "${generic_config_information}" "${library_config_information}"
 
 	export TF_DATA_DIR="${param_dirname}"/.terraform
-	var_file="${param_dirname}"/"${parameterfile_name}"
+	var_file="${param_dirname}"/"${parameter_file_name}"
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
