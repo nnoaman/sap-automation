@@ -177,28 +177,28 @@ echo -e "$green--- Convert config files to UX format ---$reset"
 dos2unix -q "$deployer_tfvars_file_name"
 dos2unix -q "$library_tfvars_file_name"
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
-if [ -n "$key_vault" ]; then
-	echo "Deployer Key Vault:                  ${key_vault}"
-	key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
+if [ -n "$DEPLOYER_KEYVAULT" ]; then
+	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
 
-	if [ -z "${key_vault_id}" ]; then
-		echo "##vso[task.logissue type=error]Key Vault $key_vault could not be found, trying to recover"
-		key_vault=$(az keyvault list-deleted --query "[?name=='${key_vault}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
-		if [ -n "$key_vault" ]; then
-			echo "Deployer Key Vault:                  ${key_vault} is deleted, recovering"
-			az keyvault recover --name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --output none
-			key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
+		echo "##vso[task.logissue type=error]Key Vault $DEPLOYER_KEYVAULT could not be found, trying to recover"
+		DEPLOYER_KEYVAULT=$(az keyvault list-deleted --query "[?name=='${DEPLOYER_KEYVAULT}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+		if [ -n "$DEPLOYER_KEYVAULT" ]; then
+			echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT} is deleted, recovering"
+			az keyvault recover --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --output none
+			key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
 			if [ -n "${key_vault_id}" ]; then
 				export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
 				this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-				az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
+				az keyvault network-rule add --name "${DEPLOYER_KEYVAULT}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
 			fi
 		fi
 	else
 		export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-		az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
+		az keyvault network-rule add --name "${DEPLOYER_KEYVAULT}" --ip-address "${this_ip}" --subscription "$ARM_SUBSCRIPTION_ID" --only-show-errors --output none
 
 	fi
 else
