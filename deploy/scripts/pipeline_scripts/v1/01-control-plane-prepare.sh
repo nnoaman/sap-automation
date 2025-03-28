@@ -302,6 +302,12 @@ if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 	added=1
 fi
 
+if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
+	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+	added=1
+fi
+
+
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
 	added=1

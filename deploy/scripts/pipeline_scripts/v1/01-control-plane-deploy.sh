@@ -4,13 +4,22 @@
 
 echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
-reset="\e[0m"
 bold_red="\e[1;31m"
+reset="\e[0m"
 
 # External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
+
+banner_title="Deploy Control Plane"
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${grand_parent_directory}/deploy_utils.sh"
 
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
@@ -20,6 +29,9 @@ DEBUG=False
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
 	DEBUG=True
+	TF_LOG=DEBUG
+	export TF_LOG
+
 	echo "Environment variables:"
 	printenv | sort
 
@@ -27,221 +39,159 @@ fi
 export DEBUG
 set -eu
 
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+
+echo -e "$green--- File Validations ---$reset"
+
+if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
+
+	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found" "error"
+	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
+if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
+	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found" "error"
+	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
+if [ -z "$CONTROL_PLANE_NAME" ]; then
+	CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
+	export CONTROL_PLANE_NAME
+fi
+
+if printenv APPLICATION_CONFIGURATION_ID; then
+	application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
+fi
+
+deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+if [ -f "${deployer_environment_file_name}" ]; then
+	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+	echo "Step:                                $step"
+fi
+
+terraform_storage_account_name=""
+terraform_storage_account_resource_group_name=$DEPLOYER_FOLDERNAME
+
 # Print the execution environment details
+print_header
 
 # Configure DevOps
 configure_devops
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
 export VARIABLE_GROUP_ID
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-
-deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
-deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
-if [ -f "${deployer_environment_file_name}" ]; then
-	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-	echo "Step:                                $step"
-fi
-
-file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
-file_key_vault=""
-file_REMOTE_STATE_SA=""
-file_REMOTE_STATE_RG=$DEPLOYER_FOLDERNAME
-REMOTE_STATE_SA=""
-REMOTE_STATE_RG=$DEPLOYER_FOLDERNAME
-sourced_from_file=0
-
-if [[ -f /etc/profile.d/deploy_server.sh ]]; then
-	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export PATH=$PATH:$path
-fi
-
-if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-	echo -e "$bold_red--- File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found ---$reset"
-	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
-	exit 2
-fi
-
-if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
-	echo -e "$bold_red--- File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME  was not found ---$reset"
-	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
-	exit 2
-fi
-
-echo ""
-echo -e "${green}Deployment information:"
-echo -e "-------------------------------------------------------------------------------$reset"
-
-
-echo "Environment:                         ${ENVIRONMENT}"
-echo "Location:                            ${LOCATION}"
-echo "Agent:                               $THIS_AGENT"
-echo "Organization:                        $SYSTEM_COLLECTIONURI"
-echo "Project:                             $SYSTEM_TEAMPROJECT"
-if [ -n "$TF_VAR_agent_pat" ]; then
-	echo "Deployer Agent PAT:                  IsDefined"
-fi
-if [ -n "$POOL" ]; then
-	echo "Deployer Agent Pool:                 $POOL"
-fi
-echo ""
-if printenv USE_WEBAPP; then
-	echo "Deploy Web App:                      $USE_WEBAPP"
-else
-	echo "Deploy Web App:                      false"
-	USE_WEBAPP=false
-fi
-if ! printenv APP_REGISTRATION_APP_ID; then
-	APP_REGISTRATION_APP_ID=""
-fi
-TF_VAR_use_webapp=$USE_WEBAPP
-export TF_VAR_use_webapp
-
-echo ""
-echo -e "${green}Terraform information:"
-echo -e "-------------------------------------------------------------------------------$reset"
-
-echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
-echo "Deployer TFvars:                     $DEPLOYER_TFVARS_FILENAME"
-echo "Library Folder:                      $LIBRARY_FOLDERNAME"
-echo "Library TFvars:                      $LIBRARY_TFVARS_FILENAME"
-
-cd "$CONFIG_REPO_PATH" || exit
-
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
-
-# Set logon variables
-if printenv CP_ARM_CLIENT_ID; then
-	ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-	export ARM_CLIENT_ID
-	TF_VAR_spn_id=$CP_ARM_CLIENT_ID
-	export TF_VAR_spn_id
-fi
-if printenv CP_ARM_CLIENT_SECRET; then
-	ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-	export ARM_CLIENT_SECRET
-fi
-if printenv CP_ARM_TENANT_ID; then
-	ARM_TENANT_ID="$CP_ARM_TENANT_ID"
-	export ARM_TENANT_ID
-fi
-
-if printenv CP_ARM_SUBSCRIPTION_ID; then
-	ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-	export ARM_SUBSCRIPTION_ID
-fi
-
-export ARM_SUBSCRIPTION_ID
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure false
+	if ! LogonToAzure false; then
+		print_banner "$banner_title" "Login to Azure failed" "error"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit 2
+	fi
 else
-	LogonToAzure "$USE_MSI"
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+		TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
+		if is_valid_guid $TF_VAR_spn_id; then
+			export TF_VAR_spn_id
+			echo "Service Principal Object id:         $TF_VAR_spn_id"
+		fi
+
+	fi
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 fi
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
-fi
+cd "$CONFIG_REPO_PATH" || exit
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id
+if [ -z "${TF_VAR_ansible_core_version}" ]; then
+	export TF_VAR_ansible_core_version=2.16
+fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-echo -e "$green--- Configuring variables ---$reset"
-
-echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-
-echo -e "$green--- Variables ---$reset"
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
-if [ "$sourced_from_file" == 1 ]; then
-	az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --value "${key_vault}" --output none --only-show-errors
+if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+	if [ -z "$key_vault_id" ]; then
+		echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+	fi
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+else
+	echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not defined."
+	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT"
+	key_vault="$keyvault"
+	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
+	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
-echo "Deployer TFvars:                      $DEPLOYER_TFVARS_FILENAME"
+
+TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
+export TF_VAR_deployer_kv_user_arm_id
+
+echo ""
+echo -e "${green}Terraform parameter information:"
+echo -e "-------------------------------------------------------------------------------$reset"
+
+echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
+echo ""
+echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
+echo "Deployer tfVars:                     $DEPLOYER_TFVARS_FILENAME"
+echo "Library Folder:                      $LIBRARY_FOLDERNAME"
+echo "Library tfVars:                      $LIBRARY_TFVARS_FILENAME"
 
 if [ -n "${key_vault}" ]; then
-	echo "Deployer Key Vault:                   ${key_vault}"
+	echo "Deployer Key Vault:                  ${key_vault}"
 	keyvault_parameter=" --keyvault ${key_vault} "
 else
-	echo "Deployer Key Vault:                   undefined"
+	echo "Deployer Key Vault:                  undefined"
 	exit 2
-
 fi
 
-STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+terraform_storage_account_subscription_id=$ARM_SUBSCRIPTION_ID
 
-echo "Terraform state subscription:         $STATE_SUBSCRIPTION"
+echo "Terraform state subscription:        $terraform_storage_account_subscription_id"
 
-REMOTE_STATE_SA=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
-export REMOTE_STATE_SA
-if [ -n "${REMOTE_STATE_SA}" ]; then
-	echo "Terraform storage account:            $REMOTE_STATE_SA"
-	storage_account_parameter=" --storageaccountname ${REMOTE_STATE_SA} "
+if [ -n "$tfstate_resource_id" ]; then
+	terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+	echo "Terraform storage account:           $terraform_storage_account_name"
+	storage_account_parameter=" --storageaccountname ${terraform_storage_account_name} "
+
+	export terraform_storage_account_name
+	export terraform_storage_account_resource_group_name
+	export terraform_storage_account_subscription_id
+	export tfstate_resource_id
+
 else
 	echo "Terraform storage account:            undefined"
 	storage_account_parameter=
 fi
 
-REMOTE_STATE_RG=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${deployer_environment_file_name}" "REMOTE_STATE_RG")
-export REMOTE_STATE_RG
-
-echo -e "$green--- Validations ---$reset"
-
-if [ -z "${TF_VAR_ansible_core_version}" ]; then
-	export TF_VAR_ansible_core_version=2.16
-fi
-
-if [ "$USE_WEBAPP" = "true" ]; then
-	echo "Deploy Web Application:               true"
-
-	if [ -z "$APP_REGISTRATION_APP_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
-		exit 2
-	fi
-	echo "App Registration ID:                  $APP_REGISTRATION_APP_ID"
-	TF_VAR_app_registration_app_id=$APP_REGISTRATION_APP_ID
-	export TF_VAR_app_registration_app_id
-
-	if [ -z "$WEB_APP_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
-		exit 2
-	fi
-
-	TF_VAR_webapp_client_secret=$WEB_APP_CLIENT_SECRET
-	export TF_VAR_webapp_client_secret
-
-	TF_VAR_use_webapp=true
-	export TF_VAR_use_webapp
-else
-	echo "Deploy Web Application:               false"
-fi
-
-file_REMOTE_STATE_SA=""
-file_REMOTE_STATE_RG=""
-
-echo -e "$green--- Update .sap_deployment_automation/config as SAP_AUTOMATION_REPO_PATH can change on devops agent ---$reset"
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
-echo "SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH" >.sap_deployment_automation/config
-export SAP_AUTOMATION_REPO_PATH
 
 if [ -n "${key_vault}" ]; then
 
@@ -253,8 +203,6 @@ if [ -n "${key_vault}" ]; then
 		fi
 	fi
 fi
-
-echo -e "$green--- Preparing for the Control Plane deployment---$reset"
 
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 	# shellcheck disable=SC2001
@@ -271,42 +219,45 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
-export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
+export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log"
 
-sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh"
-if [ "$USE_MSI" != "true" ]; then
+print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
-	export TF_VAR_use_spn=true
+msi_flag=""
+if [ "$USE_MSI" == "true" ]; then
+	msi_flag=" --msi "
+	TF_VAR_use_spn=false
+	export TF_VAR_use_spn
+	echo "Deployer using:                      Managed Identity"
 
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-		--deployer_parameter_file "${deployer_configuration_file}" \
-		--library_parameter_file "${library_configuration_file}" \
-		--subscription "$ARM_SUBSCRIPTION_ID" \
-		--spn_secret "$ARM_CLIENT_SECRET" \
-		--tenant_id "$ARM_TENANT_ID" \
-		--auto-approve --ado \
-		"${storage_account_parameter}" "${keyvault_parameter}"; then
-		return_code=$?
-		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
-		echo "Return code from deploy_controlplane $return_code."
-	fi
 else
-	export TF_VAR_use_spn=false
+	TF_VAR_use_spn=true
+	export TF_VAR_use_spn
+	echo "Deployer using:                      Service Principal"
+fi
 
-	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
-		--deployer_parameter_file "${deployer_configuration_file}" \
-		--library_parameter_file "${library_configuration_file}" \
-		--subscription "$ARM_SUBSCRIPTION_ID" \
-		--auto-approve --ado --msi \
-		"${storage_account_parameter}" "${keyvault_parameter}"; then
-		return_code=$?
-		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
-		echo "Return code from deploy_controlplane $return_code."
-	fi
+if [ "$DEBUG" == True ]; then
+	echo "ARM Environment variables:"
+	printenv | grep ARM_
+fi
+echo -e "$green--- Control Plane deployment---$reset"
+
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
+	--library_parameter_file "${library_configuration_file}" \
+	--subscription "$ARM_SUBSCRIPTION_ID" \
+	--auto-approve --ado "$msi_flag" \
+	"${storage_account_parameter}" "${keyvault_parameter}"; then
+	return_code=$?
+	echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
+	echo "Return code from deploy_control_plane_v2 $return_code."
+else
+	return_code=$?
+	echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
+	echo "Return code from deploy_control_plane_v2 $return_code."
 
 fi
 
-echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+echo -e "$green--- Pushing the changes to the repository ---$reset"
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
 
@@ -314,13 +265,13 @@ cd "${CONFIG_REPO_PATH}" || exit
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
-if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
-	git add .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
+	git add ".sap_deployment_automation/$CONTROL_PLANE_NAME"
 	added=1
 fi
 
-if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
-	git add .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md
+if [ -f .".sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
+	git add .".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
 	added=1
 fi
 
@@ -431,83 +382,17 @@ if [ 1 = $added ]; then
 	fi
 fi
 
-# if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
-#   echo "##vso[task.uploadsummary].sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
-# fi
-
-if [ -f "${deployer_environment_file_name}" ]; then
-
-	file_deployer_tfstate_key=$(grep "^deployer_tfstate_key=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer State:       ${file_deployer_tfstate_key}"
-
-	file_key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Keyvault:    ${file_key_vault}"
-
-	file_REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform account:    ${file_REMOTE_STATE_SA}"
-	fi
-
-	file_REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_REMOTE_STATE_RG}" ]; then
-		echo "Terraform rgname:     ${file_REMOTE_STATE_RG}"
-	fi
-fi
-
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${file_REMOTE_STATE_SA}"; then
-			echo "Variable Terraform_Remote_Storage_Account_Name was added to the $VARIABLE_GROUP variable group."
-		else
-			echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Account_Name was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable Terraform_Remote_Storage_Account_Name was not added to the $VARIABLE_GROUP variable group."
-		fi
-	fi
 
-	if [ -n "${file_REMOTE_STATE_RG}" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${file_REMOTE_STATE_RG}"; then
-			echo "Variable Terraform_Remote_Storage_Resource_Group_Name was added to the $VARIABLE_GROUP variable group."
-		else
-			echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Resource_Group_Name was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable Terraform_Remote_Storage_Resource_Group_Name was not added to the $VARIABLE_GROUP variable group."
-		fi
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "$ARM_SUBSCRIPTION_ID"; then
-		echo "Variable Terraform_Remote_Storage_Subscription was added to the $VARIABLE_GROUP variable group."
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
+		echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
 	else
-		echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Subscription was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Terraform_Remote_Storage_Subscription was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"; then
-		echo "Variable Deployer_State_FileName was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"; then
-		echo "Variable Deployer_Key_Vault was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"; then
-		echo "Variable ControlPlaneEnvironment was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable ControlPlaneEnvironment was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable ControlPlaneEnvironment was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"; then
-		echo "Variable ControlPlaneLocation was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable ControlPlaneLocation was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable ControlPlaneLocation was not added to the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 
 fi
+print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
+
 exit $return_code
