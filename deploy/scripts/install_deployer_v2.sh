@@ -29,7 +29,6 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
-CONTROL_PLANE_NAME=""
 
 CONFIG_REPO_PATH="${script_directory}/.."
 CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
@@ -101,6 +100,7 @@ function parse_arguments() {
 			;;
 		-c | --control_plane_name)
 			CONTROL_PLANE_NAME="$2"
+			export CONTROL_PLANE_NAME
 			shift 2
 			;;
 		-i | --auto-approve)
@@ -121,14 +121,19 @@ function parse_arguments() {
 	if [ ! -f "${parameter_file_name}" ]; then
 
 		printf -v val %-40.40s "$parameter_file_name"
-		print_banner "Bootstrap Deployer " "Parameter file does not exist: $parameter_file_name" "error"
+		print_banner "$banner_title" "Parameter file does not exist: $parameter_file_name" "error"
 		return 2 #No such file or directory
+	fi
+
+	if ! printenv CONTROL_PLANE_NAME; then
+		CONTROL_PLANE_NAME=$(echo "${parameter_file_name}" | cut -d '-' -f 1-3)
+		export CONTROL_PLANE_NAME
 	fi
 
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}"/.terraform
 	if [ "$param_dirname" != '.' ]; then
-	  print_banner "Bootstrap Deployer " "Parameter file is not in the current directory: $parameter_file_name" "error"
+	  print_banner "$banner_title" "Parameter file is not in the current directory: $parameter_file_name" "error"
 		return 3
 	fi
 
@@ -156,7 +161,10 @@ function parse_arguments() {
 
 function install_deployer() {
 	deployment_system=sap_deployer
+	local green="\033[0;32m"
+	local reset="\033[0m"
 	approve=""
+
 	# Define an array of helper scripts
 	helper_scripts=(
 		"${script_directory}/helpers/script_helpers.sh"
@@ -168,15 +176,15 @@ function install_deployer() {
 	# Call the function with the array
 	source_helper_scripts "${helper_scripts[@]}"
 
+	print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
+
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
-		print_banner "Bootstrap Deployer " "Validating parameters failed" "error"
+		print_banner "$banner_title" "Validating parameters failed" "error"
 		return $?
 	fi
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}/.terraform"
-
-	echo "Parameter file:                      ${parameter_file_name}"
 
 	print_banner "$banner_title" "Deploying the deployer" "info"
 
@@ -197,13 +205,13 @@ function install_deployer() {
 	init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
 	var_file="${param_dirname}"/"${parameter_file_name}"
+
 	echo ""
 	echo -e "${green}Deployment information:"
 	echo -e "-------------------------------------------------------------------------------$reset"
 
 	echo "Configuration file:                  $parameter_file_name"
-	echo "Deployment region:                   $region"
-	echo "Deployment region code:              $region_code"
+	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 	export TF_DATA_DIR="${param_dirname}"/.terraform
@@ -222,7 +230,7 @@ function install_deployer() {
 	allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
 	if [ ! -d ./.terraform/ ]; then
-		print_banner "Bootstrap Deployer " "New deployment" "info"
+		print_banner "$banner_title" "New deployment" "info"
 		terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 		return_value=$?
 	else
@@ -258,7 +266,7 @@ function install_deployer() {
 
 	# shellcheck disable=SC2086
 
-	if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee plan_output.log; then
+	if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
@@ -366,14 +374,14 @@ function install_deployer() {
 	echo "Terraform Apply return code:         $return_value"
 
 	if [ 0 != $return_value ]; then
-		print_banner "Bootstrap Deployer " "!!! Error when creating the deployer !!!." "error"
+		print_banner "$banner_title" "!!! Error when creating the deployer !!!." "error"
 		return $return_value
 	fi
 
 	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 	if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 		printf -v val %-.20s "$DEPLOYER_KEYVAULT"
-		print_banner "Bootstrap Deployer " "Keyvault to use for deployment credentials: $val" "info"
+		print_banner "$banner_title" "Keyvault to use for deployment credentials: $val" "info"
 
 		save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
 	fi
@@ -394,6 +402,8 @@ function install_deployer() {
 	fi
 
 	unset TF_DATA_DIR
+
+	print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
 	return "$return_value"
 }

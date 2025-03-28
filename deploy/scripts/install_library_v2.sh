@@ -216,8 +216,6 @@ function install_library() {
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	echo "Parameter file:                      ${parameter_file_name}"
-
 	if [ true == "$use_deployer" ]; then
 		if [ ! -d "${deployer_statefile_foldername}" ]; then
 
@@ -257,6 +255,13 @@ function install_library() {
 		unset TF_DATA_DIR
 		return 64
 	fi
+
+  echo ""
+	echo -e "${green}Deployment information:"
+	echo -e "-------------------------------------------------------------------------------$reset"
+
+	echo "Configuration file:                  $parameter_file_name"
+	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
 
 	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_subscription_id
