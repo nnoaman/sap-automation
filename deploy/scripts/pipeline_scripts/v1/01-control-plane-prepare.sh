@@ -75,6 +75,14 @@ if [ ! -f "$library_tfvars_file_name" ]; then
 	exit 2
 fi
 
+if [ ! -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
+	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
+		cp ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+		deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
+
+	fi
+fi
+
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
