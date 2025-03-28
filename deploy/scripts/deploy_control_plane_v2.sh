@@ -311,7 +311,7 @@ function bootstrap_library {
 	#                                                                                        #
 	#                                                                                        #
 	##########################################################################################
-	  local banner_title="Bootstrap Library"
+	local banner_title="Bootstrap Library"
 
 	if [ 2 -eq $step ]; then
 		print_banner "$banner_title" "Bootstrapping the library..." "info"
@@ -360,7 +360,7 @@ function bootstrap_library {
 		echo "##vso[task.setprogress value=60;]Progress Indicator"
 
 	else
-	  print_banner "$banner_title" "Library is already bootstrapped." "info"
+		print_banner "$banner_title" "Library is already bootstrapped." "info"
 		echo "##vso[task.setprogress value=60;]Progress Indicator"
 	fi
 
@@ -460,7 +460,6 @@ function migrate_library_state() {
 		exit 11
 	fi
 
-
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
 	cd "${library_dirname}" || exit
 
@@ -529,27 +528,35 @@ function copy_files_to_public_deployer() {
 
 # Function to retrieve data from Azure App Configuration
 function retrieve_parameters() {
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
-	TF_VAR_tfstate_resource_id=$tfstate_resource_id
-	export TF_VAR_tfstate_resource_id
+	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+		if [ -z "$key_vault_id" ]; then
+			echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+		fi
+		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+		export tfstate_resource_id
+		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
 
-	terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-	export terraform_storage_account_name
+		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+		export terraform_storage_account_name
 
-	terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-	export terraform_storage_account_resource_group_name
+		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+		export terraform_storage_account_resource_group_name
 
-	terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-	export terraform_storage_account_subscription_id
+		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+		TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+		export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
-	TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+		export keyvault
 
-	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-	export keyvault
+		app_service_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceId" "${CONTROL_PLANE_NAME}")
+		export app_service_id
 
-	app_service_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceId" "${CONTROL_PLANE_NAME}")
-	export app_service_id
+		export terraform_storage_account_subscription_id
+	fi
 
 }
 
