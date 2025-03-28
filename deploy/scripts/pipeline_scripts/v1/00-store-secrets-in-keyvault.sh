@@ -116,7 +116,7 @@ echo ""
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
 environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
-if [ -n "$PARENT_VARIABLE_GROUP_ID" ]; then
+if printenv PARENT_VARIABLE_GROUP_ID; then
 	APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		print_banner "$banner_title" "Using Application Configuration ID: $APPLICATION_CONFIGURATION_ID" "info"
