@@ -355,6 +355,7 @@ function bootstrap_library {
 		tfstate_resource_id=$(az resource list --name "$terraform_storage_account_name" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
 		export TF_VAR_tfstate_resource_id
+		save_config_var "tfstate_resource_id" "${deployer_config_information}"
 
 		cd "${current_directory}" || exit
 		save_config_var "step" "${deployer_config_information}"
@@ -386,15 +387,27 @@ function migrate_deployer_state() {
 
 	if [ -z "$terraform_storage_account_name" ]; then
 		if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
+			if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
-			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+				export TF_VAR_tfstate_resource_id
+
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+				terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+				terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+				ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+				export TF_VAR_tfstate_resource_id
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+
+			fi
 		fi
+	else
+		load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
+		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 	fi
 
 	if [ -z "${terraform_storage_account_name}" ]; then
