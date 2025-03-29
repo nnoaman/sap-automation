@@ -193,7 +193,7 @@ function parse_arguments() {
 }
 
 function install_library() {
-  local green="\033[0;32m"
+	local green="\033[0;32m"
 	local reset="\033[0m"
 	deployment_system=sap_library
 	use_deployer=true
@@ -257,7 +257,7 @@ function install_library() {
 		return 64
 	fi
 
-  echo ""
+	echo ""
 	echo -e "${green}Deployment information:"
 	echo -e "-------------------------------------------------------------------------------$reset"
 
@@ -266,6 +266,19 @@ function install_library() {
 
 	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_subscription_id
+	extra_vars=""
+	parallelism=10
+
+	#Provide a way to limit the number of parallel tasks for Terraform
+	if printenv "TF_PARALLELLISM"; then
+		parallelism=$TF_PARALLELLISM
+	fi
+	echo "Parallelism count:                   $parallelism"
+
+	extra_vars=""
+	if [ -f terraform.tfvars ]; then
+		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+	fi
 
 	if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 		TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
@@ -291,10 +304,12 @@ function install_library() {
 
 				tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 				if [ -n "${tfstate_resource_id}" ]; then
-					echo "Reinitializing against remote state"
+					print_banner "$banner_title" "Reinitializing against remote state" "info"
 					this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 					az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors --output none
+					echo ""
 					echo "Sleeping for 30 seconds to allow the network rule to take effect"
+					echo ""
 					sleep 30
 					export TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
@@ -306,38 +321,27 @@ function install_library() {
 						--backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
 						--backend-config "container_name=tfstate" \
 						--backend-config "key=${key}.terraform.tfstate"; then
-						echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+						print_banner "$banner_title" "Terraform init succeeded" "success"
 
 						terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" -input=false \
 							-var deployer_statefile_foldername="${deployer_statefile_foldername}"
 					else
-						echo ""
-						echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-						echo ""
+						print_banner "$banner_title" "Terraform init against remote state failed" "error"
 						return 10
 					fi
 				else
 					if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
-						echo ""
-						echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-						echo ""
-						terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+						print_banner "$banner_title" "Terraform init succeeded" "success"
 					else
-						echo ""
-						echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-						echo ""
+						print_banner "$banner_title" "Terraform init failed" "error"
 						return 10
 					fi
 				fi
 			else
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-					echo ""
-					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-					echo ""
+					print_banner "$banner_title" "Terraform init succeeded" "success"
 				else
-					echo ""
-					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-					echo ""
+					print_banner "$banner_title" "Terraform init failed" "error"
 					return 10
 				fi
 
@@ -345,13 +349,9 @@ function install_library() {
 
 		else
 			if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-				echo ""
-				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-				echo ""
+				print_banner "$banner_title" "Terraform init succeeded" "success"
 			else
-				echo ""
-				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-				echo ""
+				print_banner "$banner_title" "Terraform init failed" "error"
 				return 10
 			fi
 		fi
@@ -359,11 +359,6 @@ function install_library() {
 
 	print_banner "$banner_title" "Running Terraform plan" "info"
 
-	if [ -f terraform.tfvars ]; then
-		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
-	else
-		unset extra_vars
-	fi
 	return_value=0
 
 	if [ -n "${deployer_statefile_foldername}" ]; then
@@ -397,15 +392,6 @@ function install_library() {
 		allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 		allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 	fi
-
-	parallelism=10
-
-	#Provide a way to limit the number of parallell tasks for Terraform
-	if [[ -n "$TF_PARALLELLISM" ]]; then
-		parallelism=$TF_PARALLELLISM
-	fi
-
-	echo "Parallelism count:                   $parallelism"
 
 	return_value=0
 
