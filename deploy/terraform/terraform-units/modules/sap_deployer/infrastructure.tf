@@ -75,7 +75,7 @@ resource "azurerm_subnet" "subnet_mgmt" {
 }
 
 data "azurerm_subnet" "subnet_mgmt" {
-  count                                = (local.var.infrastructure.virtual_network.management.subnet_mgmt.exists) ? 1 : 0
+  count                                = (var.infrastructure.virtual_network.management.subnet_mgmt.exists) ? 1 : 0
   name                                 = split("/", var.infrastructure.virtual_network.management.subnet_mgmt.id)[10]
   resource_group_name                  = split("/", var.infrastructure.virtual_network.management.subnet_mgmt.id)[4]
   virtual_network_name                 = split("/", var.infrastructure.virtual_network.management.subnet_mgmt.id)[8]
