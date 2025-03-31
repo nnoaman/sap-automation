@@ -73,7 +73,7 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
   provider                             = azurerm.main
   count                                = var.app_config_service.deploy ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconfig_data_owner_assignment
+                                            time_sleep.wait_for_appconfig_data_owner_assignment,
                                             azurerm_private_endpoint.app_config
                                          ]
 

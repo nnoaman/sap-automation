@@ -690,6 +690,8 @@ function deploy_control_plane() {
 	# Call the function with the array
 	source_helper_scripts "${helper_scripts[@]}"
 
+	print_banner "Control Plane Deployment" "Entering $SCRIPT_NAME" "info"
+
 	# Parse command line arguments
 	parse_arguments "$@"
 	echo "ADO flag:                            ${ado_flag}"
@@ -834,6 +836,7 @@ EOF
 	echo "##vso[task.setprogress value=100;]Progress Indicator"
 
 	unset TF_DATA_DIR
+	print_banner "Control Plane Deployment" "Exiting $SCRIPT_NAME" "info"
 
 	return 0
 }
