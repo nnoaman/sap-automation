@@ -31,11 +31,11 @@ resource "azurerm_public_ip" "deployer" {
                                          )
   allocation_method                    = "Static"
   sku                                  = "Standard"
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
@@ -59,18 +59,18 @@ resource "azurerm_network_interface" "deployer" {
                                          var.naming.virtualmachine_names.DEPLOYER[count.index],
                                          var.naming.resource_suffixes.nic
                                        )
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
 
   ip_configuration                       {
                                            name                          = "ipconfig1"
-                                           subnet_id                     = local.management_subnet_exists ? (
+                                           subnet_id                     = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
                                                                             data.azurerm_subnet.subnet_mgmt[0].id) : (
                                                                             azurerm_subnet.subnet_mgmt[0].id
                                                                           )
@@ -96,8 +96,8 @@ resource "azurerm_network_interface" "deployer" {
 resource "azurerm_user_assigned_identity" "deployer" {
   count                                = length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
   name                                 = format("%s%s%s", var.naming.resource_prefixes.msi, local.prefix, var.naming.resource_suffixes.msi)
-  resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
-  location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  resource_group_name                  = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location                             = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   tags                                 = var.infrastructure.tags
 }
 
@@ -122,11 +122,11 @@ resource "azurerm_linux_virtual_machine" "deployer" {
                                            var.naming.resource_suffixes.vm
                                          )
   computer_name                        = var.naming.virtualmachine_names.DEPLOYER[count.index]
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )

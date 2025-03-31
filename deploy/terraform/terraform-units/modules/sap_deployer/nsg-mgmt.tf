@@ -11,11 +11,11 @@ Description:
 resource "azurerm_network_security_group" "nsg_mgmt" {
   count                                = !var.infrastructure.virtual_network.management.subnet_mgmt.exists ? 1 : 0
   name                                 = local.management_subnet_nsg_name
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
@@ -30,13 +30,13 @@ data "azurerm_network_security_group" "nsg_mgmt" {
 
 // Link management nsg with management vnet
 resource "azurerm_subnet_network_security_group_association" "associate_nsg_mgmt" {
-  count                                = (!local.management_subnet_exists) ? 1 : 0
+  count                                = (!var.infrastructure.virtual_network.management.subnet_mgmt.exists) ? 1 : 0
   depends_on                           = [
                                            azurerm_network_security_rule.nsr_ssh,
                                            azurerm_network_security_rule.nsr_rdp,
                                            azurerm_network_security_rule.nsr_winrm
                                          ]
-  subnet_id                            = local.management_subnet_exists ? (
+  subnet_id                            = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
                                            data.azurerm_subnet.subnet_mgmt[0].id) : (
                                            azurerm_subnet.subnet_mgmt[0].id
                                          )

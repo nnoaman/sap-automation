@@ -18,11 +18,11 @@ resource "time_sleep" "wait_for_keyvault" {
 resource "azurerm_key_vault" "kv_user" {
   count                                = (var.key_vault.exists) ? 0 : 1
   name                                 = local.keyvault_names.user_access
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
@@ -400,15 +400,15 @@ resource "azurerm_private_endpoint" "kv_user" {
                                           local.prefix,
                                           var.naming.resource_suffixes.keyvault_private_link
                                         )
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
-  subnet_id                            = local.management_subnet_exists ? (
+  subnet_id                            = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
                                            data.azurerm_subnet.subnet_mgmt[0].id) : (
                                            azurerm_subnet.subnet_mgmt[0].id
                                                                           )
