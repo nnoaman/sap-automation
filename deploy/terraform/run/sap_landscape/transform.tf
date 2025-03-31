@@ -193,10 +193,10 @@ locals {
                                            patch_assessment_mode         = var.patch_assessment_mode
                                            shared_access_key_enabled     = var.shared_access_key_enabled
                                            shared_access_key_enabled_nfs = var.shared_access_key_enabled_nfs
-                                           application_configuration_id  = coalesce(
+                                           application_configuration_id  = try(coalesce(
                                                                              var.application_configuration_id,
                                                                              try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
-                                                                           )
+                                                                           ), "")
                                            encryption_at_host_enabled    = var.encryption_at_host_enabled
                                          }
 
