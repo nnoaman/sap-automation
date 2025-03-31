@@ -401,16 +401,22 @@ function migrate_deployer_state() {
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
 				export TF_VAR_tfstate_resource_id
 				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-
 			fi
 		fi
-	else
-		load_config_vars "${deployer_config_information}" "tfstate_resource_id"
-		TF_VAR_tfstate_resource_id=$tfstate_resource_id
-		export TF_VAR_tfstate_resource_id
-		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-	fi
+		if [ -z "$terraform_storage_account_name" ]; then
+			print_banner "$banner_title" "Sourcing parameters from ${deployer_config_information}" "info"
+			load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+			TF_VAR_tfstate_resource_id=$tfstate_resource_id
+			export TF_VAR_tfstate_resource_id
+			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+			export terraform_storage_account_name
+			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+			export terraform_storage_account_resource_group_name
 
+			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			export terraform_storage_account_subscription_id
+		fi
+	fi
 	if [ -z "${terraform_storage_account_name}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_config_information}"
