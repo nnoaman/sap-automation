@@ -122,6 +122,7 @@ stages:
               SYSTEM_TEAMPROJECT:      $(System.TeamProject)
               ZONE:                    ${{ upper(parameters.control_plane_name) }}
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              DEPLOYER_KEYVAULT:       $(DEPLOYER_KEYVAULT)
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -132,18 +133,19 @@ stages:
             displayName:               Store deployment credentials in Key Vault
             env:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
+              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              ARM_USE_MSI:                  true
+              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CLIENT_ID:                    $(ParameterValidation.ARM_CLIENT_ID)
               CLIENT_SECRET:                $(ParameterValidation.ARM_CLIENT_SECRET)
-              OBJECT_ID:                    $(ParameterValidation.ARM_OBJECT_ID)
-              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
-              TENANT_ID:                    $(ParameterValidation.ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
+              DEPLOYER_KEYVAULT:       $(DEPLOYER_KEYVAULT)
+              OBJECT_ID:                    $(ParameterValidation.ARM_OBJECT_ID)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
+              TENANT_ID:                    $(ParameterValidation.ARM_TENANT_ID)
               USE_MSI:                      $(Use_MSI)
-              ARM_USE_MSI:                  true
               ZONE:                         ${{ upper(parameters.control_plane_name) }}
   - stage:                             DeployControlplaneStage
     dependsOn:
