@@ -140,9 +140,6 @@ locals {
     custom_random_id                     = var.custom_random_id
     bastion_public_ip_tags               = try(var.bastion_public_ip_tags, {})
 
-    application_configuration_deployment = var.application_configuration_deployment
-    application_configuration_id         = var.application_configuration_id
-
                                         }
   deployer                             = {
                                            size = try(
@@ -256,4 +253,8 @@ locals {
                                            privatelink_dns_resourcegroup_name           = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
                                          }
 
-}
+  app_config_service                   = {
+                                           name                                        = module.sap_namegenerator.naming_new.appconfig_names
+                                           deploy                                      = var.application_configuration_deployment
+                                           id                                          = var.application_configuration_id
+                                         }

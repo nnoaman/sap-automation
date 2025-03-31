@@ -103,8 +103,8 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
 
 resource "azurerm_role_assignment" "appconf_dataowner_msi" {
   provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions && var.infrastructure.application_configuration_deployment ? 1 : 0
-  scope                                = var.infrastructure.application_configuration_deployment ? (
+  count                                = var.assign_subscription_permissions && var.app_config_service.deploy ? 1 : 0
+  scope                                = var.app_config_service.deploy ? (
                                           length(var.infrastructure.application_configuration_id) == 0 ? (
                                             azurerm_app_configuration.app_config[0].id) : (
                                             data.azurerm_app_configuration.app_config[0].id)) : (
@@ -116,7 +116,7 @@ resource "azurerm_role_assignment" "appconf_dataowner_msi" {
 
 resource "azurerm_role_assignment" "appconf_dataowner_spn" {
   provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions && var.infrastructure.application_configuration_deployment ? 1 : 0
+  count                                = var.assign_subscription_permissions && var.app_config_service.deploy ? 1 : 0
   scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   role_definition_name                 = "App Configuration Data Owner"
   principal_type                       = "ServicePrincipal"
