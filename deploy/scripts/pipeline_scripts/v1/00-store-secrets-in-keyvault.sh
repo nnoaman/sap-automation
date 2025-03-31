@@ -165,8 +165,8 @@ export deployer_tfstate_key
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
 if [ -z "$DEPLOYER_KEYVAULT" ]; then
-	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' ) or in configuration file ( ${environment_file_name} )."
-	print_banner "$banner_title" "Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' ) or in configuration file ( ${environment_file_name}" "error"
+	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration or in configuration file ( ${environment_file_name} )."
+	print_banner "$banner_title" "Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration  or in configuration file ( ${environment_file_name}" "error"
 	exit 2
 fi
 
