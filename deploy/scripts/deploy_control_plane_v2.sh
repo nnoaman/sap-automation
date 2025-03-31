@@ -245,46 +245,48 @@ function validate_keyvault_access {
 	TF_DATA_DIR="${deployer_dirname}"/.terraform
 	export TF_DATA_DIR
 	VALUE=${APPLICATION_CONFIGURATION_ID:-}
+	if [ -z "$DEPLOYER_KEYVAULT" ]; then
 
-	if is_valid_id "$VALUE" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-	else
-		if [ -f ./.terraform/terraform.tfstate ]; then
-			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-			if [ -n "$azure_backend" ]; then
-				echo "Terraform state:                     remote"
-
-				terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-				terraform -chdir="${terraform_module_directory}" init -upgrade=true
-
-				keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-				save_config_var "keyvault" "${deployer_config_information}"
-			else
-				echo "Terraform state:                     local"
-				terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/bootstrap/sap_deployer/
-				terraform -chdir="${terraform_module_directory}" init -upgrade=true
-
-				keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-				save_config_var "keyvault" "${deployer_config_information}"
-			fi
+		if is_valid_id "$VALUE" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+			DEPLOYER_KEYVAULT=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 		else
-			if [ $ado_flag != "--ado" ]; then
-				read -r -p "Deployer keyvault name: " keyvault
-				save_config_var "keyvault" "${deployer_config_information}"
+			if [ -f ./.terraform/terraform.tfstate ]; then
+				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+				if [ -n "$azure_backend" ]; then
+					echo "Terraform state:                     remote"
+
+					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
+					terraform -chdir="${terraform_module_directory}" init -upgrade=true
+
+					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+					save_config_var "keyvault" "${deployer_config_information}"
+				else
+					echo "Terraform state:                     local"
+					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/bootstrap/sap_deployer/
+					terraform -chdir="${terraform_module_directory}" init -upgrade=true
+
+					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+					save_config_var "keyvault" "${deployer_config_information}"
+				fi
 			else
-				step=0
-				save_config_var "step" "${deployer_config_information}"
-				exit 10
+				if [ $ado_flag != "--ado" ]; then
+					read -r -p "Deployer keyvault name: " DEPLOYER_KEYVAULT
+					save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+				else
+					step=0
+					save_config_var "step" "${deployer_config_information}"
+					exit 10
+				fi
 			fi
 		fi
 	fi
 
-	if [ -n "${keyvault}" ] && [ 0 != "$step" ]; then
+	if [ -n "${DEPLOYER_KEYVAULT}" ] && [ 0 != "$step" ]; then
 
-		if validate_key_vault "$keyvault" "$ARM_SUBSCRIPTION_ID"; then
-			echo "Key vault:                           ${keyvault}"
-			save_config_var "keyvault" "${deployer_config_information}"
-			TF_VAR_deployer_kv_user_arm_id=$(az keyvault show --name="$keyvault" --subscription "${subscription}" --query id --output tsv)
+		if validate_key_vault "$DEPLOYER_KEYVAULT" "$ARM_SUBSCRIPTION_ID"; then
+			echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
+			save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+			TF_VAR_deployer_kv_user_arm_id=$(az keyvault show --name="$DEPLOYER_KEYVAULT" --subscription "${subscription}" --query id --output tsv)
 			export TF_VAR_deployer_kv_user_arm_id
 
 		else
