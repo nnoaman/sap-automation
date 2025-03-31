@@ -199,8 +199,8 @@ locals {
 
 
 
-  parsed_id                            = try(provider::azurerm::parse_resource_id(var.infrastructure.application_configuration_id), "")
-  app_config_name                      = length(var.infrastructure.application_configuration_id) > 0 ? local.parsed_id["resource_name"] : ""
-  app_config_resource_group_name       = length(var.infrastructure.application_configuration_id) > 0 ? local.parsed_id["resource_group_name"] : ""
+  parsed_id                            = var.app_config_service.exists ? try(provider::azurerm::parse_resource_id(var.app_config_service.id), "") : null
+  app_config_name                      = var.app_config_service.exists ? local.parsed_id["resource_name"] : ""
+  app_config_resource_group_name       = var.app_config_service.exists ? local.parsed_id["resource_group_name"] : ""
 
 }

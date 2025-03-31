@@ -205,6 +205,7 @@ locals {
                                            name                                        = module.sap_namegenerator.naming_new.appconfig_names
                                            deploy                                      = var.application_configuration_deployment
                                            id                                          = var.application_configuration_id
+                                           exists                                      = length(var.application_configuration_id) > 0 ? true : false
                                          }
 
 }
