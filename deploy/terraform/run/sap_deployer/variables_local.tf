@@ -10,14 +10,12 @@ locals {
   version_label                        = trimspace(file("${path.module}/../../../configs/version.txt"))
 
   // Management vnet
-  vnet_mgmt_arm_id                     = try(local.infrastructure.vnets.management.arm_id, "")
-  vnet_mgmt_exists                     = length(local.vnet_mgmt_arm_id) > 0
 
   //There is no default as the name is mandatory unless arm_id is specified
-  vnet_mgmt_name                       = local.vnet_mgmt_exists ? (
-                                           split("/", local.vnet_mgmt_arm_id)[8]) : (
-                                           length(local.infrastructure.vnets.management.name) > 0 ? (
-                                             local.infrastructure.vnets.management.name) : (
+  vnet_mgmt_name                       = local.infrastructure.virtual_network.management.exists ? (
+                                           split("/", local.infrastructure.virtual_network.management.id)[8]) : (
+                                           length(local.virtual_network.virtual_network.management.name) > 0 ? (
+                                             local.infrastructure.virtual_network.management.name) : (
                                              "DEP00"
                                            )
                                          )
