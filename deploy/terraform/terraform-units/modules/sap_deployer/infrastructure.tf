@@ -17,7 +17,7 @@ Description:
 *--------------------------------------4---------------------------------------8
 */
 resource "azurerm_resource_group" "deployer" {
-  count                                = !local.resource_group_exists ? 1 : 0
+  count                                = !var.infrastructure.resource_group.exists ? 1 : 0
   name                                 = local.resourcegroup_name
   location                             = var.infrastructure.region
   tags                                 = var.infrastructure.tags
@@ -31,19 +31,19 @@ resource "azurerm_resource_group" "deployer" {
 }
 
 data "azurerm_resource_group" "deployer" {
-  count                                = local.resource_group_exists ? 1 : 0
+  count                                = var.infrastructure.resource_group.exists ? 1 : 0
   name                                 = local.resourcegroup_name
 }
 // TODO: Add management lock when this issue is addressed https://github.com/terraform-providers/terraform-provider-azurerm/issues/5473
-//        Management lock should be implemented id a seperate Terraform workspace
+//        Management lock should be implemented id a separate Terraform workspace
 
 
 // Create/Import management vnet
 resource "azurerm_virtual_network" "vnet_mgmt" {
   count                                = (!var.infrastructure.virtual_network.management.exists) ? 1 : 0
   name                                 = local.vnet_mgmt_name
-  resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
-  location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  resource_group_name                  = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location                             = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   address_space                        = [var.infrastructure.virtual_network.management.address_space]
   flow_timeout_in_minutes              = var.infrastructure.virtual_network.management.flow_timeout_in_minutes
   tags                                 = var.infrastructure.tags
@@ -86,8 +86,8 @@ resource "azurerm_storage_account" "deployer" {
   depends_on                           = [ azurerm_subnet.subnet_mgmt ]
   count                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 0 : 1
   name                                 = local.storageaccount_names
-  resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
-  location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  resource_group_name                  = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location                             = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
   https_traffic_only_enabled            = local.enable_secure_transfer
@@ -127,7 +127,7 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
                                            0,
                                            80
                                          )
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
