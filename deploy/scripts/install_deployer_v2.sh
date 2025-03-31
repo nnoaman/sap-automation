@@ -133,7 +133,7 @@ function parse_arguments() {
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}"/.terraform
 	if [ "$param_dirname" != '.' ]; then
-	  print_banner "$banner_title" "Parameter file is not in the current directory: $parameter_file_name" "error"
+		print_banner "$banner_title" "Parameter file is not in the current directory: $parameter_file_name" "error"
 		return 3
 	fi
 
@@ -292,90 +292,92 @@ function install_deployer() {
 	#                                                                                       #"
 	#########################################################################################
 
-	print_banner "$banner_title" "Running Terraform apply" "info"
-	parallelism=10
+	if [ 2 == $return_value ]; then
+		print_banner "$banner_title" "Running Terraform apply" "info"
+		parallelism=10
 
-	#Provide a way to limit the number of parallel tasks for Terraform
-	if printenv "TF_PARALLELLISM"; then
-		parallelism=$TF_PARALLELLISM
-	fi
-
-	if [ -f apply_output.json ]; then
-		rm apply_output.json
-	fi
-
-	if [ -n "${approve}" ]; then
-		# shellcheck disable=SC2086
-		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-			$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee apply_output.json; then
-			return_value=${PIPESTATUS[0]}
-			print_banner "$banner_title" "Terraform apply succeeded" "success"
-		else
-			return_value=${PIPESTATUS[0]}
-			print_banner "$banner_title" "Terraform apply failed." "error"
+		#Provide a way to limit the number of parallel tasks for Terraform
+		if printenv "TF_PARALLELLISM"; then
+			parallelism=$TF_PARALLELLISM
 		fi
-	else
-		# shellcheck disable=SC2086
-		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
-			return_value=$?
-			print_banner "$banner_title" "Terraform apply succeeded" "success"
-		else
-			return_value=$?
-			print_banner "$banner_title" "Terraform apply failed." "error"
+
+		if [ -f apply_output.json ]; then
+			rm apply_output.json
 		fi
-	fi
 
-	if [ -f apply_output.json ]; then
-		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-
-		if [[ -n $errors_occurred ]]; then
-			return_value=0
+		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-				return_value=$?
+			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
+				$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee apply_output.json; then
+				return_value=${PIPESTATUS[0]}
+				print_banner "$banner_title" "Terraform apply succeeded" "success"
 			else
+				return_value=${PIPESTATUS[0]}
+				print_banner "$banner_title" "Terraform apply failed." "error"
+			fi
+		else
+			# shellcheck disable=SC2086
+			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
+				return_value=$?
+				print_banner "$banner_title" "Terraform apply succeeded" "success"
+			else
+				return_value=$?
+				print_banner "$banner_title" "Terraform apply failed." "error"
+			fi
+		fi
+
+		if [ -f apply_output.json ]; then
+			errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+
+			if [[ -n $errors_occurred ]]; then
 				return_value=0
-			fi
-			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
 				else
 					return_value=0
 				fi
-			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
-				else
-					return_value=0
+				if [ -f apply_output.json ]; then
+					# shellcheck disable=SC2086
+					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+						return_value=$?
+					else
+						return_value=0
+					fi
 				fi
-			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
-				else
-					return_value=0
+				if [ -f apply_output.json ]; then
+					# shellcheck disable=SC2086
+					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+						return_value=$?
+					else
+						return_value=0
+					fi
 				fi
-			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
-				else
-					return_value=0
+				if [ -f apply_output.json ]; then
+					# shellcheck disable=SC2086
+					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+						return_value=$?
+					else
+						return_value=0
+					fi
+				fi
+				if [ -f apply_output.json ]; then
+					# shellcheck disable=SC2086
+					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+						return_value=$?
+					else
+						return_value=0
+					fi
 				fi
 			fi
 		fi
-	fi
 
-	echo "Terraform Apply return code:         $return_value"
+		echo "Terraform Apply return code:         $return_value"
 
-	if [ 0 != $return_value ]; then
-		print_banner "$banner_title" "!!! Error when creating the deployer !!!." "error"
-		return $return_value
+		if [ 0 != $return_value ]; then
+			print_banner "$banner_title" "!!! Error when creating the deployer !!!." "error"
+			return $return_value
+		fi
 	fi
 
 	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
