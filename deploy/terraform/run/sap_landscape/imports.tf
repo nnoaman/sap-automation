@@ -9,6 +9,11 @@
 
 data "azurerm_client_config" "current" {}
 
+data "azurerm_client_config" "current_main" {
+  provider                            = azurerm.main
+
+}
+
 data "azurerm_app_configuration_key" "deployer_state_file" {
   count                  = length(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id) > 0 ? 1 : 0
   configuration_store_id = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
