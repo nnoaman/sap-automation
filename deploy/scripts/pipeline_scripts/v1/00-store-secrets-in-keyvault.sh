@@ -127,6 +127,8 @@ if [ ! -f "$environment_file_name" ]; then
 fi
 
 if printenv PARENT_VARIABLE_GROUP_ID; then
+  DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 	APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		print_banner "$banner_title" "Using Application Configuration ID: $APPLICATION_CONFIGURATION_ID" "info"
@@ -146,6 +148,7 @@ if printenv PARENT_VARIABLE_GROUP_ID; then
 		fi
 	fi
 else
+
 	load_config_vars "${environment_file_name}" "DEPLOYER_KEYVAULT"
 	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi

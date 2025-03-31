@@ -140,7 +140,7 @@ stages:
               CLIENT_SECRET:                $(ParameterValidation.ARM_CLIENT_SECRET)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
-              DEPLOYER_KEYVAULT:       $(DEPLOYER_KEYVAULT)
+              DEPLOYER_KEYVAULT:            $(DEPLOYER_KEYVAULT)
               OBJECT_ID:                    $(ParameterValidation.ARM_OBJECT_ID)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
