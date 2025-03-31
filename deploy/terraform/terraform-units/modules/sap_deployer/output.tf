@@ -232,8 +232,8 @@ output "subnet_bastion_address_prefixes" {
   description                          = "Bastion Subnet Address Prefixes"
   value                                = var.bastion_deployment ? (
                                           var.infrastructure.virtual_network.management.subnet_bastion.exists ? (
-                                            azurerm_subnet.bastion[0].address_prefixes) : (
-                                            data.azurerm_subnet.bastion[0].address_prefixes
+                                            data.azurerm_subnet.bastion[0].address_prefixes) : (
+                                            azurerm_subnet.bastion[0].address_prefixes
                                           )) : (
                                           [""]
                                         )

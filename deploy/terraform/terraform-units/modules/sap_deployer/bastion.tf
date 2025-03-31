@@ -72,11 +72,11 @@ resource "azurerm_bastion_host" "bastion" {
                                           var.naming.resource_suffixes.bastion_host
                                          )
   sku                                  = var.bastion_sku
-  location                             = var.infrastructure.virtual_network.exists ? (
+  location                             = var.infrastructure.virtual_network.management.exists ? (
                                            data.azurerm_virtual_network.vnet_mgmt[0].location) : (
                                            azurerm_virtual_network.vnet_mgmt[0].location
                                          )
-  resource_group_name                  = var.infrastructure.virtual_network.exists ? (
+  resource_group_name                  = var.infrastructure.virtual_network.management.exists ? (
                                            data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                            azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                          )
