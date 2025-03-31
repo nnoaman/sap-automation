@@ -121,13 +121,13 @@ az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTE
 environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 
 if [ ! -f "$environment_file_name" ]; then
-  if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}" ]; then
-	  cp "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}" "$environment_file_name"
+	if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}" ]; then
+		cp "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}" "$environment_file_name"
 	fi
 fi
 
 if printenv PARENT_VARIABLE_GROUP_ID; then
-  DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+	DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
 	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 	APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
 	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
@@ -148,9 +148,13 @@ if printenv PARENT_VARIABLE_GROUP_ID; then
 		fi
 	fi
 else
-
-	load_config_vars "${environment_file_name}" "DEPLOYER_KEYVAULT"
+	DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
 	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	if [ -z "$DEPLOYER_KEYVAULT" ]; then
+
+		load_config_vars "${environment_file_name}" "DEPLOYER_KEYVAULT"
+		key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	fi
 fi
 
 echo -e "$green--- Read parameter values ---$reset"
@@ -159,9 +163,8 @@ deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
 
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
-key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
-if [ -z "$key_vault" ]; then
+if [ -z "$DEPLOYER_KEYVAULT" ]; then
 	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' ) or in configuration file ( ${environment_file_name} )."
 	print_banner "$banner_title" "Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' ) or in configuration file ( ${environment_file_name}" "error"
 	exit 2
