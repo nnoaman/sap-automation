@@ -29,7 +29,7 @@ resource "azurerm_subnet" "bastion" {
                                   }
 
 data "azurerm_subnet" "bastion" {
-  count                                = var.bastion_deployment && !var.infrastructure.virtual_network.management.subnet_bastion.exists ? 1 : 0
+  count                                = var.bastion_deployment && var.infrastructure.virtual_network.management.subnet_bastion.exists ? 1 : 0
   name                                 = split("/", try(var.infrastructure.virtual_network.management.subnet_bastion.id, ""))[10]
   resource_group_name                  = split("/", try(var.infrastructure.virtual_network.management.subnet_bastion.id, ""))[4]
   virtual_network_name                 = split("/", try(var.infrastructure.virtual_network.management.subnet_bastion.id, ""))[8]
