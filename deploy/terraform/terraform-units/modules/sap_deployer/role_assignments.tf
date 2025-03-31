@@ -101,7 +101,7 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   #                                           EOT
 }
 
-resource "azurerm_role_assignment" "appconf_dataowner_msi" {
+resource "azurerm_role_assignment" "appconfig_data_owner_msi" {
   provider                             = azurerm.main
   count                                = var.assign_subscription_permissions && var.app_config_service.deploy ? 1 : 0
   scope                                = var.app_config_service.deploy ? (
@@ -114,7 +114,7 @@ resource "azurerm_role_assignment" "appconf_dataowner_msi" {
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
-resource "azurerm_role_assignment" "appconf_dataowner_spn" {
+resource "azurerm_role_assignment" "appconfig_data_owner_spn" {
   provider                             = azurerm.main
   count                                = var.assign_subscription_permissions && var.app_config_service.deploy ? 1 : 0
   scope                                = length(var.infrastructure.application_configuration_id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id

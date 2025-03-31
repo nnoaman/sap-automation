@@ -40,28 +40,28 @@ data "azurerm_resource_group" "deployer" {
 
 // Create/Import management vnet
 resource "azurerm_virtual_network" "vnet_mgmt" {
-  count                                = (!local.management_virtual_network_exists) ? 1 : 0
+  count                                = (!var.infrastructure.virtual_network.management.exists) ? 1 : 0
   name                                 = local.vnet_mgmt_name
   resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  address_space                        = [local.vnet_mgmt_addr]
-  flow_timeout_in_minutes              = var.infrastructure.vnets.management.flow_timeout_in_minutes
+  address_space                        = [var.infrastructure.virtual_network.management.prefix]
+  flow_timeout_in_minutes              = var.infrastructure.virtual_network.management.flow_timeout_in_minutes
   tags                                 = var.infrastructure.tags
 }
 
 data "azurerm_virtual_network" "vnet_mgmt" {
-  count                                = (local.management_virtual_network_exists) ? 1 : 0
-  name                                 = split("/", local.vnet_mgmt_arm_id)[8]
-  resource_group_name                  = split("/", local.vnet_mgmt_arm_id)[4]
+  count                                = (var.infrastructure.virtual_network.management.exists) ? 1 : 0
+  name                                 = split("/", var.infrastructure.virtual_network.management.id)[8]
+  resource_group_name                  = split("/", var.infrastructure.virtual_network.management.id)[4]
 }
 
 // Create/Import management subnet
 resource "azurerm_subnet" "subnet_mgmt" {
-  count                                = (!local.management_subnet_exists) ? 1 : 0
+  count                                = (!var.infrastructure.virtual_network.management.subnet_mgmt.exists) ? 1 : 0
   name                                 = local.management_subnet_name
-  resource_group_name                  = local.management_virtual_network_exists ? data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name : azurerm_virtual_network.vnet_mgmt[0].resource_group_name
-  virtual_network_name                 = local.management_virtual_network_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
-  address_prefixes                     = [local.management_subnet_prefix]
+  resource_group_name                  = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name : azurerm_virtual_network.vnet_mgmt[0].resource_group_name
+  virtual_network_name                 = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
+  address_prefixes                     = [var.infrastructure.virtual_network.management.subnet_mgmt.prefix]
 
   private_endpoint_network_policies    = !var.use_private_endpoint ? "Enabled" : "Disabled"
 
@@ -75,10 +75,10 @@ resource "azurerm_subnet" "subnet_mgmt" {
 }
 
 data "azurerm_subnet" "subnet_mgmt" {
-  count                                = (local.management_subnet_exists) ? 1 : 0
-  name                                 = split("/", local.management_subnet_arm_id)[10]
-  resource_group_name                  = split("/", local.management_subnet_arm_id)[4]
-  virtual_network_name                 = split("/", local.management_subnet_arm_id)[8]
+  count                                = (local.var.infrastructure.virtual_network.management.subnet_mgmt.exists) ? 1 : 0
+  name                                 = split("/", var.infrastructure.virtual_network.management.subnet_mgmt.id)[10]
+  resource_group_name                  = split("/", var.infrastructure.virtual_network.management.subnet_mgmt.id)[4]
+  virtual_network_name                 = split("/", var.infrastructure.virtual_network.management.subnet_mgmt.id)[8]
 }
 
 // Creates boot diagnostics storage account for Deployer
@@ -99,7 +99,7 @@ resource "azurerm_storage_account" "deployer" {
 
    network_rules {
     default_action                     = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-    virtual_network_subnet_ids         = var.use_service_endpoint ? [(local.management_subnet_exists) ? local.management_subnet_arm_id : azurerm_subnet.subnet_mgmt[0].id] : null
+    virtual_network_subnet_ids         = var.use_service_endpoint ? [(local.var.infrastructure.virtual_network.management.subnet_mgmt.exists) ? var.infrastructure.virtual_network.management.subnet_mgmt.id : azurerm_subnet.subnet_mgmt[0].id] : null
     bypass                             = ["Metrics", "Logging", "AzureServices"]
   }
   tags                                 = var.infrastructure.tags
@@ -119,7 +119,7 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
   name                                 = substr(
                                            format("%s_to_%s",
                                              split("/", var.additional_network_id)[8],
-                                             local.management_virtual_network_exists ? (
+                                             var.infrastructure.virtual_network.management.exists ? (
                                                data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                azurerm_virtual_network.vnet_mgmt[0].name
                                              )
@@ -134,7 +134,7 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
 
   remote_virtual_network_id            = data.azurerm_virtual_network.agent_virtual_network[0].id
 
-  virtual_network_name                 = local.management_virtual_network_exists ? (
+  virtual_network_name                 = var.infrastructure.virtual_network.management.exists ? (
                                                data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                azurerm_virtual_network.vnet_mgmt[0].name
                                              )
@@ -149,7 +149,7 @@ resource "azurerm_virtual_network_peering" "peering_agent_management" {
 
   name                                 = substr(
                                            format("%s_to_%s",
-                                               local.management_virtual_network_exists ? (
+                                               var.infrastructure.virtual_network.management.exists ? (
                                                 data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                 azurerm_virtual_network.vnet_mgmt[0].name
                                              ),
@@ -160,7 +160,7 @@ resource "azurerm_virtual_network_peering" "peering_agent_management" {
                                          )
   resource_group_name                  = split("/", var.additional_network_id)[4]
   virtual_network_name                 = split("/", var.additional_network_id)[8]
-  remote_virtual_network_id            = local.management_virtual_network_exists ? (
+  remote_virtual_network_id            = var.infrastructure.virtual_network.management.exists ? (
                                                data.azurerm_virtual_network.vnet_mgmt[0].id) : (
                                                azurerm_virtual_network.vnet_mgmt[0].id
                                              )

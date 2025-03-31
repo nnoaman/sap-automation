@@ -10,11 +10,11 @@ resource "azurerm_subnet" "firewall" {
   count                                      = var.firewall.deployment && !local.firewall_subnet_exists ? 1 : 0
   name                                       = local.firewall_subnet_name
   address_prefixes                           = [local.firewall_subnet_prefix]
-  resource_group_name                        = local.management_virtual_network_exists ? (
+  resource_group_name                        = var.infrastructure.virtual_network.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
-  virtual_network_name                       = local.management_virtual_network_exists ? (
+  virtual_network_name                       = var.infrastructure.virtual_network.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].name
                                                )
@@ -39,12 +39,12 @@ resource "azurerm_public_ip" "firewall" {
   allocation_method                          = "Static"
   sku                                        = "Standard"
 
-  location                                   = local.management_virtual_network_exists ? (
+  location                                   = var.infrastructure.virtual_network.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].location) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].location
                                                )
 
-  resource_group_name                        = local.management_virtual_network_exists ? (
+  resource_group_name                        = var.infrastructure.virtual_network.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )

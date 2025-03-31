@@ -31,103 +31,44 @@ locals {
                                             var.tags, var.resourcegroup_tags
                                         )
 
-    vnets                              = {
+    virtual_network                   = {
                                             management = {
-                                              name = try(
-                                                coalesce(
-                                                  var.management_network_name,
-                                                  try(var.infrastructure.vnets.management.name, "")
-                                                ),
-                                                ""
-                                              )
-                                              arm_id = try(
-                                                coalesce(
-                                                  var.management_network_arm_id,
-                                                  try(var.infrastructure.vnets.management.arm_id, "")
-                                                ),
-                                                ""
-                                              )
-                                              address_space = try(
-                                                coalesce(
-                                                  var.management_network_address_space,
-                                                  try(var.infrastructure.vnets.management.address_space, "")
-                                                ),
-                                                ""
-                                              )
-                                              flow_timeout_in_minutes=var.network_flow_timeout_in_minutes
+                                              name                    = var.management_network_name,
+                                              id                      = var.management_network_arm_id,
+                                              exists                  = length(var.management_network_arm_id) > 0 ? true : false
+                                              address_space           = var.management_network_address_space
+                                              flow_timeout_in_minutes = var.management_network_flow_timeout_in_minutes
 
                                               subnet_mgmt = {
-                                                name = try(
-                                                  coalesce(
-                                                    var.management_subnet_name,
-                                                    try(var.infrastructure.vnets.management.subnet_mgmt.name, "")
-                                                  ),
-                                                  ""
-                                                )
-                                                arm_id = try(
-                                                  coalesce(
-                                                    var.management_subnet_arm_id,
-                                                    try(var.infrastructure.vnets.management.subnet_mgmt.arm_id, "")
-                                                  ),
-                                                  ""
-                                                )
-                                                prefix = try(
-                                                  coalesce(
-                                                    var.management_subnet_address_prefix,
-                                                    try(var.infrastructure.vnets.management.subnet_mgmt.prefix, "")
-                                                  ),
-                                                  ""
-                                                )
+                                                name   = var.management_subnet_name,
+                                                exists = length(var.management_subnet_arm_id) > 0 ? true : false
+                                                id     = var.management_subnet_arm_id
+                                                prefix = var.management_subnet_address_prefix
                                                 nsg = {
-                                                  name = try(
-                                                    coalesce(
-                                                      var.management_subnet_nsg_name,
-                                                      try(var.infrastructure.vnets.management.nsg_mgmt.name, "")
-                                                    ),
-                                                    ""
-                                                  )
-                                                  arm_id = try(
-                                                    coalesce(
-                                                      var.management_subnet_nsg_arm_id,
-                                                      try(var.infrastructure.vnets.management.nsg_mgmt.arm_id, "")
-                                                    ),
-                                                    ""
-                                                  )
-                                                  allowed_ips = try(
-                                                    coalesce(
-                                                      var.management_subnet_nsg_allowed_ips,
-                                                      try(var.management_subnet_nsg_arm_id, "")
-                                                    ),
-                                                    []
-                                                  )
+                                                  name        = var.management_subnet_nsg_name
+                                                  exists      = length(var.management_subnet_nsg_arm_id) > 0 ? true : false
+                                                  id          = var.management_subnet_nsg_arm_id
+                                                  allowed_ips = var.management_subnet_nsg_allowed_ips
                                                 }
                                               }
                                               subnet_fw = {
-                                                arm_id = try(
-                                                  coalesce(
-                                                    var.management_firewall_subnet_arm_id,
-                                                    try(var.infrastructure.vnets.management.subnet_fw.arm_id, "")
-                                                  ),
-                                                  ""
-                                                )
-                                                prefix = try(
-                                                  coalesce(
-                                                    var.management_firewall_subnet_address_prefix,
-                                                    try(var.infrastructure.vnets.management.subnet_fw.prefix, "")
-                                                  ),
-                                                  ""
-                                                )
+                                                id     = var.management_firewall_subnet_arm_id
+                                                exists = length(var.management_firewall_subnet_arm_id) > 0 ? true : false
+                                                prefix = var.management_firewall_subnet_address_prefix
                                               }
                                               subnet_bastion = {
-                                                arm_id = var.management_bastion_subnet_arm_id
+                                                id     = var.management_bastion_subnet_arm_id
+                                                exists = length(var.management_bastion_subnet_arm_id) > 0 ? true : false
                                                 prefix = var.management_bastion_subnet_address_prefix
                                               }
                                               subnet_webapp = {
-                                                arm_id = var.webapp_subnet_arm_id
+                                                id     = var.webapp_subnet_arm_id
+                                                exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
                                                 prefix = var.webapp_subnet_address_prefix
                                               }
                                             }
                                           }
+
     deploy_monitoring_extension        = var.deploy_monitoring_extension
     deploy_defender_extension          = var.deploy_defender_extension
 
@@ -252,6 +193,11 @@ locals {
                                            privatelink_dns_subscription_id              = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
                                            privatelink_dns_resourcegroup_name           = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
 
+                                         }
+  app_config_service                   = {
+                                           name                                        = module.sap_namegenerator.naming_new.appconfig_names
+                                           deploy                                      = var.application_configuration_deployment
+                                           id                                          = var.application_configuration_id
                                          }
 
 }

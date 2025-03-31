@@ -93,33 +93,32 @@ output "deployer_user_assigned_identity" {
 // Details of management vnet that is deployed/imported
 output "vnet_mgmt_id" {
   description                          = "Management VNet ID"
-  value                                = local.management_virtual_network_exists ? data.azurerm_virtual_network.vnet_mgmt[0].id : azurerm_virtual_network.vnet_mgmt[0].id
+  value                                = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_mgmt[0].id : azurerm_virtual_network.vnet_mgmt[0].id
 }
 
 // Details of management subnet that is deployed/imported
 output "subnet_mgmt_id" {
   description                          = "Management Subnet ID"
-  value                                = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
+  value                                = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
 }
 
 // Details of management subnet that is deployed/imported
 output "subnet_mgmt_address_prefixes" {
   description                          = "Management Subnet Address Prefixes"
-  value                                = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
+  value                                = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
 }
 
 // Deatils of webapp subnet that is deployed/imported
 output "subnet_webapp_id" {
   description                          = "Webapp Subnet ID"
-  value                                = var.app_service.use ? (local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id) : ""
+  value                                = var.app_service.use ? (var.infrastructure.virtual_network.management.subnet_webapp.exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id) : ""
 }
 
 // Details of the management vnet NSG that is deployed/imported
 output "nsg_mgmt" {
   description                          = "Management VNet NSG"
-  value                                = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0]
+  value                                = var.infrastructure.virtual_network.management.subnet_mgmt.nsg.exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0]
 }
-
 
 output "random_id" {
   description                          = "Random ID for deployer"
@@ -232,7 +231,7 @@ output "extension_ids" {
 output "subnet_bastion_address_prefixes" {
   description                          = "Bastion Subnet Address Prefixes"
   value                                = var.bastion_deployment ? (
-                                          length(var.infrastructure.vnets.management.subnet_bastion.arm_id) == 0 ? (
+                                          length(var.infrastructure.virtual_network.management.subnet_bastion.arm_id) == 0 ? (
                                             azurerm_subnet.bastion[0].address_prefixes) : (
                                             data.azurerm_subnet.bastion[0].address_prefixes
                                           )) : (

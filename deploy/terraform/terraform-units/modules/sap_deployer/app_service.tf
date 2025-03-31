@@ -12,18 +12,18 @@ resource "azurerm_subnet" "webapp" {
                                                     azurerm_subnet.subnet_mgmt
                                                   ]
 
-  count                                         = var.app_service.use ? local.webapp_subnet_exists ? 0 : 1 : 0
+  count                                         = var.app_service.use ? var.infrastructure.virtual_network.management.subnet_webapp.exists ? 0 : 1 : 0
   name                                          = local.webapp_subnet_name
-  resource_group_name                           = local.management_virtual_network_exists ? (
+  resource_group_name                           = var.infrastructure.virtual_network.management.exists ? (
                                                     data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                     azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                   )
-  virtual_network_name                          = local.management_virtual_network_exists ? (
+  virtual_network_name                          = var.infrastructure.virtual_network.management.exists ? (
                                                     data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                     azurerm_virtual_network.vnet_mgmt[0].name
                                                   )
 
-  address_prefixes                              = [local.webapp_subnet_prefix]
+  address_prefixes                              = [var.infrastructure.virtual_network.management.subnet_webapp.prefix]
 
   private_endpoint_network_policies             = var.use_private_endpoint ? "Enabled" : "Disabled"
 
@@ -49,10 +49,10 @@ resource "azurerm_subnet" "webapp" {
 }
 
 data "azurerm_subnet" "webapp" {
-  count                                         = var.app_service.use ? local.webapp_subnet_exists ? 1 : 0 : 0
-  name                                          = split("/", local.webapp_subnet_arm_id)[10]
-  resource_group_name                           = split("/", local.webapp_subnet_arm_id)[4]
-  virtual_network_name                          = split("/", local.webapp_subnet_arm_id)[8]
+  count                                         = var.app_service.use ? var.infrastructure.virtual_network.management.subnet_webapp.exists ? 1 : 0 : 0
+  name                                          = split("/", var.infrastructure.virtual_network.management.subnet_webapp.id)[10]
+  resource_group_name                           = split("/", var.infrastructure.virtual_network.management.subnet_webapp.id)[4]
+  virtual_network_name                          = split("/", var.infrastructure.virtual_network.management.subnet_webapp.id)[8]
 }
 
 
@@ -144,7 +144,7 @@ resource "azurerm_windows_web_app" "webapp" {
 
 
 
-  virtual_network_subnet_id = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
+  virtual_network_subnet_id = var.infrastructure.virtual_network.management.subnet_webapp.exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
   site_config {
     # ip_restriction = [{
     #   action                    = "Allow"
@@ -193,7 +193,7 @@ resource "azurerm_windows_web_app" "webapp" {
 resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_connection" {
   count          = var.app_service.use ? 1 : 0
   app_service_id = azurerm_windows_web_app.webapp[0].id
-  subnet_id      = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
+  subnet_id      = var.infrastructure.virtual_network.management.subnet_webapp.exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
 }
 
 

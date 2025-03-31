@@ -41,16 +41,11 @@ locals {
 
   // Post fix for all deployed resources
   postfix                              = random_id.deployer.hex
-
-  // Management vnet
-  vnet_mgmt_arm_id                     = try(var.infrastructure.vnets.management.arm_id, "")
-  management_virtual_network_exists                     = length(local.vnet_mgmt_arm_id) > 0
-
   // If resource ID is specified extract the vnet name from it otherwise read it either from input of create using the naming convention
-  vnet_mgmt_name                      = local.management_virtual_network_exists ? (
-                                          split("/", local.vnet_mgmt_arm_id)[8]) : (
-                                          length(var.infrastructure.vnets.management.name) > 0 ? (
-                                            var.infrastructure.vnets.management.name) : (
+  vnet_mgmt_name                      = var.infrastructure.virtual_network.management.exists ? (
+                                          split("/", var.infrastructure.virtual_network.management.id)[8]) : (
+                                          length(var.infrastructure.virtual_network.management.name) > 0 ? (
+                                            var.infrastructure.virtual_network.management.name) : (
                                             format("%s%s%s",
                                               var.naming.resource_prefixes.vnet,
                                               length(local.prefix) > 0 ? (
@@ -62,17 +57,15 @@ locals {
                                           )
                                         )
 
-  vnet_mgmt_addr                       = local.management_virtual_network_exists ? "" : try(var.infrastructure.vnets.management.address_space, "")
-
   // Management subnet
-  management_subnet_arm_id             = try(var.infrastructure.vnets.management.subnet_mgmt.arm_id, "")
+  management_subnet_arm_id             = try(var.infrastructure.virtual_network.management.subnet_mgmt.id, "")
   management_subnet_exists             = length(local.management_subnet_arm_id) > 0
 
   // If resource ID is specified extract the subnet name from it otherwise read it either from input of create using the naming convention
-  management_subnet_name               = local.management_subnet_exists ? (
-                                           split("/", var.infrastructure.vnets.management.subnet_mgmt.arm_id)[10]) : (
-                                           length(var.infrastructure.vnets.management.subnet_mgmt.name) > 0 ? (
-                                             var.infrastructure.vnets.management.subnet_mgmt.name) : (
+  management_subnet_name               = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
+                                           split("/", var.infrastructure.virtual_network.management.subnet_mgmt.id)[10]) : (
+                                           length(var.infrastructure.virtual_network.management.subnet_mgmt.name) > 0 ? (
+                                             var.infrastructure.virtual_network.management.subnet_mgmt.name) : (
                                              format("%s%s%s",
                                                var.naming.resource_prefixes.deployer_subnet,
                                                length(local.prefix) > 0 ? (
@@ -83,23 +76,13 @@ locals {
                                              )
                                          ))
 
-  management_subnet_prefix             = local.management_subnet_exists ? (
-                                           "") : (
-                                           try(var.infrastructure.vnets.management.subnet_mgmt.prefix, "")
-                                         )
-  management_subnet_deployed_prefixes  = local.management_subnet_exists ? (
-                                           data.azurerm_subnet.subnet_mgmt[0].address_prefixes) : (
-                                           try(azurerm_subnet.subnet_mgmt[0].address_prefixes, [])
-                                         )
 
   // Management NSG
-  management_subnet_nsg_arm_id         = try(var.infrastructure.vnets.management.subnet_mgmt.nsg.arm_id, "")
-  management_subnet_nsg_exists         = length(local.management_subnet_nsg_arm_id) > 0
   // If resource ID is specified extract the nsg name from it otherwise read it either from input of create using the naming convention
-  management_subnet_nsg_name           = local.management_subnet_nsg_exists ? (
-                                           split("/", local.management_subnet_nsg_arm_id)[8]) : (
-                                           length(var.infrastructure.vnets.management.subnet_mgmt.nsg.name) > 0 ? (
-                                             var.infrastructure.vnets.management.subnet_mgmt.nsg.name) : (
+  management_subnet_nsg_name           = var.infrastructure.virtual_network.management.subnet_mgmt.nsg.exists ? (
+                                           split("/", var.infrastructure.virtual_network.management.subnet_mgmt.nsg.id)[8]) : (
+                                           length(var.infrastructure.virtual_network.management.subnet_mgmt.nsg.name) > 0 ? (
+                                             var.infrastructure.virtual_network.management.subnet_mgmt.nsg.name) : (
                                              format("%s%s%s",
                                                var.naming.resource_prefixes.deployer_subnet_nsg,
                                                length(local.prefix) > 0 ? (
@@ -110,21 +93,21 @@ locals {
                                              )
                                          ))
 
-  management_subnet_nsg_allowed_ips    = local.management_subnet_nsg_exists ? (
+  management_subnet_nsg_allowed_ips    = var.infrastructure.virtual_network.management.subnet_mgmt.nsg.exists ? (
                                            []) : (
-                                           length(var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) > 0 ? (
-                                             var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) : (
+                                           length(var.infrastructure.virtual_network.management.subnet_mgmt.nsg.allowed_ips) > 0 ? (
+                                             var.infrastructure.virtual_network.management.subnet_mgmt.nsg.allowed_ips) : (
                                              ["0.0.0.0/0"]
                                            )
                                          )
 
   // Firewall subnet
-  firewall_subnet_arm_id               = try(var.infrastructure.vnets.management.subnet_fw.arm_id, "")
+  firewall_subnet_arm_id               = try(var.infrastructure.virtual_network.management.subnet_fw.id, "")
   firewall_subnet_exists               = length(local.firewall_subnet_arm_id) > 0
   firewall_subnet_name                 = "AzureFirewallSubnet"
   firewall_subnet_prefix               = local.firewall_subnet_exists ? (
                                            "") : (
-                                           try(var.infrastructure.vnets.management.subnet_fw.prefix, "")
+                                           try(var.infrastructure.virtual_network.management.subnet_fw.prefix, "")
                                          )
 
   # Not all region names are the same as their service tags
@@ -145,19 +128,10 @@ locals {
   firewall_service_tags                = format("AzureCloud.%s", lookup(local.regioncode_exceptions, var.infrastructure.region, var.infrastructure.region))
 
   // Bastion subnet
-  management_bastion_subnet_arm_id     = try(var.infrastructure.vnets.management.subnet_bastion.arm_id, "")
-  bastion_subnet_exists                = length(local.management_bastion_subnet_arm_id) > 0
   bastion_subnet_name                  = "AzureBastionSubnet"
-  bastion_subnet_prefix                = local.bastion_subnet_exists ? (
-                                           "") : (
-                                           try(var.infrastructure.vnets.management.subnet_bastion.prefix, "")
-                                         )
 
   // Webapp subnet
-  webapp_subnet_arm_id                 = try(var.infrastructure.vnets.management.subnet_webapp.arm_id, "")
-  webapp_subnet_exists                 = length(local.webapp_subnet_arm_id) > 0
   webapp_subnet_name                   = "AzureWebappSubnet"
-  webapp_subnet_prefix                 = local.webapp_subnet_exists ? "" : try(var.infrastructure.vnets.management.subnet_webapp.prefix, "")
 
   enable_password                      = try(var.deployer.authentication.type, "key") == "password"
   enable_key                           = !local.enable_password

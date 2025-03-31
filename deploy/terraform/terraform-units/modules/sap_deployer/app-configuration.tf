@@ -32,12 +32,12 @@ data "azurerm_app_configuration" "app_config" {
 }
 
 
-resource "time_sleep" "wait_for_appconf_dataowner_assignment" {
+resource "time_sleep" "wait_for_appconfig_data_owner_assignment" {
   create_duration                      = "60s"
 
   depends_on                           = [
-                                           azurerm_role_assignment.appconf_dataowner_msi,
-                                           azurerm_role_assignment.appconf_dataowner_spn
+                                           azurerm_role_assignment.appconfig_data_owner_msi,
+                                           azurerm_role_assignment.appconfig_data_owner_spn
                                          ]
 }
 
@@ -45,7 +45,7 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
   provider                             = azurerm.main
   count                                = var.app_config_service.deploy ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            time_sleep.wait_for_appconfig_data_owner_assignment,
                                             azurerm_private_endpoint.app_config
                                          ]
 
@@ -73,7 +73,7 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
   provider                             = azurerm.main
   count                                = var.app_config_service.deploy ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            time_sleep.wait_for_appconfig_data_owner_assignment
                                             azurerm_private_endpoint.app_config
                                          ]
 
@@ -101,7 +101,7 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
   provider                             = azurerm.main
   count                                = var.app_config_service.deploy ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            time_sleep.wait_for_appconfig_data_owner_assignment
                                             azurerm_private_endpoint.app_config
                                          ]
 
@@ -128,7 +128,7 @@ resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
   provider                             = azurerm.main
   count                                = var.app_config_service.deploy ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            time_sleep.wait_for_appconfig_data_owner_assignment
                                             azurerm_private_endpoint.app_config
                                          ]
 
@@ -154,7 +154,7 @@ resource "azurerm_app_configuration_key" "deployer_subscription_id" {
   provider                             = azurerm.main
   count                                = var.app_config_service.deploy ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            time_sleep.wait_for_appconfig_data_owner_assignment
                                             azurerm_private_endpoint.app_config
                                          ]
 
@@ -180,7 +180,7 @@ resource "azurerm_app_configuration_key" "web_application_resource_id" {
   provider                             = azurerm.main
   count                                = var.app_config_service.deploy && var.app_service.use ? 1 :0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            time_sleep.wait_for_appconfig_data_owner_assignment
                                             azurerm_private_endpoint.app_config
                                          ]
 
@@ -206,7 +206,7 @@ resource "azurerm_app_configuration_key" "web_application_identity_id" {
   provider                             = azurerm.main
   count                                = var.app_config_service.deploy && var.app_service.use ? 1 :0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            time_sleep.wait_for_appconfig_data_owner_assignment
                                             azurerm_private_endpoint.app_config
                                          ]
 
@@ -233,7 +233,7 @@ resource "azurerm_app_configuration_key" "deployer_msi_id" {
   provider                             = azurerm.main
   count                                = var.app_config_service.deploy ? 1 : 0
   depends_on                           = [
-                                            time_sleep.wait_for_appconf_dataowner_assignment,
+                                            time_sleep.wait_for_appconfig_data_owner_assignment
                                             azurerm_private_endpoint.app_config
                                          ]
 

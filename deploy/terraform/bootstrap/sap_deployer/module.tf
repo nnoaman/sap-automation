@@ -24,7 +24,7 @@ module "sap_deployer" {
   agent_pat                                    = var.agent_pat
   agent_pool                                   = var.agent_pool
   ansible_core_version                         = var.ansible_core_version
-  app_config_service_name                      = try(module.sap_namegenerator.naming_new.appconfig_names.DEPLOYER, format("%s-APC",module.sap_namegenerator.naming.prefix.DEPLOYER))
+  app_config_service                           = local.app_config_service
   app_service                                  = local.app_service
   arm_client_id                                = var.arm_client_id
   assign_subscription_permissions              = var.deployer_assign_subscription_permissions
