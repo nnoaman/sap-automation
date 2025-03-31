@@ -390,10 +390,11 @@ function migrate_deployer_state() {
 
 	cd "${deployer_dirname}" || exit
 	cat "${deployer_config_information}"
+	VALIDATED_APPLICATION_CONFIGURATION_ID=VALUE=${APPLICATION_CONFIGURATION_ID:-}
 
 	if [ -z "$terraform_storage_account_name" ]; then
-		if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-			if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+		if [ -n "$VALIDATED_APPLICATION_CONFIGURATION_ID" ]; then
+			if is_valid_id "$VALIDATED_APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
 				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -430,8 +431,10 @@ function migrate_deployer_state() {
 		exit 11
 	fi
 
+
+
 	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $deployer_parameter_file_name --type sap_deployer \
-		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
+		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${VALIDATED_APPLICATION_CONFIGURATION_ID}" \
 		$ado_flag "${autoApproveParameter}"; then
 
 		echo ""
