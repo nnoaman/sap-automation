@@ -290,25 +290,9 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	APPLICATION_CONFIGURATION_ID=$(grep -m1 "^APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	export APPLICATION_CONFIGURATION_ID
 
-	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -z "$file_deployer_tfstate_key" ]; then
-		deployer_tfstate_key=$file_deployer_tfstate_key
-		export deployer_tfstate_key
-	fi
-	echo "Deployer State File:                 $deployer_tfstate_key"
+	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
 
-	file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Key Vault:                  ${file_key_vault}"
-
-	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform Remote State Account:       ${file_REMOTE_STATE_SA}"
-	fi
-
-	file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
-	fi
 fi
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
