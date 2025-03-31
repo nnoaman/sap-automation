@@ -122,6 +122,8 @@ export PARENT_VARIABLE_GROUP_ID
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 
+DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
+
 if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
 	APPLICATION_CONFIGURATION_ID=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID")
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"; then
@@ -203,12 +205,13 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	export TF_VAR_tfstate_resource_id
 else
 	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
-	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id" "subscription" "DEPLOYER_KEYVAULT"
+	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id" "subscription"
 
-	TF_VAR_management_subscription_id="$subscription"
-	export TF_VAR_management_subscription_id
 	TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
 	export TF_VAR_spn_keyvault_id
+	TF_VAR_management_subscription_id=$(echo "$TF_VAR_spn_keyvault_id" | cut -d '/' -f 3)
+	export TF_VAR_management_subscription_id
+
 
 	TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 	export TF_VAR_tfstate_resource_id
