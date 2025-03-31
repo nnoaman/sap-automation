@@ -378,10 +378,18 @@ output ng_resource_id                           {
 ###############################################################################
 output application_configuration_id             {
                                                   description = "Application Configuration ID"
-                                                  value       = coalesce(
+                                                  value       = length(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id) > 0 ? coalesce(
                                                                              var.application_configuration_id,
                                                                              try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
-                                                                           )
+                                                                           ) : ""
+                                                }
+
+output application_configuration_used             {
+                                                  description = "Application Configuration ID"
+                                                  value       = length(try(coalesce(
+                                                                             var.application_configuration_id,
+                                                                             try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
+                                                                           )), "") > 0 ? true : false
                                                 }
 
 output "control_plane_name"                     {
