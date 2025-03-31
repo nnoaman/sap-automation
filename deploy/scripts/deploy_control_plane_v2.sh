@@ -790,6 +790,9 @@ function deploy_control_plane() {
 			return 0
 		fi
 	else
+		if [ 1 == "${only_deployer:-}" ]; then
+			return 0
+		fi
 
 		if [ 3 -le $step ]; then
 			if ! retrieve_parameters; then
