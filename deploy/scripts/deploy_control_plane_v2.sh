@@ -245,7 +245,7 @@ function validate_keyvault_access {
 	TF_DATA_DIR="${deployer_dirname}"/.terraform
 	export TF_DATA_DIR
 
-	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 	else
 		if [ -f ./.terraform/terraform.tfstate ]; then
