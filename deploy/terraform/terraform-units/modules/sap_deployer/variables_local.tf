@@ -24,10 +24,9 @@ locals {
   // Resource group
   prefix                               = var.naming.prefix.DEPLOYER
 
-  resource_group_exists                = length(var.infrastructure.resource_group.arm_id) > 0
   // If resource ID is specified extract the resourcegroup name from it otherwise read it either from input of create using the naming convention
-  resourcegroup_name                   = local.resource_group_exists ? (
-                                           split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+  resourcegroup_name                   = var.infrastructure.resource_group.exists ? (
+                                           split("/", var.infrastructure.resource_group.id)[4]) : (
                                            length(var.infrastructure.resource_group.name) > 0 ? (
                                              var.infrastructure.resource_group.name) : (
                                              format("%s%s%s",
@@ -37,7 +36,6 @@ locals {
                                              )
                                            )
                                          )
-  rg_appservice_location               = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
 
   // Post fix for all deployed resources
   postfix                              = random_id.deployer.hex
@@ -58,10 +56,7 @@ locals {
                                         )
 
   // Management subnet
-  management_subnet_arm_id             = try(var.infrastructure.virtual_network.management.subnet_mgmt.id, "")
-  management_subnet_exists             = length(local.management_subnet_arm_id) > 0
-
-  // If resource ID is specified extract the subnet name from it otherwise read it either from input of create using the naming convention
+    // If resource ID is specified extract the subnet name from it otherwise read it either from input of create using the naming convention
   management_subnet_name               = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
                                            split("/", var.infrastructure.virtual_network.management.subnet_mgmt.id)[10]) : (
                                            length(var.infrastructure.virtual_network.management.subnet_mgmt.name) > 0 ? (
@@ -102,13 +97,7 @@ locals {
                                          )
 
   // Firewall subnet
-  firewall_subnet_arm_id               = try(var.infrastructure.virtual_network.management.subnet_fw.id, "")
-  firewall_subnet_exists               = length(local.firewall_subnet_arm_id) > 0
   firewall_subnet_name                 = "AzureFirewallSubnet"
-  firewall_subnet_prefix               = local.firewall_subnet_exists ? (
-                                           "") : (
-                                           try(var.infrastructure.virtual_network.management.subnet_fw.prefix, "")
-                                         )
 
   # Not all region names are the same as their service tags
   # https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview#available-service-tags

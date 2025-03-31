@@ -19,13 +19,20 @@ locals {
                                               ),
                                               ""
                                             )
-                                            arm_id = try(
+                                            id = try(
                                               coalesce(
                                                 var.resourcegroup_arm_id,
                                                 try(var.infrastructure.resource_group.arm_id, "")
                                               ),
                                               ""
                                             )
+                                            exists = length(try(
+                                              coalesce(
+                                                var.resourcegroup_arm_id,
+                                                try(var.infrastructure.resource_group.arm_id, "")
+                                              ),
+                                              ""
+                                            )) > 0 ? true : false
                                           }
     tags                               = merge(
                                             var.tags, var.resourcegroup_tags
