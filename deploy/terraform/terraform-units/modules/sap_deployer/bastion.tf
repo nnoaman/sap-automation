@@ -46,11 +46,11 @@ resource "azurerm_public_ip" "bastion" {
                                          )
   allocation_method                    = "Static"
   sku                                  = "Standard"
-  location                             = var.infrastructure.virtual_network.exists ? (
+  location                             = var.infrastructure.virtual_network.management.exists ? (
                                            data.azurerm_virtual_network.vnet_mgmt[0].location) : (
                                            azurerm_virtual_network.vnet_mgmt[0].location
                                          )
-  resource_group_name                  = var.infrastructure.virtual_network.exists ? (
+  resource_group_name                  = var.infrastructure.virtual_network.management.exists ? (
                                            data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                            azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                          )

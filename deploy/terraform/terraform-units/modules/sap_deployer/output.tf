@@ -231,7 +231,7 @@ output "extension_ids" {
 output "subnet_bastion_address_prefixes" {
   description                          = "Bastion Subnet Address Prefixes"
   value                                = var.bastion_deployment ? (
-                                          length(var.infrastructure.virtual_network.management.subnet_bastion.arm_id) == 0 ? (
+                                          var.infrastructure.virtual_network.management.subnet_bastion.exists ? (
                                             azurerm_subnet.bastion[0].address_prefixes) : (
                                             data.azurerm_subnet.bastion[0].address_prefixes
                                           )) : (
