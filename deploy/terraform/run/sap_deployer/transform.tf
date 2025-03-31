@@ -35,6 +35,7 @@ locals {
                                             management = {
                                               name                    = var.management_network_name,
                                               id                      = var.management_network_arm_id,
+                                              exists                  = length(var.management_network_arm_id) > 0
                                               address_space           = var.management_network_address_space
                                               flow_timeout_in_minutes = var.management_network_flow_timeout_in_minutes
 
