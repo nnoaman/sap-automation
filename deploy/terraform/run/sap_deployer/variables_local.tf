@@ -14,7 +14,7 @@ locals {
   //There is no default as the name is mandatory unless arm_id is specified
   vnet_mgmt_name                       = local.infrastructure.virtual_network.management.exists ? (
                                            split("/", local.infrastructure.virtual_network.management.id)[8]) : (
-                                           length(local.virtual_network.virtual_network.management.name) > 0 ? (
+                                           length(local.infrastructure.virtual_network.management.name) > 0 ? (
                                              local.infrastructure.virtual_network.management.name) : (
                                              "DEP00"
                                            )
@@ -42,7 +42,7 @@ locals {
                                            subscription_id = coalesce(var.subscription_id, try(data.azurerm_key_vault_secret.subscription_id[0].value,null))
                                            client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
                                            client_secret   = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value : null,
-                                           tenant_id       = var.use_spn ? ephemeral.azurerm_key_vault_secret.tenant_id[0].value : null
+                                           tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
                                          }
 
 }
