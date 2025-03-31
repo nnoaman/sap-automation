@@ -31,8 +31,8 @@ resource "azurerm_subnet" "bastion" {
 data "azurerm_subnet" "bastion" {
   count                                = var.bastion_deployment && !var.infrastructure.virtual_network.management.subnet_bastion.exists ? 1 : 0
   name                                 = split("/", try(var.infrastructure.virtual_network.management.subnet_bastion.id, ""))[10]
-  resource_group_name                  = split("/", try(var.infrastructure.virtual_network.management.subnet_bastion.arm_id, ""))[4]
-  virtual_network_name                 = split("/", try(var.infrastructure.virtual_network.management.subnet_bastion.arm_id, ""))[8]
+  resource_group_name                  = split("/", try(var.infrastructure.virtual_network.management.subnet_bastion.id, ""))[4]
+  virtual_network_name                 = split("/", try(var.infrastructure.virtual_network.management.subnet_bastion.id, ""))[8]
 }
 
 # Create a public IP address for the Azure Bastion
@@ -84,7 +84,7 @@ resource "azurerm_bastion_host" "bastion" {
 
   ip_configuration                     {
                                          name                  = "configuration"
-                                         subnet_id             = length(var.infrastructure.virtual_network.management.subnet_bastion.arm_id) == 0 ? (
+                                         subnet_id             = length(var.infrastructure.virtual_network.management.subnet_bastion.id) == 0 ? (
                                                                    azurerm_subnet.bastion[0].id) : (
                                                                    data.azurerm_subnet.bastion[0].id
                                                                  )
