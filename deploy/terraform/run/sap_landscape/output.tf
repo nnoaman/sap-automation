@@ -389,7 +389,7 @@ output application_configuration_used             {
                                                   value       = length(try(coalesce(
                                                                              var.application_configuration_id,
                                                                              try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
-                                                                           )), "") > 0 ? true : false
+                                                                           ), "")) > 0 ? true : false
                                                 }
 
 output "control_plane_name"                     {
