@@ -83,8 +83,8 @@ resource "azurerm_windows_web_app" "webapp" {
                                                     var.naming.resource_suffixes.webapp_url,
                                                     coalesce(try(var.infrastructure.custom_random_id, ""), substr(random_id.deployer.hex, 0, 3)))
                                                     )
-  resource_group_name                            = local.resourcegroup_name
-  location                                       = local.rg_appservice_location
+  resource_group_name                            = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location                                       = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   service_plan_id                                = azurerm_service_plan.appserviceplan[0].id
   https_only                                     = true
   webdeploy_publish_basic_authentication_enabled = false
