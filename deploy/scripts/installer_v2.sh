@@ -305,7 +305,7 @@ function parse_arguments() {
 	if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
 		system_config_information="${CONFIG_DIR}/${WORKLOAD_ZONE_NAME}"
 		touch "${system_config_information}"
-		save_config_vars  "${system_config_information}" landscape_tfstate_key_exists
+		save_config_vars "${system_config_information}" landscape_tfstate_key_exists
 
 		# network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3)
 	else
@@ -313,7 +313,7 @@ function parse_arguments() {
 		touch "${system_config_information}"
 		# management_network_logical_name=$(echo $CONTROL_PLANE_NAME | cut -d'-' -f3)
 	fi
-	save_config_vars  "${system_config_information}" deployer_tfstate_key APPLICATION_CONFIGURATION_ID CONTROL_PLANE_NAME
+	save_config_vars "${system_config_information}" deployer_tfstate_key APPLICATION_CONFIGURATION_ID CONTROL_PLANE_NAME
 
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	if valid_region_name "${region}"; then
@@ -334,28 +334,54 @@ function retrieve_parameters() {
 	TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
 	export TF_VAR_control_plane_name
 
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
-	TF_VAR_tfstate_resource_id=$tfstate_resource_id
-	export TF_VAR_tfstate_resource_id
+	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
-	terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-	export terraform_storage_account_name
+		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
 
-	terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-	export terraform_storage_account_resource_group_name
+		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+		export terraform_storage_account_name
 
-	terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-	export terraform_storage_account_subscription_id
+		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+		export terraform_storage_account_resource_group_name
 
-	TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+		export terraform_storage_account_subscription_id
 
-	keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-	export keyvault
+		TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+		export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
-	management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
-	TF_VAR_management_subscription_id=${management_subscription_id}
-	export TF_VAR_management_subscription_id
+		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+		export keyvault
+
+		management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+		TF_VAR_management_subscription_id=${management_subscription_id}
+		export TF_VAR_management_subscription_id
+	else
+		if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
+			terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+			terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+			terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+		else
+			load_config_vars "${system_config_information}" \
+				tfstate_resource_id DEPLOYER_KEYVAULT
+
+			TF_VAR_spn_keyvault_id=$( az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
+			export TF_VAR_spn_keyvault_id
+
+			export TF_VAR_tfstate_resource_id
+			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+			export terraform_storage_account_name
+
+			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+			export terraform_storage_account_resource_group_name
+
+			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			export terraform_storage_account_subscription_id
+		fi
+	fi
 
 }
 
@@ -743,9 +769,9 @@ function sdaf_installer() {
 		state_path="DEPLOYER"
 
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-			if [ -n "$keyvault" ]; then
-				save_config_var "keyvault" "${system_config_information}"
+			DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+			if [ -n "$DEPLOYER_KEYVAULT" ]; then
+				save_config_var "DEPLOYER_KEYVAULT" "${system_config_information}"
 			fi
 		fi
 
