@@ -10,7 +10,7 @@
 data "azurerm_client_config" "current" {}
 
 data "azurerm_client_config" "current_main" {
-  provider                            = azurerm.main
+  provider                            = azurerm.workload
 
 }
 
