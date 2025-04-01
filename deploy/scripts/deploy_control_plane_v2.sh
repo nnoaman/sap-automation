@@ -466,6 +466,8 @@ function migrate_library_state() {
 	print_banner "$banner_title" "Migrating the library state..." "info"
 
 	VALIDATED_APPLICATION_CONFIGURATION_ID=VALUE=${APPLICATION_CONFIGURATION_ID:-}
+	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
+	cd "${library_dirname}" || exit
 
 	if [ -z "$terraform_storage_account_name" ]; then
 		if [ -n "$VALIDATED_APPLICATION_CONFIGURATION_ID" ]; then
@@ -524,8 +526,6 @@ function migrate_library_state() {
 		print_banner "$banner_title" "Could not find the SAP Library, please re-run!" "error"
 		exit 11
 	fi
-	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
-	cd "${library_dirname}" || exit
 
 	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name}"
 	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
