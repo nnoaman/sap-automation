@@ -889,5 +889,10 @@ EOF
 	return 0
 }
 
-deploy_control_plane "$@"
-exit $?
+
+# Main script
+if deploy_control_plane "$@"; then
+	exit 0
+else
+	exit $?
+fi
