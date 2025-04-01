@@ -485,17 +485,36 @@ function migrate_library_state() {
 			fi
 		fi
 		if [ -z "$terraform_storage_account_name" ]; then
-			print_banner "$banner_title" "Sourcing parameters from ${deployer_config_information}" "info"
-			load_config_vars "${deployer_config_information}" "tfstate_resource_id"
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
-			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-			export terraform_storage_account_name
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			export terraform_storage_account_resource_group_name
 
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-			export terraform_storage_account_subscription_id
+			if [ -f .terraform/terraform.tfstate ]; then
+				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+				if [ -n "$azure_backend" ]; then
+					print_banner "$banner_title" "The state is already migrated to Azure!!!" "info"
+
+					terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+					terraform_storage_account_name=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+					terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+					tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+					TF_VAR_tfstate_resource_id=$tfstate_resource_id
+					export TF_VAR_tfstate_resource_id
+					export terraform_storage_account_name
+					export terraform_storage_account_resource_group_name
+					export terraform_storage_account_subscription_id
+
+				fi
+			else
+
+				print_banner "$banner_title" "Sourcing parameters from ${deployer_config_information}" "info"
+				load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+				export TF_VAR_tfstate_resource_id
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+				export terraform_storage_account_name
+				export terraform_storage_account_resource_group_name
+				export terraform_storage_account_subscription_id
+			fi
 		fi
 	fi
 	if [ -z "${terraform_storage_account_name}" ]; then
