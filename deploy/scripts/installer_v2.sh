@@ -904,7 +904,7 @@ function sdaf_installer() {
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
+			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee apply_output.json; then
 				return_value=${PIPESTATUS[0]}
 			else
 				return_value=${PIPESTATUS[0]}

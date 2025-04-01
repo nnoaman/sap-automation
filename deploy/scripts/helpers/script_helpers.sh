@@ -615,8 +615,8 @@ function ImportAndReRunApply {
 					import_return_value=$?
 					print_banner "Installer" "Terraform plan failed" "error"
 				else
-					print_banner "Installer" "Terraform plan succeeded" "success"
 					import_return_value=$?
+					print_banner "Installer" "Terraform plan succeeded" "success"
 				fi
 
 				if [ $import_return_value -eq 2 ]; then
