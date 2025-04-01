@@ -117,6 +117,7 @@ WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
+control_plane_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
@@ -176,13 +177,12 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	export TF_VAR_management_subscription_id
 else
 	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
-	load_config_vars "${workload_environment_file_name}" "keyvault"
-	key_vault="$keyvault"
-	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
-	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	load_config_vars "${control_plane_environment_file_name}" "DEPLOYER_KEYVAULT"
+	load_config_vars "${control_plane_environment_file_name}" "tfstate_resource_id"
+	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
 
-if [ -z "$key_vault" ]; then
+if [ -z "$DEPLOYER_KEYVAULT" ]; then
 	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
 	exit 2
 fi
@@ -212,8 +212,7 @@ echo -e "-----------------------------------------------------------------------
 echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
-echo "Deployer Key vault:                  $key_vault"
-echo "Workload Key vault:                  ${workload_key_vault}"
+echo "Deployer Key vault:                  $DEPLOYER_KEYVAULT"
 echo "Statefile subscription:              $terraform_storage_account_subscription_id"
 echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
