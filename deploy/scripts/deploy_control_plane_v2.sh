@@ -431,8 +431,6 @@ function migrate_deployer_state() {
 		exit 11
 	fi
 
-
-
 	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $deployer_parameter_file_name --type sap_deployer \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${VALIDATED_APPLICATION_CONFIGURATION_ID}" \
 		$ado_flag "${autoApproveParameter}"; then
@@ -467,20 +465,39 @@ function migrate_library_state() {
 
 	print_banner "$banner_title" "Migrating the library state..." "info"
 
+	VALIDATED_APPLICATION_CONFIGURATION_ID=VALUE=${APPLICATION_CONFIGURATION_ID:-}
+
 	if [ -z "$terraform_storage_account_name" ]; then
-		if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+		if [ -n "$VALIDATED_APPLICATION_CONFIGURATION_ID" ]; then
+			if is_valid_id "$VALIDATED_APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+
+				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+				export TF_VAR_tfstate_resource_id
+
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+				terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+				terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+				ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+				export TF_VAR_tfstate_resource_id
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+			fi
+		fi
+		if [ -z "$terraform_storage_account_name" ]; then
+			print_banner "$banner_title" "Sourcing parameters from ${deployer_config_information}" "info"
+			load_config_vars "${deployer_config_information}" "tfstate_resource_id"
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 			export TF_VAR_tfstate_resource_id
-
 			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
-			export ARM_SUBSCRIPTION_ID
+			export terraform_storage_account_name
+			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+			export terraform_storage_account_resource_group_name
+
+			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			export terraform_storage_account_subscription_id
 		fi
 	fi
-
 	if [ -z "${terraform_storage_account_name}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_config_information}"
@@ -488,13 +505,12 @@ function migrate_library_state() {
 		print_banner "$banner_title" "Could not find the SAP Library, please re-run!" "error"
 		exit 11
 	fi
-
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
 	cd "${library_dirname}" || exit
 
 	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name}"
 	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
-		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
+		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${VALIDATED_APPLICATION_CONFIGURATION_ID}" \
 		$ado_flag "${autoApproveParameter}"; then
 
 		print_banner "$banner_title" "Migrating the Library state failed." "error"
