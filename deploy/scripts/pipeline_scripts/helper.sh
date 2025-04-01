@@ -122,9 +122,11 @@ function saveVariableInVariableGroup() {
 	local variable_group_id="$1"
 	local variable_name="$2"
 	local variable_value="$3"
-	return_code=0
+	local local_return_code=0
 
 	if [ -n "$variable_value" ]; then
+
+	  print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
 
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
 		if [ "$DEBUG" = True ]; then
@@ -133,10 +135,10 @@ function saveVariableInVariableGroup() {
 		fi
 		if [ ${#az_var} -gt 0 ]; then
 			az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
-			return_code=$?
+			local_return_code=$?
 		else
 			az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
-			return_code=$?
+			local_return_code=$?
 		fi
 	else
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
@@ -146,10 +148,10 @@ function saveVariableInVariableGroup() {
 		fi
 		if [ ${#az_var} -gt 0 ]; then
 			az pipelines variable-group variable delete --group-id "${variable_group_id}" --name "${variable_name}" --output none --only-show-errors
-			return_code=$?
+			local_return_code=$?
 		fi
 	fi
-	return $return_code
+	return $local_return_code
 }
 
 function configureNonDeployer() {
