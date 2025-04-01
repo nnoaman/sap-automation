@@ -313,6 +313,8 @@ function install_library() {
 					sleep 30
 					export TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
+					key=$(basename "${parameter_file_name}" | cut -d. -f1)
+
 					terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_library"/
 
 					if terraform -chdir="${terraform_module_directory}" init \
