@@ -484,6 +484,7 @@ function migrate_library_state() {
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
 				export TF_VAR_tfstate_resource_id
 				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+				save_config_vars "${deployer_config_information}" "tfstate_resource_id"
 			fi
 		fi
 		if [ -z "$terraform_storage_account_name" ]; then
@@ -502,6 +503,7 @@ function migrate_library_state() {
 					export terraform_storage_account_name
 					export terraform_storage_account_resource_group_name
 					export terraform_storage_account_subscription_id
+					save_config_vars "${deployer_config_information}" "tfstate_resource_id"
 
 				fi
 			else
