@@ -474,7 +474,7 @@ function sdaf_remover() {
 	fi
 
 	if [ "${deployment_system}" != sap_deployer ]; then
-		echo "Deployer Keyvault ID:                $TF_VAR_deployer_kv_user_arm_id"
+		echo "Deployer Keyvault ID:                $TF_VAR_spn_keyvault_id"
 
 	fi
 
