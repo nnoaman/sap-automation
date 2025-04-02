@@ -79,7 +79,6 @@ stages:
               CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-              TEST_ONLY:                    ${{ parameters.test }}
               TF_IN_AUTOMATION:             true
               TF_LOG:                       $(TF_LOG)
               TF_VAR_use_spn:               $(Use_MSI)
@@ -120,7 +119,6 @@ stages:
               CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-              TEST_ONLY:                    ${{ parameters.test }}
               TF_IN_AUTOMATION:             true
               TF_LOG:                       $(TF_LOG)
               TF_VAR_use_spn:               $(Use_MSI)
