@@ -26,8 +26,8 @@ resource "azurerm_network_security_group" "nsg_web" {
 data "azurerm_network_security_group" "nsg_web" {
   provider                             = azurerm.main
   count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists_in_workload ? 1 : 0) : 0
-  name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_web.id, var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload))[8]
-  resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_web.id, var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload))[4]
+  name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_web.nsg.id, var.infrastructure.virtual_networks.sap.subnet_web.nsg.id_in_workload))[8]
+  resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_web.nsg.id, var.infrastructure.virtual_networks.sap.subnet_web.nsg.id_in_workload))[4]
 }
 
 # Associates SAP web nsg to SAP web subnet

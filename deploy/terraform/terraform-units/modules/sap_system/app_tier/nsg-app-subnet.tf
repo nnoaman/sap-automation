@@ -24,8 +24,8 @@ resource "azurerm_network_security_group" "nsg_app" {
 data "azurerm_network_security_group" "nsg_app" {
   provider                             = azurerm.main
   count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists_in_workload ? 1 : 0) : 0
-  name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_app.id, var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload))[8]
-  resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_app.id, var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload))[4]
+  name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_app.nsg.id, var.infrastructure.virtual_networks.sap.subnet_app.nsg.id_in_workload))[8]
+  resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_app.nsg.id, var.infrastructure.virtual_networks.sap.subnet_app.nsg.id_in_workload))[4]
 }
 
 resource "azurerm_subnet_network_security_group_association" "Associate_nsg_app" {
