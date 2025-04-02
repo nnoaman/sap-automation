@@ -31,7 +31,7 @@ resource "azurerm_network_interface" "scs" {
                                          private_ip_address = try(pub.value.nic_ips[count.index],
                                            var.application_tier.use_DHCP ? (
                                              null) : (
-                                             cidrhost(local.application_subnet_exists ?
+                                             cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists ?
                                                data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
                                                azurerm_subnet.subnet_sap_app[0].address_prefixes[0],
                                                tonumber(count.index) + local.ip_offsets.scs_vm + pub.value.offset
@@ -56,7 +56,7 @@ resource "azurerm_network_interface_application_security_group_association" "scs
                                            0
                                          )
 
-  network_interface_id                 = azurerm_network_interface.scs[count.index].id
+  network_interface_id                 = var.use_admin_nic_for_asg && var.application_tier.dual_nics ? azurerm_network_interface.scs_admin[count.index].id : azurerm_network_interface.scs[count.index].id
   application_security_group_id        = azurerm_application_security_group.app[0].id
 }
 
@@ -83,6 +83,7 @@ resource "azurerm_network_interface" "scs_admin" {
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
   accelerated_networking_enabled        = local.scs_sizing.compute.accelerated_networking
+  tags                                 = var.tags
 
   ip_configuration {
                       name      = "IPConfig1"
@@ -147,7 +148,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
 
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
+  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = local.use_scs_avset ? null : try(local.scs_zones[count.index % max(local.scs_zone_count, 1)], null)
   network_interface_ids                = var.application_tier.dual_nics ? (
@@ -342,7 +343,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
   patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
+  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
   enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = local.use_scs_avset ? (

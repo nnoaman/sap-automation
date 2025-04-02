@@ -129,6 +129,7 @@ echo -e "-----------------------------------------------------------------------
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
+echo "Control Plane Environment File:      $control_plane_environment_file_name"
 
 echo "Environment:                         $ENVIRONMENT"
 echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
@@ -161,7 +162,7 @@ fi
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
   application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
-	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+	DEPLOYER_KEYVAULT=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$key_vault_id" ]; then
 		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
@@ -176,9 +177,9 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	TF_VAR_management_subscription_id=${management_subscription_id}
 	export TF_VAR_management_subscription_id
 else
+  print_banner "$banner_title" "APPLICATION_CONFIGURATION_ID was not found" "info"
 	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
-	load_config_vars "${control_plane_environment_file_name}" "DEPLOYER_KEYVAULT"
-	load_config_vars "${control_plane_environment_file_name}" "tfstate_resource_id"
+	load_config_vars "${control_plane_environment_file_name}" "DEPLOYER_KEYVAULT" "tfstate_resource_id"
 	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
 
@@ -201,7 +202,8 @@ terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d
 export terraform_storage_account_name
 export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
-export tfstate_resource_id
+TF_VAR_tfstate_resource_id=${tfstate_resource_id}
+export TF_VAR_tfstate_resource_id
 
 export workload_key_vault
 
@@ -219,7 +221,7 @@ echo ""
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --storage_accountname "$terraform_storage_account_name"  \
 	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
 	--ado --auto-approve ; then

@@ -76,40 +76,40 @@ variable "infrastructure"                        {
                                        validation {
                                          condition = (
                                            contains(keys(var.infrastructure.virtual_networks.sap), "subnet_admin") ? (
-                                             var.infrastructure.virtual_networks.sap.subnet_admin != null ? (
-                                               length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.prefix, ""))) != 0) : (
+                                             !var.infrastructure.virtual_networks.sap.subnet_admin.exists_in_workload ? (
+                                               length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.prefix, ""))) != 0) : (
                                                true
                                              )) : (
                                              true
                                            )
                                          )
-                                         error_message = "Either the arm_id or prefix of the Admin subnet must be specified in the infrastructure.virtual_networks.sap.subnet_admin block."
+                                         error_message = "Either the id or prefix of the Admin subnet must be specified in the infrastructure.virtual_networks.sap.subnet_admin block."
                                        }
 
                                        validation {
                                                     condition = (
                                                       contains(keys(var.infrastructure.virtual_networks.sap), "subnet_app") ? (
-                                                        var.infrastructure.virtual_networks.sap.subnet_app != null ? (
-                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, ""))) != 0) : (
+                                                        !var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? (
+                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, ""))) != 0) : (
                                                           true
                                                         )) : (
                                                         true
                                                       )
                                                     )
-                                                    error_message = "Either the arm_id or prefix of the Application subnet must be specified in the infrastructure.virtual_networks.sap.subnet_app block."
+                                                    error_message = "Either the id or prefix of the Application subnet must be specified in the infrastructure.virtual_networks.sap.subnet_app block."
                                                   }
 
                                        validation {
                                                     condition = (
                                                       contains(keys(var.infrastructure.virtual_networks.sap), "subnet_db") ? (
-                                                        var.infrastructure.virtual_networks.sap.subnet_db != null ? (
-                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.prefix, ""))) != 0) : (
+                                                        !var.infrastructure.virtual_networks.sap.subnet_db.exists_in_workload ? (
+                                                          length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.prefix, ""))) != 0) : (
                                                           true
                                                         )) : (
                                                         true
                                                       )
                                                     )
-                                                    error_message = "Either the arm_id or prefix of the Database subnet must be specified in the infrastructure.virtual_networks.sap.subnet_db block."
+                                                    error_message = "Either the id or prefix of the Database subnet must be specified in the infrastructure.virtual_networks.sap.subnet_db block."
                                                   }
                                                  }
 
@@ -127,7 +127,7 @@ variable "key_vault"                             {
                                                         true
                                                       )
                                                     )
-                                                    error_message = "If specified, the kv_spn_id needs to be a correctly formed Azure resource ID."
+                                                    error_message = "If specified, the keyvault_id_for_deployment_credentials needs to be a correctly formed Azure resource ID."
                                                   }
                                        validation {
                                                     condition = (
@@ -269,4 +269,3 @@ variable "scaleset_id"                           {
 #########################################################################################
 
 variable "tags"                                  { description = "If provided, tags for all resources" }
-

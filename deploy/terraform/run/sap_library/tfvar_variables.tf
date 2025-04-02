@@ -4,6 +4,7 @@
 #######################################4#######################################8
 #                                                                              #
 #                           Environment definitions                            #
+#                           Environment definitions                            #
 #                                                                              #
 #######################################4#######################################8
 
@@ -83,6 +84,7 @@ variable "assign_permissions"                    {
 
 #######################################4#######################################8
 #                                                                              #
+#                          Resource group definitions                          #
 #                          Resource group definitions                          #
 #                                                                              #
 #######################################4#######################################8
@@ -242,6 +244,7 @@ variable "public_network_access_enabled"              {
 #########################################################################################
 #                                                                                       #
 #  Miscallaneous definitions                                                            #
+#  Miscallaneous definitions                                                            #
 #                                                                                       #
 #########################################################################################
 
@@ -274,6 +277,7 @@ variable "custom_random_id"                     {
 
 #########################################################################################
 #                                                                                       #
+#  Web App definitions                                                                  #
 #  Web App definitions                                                                  #
 #                                                                                       #
 #########################################################################################
@@ -346,11 +350,11 @@ variable "dns_zone_names"                        {
                                                    description = "Private DNS zone names"
                                                    type        = map(string)
                                                    default = {
-                                                               "file_dns_zone_name"      = "privatelink.file.core.windows.net"
-                                                               "blob_dns_zone_name"      = "privatelink.blob.core.windows.net"
-                                                               "table_dns_zone_name"     = "privatelink.table.core.windows.net"
-                                                               "vault_dns_zone_name"     = "privatelink.vaultcore.azure.net"
-                                                               "appconfig_dns_zone_name" = "privatelink.azconfig.io"
+                                                               file_dns_zone_name      = "privatelink.file.core.windows.net"
+                                                               blob_dns_zone_name      = "privatelink.blob.core.windows.net"
+                                                               table_dns_zone_name     = "privatelink.table.core.windows.net"
+                                                               vault_dns_zone_name     = "privatelink.vaultcore.azure.net"
+                                                               appconfig_dns_zone_name = "privatelink.azconfig.io"
                                                              }
 
                                                  }
@@ -396,6 +400,11 @@ variable "create_privatelink_dns_zones"          {
 #  Miscellaneous                                                                         #
 #                                                                                       #
 #########################################################################################
+#########################################################################################
+#                                                                                       #
+#  Miscellaneous                                                                         #
+#                                                                                       #
+#########################################################################################
 
 variable "additional_network_id"                {
                                                    description = "Agent Network resource ID"
@@ -406,6 +415,11 @@ variable "additional_network_id"                {
 variable "tags"                                  {
                                                    description = "If provided, tags for all resources"
                                                    default     = {}
+                                                 }
+variable "application_configuration_id"          {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
                                                  }
 variable "application_configuration_id"          {
                                                     description = "Defines the Azure application configuration Resource id"

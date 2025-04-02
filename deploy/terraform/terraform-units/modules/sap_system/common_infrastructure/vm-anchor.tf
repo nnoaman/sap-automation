@@ -19,10 +19,13 @@ resource "azurerm_network_interface" "anchor" {
 
   ip_configuration {
                      name      = "IPConfig1"
-                     subnet_id = local.database_subnet_exists ? data.azurerm_subnet.db[0].id : azurerm_subnet.db[0].id
+                     subnet_id = (var.infrastructure.virtual_networks.sap.subnet_db.exists || var.infrastructure.virtual_networks.sap.subnet_db.exists_in_workload ) ? data.azurerm_subnet.db[0].id : azurerm_subnet.db[0].id
                      private_ip_address = try(var.infrastructure.anchor_vms.use_DHCP, false) ? (
                        null) : (
-                       try(var.infrastructure.anchor_vms.nic_ips[count.index], cidrhost(local.database_subnet_exists ? data.azurerm_subnet.db[0].address_prefixes[0] : azurerm_subnet.db[0].address_prefixes[0], (count.index + 5)))
+                       try(var.infrastructure.anchor_vms.nic_ips[count.index],
+                          cidrhost((var.infrastructure.virtual_networks.sap.subnet_db.exists || var.infrastructure.virtual_networks.sap.subnet_db.exists_in_workload ) ?
+                            data.azurerm_subnet.db[0].address_prefixes[0] :
+                            azurerm_subnet.db[0].address_prefixes[0], (count.index + 5)))
                      )
                      private_ip_address_allocation = try(var.infrastructure.anchor_vms.use_DHCP, false) ? "Dynamic" : "Static"
                    }
@@ -48,7 +51,7 @@ resource "azurerm_linux_virtual_machine" "anchor" {
 
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
+  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
 
   zone                                 = local.zones[count.index]
 
@@ -151,7 +154,7 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
+  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
 
   network_interface_ids                = [
                                            azurerm_network_interface.anchor[count.index].id

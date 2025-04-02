@@ -32,7 +32,7 @@ resource "azurerm_network_interface" "app" {
                                           private_ip_address = try(pub.value.nic_ips[count.index],
                                             var.application_tier.use_DHCP ? (
                                               null) : (
-                                              cidrhost(local.application_subnet_exists ?
+                                              cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists ?
                                                 data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
                                                 azurerm_subnet.subnet_sap_app[0].address_prefixes[0],
                                                 tonumber(count.index) + local.ip_offsets.app_vm + pub.value.offset
@@ -54,7 +54,7 @@ resource "azurerm_network_interface_application_security_group_association" "app
                                            var.deploy_application_security_groups ? local.application_server_count : 0) : (
                                            0
                                          )
-  network_interface_id                 = azurerm_network_interface.app[count.index].id
+  network_interface_id                 = var.use_admin_nic_for_asg && var.application_tier.dual_nics ? azurerm_network_interface.app_admin[count.index].id : azurerm_network_interface.app[count.index].id
   application_security_group_id        = azurerm_application_security_group.app[0].id
 }
 
@@ -151,7 +151,7 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
+  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
 
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
@@ -308,7 +308,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
+  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
 
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
@@ -594,4 +594,3 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_app_win" {
                                             }
                                           )
 }
-

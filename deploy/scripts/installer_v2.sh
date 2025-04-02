@@ -359,31 +359,37 @@ function retrieve_parameters() {
 		TF_VAR_management_subscription_id=${management_subscription_id}
 		export TF_VAR_management_subscription_id
 	else
-		if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
-			local_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-			if [ -n "${local_backend}" ]; then
+		if [ -z "$terraform_storage_account_name" ]; then
+			if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
+				local_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+				if [ -n "${local_backend}" ]; then
 
-				terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-				terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-				terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-				tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+					terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+					terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+					terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+					tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+				fi
+			else
+				load_config_vars "${system_config_information}" \
+					tfstate_resource_id DEPLOYER_KEYVAULT
+
+				TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
+				export TF_VAR_spn_keyvault_id
+
+				export TF_VAR_tfstate_resource_id
+				terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+				export terraform_storage_account_name
+
+				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+				export terraform_storage_account_resource_group_name
+
+				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+				export terraform_storage_account_subscription_id
 			fi
 		else
-			load_config_vars "${system_config_information}" \
-				tfstate_resource_id DEPLOYER_KEYVAULT
-
-			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
-			export TF_VAR_spn_keyvault_id
-
-			export TF_VAR_tfstate_resource_id
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			export terraform_storage_account_name
-
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			export terraform_storage_account_resource_group_name
-
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			terraform_storage_account_subscription_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --out tsv | cut -d'/' -f3)
 			export terraform_storage_account_subscription_id
+
 		fi
 	fi
 
@@ -676,7 +682,12 @@ function sdaf_installer() {
 			echo "Terraform state:                     remote"
 			print_banner "Installer" "The system has already been deployed and the state file is in Azure" "info"
 
-			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
+			if ! terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state \
+				--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
+				--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
+				--backend-config "storage_account_name=${terraform_storage_account_name}" \
+				--backend-config "container_name=tfstate" \
+				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
 				print_banner "Installer" "Terraform init failed." "error"
 				return $return_value
