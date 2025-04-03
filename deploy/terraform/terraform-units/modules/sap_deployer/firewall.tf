@@ -81,7 +81,7 @@ resource "azurerm_firewall" "firewall" {
 
   ip_configuration                             {
                                                  name                 = "ipconfig1"
-                                                 subnet_id            = var.infrastructure.virtual_network.subnet_firewall.exists ? (
+                                                 subnet_id            = var.infrastructure.virtual_network.management.subnet_firewall.exists ? (
                                                                           data.azurerm_subnet.firewall[0].id) : (
                                                                           azurerm_subnet.firewall[0].id
                                                                         )
