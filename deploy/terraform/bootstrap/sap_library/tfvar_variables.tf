@@ -68,6 +68,10 @@ variable "deployer_prefix"                       {
                                                     default     = ""
                                                  }
 
+variable "control_plane_name"                   {
+                                                  description = "The name of the control plane"
+                                                  default     = ""
+                                                }
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #

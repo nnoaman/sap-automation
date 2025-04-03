@@ -82,6 +82,10 @@ variable "assign_permissions"                    {
                                                     type        = bool
                                                   }
 
+variable "control_plane_name"                     {
+                                                    description = "The name of the control plane"
+                                                    default     = ""
+                                                  }
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #

@@ -22,26 +22,26 @@ data "terraform_remote_state" "deployer"          {
 
 data "azurerm_key_vault_secret" "subscription_id" {
                                                     count        = length(local.key_vault.keyvault_id_for_deployment_credentials) > 0 ? (var.use_deployer && var.use_spn ? 1 : 0) : 0
-                                                    name         = format("%s-subscription-id", upper(data.terraform_remote_state.deployer[0].outputs.control_plane_name))
+                                                    name         = format("%s-subscription-id", upper(coalesce(local.infrastructure.control_plane_name, local.infrastructure.environment)))
                                                     key_vault_id = local.key_vault.keyvault_id_for_deployment_credentials
                                                   }
 
 
 data "azurerm_key_vault_secret" "client_id"       {
                                                     count        = length(local.key_vault.keyvault_id_for_deployment_credentials) > 0 ? (var.use_deployer && var.use_spn ? 1 : 0) : 0
-                                                    name         = format("%s-client-id", upper(data.terraform_remote_state.deployer[0].outputs.control_plane_name))
+                                                    name         = format("%s-client-id", upper(coalesce(local.infrastructure.control_plane_name, local.infrastructure.environment)))
                                                     key_vault_id = local.key_vault.keyvault_id_for_deployment_credentials
                                                   }
 
 ephemeral "azurerm_key_vault_secret" "client_secret"   {
                                                     count        = length(local.key_vault.keyvault_id_for_deployment_credentials) > 0 ? (var.use_deployer && var.use_spn ? 1 : 0) : 0
-                                                    name         = format("%s-client-secret", upper(data.terraform_remote_state.deployer[0].outputs.control_plane_name))
+                                                    name         = format("%s-client-secret", upper(coalesce(local.infrastructure.control_plane_name, local.infrastructure.environment)))
                                                     key_vault_id = local.key_vault.keyvault_id_for_deployment_credentials
                                                   }
 
 data "azurerm_key_vault_secret" "tenant_id"       {
                                                     count        = length(local.key_vault.keyvault_id_for_deployment_credentials) > 0 ? (var.use_deployer && var.use_spn ? 1 : 0) : 0
-                                                    name         = format("%s-tenant-id", upper(data.terraform_remote_state.deployer[0].outputs.control_plane_name))
+                                                    name         = format("%s-tenant-id", upper(coalesce(local.infrastructure.control_plane_name, local.infrastructure.environment)))
                                                     key_vault_id = local.key_vault.keyvault_id_for_deployment_credentials
                                                   }
 // Import current service principal

@@ -14,6 +14,7 @@ locals {
                                            tags               = try(coalesce(var.resourcegroup_tags, var.tags, {}), {})
                                            assign_permissions = var.assign_permissions
                                            spn_id             = var.spn_id
+                                           control_plane_name = var.use_deployer ? upper(coalesce(data.terraform_remote_state.deployer[0].outputs.control_plane_name, var.control_plane_name)) : upper(var.control_plane_name)
 
                                          }
   deployer                             = {
