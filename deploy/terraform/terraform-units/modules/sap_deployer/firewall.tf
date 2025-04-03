@@ -44,7 +44,7 @@ resource "azurerm_public_ip" "firewall" {
                                                  azurerm_virtual_network.vnet_mgmt[0].location
                                                )
 
-  resource_group_name                        = var.infrastructure.virtual_network.managementexists ? (
+  resource_group_name                        = var.infrastructure.virtual_network.management.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
