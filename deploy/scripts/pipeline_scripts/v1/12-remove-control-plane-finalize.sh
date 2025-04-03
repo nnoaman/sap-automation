@@ -12,9 +12,12 @@ cyan="\e[1;36m"
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
 
 #call stack has full script name when using source
-source "${script_directory}/helper.sh"
+source "${parent_directory}/helper.sh"
+source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=False
 
@@ -25,138 +28,10 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 
 export DEBUG
-# Ensure that the exit status of a pipeline command is non-zero if any
-# stage of the pipefile has a non-zero exit status.
-set -o pipefail
-
-# Print the execution environment details
-print_header
-
-# Configure DevOps
-configure_devops
-
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
-
-cd "$CONFIG_REPO_PATH" || exit
-
-deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
-
-echo ""
-echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset"
-echo ""
-
-echo -e "$green--- File Validations ---$reset"
-
-if [ ! -f "$deployerTFvarsFile" ]; then
-	echo -e "$bold_red--- File ${deployerTFvarsFile} was not found ---$reset"
-	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
-	exit 2
-fi
-
-if [ ! -f "${libraryTFvarsFile}" ]; then
-	echo -e "$bold_red--- File ${libraryTFvarsFile}  was not found ---$reset"
-	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
-	exit 2
-fi
-
-TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
-export TF_VAR_deployer_tfstate_key
-
-function remove_variable() {
-	local variable_name="$2"
-	local variable_group"$1"
-	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group}" --query "$variable_name.value" --out tsv)
-	if [ ${#variable_value} != 0 ]; then
-		az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors
-	fi
-}
-
-echo -e "$green--- Environment information ---$reset"
-ENVIRONMENT=$(grep -m1 "^environment" "$deployerTFvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"' || true)
-LOCATION=$(grep -m1 "^location" "$deployerTFvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"' || true)
-deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
-
-# shellcheck disable=SC2005
-ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $1}')
-
-LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $2}')
-LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
-
-echo "Environment:                         ${ENVIRONMENT}"
-echo "Location:                            ${LOCATION}"
-echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
-echo "Location(filename):                  $LOCATION_IN_FILENAME"
-
-if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The environment setting in $deployerTFvarsFile $ENVIRONMENT does not match the $DEPLOYER_FOLDERNAME file name $ENVIRONMENT_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	exit 2
-fi
-
-if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The location setting in $deployerTFvarsFile $LOCATION does not match the $DEPLOYER_FOLDERNAME file name $LOCATION_IN_FILENAME. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	exit 2
-fi
-
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE_IN_FILENAME"
-echo "Environment file:                    $deployer_environment_file_name"
-
-if [[ -f /etc/profile.d/deploy_server.sh ]]; then
-	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export PATH=$PATH:$path
-fi
-
-echo -e "$green--- Information ---$reset"
-
-if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-	exit 2
-fi
-
-echo -e "$green--- Validations ---$reset"
-if [ "$USE_MSI" != "true" ]; then
-
-	if [ -z "$ARM_CLIENT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ -z "$ARM_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ -z "$ARM_TENANT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+
 	configureNonDeployer "$TF_VERSION"
 
 	ARM_CLIENT_ID="$servicePrincipalId"
@@ -182,25 +57,122 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
-
+else
+	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export PATH=$PATH:$path
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 fi
 
-ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault" || true)
-export key_vault
-
-echo "Deployer Key Vault:                  $key_vault"
-
-key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
-if [ -n "${key_vault_id}" ]; then
-	if [ "azure pipelines" = "$THIS_AGENT" ]; then
-		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-		az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
+if printenv OBJECT_ID; then
+	if is_valid_guid "$OBJECT_ID"; then
+		TF_VAR_spn_id="$OBJECT_ID"
+		export TF_VAR_spn_id
 	fi
 fi
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
+CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
+export "CONTROL_PLANE_NAME"
+VARIABLE_GROUP="SDAF-${CONTROL_PLANE_NAME}"
+
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
+then
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
+
+# Ensure that the exit status of a pipeline command is non-zero if any
+# stage of the pipefile has a non-zero exit status.
+set -o pipefail
+
+cd "$CONFIG_REPO_PATH" || exit
+
+deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+
+echo ""
+echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset"
+echo ""
+
+if [ ! -f "$deployerTFvarsFile" ]; then
+	echo -e "$bold_red--- File ${deployerTFvarsFile} was not found ---$reset"
+	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
+if [ ! -f "${libraryTFvarsFile}" ]; then
+	echo -e "$bold_red--- File ${libraryTFvarsFile}  was not found ---$reset"
+	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
+TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
+export TF_VAR_deployer_tfstate_key
+
+CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
+export "CONTROL_PLANE_NAME"
+
+deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
+
+echo -e "$green--- Information ---$reset"
+
+echo ""
+echo "Control Plane Name:                  ${CONTROL_PLANE_NAME}"
+echo "Environment file:                    $deployer_environment_file_name"
+
+if [[ -f /etc/profile.d/deploy_server.sh ]]; then
+	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export PATH=$PATH:$path
+fi
+
+if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
+	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+	exit 2
+fi
+
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
+
+key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+
+if [ -n "${key_vault_id}" ]; then
+	if [ "azure pipelines" = "$THIS_AGENT" ]; then
+		key_vault_resource_group=$(echo "$key_vault_id" | cut -d'/' -f5)
+		key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
+
+		az keyvault update --name "$key_vault" --resource-group "$key_vault_resource_group" --public-network-access Enabled --output none --only-show-errors
+		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+		echo "Adding the IP to the keyvault firewall rule and sleep for 30 seconds"
+		az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
+		sleep 30
+	fi
+fi
+
+app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
+app_config_resource_group=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f5)
+az appconfig update --name "$app_config_name" --resource-group "$app_config_resource_group" --enable-public-network true --output none --only-show-errors
+sleep 30
 
 cd "$CONFIG_REPO_PATH" || exit
 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
@@ -214,8 +186,8 @@ echo -e "$green--- Running the remove region script that destroys deployer VM an
 
 cd "$CONFIG_REPO_PATH/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh" --auto-approve \
-	--parameterfile "$DEPLOYER_TFVARS_FILENAME"; then
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh" --auto-approve \
+	--parameter_file "$DEPLOYER_TFVARS_FILENAME"; then
 	return_code=$?
 	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
 	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
@@ -223,8 +195,6 @@ else
 	return_code=$?
 	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 failed."
 fi
-
-return_code=$?
 
 echo "Return code from remove_deployer: $return_code."
 
@@ -257,14 +227,24 @@ if [ 0 == $return_code ]; then
 		changed=1
 	fi
 
-	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}" ]; then
-		rm ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
-		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
+	environment=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
+	region_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
+
+	if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
+		rm ".sap_deployment_automation/${environment}${region_code}"
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}"
 		changed=1
 	fi
-	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}.md" ]; then
-		rm ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}.md"
-		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}.md"
+
+	if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
+		rm ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+		changed=1
+	fi
+
+	if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
+		rm ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
 		changed=1
 	fi
 
@@ -282,9 +262,11 @@ if [ 0 == $return_code ]; then
 		fi
 	fi
 	echo -e "$green--- Deleting variables ---$reset"
-	if [ ${VARIABLE_GROUP_ID} != 0 ]; then
+	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		echo "Deleting variables"
 
+		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
@@ -297,8 +279,6 @@ if [ 0 == $return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
-		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
-		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
 
 	fi
 
