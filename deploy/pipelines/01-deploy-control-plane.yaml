@@ -231,7 +231,7 @@ stages:
             env:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
               CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
-
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
     variables:
