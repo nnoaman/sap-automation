@@ -39,20 +39,20 @@ resource "azurerm_public_ip" "firewall" {
   allocation_method                          = "Static"
   sku                                        = "Standard"
 
-  location                                   = var.infrastructure.virtual_network.exists ? (
+  location                                   = var.infrastructure.virtual_network.management.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].location) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].location
                                                )
 
-  resource_group_name                        = var.infrastructure.virtual_network.exists ? (
+  resource_group_name                        = var.infrastructure.virtual_network.managementexists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
   zones                                      = [1,2,3] # - optional property.
-  ip_tags                                    = length(var.firewall.ip_tags) > 0 ? (
+  ip_tags                                    = try(length(var.firewall.ip_tags) > 0 ? (
                                                  var.firewall.ip_tags) : (
                                                  null
-                                               )
+                                               ), null)
   lifecycle                                  {
                                                 create_before_destroy = true
                                              }
