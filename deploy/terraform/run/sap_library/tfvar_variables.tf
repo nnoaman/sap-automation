@@ -417,8 +417,3 @@ variable "application_configuration_id"          {
                                                     type        = string
                                                     default     = ""
                                                  }
-variable "application_configuration_id"          {
-                                                    description = "Defines the Azure application configuration Resource id"
-                                                    type        = string
-                                                    default     = ""
-                                                 }
