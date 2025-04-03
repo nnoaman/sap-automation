@@ -10,11 +10,11 @@ resource "azurerm_subnet" "firewall" {
   count                                      = var.firewall.deployment && !var.infrastructure.virtual_network.management.subnet_firewall.exists ? 1 : 0
   name                                       = local.firewall_subnet_name
   address_prefixes                           = [var.infrastructure.virtual_network.management.subnet_firewall.prefix]
-  resource_group_name                        = var.infrastructure.virtual_network.exists ? (
+  resource_group_name                        = var.infrastructure.virtual_network.management.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
-  virtual_network_name                       = var.infrastructure.virtual_network.exists ? (
+  virtual_network_name                       = var.infrastructure.virtual_network.management.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].name
                                                )
