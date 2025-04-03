@@ -331,6 +331,10 @@ variable "user_keyvault_id"                           {
                                                         default     = ""
                                                       }
 
+variable "spn_keyvault_id"                           {
+                                                        description = "Azure resource identifier for the Azure Key Vault containing the deployment credentials"
+                                                        default     = ""
+                                                      }
 
 variable "deployer_kv_user_arm_id"                    {
                                                         description = "Azure resource identifier for the deployer user Azure Key Vault"
