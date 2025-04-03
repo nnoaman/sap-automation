@@ -387,7 +387,7 @@ function retrieve_parameters() {
 
 			fi
 		else
-			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --out tsv | cut -d'/' -f3)
+			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --out tsv)
 			export tfstate_resource_id
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 			export TF_VAR_tfstate_resource_id
