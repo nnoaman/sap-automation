@@ -441,6 +441,7 @@ variable "auto_configure_deployer"                    {
 variable "spn_id"                                     {
                                                         description = "SPN ID to be used for the deployment"
                                                         nullable    = true
+                                                        default     = ""
 
                                                       }
 
