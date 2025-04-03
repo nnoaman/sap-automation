@@ -393,7 +393,6 @@ function install_deployer() {
 
 		save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
 		echo "${deployer_config_information}"
-		cat "${deployer_config_information}"
 		export DEPLOYER_KEYVAULT
 	fi
 
