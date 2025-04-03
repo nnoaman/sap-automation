@@ -283,12 +283,15 @@ echo ""
 
 set -eu
 
+printenv | sort
 if [ -f "${deployer_environment_file_name}" ]; then
+	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+
 	APPLICATION_CONFIGURATION_ID=$(grep -m1 "^APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	export APPLICATION_CONFIGURATION_ID
 
-	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+
 fi
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
