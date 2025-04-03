@@ -57,6 +57,7 @@ echo "Network:                             $NETWORK"
 subscription=$ARM_SUBSCRIPTION_ID
 echo "Subscription:                        $subscription"
 
+library_return_code=0
 resourceGroupName=$(az group list --subscription "$subscription" --query "[?name=='$LIBRARY_FOLDERNAME'].name | [0]")
 if [ ${#resourceGroupName} != 0 ]; then
 	print_banner "Removal using ARM" "Deleting resource group: $LIBRARY_FOLDERNAME" "info"
@@ -64,19 +65,20 @@ if [ ${#resourceGroupName} != 0 ]; then
 
 	# shellcheck disable=SC2046
 	az group delete --subscription "$subscription" --name $LIBRARY_FOLDERNAME --yes --only-show-errors
-	return_code=$?
+	library_return_code=$?
 	echo "##vso[task.setprogress value=30;]Progress Indicator"
 else
 	print_banner "Removal using ARM" "Resource group: $LIBRARY_FOLDERNAME was not found" "warning"
 
 fi
 
+deployer_return_code=0
 resourceGroupName=$(az group list --subscription "$subscription" --query "[?name=='$DEPLOYER_FOLDERNAME'].name  | [0]")
 if [ ${#resourceGroupName} != 0 ]; then
 	print_banner "Removal using ARM" "Deleting resource group: $DEPLOYER_FOLDERNAME" "info"
 	echo "##vso[task.setprogress value=60;]Progress Indicator"
 	az group delete --subscription "$subscription" --name "$DEPLOYER_FOLDERNAME" --yes --only-show-errors
-	return_code=$?
+	deployer_return_code=$?
 else
 	print_banner "Removal using ARM" "Resource group: $DEPLOYER_FOLDERNAME was not found" "warning"
 fi
@@ -84,8 +86,29 @@ fi
 echo -e "$green--- Removing deployment automation configuration from devops repository ---$reset"
 
 echo "##vso[task.setprogress value=90;]Progress Indicator"
+echo -e "$green--- Deleting variables ---$reset"
 
-if [ 0 == $return_code ]; then
+if [ 0 == $library_return_code ] && [ 0 == $deployer_return_code ]; then
+
+	if [ -n "$VARIABLE_GROUP_ID" ]; then
+		echo "Deleting variables"
+
+		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
+		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
+		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
+		remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
+		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
+		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
+		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
+		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
+		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
+
+	fi
 	cd "$CONFIG_REPO_PATH" || exit
 	git checkout -q $BUILD_SOURCEBRANCHNAME
 	git pull
@@ -152,26 +175,6 @@ if [ 0 == $return_code ]; then
 			echo "##vso[task.logissue type=warning]Changes pushed to $BUILD_SOURCEBRANCHNAME"
 		else
 			echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
-		fi
-		echo -e "$green--- Deleting variables ---$reset"
-		if [ -n "$VARIABLE_GROUP_ID" ]; then
-			echo "Deleting variables"
-
-			remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
-			remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
-			remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
-			remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
-			remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
-			remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
-			remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
-			remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
-			remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
-			remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
-			remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
-			remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
-			remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
-			remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
-
 		fi
 
 	fi
