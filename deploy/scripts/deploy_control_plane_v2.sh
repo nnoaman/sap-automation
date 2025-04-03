@@ -724,6 +724,7 @@ function deploy_control_plane() {
 	step=0
 	ado_flag="none"
 	autoApproveParameter=""
+	return_value=0
 
 	# Define an array of helper scripts
 	helper_scripts=(

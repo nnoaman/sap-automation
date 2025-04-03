@@ -106,7 +106,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
-
 }
 
 

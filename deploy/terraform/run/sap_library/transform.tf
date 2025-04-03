@@ -11,7 +11,7 @@ locals {
                                              name             = var.resourcegroup_name
                                              arm_id           = var.resourcegroup_arm_id
                                                }
-                                           tags               = try(coalesce(var.resourcegroup_tags, var.tags, {}), {})
+                                           tags               = var.tags
                                            assign_permissions = var.assign_permissions
                                            spn_id             = var.spn_id
 
