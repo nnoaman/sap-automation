@@ -93,14 +93,12 @@ CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
 export "CONTROL_PLANE_NAME"
 VARIABLE_GROUP="SDAF-${CONTROL_PLANE_NAME}"
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
 export VARIABLE_GROUP_ID
-
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
@@ -169,11 +167,13 @@ if [ -n "${key_vault_id}" ]; then
 	fi
 fi
 
-app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
-app_config_resource_group=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f5)
-az appconfig update --name "$app_config_name" --resource-group "$app_config_resource_group" --enable-public-network true --output none --only-show-errors
-sleep 30
+if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
+	app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
+	app_config_resource_group=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f5)
+	az appconfig update --name "$app_config_name" --resource-group "$app_config_resource_group" --enable-public-network true --output none --only-show-errors
+	sleep 30
+fi
 cd "$CONFIG_REPO_PATH" || exit
 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
 
