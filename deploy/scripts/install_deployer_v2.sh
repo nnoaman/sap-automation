@@ -272,13 +272,13 @@ function install_deployer() {
 
 	# shellcheck disable=SC2086
 
-	if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
+	if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
 	fi
 
-	if [ 1 == $return_value ]; then
+	if [ 1 == "$return_value" ]; then
 		print_banner "$banner_title" "Terraform plan failed" "error"
 		if [ -f plan_output.log ]; then
 			cat plan_output.log
