@@ -693,10 +693,9 @@ function execute_deployment_steps() {
 	if [ 4 -eq "${step}" ]; then
 		if ! migrate_library_state; then
 			return_value=$?
-			print_banner "Library" "Migration of library state failed" "error"
 			step=4
 			save_config_var "step" "${deployer_config_information}"
-			return $return_value
+			return 40
 		else
 			step=5
 			save_config_var "step" "${deployer_config_information}"
@@ -838,8 +837,9 @@ function deploy_control_plane() {
 		fi
 
 		if ! execute_deployment_steps $step; then
+		  return_value=$?
 			print_banner "Control Plane Deployment" "Executing deployment steps failed" "error"
-			return 20
+
 		fi
 	fi
 
@@ -886,7 +886,7 @@ EOF
 	unset TF_DATA_DIR
 	print_banner "Control Plane Deployment" "Exiting $SCRIPT_NAME" "info"
 
-	return 0
+	return $return_value
 }
 
 
