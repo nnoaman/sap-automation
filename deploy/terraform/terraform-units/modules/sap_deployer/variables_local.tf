@@ -20,7 +20,6 @@ locals {
   enable_deployer_public_ip            = try(var.options.enable_deployer_public_ip, false)
   Agent_IP                             = try(var.Agent_IP, "")
 
-
   // Resource group
   prefix                               = var.naming.prefix.DEPLOYER
 
@@ -200,7 +199,12 @@ locals {
 
 
   parsed_id                            = var.app_config_service.exists ? try(provider::azurerm::parse_resource_id(var.app_config_service.id), "") : null
-  app_config_name                      = var.app_config_service.exists ? local.parsed_id["resource_name"] : ""
+  app_config_name                      = var.app_config_service.exists ? local.parsed_id["resource_name"] : format("%s%s%s%s",
+                                           var.naming.resource_prefixes.app_config,
+                                           var.naming.prefix.DEPLOYER,
+                                           var.naming.resource_suffixes.app_config,
+                                           coalesce(try(var.infrastructure.custom_random_id, ""), substr(random_id.deployer.hex, 0, 3))
+                                         )
   app_config_resource_group_name       = var.app_config_service.exists ? local.parsed_id["resource_group_name"] : ""
 
 }

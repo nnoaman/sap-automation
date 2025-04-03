@@ -11,7 +11,7 @@
 resource "azurerm_app_configuration" "app_config" {
   provider                             = azurerm.main
   count                                = var.app_config_service.deploy ? length(var.app_config_service.id) > 0 ? 0 : 1 : 0
-  name                                 = var.app_config_service.name
+  name                                 = local.app_config_name
   resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
