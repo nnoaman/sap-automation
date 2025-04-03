@@ -222,7 +222,6 @@ echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
-
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_id "${APPLICATION_CONFIGURATION_ID}" \
@@ -240,9 +239,6 @@ if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]Return code from remover $return_code."
 else
 	if [ 0 == $return_code ]; then
-		if [ -d .terraform ]; then
-			rm -r .terraform
-		fi
 		# Pull changes
 		git checkout -q "$BUILD_SOURCEBRANCHNAME"
 		git pull origin "$BUILD_SOURCEBRANCHNAME"
@@ -257,6 +253,10 @@ else
 		if [ -d ".terraform" ]; then
 			git rm -q -r --ignore-unmatch ".terraform"
 			changed=1
+		fi
+
+		if [ -d .terraform ]; then
+			rm -r .terraform
 		fi
 
 		if [ -f "$SAP_SYSTEM_TFVARS_FILENAME" ]; then

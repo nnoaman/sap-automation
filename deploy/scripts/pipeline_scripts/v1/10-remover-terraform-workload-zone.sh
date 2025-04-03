@@ -228,9 +228,6 @@ if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]Return code from remover $return_code."
 else
 	if [ 0 == $return_code ]; then
-		if [ -d .terraform ]; then
-			rm -r .terraform
-		fi
 		# Pull changes
 		git checkout -q "$BUILD_SOURCEBRANCHNAME"
 		git pull origin "$BUILD_SOURCEBRANCHNAME"
@@ -245,6 +242,10 @@ else
 		if [ -d ".terraform" ]; then
 			git rm -q -r --ignore-unmatch ".terraform"
 			changed=1
+		fi
+
+		if [ -d .terraform ]; then
+			rm -r .terraform
 		fi
 
 		if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
