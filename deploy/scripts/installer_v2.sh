@@ -378,16 +378,26 @@ function retrieve_parameters() {
 
 				export TF_VAR_tfstate_resource_id
 				terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-				export terraform_storage_account_name
-
 				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-				export terraform_storage_account_resource_group_name
-
 				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+
+				export terraform_storage_account_resource_group_name
+				export terraform_storage_account_name
 				export terraform_storage_account_subscription_id
+
 			fi
 		else
-			terraform_storage_account_subscription_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --out tsv | cut -d'/' -f3)
+			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --out tsv | cut -d'/' -f3)
+			export tfstate_resource_id
+			TF_VAR_tfstate_resource_id=$tfstate_resource_id
+			export TF_VAR_tfstate_resource_id
+
+			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+
+			export terraform_storage_account_resource_group_name
+			export terraform_storage_account_name
 			export terraform_storage_account_subscription_id
 
 		fi
