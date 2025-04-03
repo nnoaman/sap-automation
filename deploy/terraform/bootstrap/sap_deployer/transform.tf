@@ -202,7 +202,7 @@ locals {
 
                                          }
   app_config_service                   = {
-                                           name                                        = coalesce(var.application_configuration_name,module.sap_namegenerator.naming_new.appconfig_name)                                           deploy                                      = var.application_configuration_deployment
+                                           name                                        = coalesce(var.application_configuration_name,module.sap_namegenerator.naming_new.appconfig_name)
                                            id                                          = var.application_configuration_id
                                            exists                                      = length(var.application_configuration_id) > 0 ? true : false
                                          }
