@@ -1046,6 +1046,30 @@ function sdaf_installer() {
 				sed -i -e /"custom_random_id"/d "${parameterFilename}"
 				printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 			fi
+			DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+			if [ -n "${DEPLOYER_KEYVAULT}" ]; then
+				save_config_var "DEPLOYER_KEYVAULT" "${system_config_information}"
+				export DEPLOYER_KEYVAULT
+			fi
+
+			APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+			if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
+				save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
+				export APPLICATION_CONFIGURATION_ID
+			fi
+
+			APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+			if [ -n "${APP_SERVICE_NAME}" ]; then
+				save_config_var "APP_SERVICE_NAME" "${system_config_information}"
+				export APP_SERVICE_NAME
+			fi
+
+			HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+			if [ -n "${HAS_WEBAPP}" ]; then
+				save_config_var "HAS_WEBAPP" "${system_config_information}"
+				export HAS_WEBAPP
+			fi
+
 		fi
 
 		DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color deployer_kv_user_name | tr -d \")

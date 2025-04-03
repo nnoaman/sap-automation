@@ -392,7 +392,6 @@ function install_deployer() {
 		print_banner "$banner_title" "Keyvault to use for deployment credentials: $val" "info"
 
 		save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
-		echo "${deployer_config_information}"
 		export DEPLOYER_KEYVAULT
 	fi
 
@@ -400,6 +399,18 @@ function install_deployer() {
 	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
 		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
 		export APPLICATION_CONFIGURATION_ID
+	fi
+
+	APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+	if [ -n "${APP_SERVICE_NAME}" ]; then
+		save_config_var "APP_SERVICE_NAME" "${deployer_config_information}"
+		export APP_SERVICE_NAME
+	fi
+
+	HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+	if [ -n "${HAS_WEBAPP}" ]; then
+		save_config_var "HAS_WEBAPP" "${deployer_config_information}"
+		export HAS_WEBAPP
 	fi
 
 	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
