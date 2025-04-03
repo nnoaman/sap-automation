@@ -1048,7 +1048,7 @@ function sdaf_installer() {
 			fi
 		fi
 
-		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color deployer_kv_user_name | tr -d \")
+		DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color deployer_kv_user_name | tr -d \")
 
 		app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color deployer_app_config_id | tr -d \")
 
@@ -1084,6 +1084,14 @@ function sdaf_installer() {
 				fi
 			fi
 
+			if [ -n "${DEPLOYER_KEYVAULT}" ]; then
+				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value")
+				if [ -z "${az_var}" ]; then
+					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${DEPLOYER_KEYVAULT}" --output none --only-show-errors
+				else
+					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${DEPLOYER_KEYVAULT}" --output none --only-show-errors
+				fi
+			fi
 		fi
 
 	fi
