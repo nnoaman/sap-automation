@@ -64,6 +64,7 @@ source_helper_scripts() {
 
 # Function to parse command line arguments
 function parse_arguments() {
+	approve=""
 	local input_opts
 	input_opts=$(getopt -n deploy_controlplane_v2 -o d:l:s:c:p:t:a:k:ifohrvm --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
 	VALID_ARGUMENTS=$?
@@ -72,6 +73,7 @@ function parse_arguments() {
 		control_plane_showhelp
 	fi
 
+  subscription=$ARM_SUBSCRIPTION_ID
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
@@ -113,6 +115,8 @@ function parse_arguments() {
 			;;
 		-m | --msi)
 			deploy_using_msi_only=1
+			USE_MSI=true
+			export USE_MSI
 			shift
 			;;
 		-v | --ado)
@@ -155,7 +159,7 @@ function parse_arguments() {
 	library_dirname=$(dirname "${library_parameter_file}")
 	library_parameter_file_name=$(basename "${library_parameter_file}")
 
-	if [ -z $CONTROL_PLANE_NAME ]; then
+	if ! printenv CONTROL_PLANE_NAME ; then
 		CONTROL_PLANE_NAME=$(basename "${deployer_parameter_file}" | cut -d'-' -f1-3)
 		export CONTROL_PLANE_NAME
 	fi
@@ -802,6 +806,10 @@ function deploy_control_plane() {
 		return 65
 	fi
 	az account list --query "[].{Name:name,Id:id}" --output table
+
+	if ! printenv USE_MSI; then
+		USE_MSI=true
+	fi
 
 	if [ "$USE_MSI" != "true" ]; then
 		echo "Identity to use:                     Service Principal"
