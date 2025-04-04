@@ -217,7 +217,6 @@ function bootstrap_deployer() {
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			return 0
-		else
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
 			return 10
 		fi
@@ -355,7 +354,7 @@ function bootstrap_library {
 
 		if [ "${ado_flag}" != "--ado" ]; then
 			this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-			az storage account network-rule add -g "${terraform_storage_account_resource_group_name}" --account-name "${terraform_storage_account_name}" --ip-address "${this_ip}" --output none
+			az storage account network-rule add --account-name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --ip-address "${this_ip}" --output none
 		fi
 
 		TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")

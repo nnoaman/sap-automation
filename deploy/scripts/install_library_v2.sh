@@ -19,9 +19,13 @@ if [[ "${DEBUG:-false}" == 'true' ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error
+	DEBUG=true
 	set -o errexit
 	echo "Environment variables:"
 	printenv | sort
+else
+	# Disable debugging
+	DEBUG=false
 fi
 
 # Constants
