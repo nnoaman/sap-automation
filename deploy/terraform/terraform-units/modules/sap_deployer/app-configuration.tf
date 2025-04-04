@@ -20,7 +20,10 @@ resource "azurerm_app_configuration" "app_config" {
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
-  sku =                                "standard"
+  local_auth_enabled                  = false
+  purge_protection_enabled            = var.enable_purge_control_for_keyvaults
+
+  sku                                  = "standard"
   tags                                 = var.infrastructure.tags
 }
 
@@ -59,8 +62,14 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
   tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
                                          }
-  )
-  lifecycle {
+
+  timeouts                             {
+                                          read = "2m"
+                                          create = "5m"
+                                          update = "5m"
+
+                                       }
+}lifecycle {
               ignore_changes = [
                 configuration_store_id,
                 etag,
