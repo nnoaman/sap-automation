@@ -249,7 +249,7 @@ function validate_keyvault_access {
 	TF_DATA_DIR="${deployer_dirname}"/.terraform
 	export TF_DATA_DIR
 
-	if [ -z "$DEPLOYER_KEYVAULT" ]; then
+	if ! printenv DEPLOYER_KEYVAULT; then
 
 		VALUE=${APPLICATION_CONFIGURATION_ID:-}
 
