@@ -68,7 +68,10 @@ resource "azurerm_network_security_rule" "nsr_ssh" {
   protocol                             = "Tcp"
   source_port_range                    = "*"
   destination_port_range               = 22
-  source_address_prefixes              = var.infrastructure.virtual_network.management.subnet_mgmt.nsg.allowed_ips
+  source_address_prefixes              = length(var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) > 0 ? (
+                                             var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) : (
+                                             ["0.0.0.0/0"]
+                                           )
 
 }
 
@@ -94,7 +97,10 @@ resource "azurerm_network_security_rule" "nsr_rdp" {
   protocol                             = "Tcp"
   source_port_range                    = "*"
   destination_port_range               = 3389
-  source_address_prefixes              = var.infrastructure.virtual_network.management.subnet_mgmt.nsg.allowed_ips
+  source_address_prefixes              = length(var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) > 0 ? (
+                                             var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) : (
+                                             ["0.0.0.0/0"]
+                                           )
 
 }
 
@@ -120,6 +126,9 @@ resource "azurerm_network_security_rule" "nsr_winrm" {
   protocol                             = "Tcp"
   source_port_range                    = "*"
   destination_port_ranges              = [5985, 5986]
-  source_address_prefixes              = var.infrastructure.virtual_network.management.subnet_mgmt.nsg.allowed_ips
+  source_address_prefixes              = length(var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) > 0 ? (
+                                             var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) : (
+                                             ["0.0.0.0/0"]
+                                           )
 
 }
