@@ -61,7 +61,7 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
   type                                 = "kv"
   tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
-                                         }
+                                         })
 
   timeouts                             {
                                           read = "2m"
@@ -69,7 +69,7 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
                                           update = "5m"
 
                                        }
-}lifecycle {
+  lifecycle {
               ignore_changes = [
                 configuration_store_id,
                 etag,
@@ -96,6 +96,12 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
   tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
                                          })
+  timeouts                             {
+                                          read = "2m"
+                                          create = "5m"
+                                          update = "5m"
+
+                                       }
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -123,6 +129,12 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
   tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
                                          })
+  timeouts                             {
+                                          read = "2m"
+                                          create = "5m"
+                                          update = "5m"
+
+                                       }
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
