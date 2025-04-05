@@ -238,7 +238,6 @@ function parse_arguments() {
 		deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 	fi
 
-
 	if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
 		if [ -n "$WORKLOAD_ZONE_NAME" ]; then
 			landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
@@ -269,6 +268,8 @@ function parse_arguments() {
 	fi
 
 	if [ "${deployment_system}" != sap_deployer ]; then
+	  TF_VAR_APPLICATION_CONFIGURATION_ID=$APPLICATION_CONFIGURATION_ID
+		export TF_VAR_APPLICATION_CONFIGURATION_ID
 		if [ -z "${deployer_tfstate_key}" ]; then
 			if [ 1 != $called_from_ado ]; then
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
