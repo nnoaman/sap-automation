@@ -396,7 +396,6 @@ function migrate_deployer_state() {
 	print_banner "$banner_title" "Migrating the deployer state..." "info"
 
 	cd "${deployer_dirname}" || exit
-	cat "${deployer_config_information}"
 	VALIDATED_APPLICATION_CONFIGURATION_ID=VALUE=${APPLICATION_CONFIGURATION_ID:-}
 	if is_valid_id "$VALIDATED_APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
@@ -414,7 +413,7 @@ function migrate_deployer_state() {
 	fi
 
 	if [ -z "$terraform_storage_account_name" ]; then
-		print_banner "$banner_title" "Sourcing parameters from: "${deployer_config_information}" "info" "${deployer_config_information}"
+		print_banner "$banner_title" "Sourcing parameters from: " "info" "${deployer_config_information}"
 			load_config_vars "${deployer_config_information}" "tfstate_resource_id"
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 			export TF_VAR_tfstate_resource_id
