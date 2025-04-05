@@ -544,12 +544,6 @@ function remove_control_plane() {
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 		export TF_DATA_DIR="${param_dirname}/.terraform"
 
-		extra_vars=""
-
-		if [ -f terraform.tfvars ]; then
-			extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
-		fi
-
 		var_file="${deployer_parameter_file}"
 
 		print_banner "Remove Control Plane " "Running Terraform destroy (deployer)" "info"
