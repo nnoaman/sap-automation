@@ -338,26 +338,26 @@ function retrieve_parameters() {
 
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
-		export TF_VAR_tfstate_resource_id
-
-		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-		export terraform_storage_account_name
-
-		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-		export terraform_storage_account_resource_group_name
-
-		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-		export terraform_storage_account_subscription_id
 
 		TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-		export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
-
-		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-		export keyvault
+		TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
 		management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 		TF_VAR_management_subscription_id=${management_subscription_id}
+
+		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+
+		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+
 		export TF_VAR_management_subscription_id
+		export TF_VAR_spn_keyvault_id
+		export TF_VAR_tfstate_resource_id
+		export keyvault
+		export terraform_storage_account_name
+		export terraform_storage_account_resource_group_name
+		export terraform_storage_account_subscription_id
 	else
 		if [ -z "$terraform_storage_account_name" ]; then
 			if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then

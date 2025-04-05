@@ -73,7 +73,7 @@ function parse_arguments() {
 		control_plane_showhelp
 	fi
 
-  subscription=$ARM_SUBSCRIPTION_ID
+	subscription=$ARM_SUBSCRIPTION_ID
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
@@ -159,7 +159,7 @@ function parse_arguments() {
 	library_dirname=$(dirname "${library_parameter_file}")
 	library_parameter_file_name=$(basename "${library_parameter_file}")
 
-	if ! printenv CONTROL_PLANE_NAME ; then
+	if ! printenv CONTROL_PLANE_NAME; then
 		CONTROL_PLANE_NAME=$(basename "${deployer_parameter_file}" | cut -d'-' -f1-3)
 		export CONTROL_PLANE_NAME
 	fi
@@ -394,26 +394,23 @@ function migrate_deployer_state() {
 	cd "${deployer_dirname}" || exit
 	cat "${deployer_config_information}"
 	VALIDATED_APPLICATION_CONFIGURATION_ID=VALUE=${APPLICATION_CONFIGURATION_ID:-}
+	if is_valid_id "$VALIDATED_APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+
+		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
+
+		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+		ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
+		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+	fi
 
 	if [ -z "$terraform_storage_account_name" ]; then
-		if [ -n "$VALIDATED_APPLICATION_CONFIGURATION_ID" ]; then
-			if is_valid_id "$VALIDATED_APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-
-				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-				TF_VAR_tfstate_resource_id=$tfstate_resource_id
-				export TF_VAR_tfstate_resource_id
-
-				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-				terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-				terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-				ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
-				TF_VAR_tfstate_resource_id=$tfstate_resource_id
-				export TF_VAR_tfstate_resource_id
-				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-			fi
-		fi
-		if [ -z "$terraform_storage_account_name" ]; then
-			print_banner "$banner_title" "Sourcing parameters from ${deployer_config_information}" "info"
+		print_banner "$banner_title" "Sourcing parameters from: "${deployer_config_information}" "info" "${deployer_config_information}"
 			load_config_vars "${deployer_config_information}" "tfstate_resource_id"
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 			export TF_VAR_tfstate_resource_id
@@ -424,12 +421,11 @@ function migrate_deployer_state() {
 
 			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
 			export terraform_storage_account_subscription_id
-		fi
 	fi
 	if [ -z "${terraform_storage_account_name}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_config_information}"
-		echo "##vso[task.setprogress value=40;]Progress Indicator"
+		echo " ##vso[task.setprogress value=40;]Progress Indicator"
 		print_banner "$banner_title" "Could not find the SAP Library, please re-run!" "error"
 		exit 11
 	fi
@@ -599,8 +595,8 @@ function copy_files_to_public_deployer() {
 function retrieve_parameters() {
 
 	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	  load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
-  fi
+		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
+	fi
 
 	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		application_configuration_name=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f9)
@@ -851,7 +847,7 @@ function deploy_control_plane() {
 		fi
 
 		if ! execute_deployment_steps $step; then
-		  return_value=$?
+			return_value=$?
 			print_banner "Control Plane Deployment" "Executing deployment steps failed" "error"
 
 		fi
@@ -902,7 +898,6 @@ EOF
 
 	return $return_value
 }
-
 
 # Main script
 if deploy_control_plane "$@"; then
