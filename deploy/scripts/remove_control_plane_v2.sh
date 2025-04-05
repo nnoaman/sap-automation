@@ -203,12 +203,10 @@ parse_arguments() {
 	key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
 	deployer_tfstate_key="${key}.terraform.tfstate"
 	deployer_dirname=$(dirname "${deployer_parameter_file}")
-	deployer_parameter_file_name=$(basename "${deployer_parameter_file}")
 
 	key=$(basename "${library_parameter_file}" | cut -d. -f1)
 	library_tfstate_key="${key}.terraform.tfstate"
 	library_dirname=$(dirname "${library_parameter_file}")
-	library_parameter_file_name=$(basename "${library_parameter_file}")
 
 	if ! printenv CONTROL_PLANE_NAME; then
 		CONTROL_PLANE_NAME=$(basename "${deployer_parameter_file}" | cut -d'-' -f1-3)
@@ -501,7 +499,6 @@ function remove_control_plane() {
 		use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
 	fi
 
-
 	print_banner "Remove Control Plane " "Running Terraform destroy (library)" "info"
 
 	if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" -var use_deployer=false -refresh=false -var "use_spn=$use_spn" "${approve_parameter}"; then
@@ -553,7 +550,7 @@ function remove_control_plane() {
 			extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 		fi
 
-		var_file="${param_dirname}"/"${deployer_parameter_file}"
+		var_file="${deployer_parameter_file}"
 
 		print_banner "Remove Control Plane " "Running Terraform destroy (deployer)" "info"
 
