@@ -228,7 +228,7 @@ function bootstrap_deployer() {
 		export APPLICATION_CONFIGURATION_ID
 	fi
 	if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
-		echo "Application configuration name:       ${APPLICATION_CONFIGURATION_NAME}"
+		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
 		export APPLICATION_CONFIGURATION_NAME
 	fi
 

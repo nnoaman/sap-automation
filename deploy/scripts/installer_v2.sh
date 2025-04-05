@@ -161,8 +161,7 @@ function parse_arguments() {
 			APPLICATION_CONFIGURATION_NAME="$2"
 			APPLICATION_CONFIGURATION_ID=$(az appconfig show --name "${APPLICATION_CONFIGURATION_NAME}" --query id -o tsv)
 			export APPLICATION_CONFIGURATION_ID
-			export APPLICATION_CONFIGURATION_ID
-			export TF_VAR_application_configuration_id="${APPLICATION_CONFIGURATION_ID}"
+			export APPLICATION_CONFIGURATION_NAME
 			shift 2
 			;;
 		-l | --landscape_tfstate_key)
