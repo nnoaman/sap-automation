@@ -768,24 +768,19 @@ function sdaf_installer() {
 	fi
 
 	allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
+	apply_needed=0
 
 	if terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
 		return_value=${PIPESTATUS[0]}
+		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 	else
 		return_value=${PIPESTATUS[0]}
-	fi
-
-	if [ 1 -eq $return_value ]; then
-		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
-		return $return_value
-	else
-		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
-	fi
-
-	if [ 2 -eq $return_value ]; then
+		if [ 1 -eq $return_value ]; then
+			print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
+			return $return_value
+		fi
 		apply_needed=1
-	else
-		apply_needed=1
+
 	fi
 
 	state_path="SYSTEM"
@@ -1025,7 +1020,7 @@ function sdaf_installer() {
 
 	persist_files
 
-	if [ $DEBUG == True ]; then
+	if [ ${DEBUG:-False} == True ]; then
 		echo "Terraform state file:"
 		terraform -chdir="${terraform_module_directory}" output -json
 	fi
