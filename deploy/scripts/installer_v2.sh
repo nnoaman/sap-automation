@@ -513,6 +513,8 @@ function sdaf_installer() {
 		parallelism=$TF_PARALLELLISM
 	fi
 
+	banner_title="Installer - $deployment_system"
+
 	echo ""
 	echo -e "${green}Deployment information:"
 	echo -e "-------------------------------------------------------------------------------$reset"
@@ -531,7 +533,7 @@ function sdaf_installer() {
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 	if [ "$DEBUG" = True ]; then
-		print_banner "Installer" "Enabling debug mode" "info"
+		print_banner "Installer - $deployment_system" "Enabling debug mode" "info"
 		echo "Azure login info:"
 		az account show --query user --output table
 		TF_LOG=DEBUG
@@ -572,12 +574,12 @@ function sdaf_installer() {
 	current_subscription_id=$(az account show --query id -o tsv)
 
 	if [[ -n "$terraform_storage_account_subscription_id" ]] && [[ "$terraform_storage_account_subscription_id" != "$current_subscription_id" ]]; then
-		print_banner "Installer" "Changing the subscription to: $terraform_storage_account_subscription_id" "info"
+		print_banner "$banner_title" "Changing the subscription to: $terraform_storage_account_subscription_id" "info"
 		az account set --sub "${terraform_storage_account_subscription_id}"
 
 		return_code=$?
 		if [ 0 != $return_code ]; then
-			print_banner "Installer" "The deployment account (MSI or SPN) does not have access to: $terraform_storage_account_subscription_id" "ption_id}"
+			print_banner "$banner_title" "The deployment account (MSI or SPN) does not have access to: $terraform_storage_account_subscription_id" "ption_id}"
 			exit $return_code
 		fi
 
@@ -591,7 +593,7 @@ function sdaf_installer() {
 	if [ ! -d "${terraform_module_directory}" ]; then
 
 		printf -v val %-40.40s "$deployment_system"
-		print_banner "Installer" "Incorrect system deployment type specified: ${val}$" "error"
+		print_banner "$banner_title" "Incorrect system deployment type specified: ${val}$" "error"
 		exit 1
 	fi
 
@@ -637,7 +639,7 @@ function sdaf_installer() {
 	az account set --subscription "${terraform_storage_account_subscription_id}"
 
 	if [ ! -f .terraform/terraform.tfstate ]; then
-		print_banner "Installer" "New deployment" "info"
+		print_banner "$banner_title" "New deployment" "info"
 
 		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
@@ -646,7 +648,7 @@ function sdaf_installer() {
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
-			print_banner "Installer" "Terraform init failed." "error"
+			print_banner "$banner_title" "Terraform init failed." "error"
 			return $return_value
 		else
 			return_value=$?
@@ -657,17 +659,17 @@ function sdaf_installer() {
 
 		if local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate); then
 			if [ -n "$local_backend" ]; then
-				print_banner "Installer" "Migrating the state to Azure" "info"
+				print_banner "$banner_title" "Migrating the state to Azure" "info"
 
 				terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
 				if ! terraform -chdir="${terraform_module_directory}" init -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
 					return_value=$?
-					print_banner "Installer" "Terraform local init failed" "error"
+					print_banner "$banner_title" "Terraform local init failed" "error"
 					exit $return_value
 				else
 					return_value=$?
-					print_banner "Installer" "Terraform local init succeeded" "success"
+					print_banner "$banner_title" "Terraform local init succeeded" "success"
 				fi
 			fi
 
@@ -680,17 +682,17 @@ function sdaf_installer() {
 				--backend-config "container_name=tfstate" \
 				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
-				print_banner "Installer" "Terraform init succeeded." "success"
+				print_banner "$banner_title" "Terraform init succeeded." "success"
 
 				allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 			else
 				return_value=$?
-				print_banner "Installer" "Terraform init failed" "error"
+				print_banner "$banner_title" "Terraform init failed" "error"
 				return $return_value
 			fi
 		else
 			echo "Terraform state:                     remote"
-			print_banner "Installer" "The system has already been deployed and the state file is in Azure" "info"
+			print_banner "$banner_title" "The system has already been deployed and the state file is in Azure" "info"
 
 			if ! terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state \
 				--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
@@ -699,22 +701,22 @@ function sdaf_installer() {
 				--backend-config "container_name=tfstate" \
 				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
-				print_banner "Installer" "Terraform init failed." "error"
+				print_banner "$banner_title" "Terraform init failed." "error"
 				return $return_value
 			else
 				return_value=$?
-				print_banner "Installer" "Terraform init succeeded." "success"
+				print_banner "$banner_title" "Terraform init succeeded." "success"
 			fi
 		fi
 	fi
 
 	if [ 1 -eq "$new_deployment" ]; then
 		if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-			print_banner "Installer" "New deployment" "info"
+			print_banner "$banner_title" "New deployment" "info"
 			deployment_parameter=" -var deployment=new "
 			new_deployment=0
 		else
-			print_banner "Installer" "Existing deployment was detected" "info"
+			print_banner "$banner_title" "Existing deployment was detected" "info"
 			deployment_parameter=""
 			new_deployment=0
 		fi
@@ -723,7 +725,7 @@ function sdaf_installer() {
 	if [ 1 -eq $new_deployment ]; then
 		deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \" || true)
 		if [ -z "${deployed_using_version}" ]; then
-			print_banner "Installer" "The environment was deployed using an older version of the Terraform templates" "error" "Please inspect the output of Terraform plan carefully!"
+			print_banner "$banner_title" "The environment was deployed using an older version of the Terraform templates" "error" "Please inspect the output of Terraform plan carefully!"
 
 			if [ 1 == $called_from_ado ]; then
 				unset TF_DATA_DIR
@@ -738,7 +740,7 @@ function sdaf_installer() {
 		else
 			version_parameter="-var terraform_template_version=${deployed_using_version}"
 
-			print_banner "Installer" "Deployed using the Terraform templates version: $deployed_using_version" "info"
+			print_banner "$banner_title" "Deployed using the Terraform templates version: $deployed_using_version" "info"
 
 			# version_compare "${deployed_using_version}" "3.13.2.0"
 			# older_version=$?
@@ -774,10 +776,10 @@ function sdaf_installer() {
 	fi
 
 	if [ 1 -eq $return_value ]; then
-		print_banner "Installer" "Error when running plan" "error" "Terraform plan return code: $return_value"
+		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
 		return $return_value
 	else
-		print_banner "Installer" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
+		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 	fi
 
 	if [ 2 -eq $return_value ]; then
@@ -876,10 +878,10 @@ function sdaf_installer() {
 	# apply_needed=1 - This is already set above line: 736 - 740
 
 	if [ "${TEST_ONLY}" == "True" ]; then
-		print_banner "Installer" "Running plan only. No deployment performed." "info"
+		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 
 		if [ $fatal_errors == 1 ]; then
-			print_banner "Installer" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
+			print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
 			exit 10
 		fi
 		exit 0
@@ -887,7 +889,7 @@ function sdaf_installer() {
 
 	if [ $fatal_errors == 1 ]; then
 		apply_needed=0
-		print_banner "Installer" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
+		print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
 		if [ 1 == "$called_from_ado" ]; then
 			unset TF_DATA_DIR
 			echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
@@ -918,7 +920,7 @@ function sdaf_installer() {
 			rm plan_output.log
 		fi
 
-		print_banner "Installer" "Running Terraform apply" "info"
+		print_banner "$banner_title" "Running Terraform apply" "info"
 
 		allParameters=$(printf " -var-file=%s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}" "${approve} ")
 		allImportParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
@@ -941,13 +943,13 @@ function sdaf_installer() {
 		fi
 
 		if [ $return_value -eq 1 ]; then
-			print_banner "Installer" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
+			print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
 		elif [ $return_value -eq 2 ]; then
 			# return code 2 is ok
-			print_banner "Installer" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+			print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 			return_value=0
 		else
-			print_banner "Installer" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+			print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 			return_value=0
 		fi
 
@@ -1029,7 +1031,7 @@ function sdaf_installer() {
 	fi
 
 	if [ 0 -ne $return_value ]; then
-		print_banner "Installer" "Errors during the apply phase" "error"
+		print_banner "$banner_title" "Errors during the apply phase" "error"
 		unset TF_DATA_DIR
 		return $return_value
 	fi
@@ -1135,7 +1137,7 @@ function sdaf_installer() {
 	fi
 
 	unset TF_DATA_DIR
-	print_banner "Installer" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
+	print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
 
 	exit 0
 }
