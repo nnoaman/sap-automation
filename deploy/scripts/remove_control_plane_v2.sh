@@ -553,7 +553,7 @@ function remove_control_plane() {
 			extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 		fi
 
-		var_file="${param_dirname}"/"${deployer_tfvars_filename}"
+		var_file="${param_dirname}"/"${deployer_parameter_file}"
 
 		print_banner "Remove Control Plane " "Running Terraform destroy (deployer)" "info"
 
