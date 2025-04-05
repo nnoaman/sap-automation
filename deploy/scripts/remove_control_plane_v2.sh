@@ -136,6 +136,7 @@ parse_arguments() {
 	fi
 
 	approve=""
+	keep_agent=0
 
 	eval set -- "$input_opts"
 	while true; do
