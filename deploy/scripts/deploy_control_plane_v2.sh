@@ -228,12 +228,14 @@ function bootstrap_deployer() {
 		echo "Application configuration Id:        ${APPLICATION_CONFIGURATION_ID}"
 		export APPLICATION_CONFIGURATION_ID
 	fi
-	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+	if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
 		echo "Application configuration name:       ${APPLICATION_CONFIGURATION_NAME}"
 		export APPLICATION_CONFIGURATION_NAME
 	fi
 
-	echo "##vso[task.setprogress value=20;]Progress Indicator"
+	if [ $ado_flag == "--ado" ]; then
+		echo "##vso[task.setprogress value=20;]Progress Indicator"
+	fi
 	cd "$root_dirname" || exit
 	return "$return_code"
 }
@@ -414,16 +416,16 @@ function migrate_deployer_state() {
 
 	if [ -z "$terraform_storage_account_name" ]; then
 		print_banner "$banner_title" "Sourcing parameters from: " "info" "${deployer_config_information}"
-			load_config_vars "${deployer_config_information}" "tfstate_resource_id"
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
-			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-			export terraform_storage_account_name
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			export terraform_storage_account_resource_group_name
+		load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
+		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+		export terraform_storage_account_name
+		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+		export terraform_storage_account_resource_group_name
 
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-			export terraform_storage_account_subscription_id
+		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+		export terraform_storage_account_subscription_id
 	fi
 	if [ -z "${terraform_storage_account_name}" ]; then
 		export step=2
