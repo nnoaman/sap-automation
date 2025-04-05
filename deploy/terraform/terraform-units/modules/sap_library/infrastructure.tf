@@ -108,6 +108,31 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
   tags                                 = var.infrastructure.tags
 }
 
+resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig_additional" {
+  provider                             = azurerm.dnsmanagement
+  count                                = try(length(var.deployer_tfstate.additional_network_id) > 0, true) && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  depends_on                           = [
+                                           azurerm_storage_account.storage_tfstate,
+                                           azurerm_private_dns_zone.appconfig
+                                         ]
+  name                                 = format("%s%s%s%s-appconfig",
+                                           try(var.naming.resource_prefixes.appconfig_link, ""),
+                                           local.prefix,
+                                           var.naming.separator,
+                                           try(var.naming.resource_suffixes.appconfig_link, "appconfig-link")
+                                         )
+
+  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,
+                                           local.resource_group_exists ? (
+                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                             azurerm_resource_group.library[0].name
+                                         ))
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
+  virtual_network_id                   = var.deployer_tfstate.additional_network_id
+  registration_enabled                 = false
+  tags                                 = var.infrastructure.tags
+}
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider                             = azurerm.dnsmanagement

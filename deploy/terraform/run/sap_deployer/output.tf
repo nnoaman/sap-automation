@@ -141,6 +141,12 @@ output "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                 value       = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
                                                               }
 
+output "additional_network_id"                     {
+                                                       description = "Agent Network resource ID"
+                                                       value       = length(var.additional_network_id) > 0 ? split("/subnets/",lower(var.additional_network_id))[0] : null
+                                                     }
+
+
 ###############################################################################
 #                                                                             #
 #                                 Key Vault                                   #
