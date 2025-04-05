@@ -318,19 +318,19 @@ function install_deployer() {
 			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
 				$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee apply_output.json; then
 				return_value=${PIPESTATUS[0]}
-				print_banner "$banner_title" "Terraform apply succeeded" "success"
+				print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 			else
 				return_value=${PIPESTATUS[0]}
-				print_banner "$banner_title" "Terraform apply failed." "error"
+				print_banner "$banner_title" "Terraform apply failed." "error" "Terraform apply return code: $return_value"
 			fi
 		else
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
 				return_value=$?
-				print_banner "$banner_title" "Terraform apply succeeded" "success"
+				print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 			else
 				return_value=$?
-				print_banner "$banner_title" "Terraform apply failed." "error"
+				print_banner "$banner_title" "Terraform apply failed." "error" "Terraform apply return code: $return_value"
 			fi
 		fi
 

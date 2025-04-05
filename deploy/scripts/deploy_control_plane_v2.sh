@@ -211,8 +211,8 @@ function bootstrap_deployer() {
 
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
 			local_return_code=$?
-			echo "Return code from install_deployer_v2:   ${return_code}"
-			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
+			echo "Return code from install_deployer_v2: ${local_return_code}"
+			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error" "Return code: ${local_return_code}"
 		else
 			local_return_code=$?
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
@@ -254,9 +254,7 @@ function validate_keyvault_access {
 
 	if ! printenv DEPLOYER_KEYVAULT; then
 
-		VALUE=${APPLICATION_CONFIGURATION_ID:-}
-
-		if is_valid_id "$VALUE" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+		if is_valid_id ${APPLICATION_CONFIGURATION_ID:-} "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			DEPLOYER_KEYVAULT=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 		else
 			if [ -f ./.terraform/terraform.tfstate ]; then
@@ -314,6 +312,7 @@ function validate_keyvault_access {
 	cd "$root_dirname" || exit
 
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
+	return $return_code
 }
 
 function bootstrap_library {
@@ -661,6 +660,7 @@ function retrieve_parameters() {
 # Function to execute deployment steps
 function execute_deployment_steps() {
 	local step=$1
+	return_value=0
 	echo "Step:                                $step"
 
 	if [ 1 -eq "${step}" ]; then
