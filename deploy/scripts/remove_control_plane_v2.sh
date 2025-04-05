@@ -135,6 +135,8 @@ parse_arguments() {
 		control_plane_showhelp
 	fi
 
+	approve=""
+
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
@@ -196,6 +198,7 @@ parse_arguments() {
 	else
 		autoApproveParameter=""
 	fi
+
 	key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
 	deployer_tfstate_key="${key}.terraform.tfstate"
 	deployer_dirname=$(dirname "${deployer_parameter_file}")
@@ -206,7 +209,7 @@ parse_arguments() {
 	library_dirname=$(dirname "${library_parameter_file}")
 	library_parameter_file_name=$(basename "${library_parameter_file}")
 
-	if [ -z $CONTROL_PLANE_NAME ]; then
+	if ! printenv CONTROL_PLANE_NAME; then
 		CONTROL_PLANE_NAME=$(basename "${deployer_parameter_file}" | cut -d'-' -f1-3)
 		export CONTROL_PLANE_NAME
 	fi
