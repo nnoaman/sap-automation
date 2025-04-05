@@ -209,30 +209,28 @@ function bootstrap_deployer() {
 
 		echo "Calling install_deployer_v2.sh:         $allParameters"
 
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
+		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
 			return_code=$?
-			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
 			echo "Return code from install_deployer_v2:   ${return_code}"
-			step=1
-			save_config_var "step" "${deployer_config_information}"
-			if [ 1 = "${only_deployer:-}" ]; then
-				return 0
-			fi
+			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
 		else
 			return_code=$?
-			echo "Return code from install_deployer_v2:   ${return_code}"
-
-			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
+			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
+			step=1
+			save_config_var "step" "${deployer_config_information}"
 		fi
 	fi
 
 	load_config_vars "${deployer_config_information}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_ID" "APPLICATION_CONFIGURATION_NAME"
 	echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
+	export DEPLOYER_KEYVAULT
 	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
 		echo "Application configuration Id:        ${APPLICATION_CONFIGURATION_ID}"
+		export APPLICATION_CONFIGURATION_ID
 	fi
 	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
 		echo "Application configuration name:       ${APPLICATION_CONFIGURATION_NAME}"
+		export APPLICATION_CONFIGURATION_NAME
 	fi
 
 	echo "##vso[task.setprogress value=20;]Progress Indicator"
@@ -326,6 +324,7 @@ function bootstrap_library {
 	#                                                                                        #
 	##########################################################################################
 	local banner_title="Bootstrap Library"
+	load_config_vars "${deployer_config_information}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_ID" "APPLICATION_CONFIGURATION_NAME"
 
 	if [ 2 -eq $step ]; then
 		print_banner "$banner_title" "Bootstrapping the library..." "info"
