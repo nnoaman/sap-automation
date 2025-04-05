@@ -137,7 +137,7 @@ parse_arguments() {
 
 	approve=""
 	keep_agent=0
-
+	approve_parameter=""
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
