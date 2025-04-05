@@ -74,6 +74,8 @@ function parse_arguments() {
 	fi
 
 	subscription=$ARM_SUBSCRIPTION_ID
+	only_deployer=0
+	approve=""
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
