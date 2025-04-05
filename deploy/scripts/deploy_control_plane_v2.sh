@@ -194,7 +194,7 @@ function bootstrap_deployer() {
 	#                                                                                        #
 	##########################################################################################
 
-	return_code=0
+	local local_return_code=0
 	load_config_vars "${deployer_config_information}" "step"
 	if [ -z "$step" ]; then
 		step=0
@@ -210,11 +210,11 @@ function bootstrap_deployer() {
 		echo "Calling install_deployer_v2.sh:         $allParameters"
 
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
-			return_code=$?
+			local_return_code=$?
 			echo "Return code from install_deployer_v2:   ${return_code}"
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
 		else
-			return_code=$?
+			local_return_code=$?
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
 			step=1
 			save_config_var "step" "${deployer_config_information}"
@@ -236,7 +236,7 @@ function bootstrap_deployer() {
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	fi
 	cd "$root_dirname" || exit
-	return "$return_code"
+	return "$local_return_code"
 }
 
 function validate_keyvault_access {
@@ -827,7 +827,7 @@ function deploy_control_plane() {
 	fi
 
 	if ! bootstrap_deployer; then
-		print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
+		print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed!!" "error"
 		return 10
 	else
 		if [ 1 == "${only_deployer:-0}" ]; then
