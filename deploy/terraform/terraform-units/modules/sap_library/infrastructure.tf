@@ -115,7 +115,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig_ad
                                            azurerm_storage_account.storage_tfstate,
                                            azurerm_private_dns_zone.appconfig
                                          ]
-  name                                 = format("%s%s%s%s-appconfig",
+  name                                 = format("%s%s%s%s-appconfig-agent",
                                            try(var.naming.resource_prefixes.appconfig_link, ""),
                                            local.prefix,
                                            var.naming.separator,
