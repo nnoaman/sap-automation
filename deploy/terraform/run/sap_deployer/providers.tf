@@ -53,6 +53,10 @@ provider "azurerm"                     {
                                                     storage        {
                                                                         data_plane_available = var.data_plane_available
                                                                    }
+                                                  app_configuration {
+                                                                       purge_soft_delete_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                                       recover_soft_deleted         = !var.enable_purge_control_for_keyvaults
+                                                                    }
                                                   }
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
 
