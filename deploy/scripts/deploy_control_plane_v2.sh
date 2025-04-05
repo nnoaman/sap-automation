@@ -193,34 +193,36 @@ function bootstrap_deployer() {
 	#                           Bootstrapping the deployer                                   #
 	#                                                                                        #
 	##########################################################################################
-	print_banner "Bootstrap Deployer " "Bootstrapping the deployer..." "info"
 
-	allParameters=$(printf " --parameter_file %s %s" "${deployer_parameter_file_name}" "${autoApproveParameter}")
-
-	cd "${deployer_dirname}" || exit
-
-	echo "Calling install_deployer_v2.sh:         $allParameters"
-
-	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
-		return_code=$?
-		print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
-		echo "Return code from install_deployer_v2:   ${return_code}"
-		step=1
+	return_code=0
+	load_config_vars "${deployer_config_information}" "step"
+	if [ -z "$step" ]; then
+		step=0
 		save_config_var "step" "${deployer_config_information}"
-		if [ 1 = "${only_deployer:-}" ]; then
-			return 0
-		fi
-	else
-		return_code=$?
-		echo "Return code from install_deployer_v2:   ${return_code}"
+	fi
 
-		if [ $return_code -eq 10 ]; then
-			print_banner "Bootstrap Deployer " "Deployer is bootstrapped" "info"
-			step=3
+	if [ 0 -eq $step ]; then
+		print_banner "Bootstrap Deployer " "Bootstrapping the deployer..." "info"
+		allParameters=$(printf " --parameter_file %s %s" "${deployer_parameter_file_name}" "${autoApproveParameter}")
+
+		cd "${deployer_dirname}" || exit
+
+		echo "Calling install_deployer_v2.sh:         $allParameters"
+
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
+			return_code=$?
+			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
+			echo "Return code from install_deployer_v2:   ${return_code}"
+			step=1
 			save_config_var "step" "${deployer_config_information}"
-			return 0
+			if [ 1 = "${only_deployer:-}" ]; then
+				return 0
+			fi
+		else
+			return_code=$?
+			echo "Return code from install_deployer_v2:   ${return_code}"
+
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
-			return 10
 		fi
 	fi
 
@@ -829,31 +831,24 @@ function deploy_control_plane() {
 		# set_executing_user_environment_variables "none"
 	fi
 
-	if [ 0 -eq $step ]; then
-		if ! bootstrap_deployer; then
-			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
-			return 10
-		fi
-
-		if [ 1 == "${only_deployer:-}" ]; then
-			return 0
-		fi
+	if ! bootstrap_deployer; then
+		print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error"
+		return 10
 	else
-		if [ 1 == "${only_deployer:-}" ]; then
+		if [ 1 == "${only_deployer:-0}" ]; then
 			return 0
 		fi
+	fi
 
-		if [ 3 -le $step ]; then
-			if ! retrieve_parameters; then
-				print_banner "Retrieve Parameters" "Retrieving parameters failed" "warning"
-			fi
+	if [ 3 -le $step ]; then
+		if ! retrieve_parameters; then
+			print_banner "Retrieve Parameters" "Retrieving parameters failed" "warning"
 		fi
+	fi
 
-		if ! execute_deployment_steps $step; then
-			return_value=$?
-			print_banner "Control Plane Deployment" "Executing deployment steps failed" "error"
-
-		fi
+	if ! execute_deployment_steps $step; then
+		return_value=$?
+		print_banner "Control Plane Deployment" "Executing deployment steps failed" "error"
 	fi
 
 	printf -v kvname '%-40s' "${DEPLOYER_KEYVAULT}"
