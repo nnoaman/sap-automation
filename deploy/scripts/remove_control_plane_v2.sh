@@ -296,7 +296,7 @@ function remove_control_plane() {
 		exit $return_code
 	fi
 
-	if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
+	if ! printenv $APPLICATION_CONFIGURATION_ID; then
 		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
 		export APPLICATION_CONFIGURATION_ID
 	else
