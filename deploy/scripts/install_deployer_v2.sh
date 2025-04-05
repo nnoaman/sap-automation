@@ -401,6 +401,12 @@ function install_deployer() {
 		export APPLICATION_CONFIGURATION_ID
 	fi
 
+	APPLICATION_CONFIGURATION_NAME=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d '/' -f 9)
+	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_config_information}"
+		export APPLICATION_CONFIGURATION_NAME
+	fi
+
 	APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 	if [ -n "${APP_SERVICE_NAME}" ]; then
 		save_config_var "APP_SERVICE_NAME" "${deployer_config_information}"

@@ -7,27 +7,19 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 SCRIPT_NAME="$(basename "$0")"
 
-
 source "${parent_directory}/deploy_utils.sh"
 set -e
 
 return_code=0
 
-if printenv APPLICATION_CONFIGURATION_ID; then
-	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-
-		resCheck=$(az resource show --ids "$APPLICATION_CONFIGURATION_ID" --query "id" --output tsv)
-		if [ -z "$resCheck" ]; then
-			echo ""
-			echo "Running v1 script"
-			echo ""
-			"${script_directory}/v1/$SCRIPT_NAME"
-		else
-			echo ""
-			echo "Running v2 script"
-			echo ""
-			"${script_directory}/v2/$SCRIPT_NAME"
-		fi
+if printenv APPLICATION_CONFIGURATION_NAME; then
+	APPLICATION_CONFIGURATION_ID=$(az appconfig show --name "$APPLICATION_CONFIGURATION_NAME" --query "id" --output tsv)
+	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+		export APPLICATION_CONFIGURATION_ID
+		echo ""
+		echo "Running v2 script"
+		echo ""
+		"${script_directory}/v2/$SCRIPT_NAME"
 	else
 		echo ""
 		echo "Running v1 script"
