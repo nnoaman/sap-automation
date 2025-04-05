@@ -133,7 +133,6 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
                                           read = "2m"
                                           create = "5m"
                                           update = "5m"
-
                                        }
   lifecycle {
               ignore_changes = [
@@ -162,6 +161,11 @@ resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
   tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
                                          })
+  timeouts                             {
+                                          read = "2m"
+                                          create = "5m"
+                                          update = "5m"
+                                       }
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -188,6 +192,11 @@ resource "azurerm_app_configuration_key" "deployer_subscription_id" {
   tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
                                          })
+  timeouts                             {
+                                          read = "2m"
+                                          create = "5m"
+                                          update = "5m"
+                                       }
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -214,6 +223,11 @@ resource "azurerm_app_configuration_key" "web_application_resource_id" {
   tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
                                          })
+  timeouts                             {
+                                          read = "2m"
+                                          create = "5m"
+                                          update = "5m"
+                                       }
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -240,6 +254,11 @@ resource "azurerm_app_configuration_key" "web_application_identity_id" {
   tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
                                          })
+  timeouts                             {
+                                          read = "2m"
+                                          create = "5m"
+                                          update = "5m"
+                                       }
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
@@ -267,6 +286,11 @@ resource "azurerm_app_configuration_key" "deployer_msi_id" {
   tags                                 = merge(var.infrastructure.tags, {
                                            "source" = "Deployer"
                                          })
+  timeouts                             {
+                                          read = "2m"
+                                          create = "5m"
+                                          update = "5m"
+                                       }
   lifecycle {
               ignore_changes = [
                 configuration_store_id,
