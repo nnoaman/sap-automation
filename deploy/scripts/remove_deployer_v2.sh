@@ -190,7 +190,7 @@ function sdaf_remove_deployer() {
 
 	param_dirname=$(pwd)
 
-	var_file="${param_dirname}"/"${parameterFilename}"
+	var_file="${parameterFilename}"
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
