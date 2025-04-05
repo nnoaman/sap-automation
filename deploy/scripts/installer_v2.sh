@@ -513,6 +513,9 @@ function sdaf_installer() {
 		parallelism=$TF_PARALLELLISM
 	fi
 
+	TF_PLUGIN_CACHE_MAY_BREAK_DEPENDENCY_LOCK_FILE=1
+	export TF_PLUGIN_CACHE_MAY_BREAK_DEPENDENCY_LOCK_FILE
+
 	banner_title="Installer - $deployment_system"
 
 	echo ""
