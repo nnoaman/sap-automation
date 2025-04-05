@@ -131,7 +131,7 @@ source_helper_scripts() {
 # Function to parse command line arguments
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:g:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_id:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
+	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -157,8 +157,12 @@ function parse_arguments() {
 			CONTROL_PLANE_NAME="$2"
 			shift 2
 			;;
-		-g | --application_configuration_id)
-			APPLICATION_CONFIGURATION_ID="$2"
+		-n | --application_configuration_name)
+			APPLICATION_CONFIGURATION_NAME="$2"
+			APPLICATION_CONFIGURATION_ID=$(az appconfig kv show --name "${APPLICATION_CONFIGURATION_NAME}" --query id -o tsv)
+			export APPLICATION_CONFIGURATION_ID
+			export APPLICATION_CONFIGURATION_ID
+			export TF_VAR_application_configuration_id="${APPLICATION_CONFIGURATION_ID}"
 			shift 2
 			;;
 		-l | --landscape_tfstate_key)
@@ -222,11 +226,6 @@ function parse_arguments() {
 		return 1
 	}
 
-	[[ -z "$APPLICATION_CONFIGURATION_ID" ]] && {
-		print_banner "Installer" "application_configuration_id is required" "error"
-		return 1
-	}
-
 	[[ -z "$deployment_system" ]] && {
 		print_banner "Installer" "type is required" "error"
 		return 1
@@ -239,6 +238,7 @@ function parse_arguments() {
 	if [ -n "$CONTROL_PLANE_NAME" ]; then
 		deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 	fi
+
 
 	if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
 		if [ -n "$WORKLOAD_ZONE_NAME" ]; then
