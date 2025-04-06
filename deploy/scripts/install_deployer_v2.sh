@@ -384,7 +384,7 @@ function install_deployer() {
 
 		if [ 0 != $return_value ]; then
 			print_banner "$banner_title" "!!! Error when creating the deployer !!!." "error"
-			return $return_value
+			return 10
 		fi
 	fi
 
@@ -433,7 +433,7 @@ function install_deployer() {
 
 	print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
-	return "$return_value"
+	return $return_value
 }
 
 # Main script
