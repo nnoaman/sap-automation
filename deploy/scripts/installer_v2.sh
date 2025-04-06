@@ -667,13 +667,13 @@ function sdaf_installer() {
 
 				terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-				if ! terraform -chdir="${terraform_module_directory}" init -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
-					return_value=$?
-					print_banner "$banner_title" "Terraform local init failed" "error" "Terraform init return code: $return_value"
-					exit $return_value
-				else
+				if terraform -chdir="${terraform_module_directory}" init -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
 					return_value=$?
 					print_banner "$banner_title" "Terraform local init succeeded" "success"
+				else
+					return_value=10
+					print_banner "$banner_title" "Terraform local init failed" "error" "Terraform init return code: $return_value"
+					exit $return_value
 				fi
 			fi
 
@@ -690,7 +690,7 @@ function sdaf_installer() {
 
 				allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 			else
-				return_value=$?
+				return_value=10
 				print_banner "$banner_title" "Terraform init failed" "error" "Terraform init return code: $return_value"
 				return $return_value
 			fi
@@ -698,18 +698,18 @@ function sdaf_installer() {
 			echo "Terraform state:                     remote"
 			print_banner "$banner_title" "The system has already been deployed and the state file is in Azure" "info"
 
-			if ! terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state \
+			if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state \
 				--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 				--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 				--backend-config "storage_account_name=${terraform_storage_account_name}" \
 				--backend-config "container_name=tfstate" \
 				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
+				print_banner "$banner_title" "Terraform init succeeded." "success"
+			else
+				return_value=10
 				print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
 				return $return_value
-			else
-				return_value=$?
-				print_banner "$banner_title" "Terraform init succeeded." "success"
 			fi
 		fi
 	fi
