@@ -82,7 +82,7 @@ stages:
             name:                      StoreSecrets
             displayName:               Store deployment credentials in Key Vault
             env:
-              APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
+              APPLICATION_CONFIGURATION_NAME: $(APPLICATION_CONFIGURATION_NAME)
               CLIENT_ID:                    $(ParameterValidation.ARM_CLIENT_ID)
               CLIENT_SECRET:                $(ParameterValidation.ARM_CLIENT_SECRET)
               OBJECT_ID:                    $(ParameterValidation.ARM_OBJECT_ID)
