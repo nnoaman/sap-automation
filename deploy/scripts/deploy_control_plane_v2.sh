@@ -236,7 +236,7 @@ function bootstrap_deployer() {
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	fi
 	cd "$root_dirname" || exit
-	return "$local_return_code"
+	return $local_return_code
 }
 
 function validate_keyvault_access {
@@ -371,17 +371,21 @@ function bootstrap_library {
 
 		cd "${current_directory}" || exit
 		save_config_var "step" "${deployer_config_information}"
-		echo "##vso[task.setprogress value=60;]Progress Indicator"
-
+		if [ $ado_flag == "--ado" ]; then
+			echo "##vso[task.setprogress value=60;]Progress Indicator"
+		fi
 	else
 		print_banner "$banner_title" "Library is already bootstrapped." "info"
-		echo "##vso[task.setprogress value=60;]Progress Indicator"
+		if [ $ado_flag == "--ado" ]; then
+			echo "##vso[task.setprogress value=60;]Progress Indicator"
+		fi
 	fi
 
 	unset TF_DATA_DIR
 	cd "$root_dirname" || exit
-	echo "##vso[task.setprogress value=80;]Progress Indicator"
-
+	if [ $ado_flag == "--ado" ]; then
+		echo "##vso[task.setprogress value=80;]Progress Indicator"
+	fi
 }
 
 function migrate_deployer_state() {
@@ -522,7 +526,9 @@ function migrate_library_state() {
 	if [ -z "${terraform_storage_account_name}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_config_information}"
-		echo "##vso[task.setprogress value=40;]Progress Indicator"
+		if [ $ado_flag == "--ado" ]; then
+			echo "##vso[task.setprogress value=40;]Progress Indicator"
+		fi
 		print_banner "$banner_title" "Could not find the SAP Library, please re-run!" "error"
 		exit 11
 	fi
@@ -601,7 +607,9 @@ function retrieve_parameters() {
 		application_configuration_name=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f9)
 		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 		if [ -z "$key_vault_id" ]; then
-			echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+			if [ $ado_flag == "--ado" ]; then
+				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+			fi
 		fi
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 		export tfstate_resource_id
@@ -885,8 +893,9 @@ EOF
 
 	step=3
 	save_config_var "step" "${deployer_config_information}"
-	echo "##vso[task.setprogress value=100;]Progress Indicator"
-
+	if [ $ado_flag == "--ado" ]; then
+		echo "##vso[task.setprogress value=100;]Progress Indicator"
+	fi
 	unset TF_DATA_DIR
 	print_banner "Control Plane Deployment" "Exiting $SCRIPT_NAME" "info"
 
