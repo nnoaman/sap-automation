@@ -87,7 +87,6 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 export VARIABLE_GROUP_ID
 
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
@@ -98,7 +97,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		exit 2
 	fi
 else
-	if [ "$USE_MSI" == "true" ]; then
+	if [ "$USE_MSI:-false" == "true" ]; then
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 		ARM_USE_MSI=true
@@ -111,9 +110,11 @@ else
 		export ARM_USE_MSI
 		echo "Deployment using:                    Service Principal"
 		TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
-		if is_valid_guid $TF_VAR_spn_id; then
-			export TF_VAR_spn_id
-			echo "Service Principal Object id:         $TF_VAR_spn_id"
+		if [ -n "$TF_VAR_spn_id" ]; then
+			if is_valid_guid $TF_VAR_spn_id; then
+				export TF_VAR_spn_id
+				echo "Service Principal Object id:         $TF_VAR_spn_id"
+			fi
 		fi
 
 	fi
