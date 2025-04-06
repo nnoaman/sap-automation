@@ -144,7 +144,7 @@ function parse_arguments() {
 			shift 2
 			;;
 		-n | --application_configuration_name)
-			APPLICATION_CONFIGURATION_ID="$2"
+			APPLICATION_CONFIGURATION_NAME="$2"
 			APPLICATION_CONFIGURATION_ID=$(az appconfig show --name "${APPLICATION_CONFIGURATION_NAME}" --query id -o tsv)
 			export APPLICATION_CONFIGURATION_ID
 			export APPLICATION_CONFIGURATION_NAME
