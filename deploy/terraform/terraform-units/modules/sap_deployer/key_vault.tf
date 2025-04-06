@@ -221,7 +221,7 @@ resource "azurerm_key_vault_secret" "subscription" {
                                            azurerm_virtual_network_peering.peering_management_agent
                                          ]
 
-  name                                 = format("%s-subscription-id", upper(var.infrastructure.environment))
+  name                                 = format("%s-subscription-id", upper(var.naming.prefix.DEPLOYER))
   value                                = data.azurerm_client_config.deployer.subscription_id
   key_vault_id                         = var.key_vault.exists ? (
                                            var.key_vault.id) : (
