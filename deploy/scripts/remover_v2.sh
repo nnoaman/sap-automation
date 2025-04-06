@@ -421,7 +421,7 @@ function sdaf_remover() {
 	echo "Deployment region code:              $region_code"
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
-	if [ "$DEBUG" = True ]; then
+	if [ "${DEBUG:-False}" = True ]; then
 		print_banner "Remover" "Enabling debug mode" "info"
 		set -x
 		set -o errexit
