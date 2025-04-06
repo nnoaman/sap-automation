@@ -835,9 +835,11 @@ function deploy_control_plane() {
 	fi
 
 	if ! bootstrap_deployer; then
-	  return_value=$?
-		print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed!!" "error" "Return code: $return_value"
-		return 10
+		return_value=$?
+		if [ 0 -ne "$return_value" ]; then
+			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed!!" "error" "Return code: $return_value"
+			return 10
+		fi
 	else
 		if [ 1 -eq "${only_deployer:-0}" ]; then
 			return 0
