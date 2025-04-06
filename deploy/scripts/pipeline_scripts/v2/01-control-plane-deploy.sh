@@ -97,7 +97,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		exit 2
 	fi
 else
-	if [ "$USE_MSI:-false" == "true" ]; then
+	if [ "$USE_MSI" == "true" ]; then
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 		ARM_USE_MSI=true
