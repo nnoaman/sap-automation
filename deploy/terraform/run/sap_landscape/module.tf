@@ -20,7 +20,7 @@ module "sap_landscape" {
 
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
   Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
-  additional_network_id                        = var.additional_network_id
+  additional_network_id                        = length(var.additional_network_id) > 0 ? var.additional_network_id : try(length(data.terraform_remote_state.deployer[0].additional_network_id) > 0, false) ? data.terraform_remote_state.deployer[0].additional_network_id : null
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
   create_transport_storage                     = var.create_transport_storage
