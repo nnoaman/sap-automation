@@ -60,7 +60,7 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Remove control plane
             env:
-              APPLICATION_CONFIGURATION_ID:    $(APPLICATION_CONFIGURATION_ID)
+              APPLICATION_CONFIGURATION_NAME:    $(APPLICATION_CONFIGURATION_NAME)
               APP_REGISTRATION_APP_ID:         $(APP_REGISTRATION_APP_ID)
               ARM_SUBSCRIPTION_ID:             $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:                   $(ParameterValidation.ARM_TENANT_ID)
