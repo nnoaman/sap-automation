@@ -669,7 +669,7 @@ function sdaf_installer() {
 
 				if ! terraform -chdir="${terraform_module_directory}" init -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
 					return_value=$?
-					print_banner "$banner_title" "Terraform local init failed" "error"
+					print_banner "$banner_title" "Terraform local init failed" "error" "Terraform init return code: $return_value"
 					exit $return_value
 				else
 					return_value=$?
@@ -691,7 +691,7 @@ function sdaf_installer() {
 				allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 			else
 				return_value=$?
-				print_banner "$banner_title" "Terraform init failed" "error"
+				print_banner "$banner_title" "Terraform init failed" "error" "Terraform init return code: $return_value"
 				return $return_value
 			fi
 		else
@@ -705,7 +705,7 @@ function sdaf_installer() {
 				--backend-config "container_name=tfstate" \
 				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
-				print_banner "$banner_title" "Terraform init failed." "error"
+				print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
 				return $return_value
 			else
 				return_value=$?
