@@ -426,7 +426,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_iscsi_lnx" {
                                            0
                                          )
   virtual_machine_id                   = azurerm_linux_virtual_machine.iscsi[count.index].id
-  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
+  name                                 = "AzureMonitorLinuxAgent"
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
@@ -441,7 +441,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
                                            0
                                          )
   virtual_machine_id                   = azurerm_linux_virtual_machine.iscsi[count.index].id
-  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  name                                 = "AzureSecurityLinuxAgent"
   publisher                            = "Microsoft.Azure.Security.Monitoring"
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
