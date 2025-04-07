@@ -345,6 +345,10 @@ function configure_devops() {
 	fi
 
 	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
+
+	if ! az extension list --query "[?contains(name, 'resource-graph')]" --output table; then
+		az extension add --name resource-graph
+	fi
 }
 
 function remove_variable() {
