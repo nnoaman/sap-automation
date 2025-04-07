@@ -50,16 +50,12 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 export VARIABLE_GROUP_ID
 
-if printenv PARENT_VARIABLE_GROUP_ID; then
+if printenv PARENT_VARIABLE_GROUP; then
 	if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
 		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
 		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 		exit 2
 	else
-		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
-		key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
-		keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
-
 		WZ_APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
 		if [ -z "$WZ_APPLICATION_CONFIGURATION_NAME" ]; then
 			az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
@@ -80,6 +76,10 @@ if printenv PARENT_VARIABLE_GROUP_ID; then
 		else
 			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
 		fi
+
+		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+		key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+		keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
 		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 		if [ -z "$key_vault_id" ]; then
