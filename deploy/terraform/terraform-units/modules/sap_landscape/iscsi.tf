@@ -237,13 +237,13 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
                        azurerm_storage_account.storage_bootdiag[0].primary_blob_endpoint
                      )
                    }
-  dynamic "identity" {
-    for_each = range(length(var.infrastructure.iscsi.user_assigned_identity_id) > 0 ? 1 : 0)
-    content {
-      type         = "UserAssigned"
-      identity_ids = [var.infrastructure.iscsi.user_assigned_identity_id]
-    }
-  }
+  dynamic "identity"   {
+                         for_each = range(length(var.infrastructure.iscsi.user_assigned_identity_id) > 0 ? 1 : 0)
+                         content {
+                                   type         = "UserAssigned"
+                                   identity_ids = [var.infrastructure.iscsi.user_assigned_identity_id]
+                                 }
+                       }
 
 }
 
@@ -420,36 +420,42 @@ resource "tls_private_key" "iscsi" {
 
 
 resource "azurerm_virtual_machine_extension" "monitoring_extension_iscsi_lnx" {
-  provider                 = azurerm.main
-  count                    = local.deploy_monitoring_extension ? local.iscsi_count : 0
-  virtual_machine_id       = azurerm_linux_virtual_machine.iscsi[count.index].id
-  name                     = "MonitoringAgent"  # Simplified name
-  publisher                = "Microsoft.Azure.Monitor"
-  type                     = "AzureMonitorLinuxAgent"
-  type_handler_version     = "1.0"
-  auto_upgrade_minor_version = true
-  automatic_upgrade_enabled = true
-  depends_on               = [azurerm_linux_virtual_machine.iscsi]
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension ? (
+                                           local.iscsi_count) : (
+                                           0
+                                         )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.iscsi[count.index].id
+  name                                 = "AzureMonitorLinuxAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorLinuxAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 }
 
 resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
-  provider                 = azurerm.main
-  count                    = var.infrastructure.deploy_defender_extension ? local.iscsi_count : 0
-  virtual_machine_id       = azurerm_linux_virtual_machine.iscsi[count.index].id
-  name                     = "SecurityAgent"  # Simplified name
-  publisher                = "Microsoft.Azure.Security.Monitoring"
-  type                     = "AzureSecurityLinuxAgent"
-  type_handler_version     = "2.0"
-  auto_upgrade_minor_version = true
-  automatic_upgrade_enabled = true
-  depends_on               = [azurerm_linux_virtual_machine.iscsi]
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension ? (
+                                           local.iscsi_count) : (
+                                           0
+                                         )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.iscsi[count.index].id
+  name                                 = "AzureSecurityLinuxAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityLinuxAgent"
+  type_handler_version                 = "2.0"
+  auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
-  settings                 = jsonencode({
-    "authentication" = {
-      "managedIdentity" = {
-        "identifier-name" : "mi_res_id",
-        "identifier-value": var.infrastructure.iscsi.user_assigned_identity_id
-      }
-    }
-  })
+  settings                             = jsonencode(
+                                          {
+                                            "authentication" = {
+                                              "managedIdentity" = {
+                                                "identifier-name" : "mi_res_id",
+                                                "identifier-value" : var.infrastructure.iscsi.user_assigned_identity_id
+                                              }
+                                            }
+                                          }
+                                        )
 }
