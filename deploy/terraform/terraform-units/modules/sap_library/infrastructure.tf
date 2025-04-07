@@ -110,7 +110,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig_additional" {
   provider                             = azurerm.dnsmanagement
-  count                                = try(length(var.deployer_tfstate.additional_network_id) > 0, true) && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  count                                = try(length(var.deployer_tfstate.additional_network_id) > 0, false) && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                            azurerm_storage_account.storage_tfstate,
                                            azurerm_private_dns_zone.appconfig
@@ -162,7 +162,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault-agent" {
   provider                             = azurerm.dnsmanagement
-  count                                = try(length(var.deployer_tfstate.additional_network_id) > 0, true) && var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint ? 1 : 0
+  count                                = try(length(var.deployer_tfstate.additional_network_id) > 0, false) && var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                             azurerm_private_dns_zone.vault
                                          ]
