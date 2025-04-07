@@ -199,6 +199,20 @@ function checkforEnvVar() {
 	fi
 }
 
+function checkforDevOpsVar() {
+	local env_var_value=
+	env_var_value=$(printenv "$1")
+	if [ -z "$env_var_value" ]; then
+		return 1
+	else
+		if [[ "${env_var_value:0:2}" == '$(' ]]; then
+			return 1
+		else
+			return 0
+		fi
+	fi
+}
+
 # Check if we are running in CloudShell, we have the following three environment
 # variables: POWERSHELL_DISTRIBUTION_CHANNEL, AZURE_HTTP_USER_AGENT, and
 # AZUREPS_HOST_ENVIRONMENT. We will use the first one to determine if we are
@@ -209,7 +223,7 @@ function checkforEnvVar() {
 # AZUREPS_HOST_ENVIRONMENT=cloud-shell/1.0
 function checkIfCloudShell() {
 	local isRunInCloudShell=1 # default value is false
-	if printenv "POWERSHELL_DISTRIBUTION_CHANNEL" ; then
+	if printenv "POWERSHELL_DISTRIBUTION_CHANNEL"; then
 		if [ "$POWERSHELL_DISTRIBUTION_CHANNEL" == "CloudShell" ]; then
 			isRunInCloudShell=0
 		fi

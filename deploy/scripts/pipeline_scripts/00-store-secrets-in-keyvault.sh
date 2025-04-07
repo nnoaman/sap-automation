@@ -12,7 +12,7 @@ set -e
 
 return_code=0
 
-if printenv APPLICATION_CONFIGURATION_NAME  && [[ "${APPLICATION_CONFIGURATION_NAME:0:2}" == '$()' ]]; then
+if checkforDevOpsVar APPLICATION_CONFIGURATION_NAME; then
 	APPLICATION_CONFIGURATION_ID=$(az appconfig show --name "$APPLICATION_CONFIGURATION_NAME" --query "id" --output tsv)
 	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
 		export APPLICATION_CONFIGURATION_ID
