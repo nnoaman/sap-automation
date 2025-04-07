@@ -58,6 +58,7 @@ if printenv PARENT_VARIABLE_GROUP_ID; then
 	else
 		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
 		key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+		keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
 		WZ_APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
 		if [ -z "$WZ_APPLICATION_CONFIGURATION_NAME" ]; then
@@ -160,7 +161,7 @@ echo -e "$green--- Read parameter values ---$reset"
 deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
 
-keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
+
 
 if [ -z "$DEPLOYER_KEYVAULT" ]; then
 	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration or in configuration file ( ${environment_file_name} )."
