@@ -164,11 +164,13 @@ echo -e "${green}Deployment details:"
 echo -e "-------------------------------------------------------------------------${reset}"
 
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
-echo "Control plane environment file:      $deployer_environment_file_name"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
+echo "Control plane environment file:      $deployer_environment_file_name"
 echo "Workload Zone Environment file:      $workload_environment_file_name"
 echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
-
+if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+	echo "APPLICATION_CONFIGURATION_NAME:      $APPLICATION_CONFIGURATION_NAME"
+fi
 echo ""
 
 echo "Environment:                         $ENVIRONMENT"
@@ -219,7 +221,6 @@ else
 	TF_VAR_management_subscription_id=$(echo "$TF_VAR_spn_keyvault_id" | cut -d '/' -f 3)
 	export TF_VAR_management_subscription_id
 
-
 	TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 	export TF_VAR_tfstate_resource_id
 
@@ -249,7 +250,7 @@ cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "$APPLICATION_CONFIGURATION_NAME" \
-		--workload_zone_name "${WORKLOAD_ZONE_NAME}" 	--storage_accountname "$terraform_storage_account_name"  \
+		--workload_zone_name "${WORKLOAD_ZONE_NAME}" --storage_accountname "$terraform_storage_account_name" \
 		--ado --auto-approve; then
 		return_code=$?
 		print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
@@ -261,7 +262,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	fi
 else
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
-		--control_plane_name "${CONTROL_PLANE_NAME}" --workload_zone_name "${WORKLOAD_ZONE_NAME}" --storage_accountname "$terraform_storage_account_name"  \
+		--control_plane_name "${CONTROL_PLANE_NAME}" --workload_zone_name "${WORKLOAD_ZONE_NAME}" --storage_accountname "$terraform_storage_account_name" \
 		--ado --auto-approve; then
 		return_code=$?
 		print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
