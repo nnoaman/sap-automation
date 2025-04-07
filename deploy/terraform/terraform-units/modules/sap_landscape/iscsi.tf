@@ -127,7 +127,7 @@ resource "azurerm_network_interface" "iscsi" {
 // Add SSH network security rule
 resource "azurerm_network_security_rule" "nsr_controlplane_iscsi" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.defined ? !var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.exists ? 0 : 1 : 0
+  count                                = var.infrastructure.virtual_networks.sap.subnet_iscsi.defined ? var.infrastructure.virtual_networks.sap.subnet_iscsi.nsg.exists ? 0 : 1 : 0
   depends_on                           = [
                                            azurerm_network_security_group.iscsi
                                          ]
