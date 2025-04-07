@@ -24,7 +24,7 @@ module "sap_landscape" {
                                                    var.additional_network_id) : (
                                                    try(length(data.terraform_remote_state.deployer[0].outputs.additional_network_id) > 0, false) ? (
                                                      data.terraform_remote_state.deployer[0].outputs.additional_network_id) : (
-                                                     null))
+                                                     ""))
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
   create_transport_storage                     = var.create_transport_storage
