@@ -335,6 +335,8 @@ function retrieve_parameters() {
 	TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
 	export TF_VAR_control_plane_name
 
+	print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$APPLICATION_CONFIGURATION_ID"
+
 	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")

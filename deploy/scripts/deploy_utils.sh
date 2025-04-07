@@ -155,7 +155,6 @@ function getVariableFromApplicationConfiguration() {
 
 	variable_value=$(az appconfig kv list -n "$application_configuration_name" --subscription "$application_configuration_subscription" --query "[?key=='${variable_name}'].value | [0]" --label "${label}" --auth-mode login --output tsv)
 	echo "$variable_value"
-
 }
 
 # /*---------------------------------------------------------------------------8
