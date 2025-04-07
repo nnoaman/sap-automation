@@ -174,7 +174,7 @@ resource "azurerm_management_lock" "vnet_sap" {
 # // Peers additional VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
   provider                             = azurerm.peering
-  count                                = length(var.additional_network_id) > 0 ? 1:0
+  count                                = length(try(var.additional_network_id, "")) > 0 ? 1 : 0
   name                                 = substr(
                                            format("%s_to_%s",
                                              split("/", var.additional_network_id)[8],
@@ -199,7 +199,7 @@ resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
 // Peers SAP VNET to management VNET
 resource "azurerm_virtual_network_peering" "peering_sap_additional_network" {
   provider                             = azurerm.main
-  count                                = length(var.additional_network_id) > 0 ? 1:0
+  count                                = length(try(var.additional_network_id, "")) > 0 ? 1 : 0
   name                                 = substr(
                                            format("%s_to_%s",
                                              var.infrastructure.virtual_networks.sap.exists  ? (
