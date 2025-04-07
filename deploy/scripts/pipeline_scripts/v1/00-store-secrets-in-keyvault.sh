@@ -56,7 +56,10 @@ if printenv PARENT_VARIABLE_GROUP; then
 		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 		exit 2
 	else
-		WZ_APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
+	  APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
+		APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
+		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+		WZ_APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
 		if [ -z "$WZ_APPLICATION_CONFIGURATION_NAME" ]; then
 			az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
 		else
@@ -70,14 +73,13 @@ if printenv PARENT_VARIABLE_GROUP; then
 			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
 		fi
 
-		WZ_DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+		WZ_DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
 		if [ -z "$WZ_DEPLOYER_KEYVAULT" ]; then
 			az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
 		else
 			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
 		fi
 
-		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
 		key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 		keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
