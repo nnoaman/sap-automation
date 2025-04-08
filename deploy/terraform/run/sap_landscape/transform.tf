@@ -111,7 +111,8 @@ locals {
                                            enable_route_propagation = var.network_enable_route_propagation
                                            id                       = var.network_arm_id
                                            exists                   = length(var.network_arm_id) > 0
-                                           address_space            = can(tostring(var.network_address_space)) ? tolist(split(",", var.network_address_space)) : [var.network_address_space]
+                                           address_space            = flatten(can(tostring(var.network_address_space)) ? tolist(split(",", var.network_address_space)) : [var.network_address_space])
+
 
                                          }
 

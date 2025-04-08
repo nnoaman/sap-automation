@@ -110,7 +110,8 @@ variable "network_logical_name"                 {
 
 variable "network_address_space"                {
                                                   description = "The address space of the virtual network"
-                                                  default     = ""
+                                                  default     = [""]
+                                                  type        = list(string)
                                                 }
 
 variable "network_arm_id"                       {
