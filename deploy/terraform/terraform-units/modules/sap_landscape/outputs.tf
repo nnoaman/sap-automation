@@ -347,13 +347,13 @@ output "ANF_pool_settings"                      {
                                                    value       = var.ANF_settings.use ? (
                                                                    {
                                                                      use_ANF = var.NFS_provider == "ANF"
-                                                                     account_name = length(var.ANF_settings.arm_id) > 0 ? (
+                                                                     account_name = length(var.ANF_settings.id) > 0 ? (
                                                                        data.azurerm_netapp_account.workload_netapp_account[0].name) : (
                                                                        try(azurerm_netapp_account.workload_netapp_account[0].name, "")
                                                                      )
 
-                                                                     account_id = length(var.ANF_settings.arm_id) > 0 ? (
-                                                                       var.ANF_settings.arm_id) : (
+                                                                     account_id = length(var.ANF_settings.id) > 0 ? (
+                                                                       var.ANF_settings.id) : (
                                                                        try(azurerm_netapp_account.workload_netapp_account[0].id, "")
                                                                      )
 
