@@ -547,13 +547,13 @@ resource "azurerm_lb" "web" {
                                 var.naming.separator,
                                 local.resource_suffixes.web_alb_feip
                               )
-                              subnet_id = var.infrastructure.virtual_networks.sap.subnet_web.exists ? (data.azurerm_subnet.subnet_sap_web[0].id) : (azurerm_subnet.subnet_sap_web[0].id)
+                              subnet_id = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (data.azurerm_subnet.subnet_sap_web[0].id) : (azurerm_subnet.subnet_sap_web[0].id)
                               private_ip_address = var.application_tier.use_DHCP ? (
                                 null) : (
                                 try(
                                   local.webdispatcher_loadbalancer_ips[0],
                                   cidrhost(
-                                    var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
+                                    var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
                                              data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0]) : (
                                              azurerm_subnet.subnet_sap_web[0].address_prefixes[0]
                                          ),
