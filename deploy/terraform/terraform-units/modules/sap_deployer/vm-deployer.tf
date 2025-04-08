@@ -261,7 +261,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_deployer_lnx"
                                            var.deployer_vm_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.deployer[count.index].id
-  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
+  name                                 = "AzureMonitorLinuxAgent"
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
@@ -276,17 +276,26 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_deployer_lnx" 
                                            var.deployer_vm_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.deployer[count.index].id
-  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  name                                 = "AzureSecurityLinuxAgent"
   publisher                            = "Microsoft.Azure.Security.Monitoring"
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {
                                               "enableGenevaUpload"  = true,
                                               "enableAutoConfig"  = true,
                                               "reportSuccessOnUnsupportedDistro"  = true,
+                                              "authentication" = {
+                                                "managedIdentity" = {
+                                                  "identifier-name" : "mi_res_id",
+                                                  "identifier-value" : (var.deployer.user_assigned_identity_id) == 0 ? (
+                                                    azurerm_user_assigned_identity.deployer[0].id) : (
+                                                    data.azurerm_user_assigned_identity.deployer[0].id)
+                                                }
+                                                }
                                             }
                                           )
   tags                                 = var.infrastructure.tags
