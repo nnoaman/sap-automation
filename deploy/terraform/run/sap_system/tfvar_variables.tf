@@ -566,7 +566,7 @@ variable "database_use_avset"                   {
                                                                condition = (
                                                                  tobool(var.database_use_avset) != null
                                                                )
-                                                               error_message = "database_use_avset is not defined, please define it in your tfvars file."
+                                                               error_message = "The variable 'database_use_avset' is not defined, please define it in your tfvars file."
                                                              }
                                                 }
 
@@ -592,7 +592,7 @@ variable "database_use_ppg"                     {
                                                                condition = (
                                                                  tobool(var.database_use_ppg) != null
                                                                )
-                                                               error_message = "database_use_ppg is not defined, please define it in your tfvars file."
+                                                               error_message = "The variable 'database_use_ppg is not defined, please define it in your tfvars file."
                                                              }
                                                 }
 
