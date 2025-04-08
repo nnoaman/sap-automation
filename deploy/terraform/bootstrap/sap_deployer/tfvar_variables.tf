@@ -44,6 +44,10 @@ variable "resourcegroup_name"                   {
 variable "resourcegroup_arm_id"                 {
                                                   description = "If provided, the Azure resource group id"
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.resourcegroup_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.resourcegroup_arm_id))
+                                                    error_message = "If specified the 'resourcegroup_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
                                                 }
 
 variable "resourcegroup_tags"                   {
@@ -75,6 +79,10 @@ variable "management_network_logical_name"      {
 variable "management_network_arm_id"            {
                                                   description = "Azure resource identifier for the existing VNet into which the deployer will be deployed"
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.management_network_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.management_network_arm_id))
+                                                    error_message = "If specified the 'management_network_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
                                                 }
 
 variable "management_network_address_space"     {
@@ -107,6 +115,10 @@ variable "management_subnet_name"               {
 variable "management_subnet_arm_id"             {
                                                   description = "Azure resource identifier for the existing subnet into which the deployer will be deployed"
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.management_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.management_subnet_arm_id))
+                                                    error_message = "If specified the 'management_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
                                                 }
 
 variable "management_subnet_address_prefix"     {
@@ -123,6 +135,10 @@ variable "management_subnet_address_prefix"     {
 variable "management_firewall_subnet_arm_id"    {
                                                   description = "Azure resource identifier for the existing subnet into which the firewall will be deployed"
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.management_firewall_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.management_firewall_subnet_arm_id))
+                                                    error_message = "If specified the 'management_firewall_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
                                                 }
 
 variable "management_firewall_subnet_address_prefix" {
@@ -162,6 +178,10 @@ variable "firewall_public_ip_tags"              {
 variable "management_bastion_subnet_arm_id"     {
                                                   description = "Azure resource identifier Azure Bastion subnet"
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.management_bastion_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.management_bastion_subnet_arm_id))
+                                                    error_message = "If specified the 'management_bastion_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
                                                 }
 
 variable "management_bastion_subnet_address_prefix" {
@@ -195,6 +215,10 @@ variable "bastion_public_ip_tags"              {
 variable "webapp_subnet_arm_id"                 {
                                                   description = "Azure resource identifier Web App subnet"
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.webapp_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.webapp_subnet_arm_id))
+                                                    error_message = "If specified the 'webapp_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
                                                 }
 
 variable "webapp_subnet_address_prefix"        {
@@ -217,6 +241,10 @@ variable "management_subnet_nsg_name"           {
 variable "management_subnet_nsg_arm_id"         {
                                                   description = "value of the Azure resource identifier for the network security group"
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.management_subnet_nsg_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.management_subnet_nsg_arm_id))
+                                                    error_message = "If specified the 'management_subnet_nsg_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
                                                 }
 
 variable "management_subnet_nsg_allowed_ips"    {
@@ -344,6 +372,10 @@ variable "deployer_authentication_path_to_private_key" {
 variable "user_keyvault_id"                           {
                                                         description = "Azure resource identifier for the Azure Key Vault containing the deployment credentials"
                                                         default     = ""
+                                                        validation {
+                                                          condition     = length(var.user_keyvault_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.user_keyvault_id))
+                                                          error_message = "If specified the 'user_keyvault_id' variable must be a correct Azure resource identifier."
+                                                        }
                                                       }
 
 variable "deployer_private_key_secret_name"           {
@@ -420,6 +452,10 @@ variable "use_service_endpoint"                       {
 variable "deployer_diagnostics_account_arm_id"        {
                                                         description = "Azure resource identifier for an existing storage accout that will be used for diagnostic logs"
                                                         default     = ""
+                                                        validation {
+                                                          condition     = length(var.deployer_diagnostics_account_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.deployer_diagnostics_account_arm_id))
+                                                          error_message = "If specified the 'deployer_diagnostics_account_arm_id' variable must be a correct Azure resource identifier."
+                                                        }
                                                       }
 
 
@@ -465,6 +501,7 @@ variable "tags"                                       {
 variable "additional_network_id"                     {
                                                        description = "Agent Network resource ID"
                                                        default     = ""
+
                                                      }
 
 #########################################################################################

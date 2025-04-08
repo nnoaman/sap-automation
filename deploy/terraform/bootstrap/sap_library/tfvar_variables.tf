@@ -87,6 +87,11 @@ variable "resourcegroup_name"                   {
 variable "resourcegroup_arm_id"                 {
                                                   description = "If provided, the Azure resource group id"
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.resourcegroup_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.resourcegroup_arm_id))
+                                                    error_message = "If specified the 'resourcegroup_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
+
                                                 }
 
 variable "resourcegroup_tags"                   {
@@ -105,6 +110,10 @@ variable "resourcegroup_tags"                   {
 variable "library_sapmedia_arm_id"               {
                                                    description = "Optional Azure resource identifier for the storage account where the SAP bits will be stored"
                                                    default     = ""
+                                                  validation {
+                                                    condition     = length(var.library_sapmedia_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.library_sapmedia_arm_id))
+                                                    error_message = "If specified the 'library_sapmedia_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
                                                  }
 
 variable "library_sapmedia_name"                 {
@@ -168,6 +177,10 @@ variable "library_sapmedia_blob_container_name" {
 variable "library_terraform_state_arm_id"        {
                                                    description = "Optional Azure resource identifier for the storage account where the terraform state will be stored"
                                                    default     = ""
+                                                  validation {
+                                                    condition     = length(var.library_terraform_state_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.library_terraform_state_arm_id))
+                                                    error_message = "If specified the 'library_terraform_state_arm_id' variable must be a correct Azure resource identifier."
+                                                 }
                                                  }
 
 variable "library_terraform_state_name"          {
@@ -254,6 +267,11 @@ variable "assign_permissions"                    {
 variable "spn_keyvault_id"                      {
                                                   description = "Azure resource identifier for the keyvault where the spn will be stored"
                                                   default = ""
+                                                  validation {
+                                                    condition     = length(var.spn_keyvault_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.spn_keyvault_id))
+                                                    error_message = "If specified the 'spn_keyvault_id' variable must be a correct Azure resource identifier."
+                                                  }
+
                                                 }
 
 variable "shared_access_key_enabled"            {
@@ -378,6 +396,10 @@ variable "create_privatelink_dns_zones"              {
 variable "additional_network_id"                {
                                                    description = "Agent Network resource ID"
                                                    default     = ""
+                                                    validation {
+                                                      condition     = length(var.additional_network_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.additional_network_id))
+                                                      error_message = "If specified the 'additional_network_id' variable must be a correct Azure resource identifier."
+                                                    }
                                                  }
 
 
@@ -389,4 +411,9 @@ variable "application_configuration_id"          {
                                                     description = "Defines the Azure application configuration Resource id"
                                                     type        = string
                                                     default     = ""
+                                                    validation {
+                                                      condition     = length(var.application_configuration_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.application_configuration_id))
+                                                      error_message = "If specified the 'application_configuration_id' variable must be a correct Azure resource identifier."
+                                                    }
+
                                                  }
