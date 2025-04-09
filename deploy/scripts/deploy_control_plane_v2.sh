@@ -86,9 +86,12 @@ function parse_arguments() {
 			shift 2
 			;;
 		-c | --control_plane_name)
-			deployer_parameter_file="DEPLOYER/$2/$2-INFRASTRUCTURE.tfvars"
+		  curdir=$(pwd)
+			deployer_parameter_file="$curdir/DEPLOYER/$2/$2-INFRASTRUCTURE.tfvars"
 			prefix=$(echo "$2" | cut -d '-' -f1-2)
-			library_parameter_file="LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
+			library_parameter_file="$curdir/LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
+			echo "Deployer parameter file:              ${deployer_parameter_file}"
+			echo "Library parameter file:               ${library_parameter_file}"
 			shift 2
 			;;
 		-d | --deployer_parameter_file)
