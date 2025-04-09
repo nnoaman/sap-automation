@@ -70,7 +70,10 @@ variable "workload_zone_name"                  {
                                                   type        = string
                                                   default     = ""
                                                 }
-
+variable "use_deployer"                          {
+                                                   description = "Use deployer to deploy the resources"
+                                                   default     = true
+                                                 }
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #
