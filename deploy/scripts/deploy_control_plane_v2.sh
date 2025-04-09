@@ -76,11 +76,19 @@ function parse_arguments() {
 	subscription=$ARM_SUBSCRIPTION_ID
 	only_deployer=0
 	approve=""
+	deployer_parameter_file=""
+	library_parameter_file=""
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
 		-t | --terraform_storage_account_name)
 			terraform_storage_account_name="$2"
+			shift 2
+			;;
+		-c | --control_plane_name)
+			deployer_parameter_file="DEPLOYER/$2/$2-INFRASTRUCTURE.tfvars"
+			prefix=$(echo "$2" | cut -d '-' -f1-2)
+			library_parameter_file="LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
 			shift 2
 			;;
 		-d | --deployer_parameter_file)
@@ -108,7 +116,7 @@ function parse_arguments() {
 			shift
 			;;
 		-h | --help)
-			control_plane_showhelp
+			control_plane_show_help_v2
 			exit 3
 			;;
 		-i | --auto-approve)
@@ -869,7 +877,7 @@ function deploy_control_plane() {
 	echo "#     - Key Vault:          ${kvname}                    #"
 	echo "#     - Storage Account:    ${storage_account}                    #"
 	echo "#     - App Config:         ${app_config}                    #"
-	echo "#     - Control Plane Name:      ${CONTROL_PLANE_NAME}                       #"
+	echo "#     - Control Plane Name: ${CONTROL_PLANE_NAME}                                       #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 
