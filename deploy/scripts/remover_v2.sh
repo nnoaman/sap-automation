@@ -56,50 +56,6 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$path
 fi
 
-#Internal helper functions
-function showhelp {
-
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                 $bold_red_underscore !Warning!: This script will remove deployed systems $reset_formatting                 #"
-	echo "#                                                                                       #"
-	echo "#   This file contains the logic to remove the different systems                        #"
-	echo "#   The script expects the following exports:                                           #"
-	echo "#                                                                                       #"
-	echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
-	echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-	echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
-	echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
-	echo "#                                                                                       #"
-	echo "#   The script will persist the parameters needed between the executions in the         #"
-	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder.                               #"
-	echo "#                                                                                       #"
-	echo "#                                                                                       #"
-	echo "#   Usage: remover_v2.sh                                                                #"
-	echo "#    -p or --parameterfile           parameter file                                     #"
-	echo "#    -t or --type                    type of system to remove                           #"
-	echo "#                                         valid options:                                #"
-	echo "#                                           sap_deployer                                #"
-	echo "#                                           sap_library                                 #"
-	echo "#                                           sap_landscape                               #"
-	echo "#                                           sap_system                                  #"
-	echo "#    -h or --help                    Show help                                          #"
-	echo "#                                                                                       #"
-	echo "#   Optional parameters                                                                 #"
-	echo "#                                                                                       #"
-	echo "#    -o or --storageaccountname      Storage account name for state file                #"
-	echo "#    -s or --state_subscription      Subscription for tfstate storage account           #"
-	echo "#                                                                                       #"
-	echo "#   Example:                                                                            #"
-	echo "#                                                                                       #"
-	echo "#   [REPO-ROOT]deploy/scripts/remover.sh \                                              #"
-	echo "#      --parameterfile DEV-WEEU-SAP01-X00.tfvars \                                      #"
-	echo "#      --type sap_system                                                                #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-}
-
 # Function to source helper scripts
 function source_helper_scripts() {
 	local -a helper_scripts=("$@")
@@ -183,7 +139,7 @@ function parse_arguments() {
 			shift
 			;;
 		-h | --help)
-			showhelp
+			show_help_remover_v2
 			return 3
 			;;
 		--)

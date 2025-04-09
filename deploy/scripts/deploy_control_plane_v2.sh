@@ -881,15 +881,15 @@ function deploy_control_plane() {
 	printf -v config '%-40s' "$CONTROL_PLANE_NAME"
 
 	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
+	echo "###############################################################################"
+	echo "#                                                                             #"
 	echo -e "# $cyan Please save these values: $reset_formatting                                                           #"
-	echo "#     - Key Vault:          ${kvname}                    #"
-	echo "#     - Storage Account:    ${storage_account}                    #"
-	echo "#     - App Config:         ${app_config}                    #"
-	echo "#     - Control Plane Name: ${CONTROL_PLANE_NAME}                                            #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	echo "#     - Key Vault:          ${kvname}          #"
+	echo "#     - Storage Account:    ${storage_account}          #"
+	echo "#     - App Config:         ${app_config}          #"
+	echo "#     - Control Plane Name: ${CONTROL_PLANE_NAME}                                   #"
+	echo "#                                                                             #"
+	echo "###############################################################################"
 
 	now=$(date)
 	cat <<EOF >"${deployer_config_information}".md
