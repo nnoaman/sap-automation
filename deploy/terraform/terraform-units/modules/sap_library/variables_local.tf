@@ -56,6 +56,8 @@ locals {
 
   keyvault_id                               = try(var.deployer_tfstate.deployer_kv_user_arm_id, "")
 
+  management_network_id                     = coalesce(data.azurerm_app_configuration_key.deployer_network_id[0].value, var.deployer.use ? var.deployer_tfstate.additional_network_id : "")
+
   virtual_additional_network_ids            = compact(
                                                 flatten(
                                                   [

@@ -51,7 +51,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
                                              azurerm_resource_group.library[0].name
                                          ))
   private_dns_zone_name                = var.dns_settings.dns_label
-  virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
+  virtual_network_id                   = local.management_network_id
   registration_enabled                 = true
   tags                                 = var.infrastructure.tags
 }
@@ -77,7 +77,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
                                              azurerm_resource_group.library[0].name
                                          ))
   private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
-  virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
+  virtual_network_id                   = local.management_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
 }
@@ -103,7 +103,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
                                              azurerm_resource_group.library[0].name
                                          ))
   private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
-  virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
+  virtual_network_id                   = local.management_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
 }
@@ -155,7 +155,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            var.dns_settings.privatelink_dns_resourcegroup_name
                                          )
   private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
-  virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
+  virtual_network_id                   = local.management_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
 }
@@ -181,7 +181,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault-agent" {
                                            var.dns_settings.privatelink_dns_resourcegroup_name
                                          )
   private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
-  virtual_network_id                   = var.deployer_tfstate.additional_network_id
+  virtual_network_id                   = local.management_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
 }

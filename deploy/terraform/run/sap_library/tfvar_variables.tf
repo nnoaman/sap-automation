@@ -428,6 +428,15 @@ variable "additional_network_id"                {
                                                     }
                                                  }
 
+variable "management_network_id"                {
+                                                   description = "Management Network resource ID"
+                                                   default     = ""
+                                                    validation {
+                                                      condition     = length(var.management_network_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.management_network_id))
+                                                      error_message = "If specified the 'management_network_id' variable must be a correct Azure resource identifier."
+                                                    }
+                                                 }
+
 
 variable "tags"                                  {
                                                    description = "If provided, tags for all resources"
