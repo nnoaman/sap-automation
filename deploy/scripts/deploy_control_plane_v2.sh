@@ -70,7 +70,7 @@ function parse_arguments() {
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
-		control_plane_showhelp
+		control_plane_show_help_v2
 	fi
 
 	subscription=$ARM_SUBSCRIPTION_ID
@@ -86,10 +86,10 @@ function parse_arguments() {
 			shift 2
 			;;
 		-c | --control_plane_name)
-		  curdir=$(pwd)
-			deployer_parameter_file="$curdir/DEPLOYER/$2/$2-INFRASTRUCTURE.tfvars"
+		  current_directory=$(pwd)
+			deployer_parameter_file="$current_directory/DEPLOYER/$2/$2-INFRASTRUCTURE.tfvars"
 			prefix=$(echo "$2" | cut -d '-' -f1-2)
-			library_parameter_file="$curdir/LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
+			library_parameter_file="$current_directory/LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
 			echo "Deployer parameter file:              ${deployer_parameter_file}"
 			echo "Library parameter file:               ${library_parameter_file}"
 			shift 2
