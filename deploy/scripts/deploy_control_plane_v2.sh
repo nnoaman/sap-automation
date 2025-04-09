@@ -875,19 +875,19 @@ function deploy_control_plane() {
 		print_banner "Control Plane Deployment" "Executing deployment steps failed" "error"
 	fi
 
-	printf -v kvname '%-40s' "${DEPLOYER_KEYVAULT}"
+	printf -v key_vvault_name '%-40s' "${DEPLOYER_KEYVAULT}"
 	printf -v storage_account '%-40s' "${terraform_storage_account_name}"
-	printf -v app_config '%-40s' "$APPLICATION_CONFIGURATION_NAME"
-	printf -v config '%-40s' "$CONTROL_PLANE_NAME"
+	printf -v app_config_name '%-40s' "$APPLICATION_CONFIGURATION_NAME"
+	printf -v ctrl_plane_name '%-40s' "$CONTROL_PLANE_NAME"
 
 	echo ""
 	echo "###############################################################################"
 	echo "#                                                                             #"
-	echo -e "# $cyan Please save these values: $reset_formatting                                                           #"
-	echo "#     - Key Vault:          ${kvname}          #"
+	echo -e "# $cyan Please save these values: $reset_formatting                                                 #"
+	echo "#     - Key Vault:          ${key_vvault_name}          #"
 	echo "#     - Storage Account:    ${storage_account}          #"
-	echo "#     - App Config:         ${app_config}          #"
-	echo "#     - Control Plane Name: ${CONTROL_PLANE_NAME}                                    #"
+	echo "#     - App Config:         ${app_config_name}          #"
+	echo "#     - Control Plane Name: ${ctrl_plane_name}          #"
 	echo "#                                                                             #"
 	echo "###############################################################################"
 
