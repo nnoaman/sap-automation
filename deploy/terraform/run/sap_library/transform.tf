@@ -19,7 +19,7 @@ locals {
   deployer                             = {
                                            use                          = var.use_deployer
                                            application_configuration_id = var.application_configuration_id
-                                           control_plane_name           = coalesce(var.control_plane_name, try(data.terraform_remote_state.deployer[0].outputs.control_plane_name,""))
+                                           control_plane_name           = var.control_plane_name
                                          }
   key_vault                            = {
                                            id                        = coalesce(var.spn_keyvault_id, local.spn_key_vault_arm_id)
