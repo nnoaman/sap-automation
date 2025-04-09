@@ -269,8 +269,8 @@ function parse_arguments() {
 	fi
 
 	if [ "${deployment_system}" != sap_deployer ]; then
-		TF_VAR_APPLICATION_CONFIGURATION_ID=$APPLICATION_CONFIGURATION_ID
-		export TF_VAR_APPLICATION_CONFIGURATION_ID
+		TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
+		export TF_VAR_application_configuration_id
 		if [ -z "${deployer_tfstate_key}" ]; then
 			if [ 1 != $called_from_ado ]; then
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
