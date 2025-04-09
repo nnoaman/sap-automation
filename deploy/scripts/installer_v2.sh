@@ -114,6 +114,8 @@ function parse_arguments() {
 			APPLICATION_CONFIGURATION_NAME="$2"
 			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 			export APPLICATION_CONFIGURATION_ID
+			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
+			export TF_VAR_application_configuration_id
 			export APPLICATION_CONFIGURATION_NAME
 			shift 2
 			;;
