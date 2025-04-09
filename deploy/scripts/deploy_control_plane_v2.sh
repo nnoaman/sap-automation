@@ -887,7 +887,7 @@ function deploy_control_plane() {
 	echo "#     - Key Vault:          ${kvname}                    #"
 	echo "#     - Storage Account:    ${storage_account}                    #"
 	echo "#     - App Config:         ${app_config}                    #"
-	echo "#     - Control Plane Name: ${CONTROL_PLANE_NAME}                                       #"
+	echo "#     - Control Plane Name: ${CONTROL_PLANE_NAME}                                            #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 
