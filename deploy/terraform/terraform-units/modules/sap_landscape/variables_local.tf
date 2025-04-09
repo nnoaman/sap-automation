@@ -29,7 +29,7 @@ locals {
   firewall_name                                   = local.firewall_exists ? try(split("/", local.firewall_id)[8], "") : ""
   firewall_rgname                                 = local.firewall_exists ? try(split("/", local.firewall_id)[4], "") : ""
   firewall_service_tags                           = format("AzureCloud.%s", local.region)
-
+  use_deployer                                    = length(var.deployer_tfstate) > 0
   deployer_public_ip_address                      = try(var.deployer_tfstate.deployer_public_ip_address, "")
   deployer_subnet_management_id                   = trimspace(coalesce(try(data.azurerm_app_configuration_key.deployer_subnet_id[0].value, ""), try(var.deployer_tfstate.subnet_mgmt_id, ""), " "))
   deployer_virtual_network_id                     = trimspace(coalesce(try(data.azurerm_app_configuration_key.deployer_network_id[0].value, ""), try(var.deployer_tfstate.vnet_mgmt_id, ""), " "))
