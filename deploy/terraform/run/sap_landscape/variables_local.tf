@@ -81,7 +81,7 @@ locals {
                                            var.management_dns_resourcegroup_name != (local.SAPLibrary_resource_group_name)
                                          )
 
-  control_plane_name                   = coalesce(var.control_plane_name, data.terraform_remote_state.deployer[0].outputs.control_plane_name)
+  control_plane_name                   = coalesce(var.control_plane_name, try(data.terraform_remote_state.deployer[0].outputs.control_plane_name, ""))
 
 
 }
