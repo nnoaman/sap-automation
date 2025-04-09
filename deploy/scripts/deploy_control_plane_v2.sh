@@ -144,7 +144,7 @@ function parse_arguments() {
 	done
 	current_directory=$(pwd)
 	if [ -z "${deployer_parameter_file}" ]; then
-		deployer_parameter_file="$current_directory/DEPLOYER/$CONTROL_PLANE_NAME/$CONTROL_PLANE_NAME-INFRASTRUCTURE.tfvars"
+		deployer_parameter_file="$current_directory/DEPLOYER/$CONTROL_PLANE_NAME-INFRASTRCTURE/$CONTROL_PLANE_NAME-INFRASTRUCTURE.tfvars"
 		echo "Deployer parameter file:              ${deployer_parameter_file}"
 	fi
 	if [ -z "${library_parameter_file}" ]; then
