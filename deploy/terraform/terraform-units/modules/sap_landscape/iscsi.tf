@@ -145,8 +145,8 @@ resource "azurerm_network_security_rule" "nsr_controlplane_iscsi" {
   source_port_range                    = "*"
   destination_port_ranges              = [22, 443, 3389, 5985, 5986, 2049, 111]
   source_address_prefixes              = compact(concat(
-                                           var.deployer_tfstate.subnet_mgmt_address_prefixes,
-                                           var.deployer_tfstate.subnet_bastion_address_prefixes,
+                                           local.use_deployer ? var.deployer_tfstate.subnet_mgmt_address_prefixes : [""],
+                                           local.use_deployer ? var.deployer_tfstate.subnet_bastion_address_prefixes : [""],
                                            var.infrastructure.virtual_networks.sap.exists ? (
                                              flatten(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
                                              flatten(azurerm_virtual_network.vnet_sap[0].address_space)
