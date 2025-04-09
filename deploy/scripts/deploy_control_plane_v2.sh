@@ -81,14 +81,11 @@ function parse_arguments() {
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
-		-t | --terraform_storage_account_name)
-			terraform_storage_account_name="$2"
-			shift 2
-			;;
 		-c | --control_plane_name)
+		  CONTROL_PLANE_NAME="$2"
 		  current_directory=$(pwd)
-			deployer_parameter_file="$current_directory/DEPLOYER/$2/$2-INFRASTRUCTURE.tfvars"
-			prefix=$(echo "$2" | cut -d '-' -f1-2)
+			deployer_parameter_file="$current_directory/DEPLOYER/$CONTROL_PLANE_NAME/$CONTROL_PLANE_NAME-INFRASTRUCTURE.tfvars"
+			prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
 			library_parameter_file="$current_directory/LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
 			echo "Deployer parameter file:              ${deployer_parameter_file}"
 			echo "Library parameter file:               ${library_parameter_file}"
@@ -112,6 +109,10 @@ function parse_arguments() {
 			;;
 		-s | --subscription)
 			subscription="$2"
+			shift 2
+			;;
+		-t | --terraform_storage_account_name)
+			terraform_storage_account_name="$2"
 			shift 2
 			;;
 		-f | --force)
