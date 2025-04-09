@@ -31,8 +31,8 @@ locals {
   firewall_service_tags                           = format("AzureCloud.%s", local.region)
 
   deployer_public_ip_address                      = try(var.deployer_tfstate.deployer_public_ip_address, "")
-  deployer_subnet_management_id                   = try(var.deployer_tfstate.subnet_mgmt_id, "")
-  deployer_virtual_network_id                     = try(var.deployer_tfstate.vnet_mgmt_id, "")
+  deployer_subnet_management_id                   = trimspace(coalesce(try(data.azurerm_app_configuration_key.deployer_subnet_id[0].value, ""), try(var.deployer_tfstate.subnet_mgmt_id, ""), " "))
+  deployer_virtual_network_id                     = trimspace(coalesce(try(data.azurerm_app_configuration_key.deployer_network_id[0].value, ""), try(var.deployer_tfstate.vnet_mgmt_id, ""), " "))
   management_subnet_exists                        = length(local.deployer_subnet_management_id) > 0
 
 

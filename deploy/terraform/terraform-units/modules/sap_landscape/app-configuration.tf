@@ -14,6 +14,20 @@ data  "azurerm_app_configuration" "app_config" {
   resource_group_name                  = local.app_config_resource_group_name
 }
 
+data "azurerm_app_configuration_key" "deployer_network_id" {
+  count                                = local.application_configuration_deployed ? 1 : 0
+  configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
+  key                                  = format("%s_Deployer_network_id", var.infrastructure.control_plane_name)
+  label                                = var.infrastructure.control_plane_name
+}
+
+data "azurerm_app_configuration_key" "deployer_subnet_id" {
+  count                                = local.application_configuration_deployed ? 1 : 0
+  configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
+  key                                  = format("%s_Deployer_subnet_id", var.infrastructure.control_plane_name)
+  label                                = var.infrastructure.control_plane_name
+}
+
 resource "azurerm_app_configuration_key" "KeyVaultResourceId" {
   provider                             = azurerm.deployer
   count                                = local.application_configuration_deployed ? 1 : 0

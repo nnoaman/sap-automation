@@ -332,6 +332,36 @@ resource "azurerm_app_configuration_key" "deployer_network_id" {
             }
 }
 
+resource "azurerm_app_configuration_key" "deployer_subnet_id" {
+  provider                             = azurerm.main
+  count                                = var.app_config_service.deploy ? 1 : 0
+  depends_on                           = [
+                                            time_sleep.wait_for_appconfig_data_owner_assignment,
+                                            azurerm_private_endpoint.app_config
+                                         ]
+
+  configuration_store_id               = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
+  key                                  = format("%s_Deployer_subnet_id", var.app_config_service.control_plane_name)
+  label                                = var.app_config_service.control_plane_name
+  value                                = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
+  content_type                         = "text/id"
+  type                                 = "kv"
+  tags                                 = merge(var.infrastructure.tags, {
+                                           "source" = "Deployer"
+                                         })
+  timeouts                             {
+                                          read = "2m"
+                                          create = "5m"
+                                          update = "5m"
+                                       }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
+}
 
 resource "azurerm_private_endpoint" "app_config" {
   provider                             = azurerm.main

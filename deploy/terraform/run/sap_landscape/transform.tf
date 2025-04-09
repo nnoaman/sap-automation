@@ -48,6 +48,7 @@ locals {
                                                                            ), "")
                                            encryption_at_host_enabled    = var.encryption_at_host_enabled
                                            platform_updates              = var.platform_updates
+                                           control_plane_name            = var.control_plane_name
                                          }
 
   authentication                       = {
