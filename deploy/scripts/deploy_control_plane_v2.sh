@@ -65,19 +65,20 @@ source_helper_scripts() {
 # Function to parse command line arguments
 function parse_arguments() {
 	approve=""
+	subscription=$ARM_SUBSCRIPTION_ID
+	only_deployer=0
+	approve=""
+	deployer_parameter_file=""
+	library_parameter_file=""
+
 	local input_opts
-	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:, deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
+	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
 		control_plane_show_help_v2
 	fi
 
-	subscription=$ARM_SUBSCRIPTION_ID
-	only_deployer=0
-	approve=""
-	deployer_parameter_file=""
-	library_parameter_file=""
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
