@@ -18,8 +18,8 @@ resource "azurerm_app_configuration_key" "libraryStateFileName" {
   provider                             = azurerm.deployer
   count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_LibraryStateFileName", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_LibraryStateFileName", var.deployer.control_plane_name)
+  label                                = var.deployer.control_plane_name
   value                                = format("%s-SAP_LIBRARY.terraform.tfstate",var.naming.prefix.LIBRARY)
   content_type                         = "text/plain"
   type                                 = "kv"
@@ -40,8 +40,8 @@ resource "azurerm_app_configuration_key" "terraformRemoteStateStorageAccountId" 
   provider                             = azurerm.deployer
   count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_TerraformRemoteStateStorageAccountId", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_TerraformRemoteStateStorageAccountId", var.deployer.control_plane_name)
+  label                                = var.deployer.control_plane_name
   value                                = length(var.storage_account_tfstate.arm_id) > 0 ? (
                                                             data.azurerm_storage_account.storage_tfstate[0].id) : (
                                                             try(azurerm_storage_account.storage_tfstate[0].id, "")
@@ -65,8 +65,8 @@ resource "azurerm_app_configuration_key" "SAPLibraryStorageAccountId" {
   provider                             = azurerm.deployer
   count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_SAPLibraryStorageAccountId", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_SAPLibraryStorageAccountId", var.deployer.control_plane_name)
+  label                                = var.deployer.control_plane_name
   value                                = length(var.storage_account_tfstate.arm_id) > 0 ? (
                                                             data.azurerm_storage_account.storage_sapbits[0].id) : (
                                                             try(azurerm_storage_account.storage_sapbits[0].id, "")
@@ -89,8 +89,8 @@ resource "azurerm_app_configuration_key" "SAPMediaPath" {
   provider                             = azurerm.deployer
   count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_SAPMediaPath", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_SAPMediaPath", var.deployer.control_plane_name)
+  label                                = var.deployer.control_plane_name
   value                                = format("https://%s.blob.core.windows.net/%s", length(var.storage_account_sapbits.arm_id) > 0 ?
                                                              split("/", var.storage_account_sapbits.arm_id)[8] : local.storage_account_SAPmedia,
                                                              var.storage_account_sapbits.sapbits_blob_container.name)

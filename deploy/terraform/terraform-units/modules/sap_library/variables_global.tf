@@ -115,4 +115,3 @@ variable "short_named_endpoints_nics"     {
                                             default     = false
                                           }
 
-variable "state_filename_prefix"          { description = "State file name" }

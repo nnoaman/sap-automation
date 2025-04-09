@@ -52,7 +52,6 @@ module "sap_deployer" {
   soft_delete_retention_days                    = var.soft_delete_retention_days
   spn_id                                        = var.use_spn ? coalesce(var.spn_id, data.azurerm_key_vault_secret.client_id[0].value) : ""
   ssh-timeout                                   = var.ssh-timeout
-  state_filename_prefix                         = module.sap_namegenerator.naming.prefix.DEPLOYER
   subnets_to_add                                = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
   tf_version                                    = var.tf_version
   use_private_endpoint                          = var.use_private_endpoint

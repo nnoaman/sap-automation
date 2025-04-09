@@ -206,6 +206,7 @@ locals {
                                            id                                          = var.application_configuration_id
                                            exists                                      = length(var.application_configuration_id) > 0 ? true : false
                                            deploy                                      = var.application_configuration_deployment
+                                           control_plane_name                          = module.sap_namegenerator.naming.prefix.DEPLOYER
                                          }
 
 }

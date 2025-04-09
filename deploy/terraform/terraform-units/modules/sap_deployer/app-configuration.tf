@@ -55,9 +55,9 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
 
   configuration_store_id               = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
 
-  key                                  = format("%s_StateFileName", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
-  value                                = format("%s-INFRASTRUCTURE.terraform.tfstate",var.state_filename_prefix)
+  key                                  = format("%s_StateFileName", var.app_config_service.control_plane_name)
+  label                                = var.app_config_service.control_plane_name
+  value                                = format("%s-INFRASTRUCTURE.terraform.tfstate",var.app_config_service.control_plane_name)
   content_type                         = "text/plain"
   type                                 = "kv"
   tags                                 = merge(var.infrastructure.tags, {
@@ -89,8 +89,8 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_name" {
 
   configuration_store_id               = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
 
-  key                                  = format("%s_KeyVaultName", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_KeyVaultName", var.app_config_service.control_plane_name)
+  label                                = var.app_config_service.control_plane_name
   value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
   content_type                         = "text/plain"
   type                                 = "kv"
@@ -122,8 +122,8 @@ resource "azurerm_app_configuration_key" "deployer_keyvault_id" {
                                          ]
 
   configuration_store_id               = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_KeyVaultResourceId", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_KeyVaultResourceId", var.app_config_service.control_plane_name)
+  label                                = var.app_config_service.control_plane_name
   value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   content_type                         = "text/id"
   type                                 = "kv"
@@ -154,8 +154,8 @@ resource "azurerm_app_configuration_key" "deployer_resourcegroup_name" {
                                          ]
 
   configuration_store_id               = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_ResourceGroupName", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_ResourceGroupName", var.app_config_service.control_plane_name)
+  label                                = var.app_config_service.control_plane_name
   value                                = local.resourcegroup_name
   content_type                         = "text/plain"
   type                                 = "kv"
@@ -185,8 +185,8 @@ resource "azurerm_app_configuration_key" "deployer_subscription_id" {
                                          ]
 
   configuration_store_id               = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_SubscriptionId", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_SubscriptionId", var.app_config_service.control_plane_name)
+  label                                = var.app_config_service.control_plane_name
   value                                = data.azurerm_subscription.primary.subscription_id
   content_type                         = "text/id"
   type                                 = "kv"
@@ -216,8 +216,8 @@ resource "azurerm_app_configuration_key" "web_application_resource_id" {
                                          ]
 
   configuration_store_id               = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_AppServiceId", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_AppServiceId", var.app_config_service.control_plane_name)
+  label                                = var.app_config_service.control_plane_name
   value                                = try(azurerm_windows_web_app.webapp[0].id, "")
   content_type                         = "text/id"
   type                                 = "kv"
@@ -247,8 +247,8 @@ resource "azurerm_app_configuration_key" "web_application_identity_id" {
                                          ]
 
   configuration_store_id               = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_AppServiceIdentityId", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_AppServiceIdentityId", var.app_config_service.control_plane_name)
+  label                                = var.app_config_service.control_plane_name
   value                                = try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "")
   content_type                         = "text/id"
   type                                 = "kv"
@@ -279,8 +279,8 @@ resource "azurerm_app_configuration_key" "deployer_msi_id" {
                                          ]
 
   configuration_store_id               = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_Deployer_MSI_Id", var.state_filename_prefix)
-  label                                = var.state_filename_prefix
+  key                                  = format("%s_Deployer_MSI_Id", var.app_config_service.control_plane_name)
+  label                                = var.app_config_service.control_plane_name
   value                                = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
   content_type                         = "text/id"
   type                                 = "kv"

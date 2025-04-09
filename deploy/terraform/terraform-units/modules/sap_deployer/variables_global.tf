@@ -18,7 +18,6 @@ variable "naming"                          { description = "Defines the names fo
 variable "options"                         { description = "Dictionary of miscallaneous parameters" }
 variable "place_delete_lock_on_resources"  { description = "If defined, a delete lock will be placed on the key resources" }
 variable "ssh-timeout"                     { description = "SSH timeout" }
-variable "state_filename_prefix"           { description = "State file name" }
 variable "network_logical_name"            { description = "Logical name of the network" }
 variable "tf_version"                      { description = "Terraform version to install on deployer" }
 variable "use_private_endpoint"            { description = "Boolean value indicating if private endpoint should be used for the deployment" }
