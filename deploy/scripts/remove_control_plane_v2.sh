@@ -64,37 +64,6 @@ fi
 
 terraform_storage_account_name=""
 
-function showhelp {
-	echo ""
-	echo "##################################################################################################################"
-	echo "#                                                                                                                #"
-	echo "#                                                                                                                #"
-	echo "#   This file contains the logic to remove the deployer and library from an Azure region                         #"
-	echo "#                                                                                                                #"
-	echo "#   The script experts the following exports:                                                                    #"
-	echo "#                                                                                                                #"
-	echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation                       #"
-	echo "#                                                                                                                #"
-	echo "#   The script is to be run from a parent folder to the folders containing the json parameter files for          #"
-	echo "#    the deployer and the library and the environment.                                                           #"
-	echo "#                                                                                                                #"
-	echo "#   The script will persist the parameters needed between the executions in the                                  #"
-	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                         #"
-	echo "#                                                                                                                #"
-	echo "#                                                                                                                #"
-	echo "#   Usage: remove_region.sh                                                                                      #"
-	echo "#      -d or --deployer_parameter_file       deployer parameter file                                             #"
-	echo "#      -l or --library_parameter_file        library parameter file                                              #"
-	echo "#                                                                                                                #"
-	echo "#                                                                                                                #"
-	echo "#   Example:                                                                                                     #"
-	echo "#                                                                                                                #"
-	echo "#   SAP_AUTOMATION_REPO_PATH/scripts/remove_controlplane.sh \                                                    #"
-	echo "#      --deployer_parameter_file DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.tfvars \ #"
-	echo "#      --library_parameter_file LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.tfvars \                     #"
-	echo "#                                                                                                                #"
-	echo "##################################################################################################################"
-}
 
 function missing {
 	printf -v val '%-40s' "$missing_value"
@@ -128,7 +97,7 @@ source_helper_scripts() {
 # Function to parse command line arguments
 parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n remove_control_plane -o d:l:s:b:r:ihag --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
+	input_opts=$(getopt -n remove_control_plane_v2 -o c:d:l:s:b:r:ihag --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -141,6 +110,12 @@ parse_arguments() {
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
+		-c | --control_plane_name)
+			deployer_parameter_file="DEPLOYER/$2/$2-INFRASTRUCTURE.tfvars"
+			prefix=$(echo "$2" | cut -d '-' -f1-2)
+			library_parameter_file="LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
+			shift 2
+			;;
 		-d | --deployer_parameter_file)
 			deployer_parameter_file="$2"
 			shift 2
@@ -150,15 +125,15 @@ parse_arguments() {
 			shift 2
 			;;
 		-s | --subscription)
-			subscription="$2"
+			terraform_storage_account_subscription_id="$2"
 			shift 2
 			;;
 		-b | --storage_account)
-			storage_account="$2"
+			terraform_storage_account_name="$2"
 			shift 2
 			;;
 		-r | --resource_group)
-			resource_group="$2"
+			terraform_storage_account_resource_group_name="$2"
 			shift 2
 			;;
 		-a | --ado)
@@ -174,7 +149,7 @@ parse_arguments() {
 			shift
 			;;
 		-h | --help)
-			showhelp
+			remove_control_plane_show_help_v2
 			exit 3
 			;;
 		--)
@@ -246,24 +221,69 @@ parse_arguments() {
 
 # Function to retrieve data from Azure App Configuration
 function retrieve_parameters() {
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
-	TF_VAR_tfstate_resource_id=$tfstate_resource_id
-	export TF_VAR_tfstate_resource_id
+	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
+	fi
 
-	terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-	export terraform_storage_account_name
+	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+		application_configuration_name=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f9)
+		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+		if [ -z "$key_vault_id" ]; then
+			if [ $ado_flag == "--ado" ]; then
+				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+			fi
+		fi
+		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+		export tfstate_resource_id
+		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
 
-	terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-	export terraform_storage_account_resource_group_name
+		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+		export terraform_storage_account_name
 
-	terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-	export terraform_storage_account_subscription_id
+		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+		export terraform_storage_account_resource_group_name
 
-	TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+		TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+		export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
-	subscription=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "$CONTROL_PLANE_NAME")
-	export subscription
+		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+		export keyvault
+
+		app_service_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceId" "${CONTROL_PLANE_NAME}")
+		export app_service_id
+
+		export terraform_storage_account_subscription_id
+	else
+		if [ -f "${deployer_dirname}/.terraform/terraform.tfstate" ]; then
+			local_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+			if [ -n "${local_backend}" ]; then
+
+				terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+				terraform_storage_account_name=$(grep -m1 "storage_account_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+				terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+				tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+			fi
+		else
+			load_config_vars "${deployer_config_information}" \
+				tfstate_resource_id DEPLOYER_KEYVAULT
+
+			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
+			export TF_VAR_spn_keyvault_id
+
+			export TF_VAR_tfstate_resource_id
+			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+			export terraform_storage_account_name
+
+			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+			export terraform_storage_account_resource_group_name
+
+			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			export terraform_storage_account_subscription_id
+		fi
+	fi
 
 }
 

@@ -66,7 +66,7 @@ source_helper_scripts() {
 function parse_arguments() {
 	approve=""
 	local input_opts
-	input_opts=$(getopt -n deploy_controlplane_v2 -o d:l:s:c:p:t:a:k:ifohrvm --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
+	input_opts=$(getopt -n deploy_controlplane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:, deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
