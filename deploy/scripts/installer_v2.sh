@@ -687,7 +687,7 @@ function sdaf_installer() {
 	fi
 
 	if [ 1 -eq $new_deployment ]; then
-		deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \" || true)
+		deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \")
 		if [ -z "${deployed_using_version}" ]; then
 			print_banner "$banner_title" "The environment was deployed using an older version of the Terraform templates" "error" "Please inspect the output of Terraform plan carefully!"
 
