@@ -169,7 +169,7 @@ if [ -z "$DEPLOYER_KEYVAULT" ]; then
 	exit 2
 else
   if [ "${DEPLOYER_KEYVAULT:0:2}" == '$(' ] ; then
-	  load_config_vars "$environment_file_name" "DEPLOYER_KEYVAULT
+	  load_config_vars "$environment_file_name" DEPLOYER_KEYVAULT
 	fi
 fi
 
