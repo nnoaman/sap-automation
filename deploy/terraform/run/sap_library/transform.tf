@@ -40,8 +40,8 @@ locals {
                                               is_existing            = var.library_sapmedia_blob_container_is_existing
                                               name                   = coalesce(var.library_sapmedia_blob_container_name, module.sap_namegenerator.naming.resource_suffixes.sapbits)
                                             }
-                                           shared_access_key_enabled = var.shared_access_key_enabled
-                                           public_network_access_enabled = var.public_network_access_enabled
+                                           shared_access_key_enabled                 = var.shared_access_key_enabled
+                                           public_network_access_enabled             = var.public_network_access_enabled
                                            enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
                                          }
 

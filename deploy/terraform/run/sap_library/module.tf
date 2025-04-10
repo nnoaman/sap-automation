@@ -33,8 +33,8 @@ module "sap_library" {
 module "sap_namegenerator" {
   source                            = "../../terraform-units/modules/sap_namegenerator"
   codename                          = try(local.infrastructure.codename, "")
-  deployer_environment              = try(local.deployer.environment, local.infrastructure.environment)
-  deployer_location                 = try(local.deployer.region, local.infrastructure.region)
+  deployer_environment              = try(split("-", var.control_plane_name)[0], var.environment)
+  deployer_location                 = var.location
   environment                       = local.infrastructure.environment
   location                          = local.infrastructure.region
   management_vnet_name              = ""
