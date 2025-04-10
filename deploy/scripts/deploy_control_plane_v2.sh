@@ -155,11 +155,11 @@ function parse_arguments() {
 	fi
 
 	if [ ! -f "${library_parameter_file}" ]; then
-		control_plane_missing_v2 'library parameter file'
+		control_plane_missing_v2 'library parameter file' $SCRIPT_NAME
 		exit 2 #No such file or directory
 	fi
 	if [ ! -f "${deployer_parameter_file}" ]; then
-		control_plane_missing_v2 'deployer parameter file'
+		control_plane_missing_v2 'deployer parameter file' $SCRIPT_NAME
 		exit 2 #No such file or directory
 	fi
 

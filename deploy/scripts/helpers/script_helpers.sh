@@ -394,15 +394,17 @@ function control_plane_missing {
 
 function control_plane_missing_v2 {
 	printf -v val '%-40s' "$1"
+	printf -v val2 '%-42s' "$2"
+
 	echo ""
 	echo "################################################################################################"
 	echo "#                                                                                              #"
 	echo "#   Missing : ${val}                                         #"
 	echo "#                                                                                              #"
-	echo "#   Usage: deploy_control_plane_v2.sh                                                          #"
+	echo "#   Usage:  ${val2}                                         #"
 	echo "#      -c or --control_plane_name            control plane name file                           #"
 	echo "#                                                                                              #"
-	echo "#   Usage: deploy_control_plane_v2.sh                                                          #"
+	echo "#   Usage:  ${val2}                                         #"
 	echo "#      -d or --deployer_parameter_file       deployer parameter file                           #"
 	echo "#      -l or --library_parameter_file        library parameter file                            #"
 	echo "#                                                                                              #"

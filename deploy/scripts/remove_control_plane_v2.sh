@@ -64,22 +64,6 @@ fi
 
 terraform_storage_account_name=""
 
-
-function missing {
-	printf -v val '%-40s' "$missing_value"
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#   Missing : ${val}                                  #"
-	echo "#                                                                                       #"
-	echo "#   Usage: remove_region.sh                                                             #"
-	echo "#      -d or --deployer_parameter_file       deployer parameter file                    #"
-	echo "#      -l or --library_parameter_file        library parameter file                     #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-
-}
-
 # Function to source helper scripts
 source_helper_scripts() {
 	local -a helper_scripts=("$@")
@@ -111,9 +95,7 @@ parse_arguments() {
 	while true; do
 		case "$1" in
 		-c | --control_plane_name)
-			deployer_parameter_file="DEPLOYER/$2/$2-INFRASTRUCTURE.tfvars"
-			prefix=$(echo "$2" | cut -d '-' -f1-2)
-			library_parameter_file="LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
+			CONTROL_PLANE_NAME="$2"
 			shift 2
 			;;
 		-d | --deployer_parameter_file)
@@ -158,13 +140,23 @@ parse_arguments() {
 			;;
 		esac
 	done
+	current_directory=$(pwd)
+	if [ -z "${deployer_parameter_file}" ]; then
+		deployer_parameter_file="$current_directory/DEPLOYER/$CONTROL_PLANE_NAME-INFRASTRUCTURE/$CONTROL_PLANE_NAME-INFRASTRUCTURE.tfvars"
+		echo "Deployer parameter file:             ${deployer_parameter_file}"
+	fi
+	if [ -z "${library_parameter_file}" ]; then
+		prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
+		library_parameter_file="$current_directory/LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
+		echo "Library parameter file:              ${library_parameter_file}"
+	fi
 
 	if [ ! -f "${library_parameter_file}" ]; then
-		control_plane_missing 'library parameter file'
+		control_plane_missing_v2 'library parameter file' $SCRIPT_NAME
 		exit 2 #No such file or directory
 	fi
 	if [ ! -f "${deployer_parameter_file}" ]; then
-		control_plane_missing 'deployer parameter file'
+		control_plane_missing_v2 'deployer parameter file' $SCRIPT_NAME
 		exit 2 #No such file or directory
 	fi
 
