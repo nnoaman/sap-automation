@@ -35,7 +35,7 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
-banner_title="$banner_title - $deployment_system"
+banner_title="Remover"
 
 
 if printenv "CONFIG_REPO_PATH"; then
@@ -355,6 +355,8 @@ function sdaf_remover() {
 	if ! parse_arguments "$@"; then
 		return $?
 	fi
+
+	print_banner "$banner_title" "Removal starter." "info" "Entering $SCRIPT_NAME"
 
 	retrieve_parameters
 
@@ -706,9 +708,19 @@ function sdaf_remover() {
 	fi
 
 	unset TF_DATA_DIR
+	print_banner "$banner_title" "Removal completed." "info" "Exiting $SCRIPT_NAME"
 
 	exit "$return_value"
 }
 
-sdaf_remover "$@"
-exit $?
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+	# Only run if script is executed directly, not when sourced
+	if sdaf_remover "$@"; then
+		echo "Script executed successfully."
+		exit 0
+	else
+		echo "Script failed with exit code $?"
+		exit 10
+	fi
+fi
+
