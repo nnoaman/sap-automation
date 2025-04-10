@@ -358,7 +358,7 @@ function remove_control_plane_show_help_v2 {
 	echo "#                                                                                                                 #"
 	echo "#   Example:                                                                                                      #"
 	echo "#                                                                                                                 #"
-	echo "#   \$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh \                                             #"
+	echo "#   \$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh \                                         #"
 	echo "#      --deployer_parameter_file DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.tfvars \  #"
 	echo "#      --library_parameter_file LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.tfvars \                      #"
 	echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \                                                      #"

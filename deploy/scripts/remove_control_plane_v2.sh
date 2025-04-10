@@ -85,10 +85,12 @@ parse_arguments() {
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
-		control_plane_showhelp
+		remove_control_plane_show_help_v2
 	fi
 
 	approve=""
+	deployer_parameter_file=""
+	library_parameter_file=""
 	keep_agent=0
 	approve_parameter=""
 	eval set -- "$input_opts"
