@@ -56,12 +56,12 @@ mkdir -p .sap_deployment_automation
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
-CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
 
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
@@ -75,11 +75,9 @@ if [ ! -f "$library_tfvars_file_name" ]; then
 	exit 2
 fi
 
-if [ ! -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
+if [ ! -f "${deployer_environment_file_name}" ]; then
 	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 		cp ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
-		deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
-
 	fi
 fi
 echo ""
