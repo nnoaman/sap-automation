@@ -163,12 +163,14 @@ echo -e "$green--- Read parameter values ---$reset"
 deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
 
-
-
 if [ -z "$DEPLOYER_KEYVAULT" ]; then
 	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration or in configuration file ( ${environment_file_name} )."
 	print_banner "$banner_title" "Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration  or in configuration file ( ${environment_file_name}" "error"
 	exit 2
+else
+  if [ "${DEPLOYER_KEYVAULT:0:2}" == '$(' ] ; then
+	  load_config_vars "$environment_file_name" "DEPLOYER_KEYVAULT
+	fi
 fi
 
 keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
