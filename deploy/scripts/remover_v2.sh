@@ -35,6 +35,7 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
+banner_title="$banner_title - $deployment_system"
 
 
 if printenv "CONFIG_REPO_PATH"; then
@@ -73,6 +74,7 @@ function source_helper_scripts() {
 # Function to parse command line arguments
 function parse_arguments() {
 	local input_opts
+	approve=""
 	input_opts=$(getopt -n remover_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
 	is_input_opts_valid=$?
 
@@ -156,20 +158,20 @@ function parse_arguments() {
 	key=$(echo "${parameter_file_name}" | cut -d. -f1)
 
 	if [ "${parameter_file_dirname}" != '.' ]; then
-		print_banner "Remover" "Please run this command from the folder containing the parameter file" "error"
+		print_banner "$banner_title - $deployment_system" "Please run this command from the folder containing the parameter file" "error"
 	fi
 
 	if [ ! -f "${parameter_file_name}" ]; then
-		print_banner "Remover" "Parameter file does not exist: ${parameterFilename}" "error"
+		print_banner "$banner_title - $deployment_system" "Parameter file does not exist: ${parameterFilename}" "error"
 	fi
 
 	[[ -z "$CONTROL_PLANE_NAME" ]] && {
-		print_banner "Remover" "control_plane_name is required" "error"
+		print_banner "$banner_title - $deployment_system" "control_plane_name is required" "error"
 		return 1
 	}
 
 	[[ -z "$deployment_system" ]] && {
-		print_banner "Remover" "type is required" "error"
+		print_banner "$banner_title - $deployment_system" "type is required" "error"
 		return 1
 	}
 
@@ -200,7 +202,7 @@ function parse_arguments() {
 				read -r -p "Workload terraform statefile name: " landscape_tfstate_key
 				save_config_var "landscape_tfstate_key" "${system_config_information}"
 			else
-				print_banner "Remover" "Workload terraform statefile name is required" "error"
+				print_banner "$banner_title - $deployment_system" "Workload terraform statefile name is required" "error"
 				unset TF_DATA_DIR
 				return 2
 			fi
@@ -219,7 +221,7 @@ function parse_arguments() {
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
 				save_config_var "deployer_tfstate_key" "${system_config_information}"
 			else
-				print_banner "Remover" "Deployer terraform state file name is required" "error"
+				print_banner "$banner_title - $deployment_system" "Deployer terraform state file name is required" "error"
 				unset TF_DATA_DIR
 				return 2
 			fi
@@ -379,7 +381,7 @@ function sdaf_remover() {
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 	if [ "${DEBUG:-False}" = True ]; then
-		print_banner "Remover" "Enabling debug mode" "info"
+		print_banner "$banner_title - $deployment_system" "Enabling debug mode" "info"
 		set -x
 		set -o errexit
 	fi
@@ -418,12 +420,12 @@ function sdaf_remover() {
 	current_subscription_id=$(az account show --query id -o tsv)
 
 	if [[ -n "$terraform_storage_account_subscription_id" ]] && [[ "$terraform_storage_account_subscription_id" != "$current_subscription_id" ]]; then
-		print_banner "Remover" "Changing the subscription to: $terraform_storage_account_subscription_id" "info"
+		print_banner "$banner_title - $deployment_system" "Changing the subscription to: $terraform_storage_account_subscription_id" "info"
 		az account set --sub "${terraform_storage_account_subscription_id}"
 
 		return_code=$?
 		if [ 0 != $return_code ]; then
-			print_banner "Remover" "The deployment account (MSI or SPN) does not have access to: $terraform_storage_account_subscription_id" "error"
+			print_banner "$banner_title - $deployment_system" "The deployment account (MSI or SPN) does not have access to: $terraform_storage_account_subscription_id" "error"
 			exit $return_code
 		fi
 
@@ -455,7 +457,7 @@ function sdaf_remover() {
 	if [ ! -d "${terraform_module_directory}" ]; then
 
 		printf -v val %-40.40s "$deployment_system"
-		print_banner "Remover" "Incorrect system deployment type specified: ${val}$" "error"
+		print_banner "$banner_title - $deployment_system" "Incorrect system deployment type specified: ${val}$" "error"
 		exit 1
 	fi
 
@@ -494,16 +496,16 @@ function sdaf_remover() {
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
-			print_banner "Remover" "Terraform init succeeded." "success"
+			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success"
 
 		else
 			return_value=$?
-			print_banner "Remover" "Terraform init failed" "error"
+			print_banner "$banner_title - $deployment_system" "Terraform init failed" "error"
 			exit $return_value
 		fi
 	else
 		echo "Terraform state:                     remote"
-		print_banner "Remover" "The system has already been deployed and the state file is in Azure" "info"
+		print_banner "$banner_title - $deployment_system" "The system has already been deployed and the state file is in Azure" "info"
 
 		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
@@ -512,15 +514,15 @@ function sdaf_remover() {
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
-			print_banner "Remover" "Terraform init failed." "error"
+			print_banner "$banner_title - $deployment_system" "Terraform init failed." "error"
 			exit $return_value
 		else
 			return_value=$?
-			print_banner "Remover" "Terraform init succeeded." "success"
+			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success"
 		fi
 	fi
 
-	print_banner "Remover" "Running Terraform destroy" "info"
+	print_banner "$banner_title - $deployment_system" "Running Terraform destroy" "info"
 
 	if [ "$deployment_system" == "sap_deployer" ]; then
 		terraform -chdir="${terraform_module_directory}" destroy -refresh=false -var-file="${var_file}"
@@ -594,10 +596,10 @@ function sdaf_remover() {
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=$?
-				print_banner "Remover" "Terraform destroy succeeded" "success"
+				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
 			else
 				return_value=$?
-				print_banner "Remover" "Terraform destroy failed" "error"
+				print_banner "$banner_title - $deployment_system" "Terraform destroy failed" "error"
 			fi
 			if [ -f destroy_output.json ]; then
 				errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
@@ -609,11 +611,11 @@ function sdaf_remover() {
 		else
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
-				print_banner "Remover" "Terraform destroy succeeded" "success"
+				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
 				return_value=$?
 			else
 				return_value=$?
-				print_banner "Remover" "Terraform destroy failed" "error"
+				print_banner "$banner_title - $deployment_system" "Terraform destroy failed" "error"
 			fi
 		fi
 	else
@@ -624,19 +626,19 @@ function sdaf_remover() {
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=${PIPESTATUS[0]}
-				print_banner "Remover" "Terraform destroy succeeded" "success"
+				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
 			else
 				return_value=${PIPESTATUS[0]}
-				print_banner "Remover" "Terraform destroy failed" "error"
+				print_banner "$banner_title - $deployment_system" "Terraform destroy failed" "error"
 			fi
 		else
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters -parallelism="$parallelism"; then
 				return_value=$?
-				print_banner "Remover" "Terraform destroy succeeded" "success"
+				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
 			else
 				return_value=$?
-				print_banner "Remover" "Terraform destroy failed" "error"
+				print_banner "$banner_title - $deployment_system" "Terraform destroy failed" "error"
 			fi
 		fi
 
@@ -644,7 +646,7 @@ function sdaf_remover() {
 			errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
 
 			if [[ -n $errors_occurred ]]; then
-				print_banner "Remover" "Errors during the destroy phase" "success"
+				print_banner "$banner_title - $deployment_system" "Errors during the destroy phase" "success"
 				echo ""
 				echo "#########################################################################################"
 				echo "#                                                                                       #"
