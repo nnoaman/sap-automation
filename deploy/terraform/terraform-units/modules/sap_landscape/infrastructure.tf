@@ -152,8 +152,8 @@ resource "azurerm_virtual_network_peering" "peering_management_sap" {
 resource "azurerm_virtual_network_peering" "peering_sap_management" {
   provider                             = azurerm.main
   depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web ]
-  count                                = var.peer_with_control_plane_vnet ? (
-                                           var.infrastructure.virtual_networks.sap.exists  || !var.use_deployer ? 0 : 1) : (
+  count                                = length(local.deployer_virtual_network_id) > 0 ? (
+                                           var.infrastructure.virtual_networks.sap.exists ? 0 : 1 ) : (
                                            0
                                          )
 
