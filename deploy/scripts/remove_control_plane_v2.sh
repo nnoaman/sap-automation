@@ -339,7 +339,7 @@ function remove_control_plane() {
 
 	echo ""
 	echo -e "${green}Terraform details"
-	echo "-------------------------------------------------------------------------${reset}"
+	echo -e "-------------------------------------------------------------------------${reset}"
 	echo "Subscription:                        ${terraform_storage_account_subscription_id}"
 	echo "Storage Account:                     ${terraform_storage_account_name}"
 	echo "Resource Group:                      ${terraform_storage_account_resource_group_name}"
