@@ -59,62 +59,6 @@ resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
   dns_servers                          = var.dns_settings.dns_server_list
 }
 
-# // Peers management VNET to SAP VNET
-resource "azurerm_virtual_network_peering" "peering_management_sap" {
-  provider                             = azurerm.peering
-  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web ]
-  count                                = var.peer_with_control_plane_vnet ? (
-                                           var.infrastructure.virtual_networks.sap.exists  || !var.use_deployer ? 0 : 1) : (
-                                           0
-                                         )
-  name                                 = substr(
-                                           format("%s_to_%s",
-                                             split("/", local.deployer_virtual_network_id)[8],
-                                             var.infrastructure.virtual_networks.sap.exists  ? (
-                                               data.azurerm_virtual_network.vnet_sap[0].name) : (
-                                               azurerm_virtual_network.vnet_sap[0].name
-                                             )
-                                           ),
-                                           0,
-                                           80
-                                         )
-  virtual_network_name                 = split("/", local.deployer_virtual_network_id)[8]
-  resource_group_name                  = split("/", local.deployer_virtual_network_id)[4]
-  remote_virtual_network_id            = azurerm_virtual_network.vnet_sap[0].id
-
-  allow_virtual_network_access         = true
-}
-
-// Peers SAP VNET to management VNET
-resource "azurerm_virtual_network_peering" "peering_sap_management" {
-  provider                             = azurerm.main
-  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web ]
-  count                                = var.peer_with_control_plane_vnet ? (
-                                           var.infrastructure.virtual_networks.sap.exists  || !var.use_deployer ? 0 : 1) : (
-                                           0
-                                         )
-
-  name                                 = substr(
-                                           format("%s_to_%s",
-                                             var.infrastructure.virtual_networks.sap.exists  ? (
-                                               data.azurerm_virtual_network.vnet_sap[0].name) : (
-                                               azurerm_virtual_network.vnet_sap[0].name
-                                             ), split("/", local.deployer_virtual_network_id)[8]
-                                           ),
-                                           0,
-                                           80
-                                         )
-  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists  ? (
-                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
-                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
-                                         )
-  virtual_network_name                 = azurerm_virtual_network.vnet_sap[0].name
-
-  remote_virtual_network_id            = local.deployer_virtual_network_id
-  allow_virtual_network_access         = true
-  allow_forwarded_traffic              = true
-}
-
 
 //Route table
 resource "azurerm_route_table" "rt" {
@@ -171,6 +115,72 @@ resource "azurerm_management_lock" "vnet_sap" {
             }
 }
 
+#######################################4#######################################8
+#                                                                              #
+#                                   Peering                                    #
+#                                                                              #
+#######################################4#######################################8
+
+
+# // Peers management VNET to SAP VNET
+resource "azurerm_virtual_network_peering" "peering_management_sap" {
+  provider                             = azurerm.peering
+  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web ]
+  count                                = length(local.deployer_virtual_network_id) > 0 ? (
+                                           var.infrastructure.virtual_networks.sap.exists ? 0 : 1 ) : (
+                                           0
+                                         )
+  name                                 = substr(
+                                           format("%s_to_%s",
+                                             split("/", local.deployer_virtual_network_id)[8],
+                                             var.infrastructure.virtual_networks.sap.exists  ? (
+                                               data.azurerm_virtual_network.vnet_sap[0].name) : (
+                                               azurerm_virtual_network.vnet_sap[0].name
+                                             )
+                                           ),
+                                           0,
+                                           80
+                                         )
+  virtual_network_name                 = split("/", local.deployer_virtual_network_id)[8]
+  resource_group_name                  = split("/", local.deployer_virtual_network_id)[4]
+  remote_virtual_network_id            = azurerm_virtual_network.vnet_sap[0].id
+
+  allow_virtual_network_access         = true
+}
+
+// Peers SAP VNET to management VNET
+resource "azurerm_virtual_network_peering" "peering_sap_management" {
+  provider                             = azurerm.main
+  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web ]
+  count                                = var.peer_with_control_plane_vnet ? (
+                                           var.infrastructure.virtual_networks.sap.exists  || !var.use_deployer ? 0 : 1) : (
+                                           0
+                                         )
+
+  name                                 = substr(
+                                           format("%s_to_%s",
+                                             var.infrastructure.virtual_networks.sap.exists  ? (
+                                               data.azurerm_virtual_network.vnet_sap[0].name) : (
+                                               azurerm_virtual_network.vnet_sap[0].name
+                                             ), split("/", local.deployer_virtual_network_id)[8]
+                                           ),
+                                           0,
+                                           80
+                                         )
+  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists  ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
+                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                         )
+  virtual_network_name                 = azurerm_virtual_network.vnet_sap[0].name
+
+  remote_virtual_network_id            = local.deployer_virtual_network_id
+  allow_virtual_network_access         = true
+  allow_forwarded_traffic              = true
+}
+
+
+// Peers SAP VNET to management VNET
+
 # // Peers additional VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
   provider                             = azurerm.peering
@@ -196,7 +206,8 @@ resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
   allow_virtual_network_access         = true
 }
 
-// Peers SAP VNET to management VNET
+
+
 resource "azurerm_virtual_network_peering" "peering_sap_additional_network" {
   provider                             = azurerm.main
   count                                = length(try(var.additional_network_id, "")) > 0 ? 1 : 0
