@@ -234,6 +234,9 @@ function install_library() {
 	generic_config_information="${automation_config_directory}"config
 	library_config_information="${automation_config_directory}$CONTROL_PLANE_NAME"
 
+	TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+	export TF_VAR_control_plane_name
+
 	# Terraform Plugins
 	if checkIfCloudShell; then
 		mkdir -p "${HOME}/.terraform.d/plugin-cache"
