@@ -84,6 +84,8 @@ function parse_arguments() {
 		case "$1" in
 		-c | --control_plane_name)
 			CONTROL_PLANE_NAME="$2"
+			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+			export TF_VAR_control_plane_name
 			shift 2
 			;;
 		-d | --deployer_parameter_file)

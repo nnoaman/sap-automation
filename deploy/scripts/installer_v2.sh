@@ -108,6 +108,8 @@ function parse_arguments() {
 			;;
 		-c | --control_plane_name)
 			CONTROL_PLANE_NAME="$2"
+			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+			export TF_VAR_control_plane_name
 			shift 2
 			;;
 		-n | --application_configuration_name)
