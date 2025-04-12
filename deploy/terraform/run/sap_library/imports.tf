@@ -19,12 +19,6 @@ data "terraform_remote_state" "deployer"          {
                                                                    }
                                                   }
 
-data "azurerm_app_configuration_key" "deployer_network" {
-                                                          count                           = var.use_deployer ? length(coalesce(var.application_configuration_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, ""))) > 0 ? 1 : 0 : 0
-                                                          configuration_store_id          = coalesce(var.application_configuration_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, ""))
-                                                          key                             = format("%s_Deployer_network_id", var.control_plane_name)
-                                                          label                           = var.control_plane_name
-                                                        }
 
 data "azurerm_key_vault_secret" "subscription_id" {
                                                     count        = length(local.key_vault.id) > 0 ? (var.use_deployer && var.use_spn ? 1 : 0) : 0
