@@ -640,6 +640,12 @@ function retrieve_parameters() {
 				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 			fi
 		fi
+
+    ARM_SUBSCRIPTION_ID=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+		export ARM_SUBSCRIPTION_ID
+		TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id
+
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 		export tfstate_resource_id
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
@@ -875,7 +881,7 @@ function deploy_control_plane() {
 		fi
 	fi
 
-	if [ 3 -le $step ]; then
+	if [ 2 -le $step ]; then
 		if ! retrieve_parameters; then
 			print_banner "Retrieve Parameters" "Retrieving parameters failed" "warning"
 		fi
