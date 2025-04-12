@@ -420,7 +420,8 @@ function migrate_deployer_state() {
 	print_banner "$banner_title" "Migrating the deployer state..." "info"
 
 	cd "${deployer_dirname}" || exit
-	if is_valid_id "$APPLICATION_CONFIGURATION_ID:-" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+	  print_banner "$banner_title" "Sourcing parameters from: $APPLICATION_CONFIGURATION_NAME" "info"
 
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
