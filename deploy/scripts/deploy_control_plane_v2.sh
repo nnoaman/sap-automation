@@ -553,7 +553,9 @@ function migrate_library_state() {
 		exit 11
 	fi
 
-	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name}"
+  echo ""
+	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name} --control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}""
+	echo ""
 	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}" \
 		$ado_flag "${autoApproveParameter}"; then

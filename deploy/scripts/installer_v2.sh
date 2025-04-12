@@ -294,67 +294,54 @@ function retrieve_parameters() {
 		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
 		app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
 
-		print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
+		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
+
+			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
+			TF_VAR_tfstate_resource_id=$tfstate_resource_id
+
+			TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+			TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+
+			management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+			TF_VAR_management_subscription_id=${management_subscription_id}
+
+			keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+
+			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+
+			export TF_VAR_management_subscription_id
+			export TF_VAR_spn_keyvault_id
+			export TF_VAR_tfstate_resource_id
+			export keyvault
+			export terraform_storage_account_name
+			export terraform_storage_account_resource_group_name
+			export terraform_storage_account_subscription_id
+		fi
 	fi
 
-	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+	if [ -z "$terraform_storage_account_name" ]; then
+		if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
+			remote_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+			if [ -n "${remote_backend}" ]; then
 
-		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
-		TF_VAR_tfstate_resource_id=$tfstate_resource_id
-
-		TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-		TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
-
-		management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
-		TF_VAR_management_subscription_id=${management_subscription_id}
-
-		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-
-		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-
-		export TF_VAR_management_subscription_id
-		export TF_VAR_spn_keyvault_id
-		export TF_VAR_tfstate_resource_id
-		export keyvault
-		export terraform_storage_account_name
-		export terraform_storage_account_resource_group_name
-		export terraform_storage_account_subscription_id
-	else
-		if [ -z "$terraform_storage_account_name" ]; then
-			if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
-				local_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-				if [ -n "${local_backend}" ]; then
-
-					terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-					terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-					terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-					tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
-				fi
-			else
-				load_config_vars "${system_config_information}" \
-					tfstate_resource_id DEPLOYER_KEYVAULT
-
-				TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
-				export TF_VAR_spn_keyvault_id
-
+				terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+				terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+				terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+				tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
 				export TF_VAR_tfstate_resource_id
-				terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-
-				export terraform_storage_account_resource_group_name
-				export terraform_storage_account_name
-				export terraform_storage_account_subscription_id
 
 			fi
 		else
-			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --out tsv)
-			export tfstate_resource_id
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
+			load_config_vars "${system_config_information}" \
+				tfstate_resource_id DEPLOYER_KEYVAULT
 
+			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
+			export TF_VAR_spn_keyvault_id
+
+			export TF_VAR_tfstate_resource_id
 			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
 			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
 			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
@@ -364,6 +351,20 @@ function retrieve_parameters() {
 			export terraform_storage_account_subscription_id
 
 		fi
+	else
+		tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --out tsv)
+		export tfstate_resource_id
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
+
+		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+
+		export terraform_storage_account_resource_group_name
+		export terraform_storage_account_name
+		export terraform_storage_account_subscription_id
+
 	fi
 
 }
