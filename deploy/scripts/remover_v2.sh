@@ -511,7 +511,7 @@ function sdaf_remover() {
 		echo "Terraform state:                     remote"
 		print_banner "$banner_title - $deployment_system" "The system has already been deployed and the state file is in Azure" "info"
 
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+		if ! terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade=true \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
