@@ -72,7 +72,7 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {}
                                          alias                      = "dnsmanagement"
-                                         subscription_id            = try(var.management_dns_subscription_id, null)
+                                         subscription_id            = try(coalesce(var.management_dns_subscription_id, var.subscription_id), null)
                                          client_id                  = try(data.azurerm_key_vault_secret.client_id[0].value, null)
                                          client_secret              = try(ephemeral.azurerm_key_vault_secret.client_secret[0].value, null)
                                          tenant_id                  = try(data.azurerm_key_vault_secret.tenant_id[0].value, null)
@@ -82,7 +82,7 @@ provider "azurerm"                     {
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id), null)
+                                         subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, var.subscription_id), null)
                                          alias                      = "privatelinkdnsmanagement"
                                          client_id                  = try(data.azurerm_key_vault_secret.client_id[0].value, null)
                                          client_secret              = try(ephemeral.azurerm_key_vault_secret.client_secret[0].value, null)
