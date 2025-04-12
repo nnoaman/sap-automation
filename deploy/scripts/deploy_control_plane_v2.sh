@@ -788,6 +788,8 @@ function deploy_control_plane() {
 	# Parse command line arguments
 	parse_arguments "$@"
 	echo "ADO flag:                            ${ado_flag}"
+	ARM_SUBSCRIPTION_ID=${subscription}
+	export ARM_SUBSCRIPTION_ID
 
 	root_dirname=$(pwd)
 
@@ -809,6 +811,7 @@ function deploy_control_plane() {
 	echo "Deployer State File:                 ${deployer_tfstate_key}"
 	echo "Library State File:                  ${library_tfstate_key}"
 	echo "Deployer Subscription:               ${subscription}"
+
 
 	generic_config_information="${CONFIG_DIR}"/config
 	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
