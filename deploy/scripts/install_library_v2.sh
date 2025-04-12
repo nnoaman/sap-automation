@@ -196,6 +196,37 @@ function parse_arguments() {
 
 }
 
+# Function to retrieve data from Azure App Configuration
+function retrieve_parameters() {
+
+	TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
+	export TF_VAR_control_plane_name
+
+	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
+		app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
+
+		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
+
+			TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+			TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+
+			management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+			TF_VAR_management_subscription_id=${management_subscription_id}
+
+			export TF_VAR_deployer_kv_user_arm_id
+			export TF_VAR_management_subscription_id
+			export TF_VAR_spn_keyvault_id
+
+
+		fi
+
+	fi
+
+}
+
+
 function install_library() {
 	local green="\033[0;32m"
 	local reset="\033[0m"
@@ -218,6 +249,9 @@ function install_library() {
 		print_banner "$banner_title" "Validating parameters failed" "error"
 		return $?
 	fi
+
+	retrieve_parameters
+
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
