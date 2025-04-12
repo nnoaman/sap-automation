@@ -244,7 +244,15 @@ function install_deployer() {
 			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 			if [ -n "$azure_backend" ]; then
 				print_banner "$banner_title" "State already migrated to Azure" "warning"
-				unset TF_DATA_DIR
+				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -backend-config "path=${param_dirname}/terraform.tfstate"; then
+					return_value=$?
+					print_banner "$banner_title" "Terraform init succeeded." "success"
+				else
+					return_value=$?
+					print_banner "$banner_title" "Terraform init failed." "error"
+					unset TF_DATA_DIR
+					return $return_value
+				fi
 				return 0
 			fi
 		else

@@ -20,6 +20,7 @@ locals {
                                            use                          = var.use_deployer
                                            application_configuration_id = var.application_configuration_id
                                            control_plane_name           = var.control_plane_name
+                                           management_network_id        = coalesce(var.management_network_id, data.azurerm_app_configuration_key.deployer_network[0].value)
                                          }
   key_vault                            = {
                                            id                        = coalesce(var.spn_keyvault_id, local.spn_key_vault_arm_id)
