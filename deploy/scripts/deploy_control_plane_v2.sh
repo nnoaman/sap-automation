@@ -106,6 +106,8 @@ function parse_arguments() {
 			;;
 		-s | --subscription)
 			subscription="$2"
+			TF_VAR_subscription_id="$subscription"
+			export TF_VAR_subscription_id
 			shift 2
 			;;
 		-t | --terraform_storage_account_name)
@@ -457,8 +459,12 @@ function migrate_deployer_state() {
 		exit 11
 	fi
 
-	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $deployer_parameter_file_name --type sap_deployer \
-		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}" \
+  echo ""
+	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}""
+	echo ""
+
+	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
+		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
 		$ado_flag "${autoApproveParameter}"; then
 
 		echo ""
