@@ -505,7 +505,7 @@ function sdaf_remover() {
 		else
 			return_value=$?
 			print_banner "$banner_title - $deployment_system" "Terraform init failed" "error"
-			exit $return_value
+			return $return_value
 		fi
 	else
 		echo "Terraform state:                     remote"
@@ -519,7 +519,7 @@ function sdaf_remover() {
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
 			print_banner "$banner_title - $deployment_system" "Terraform init failed." "error"
-			exit $return_value
+			return $return_value
 		else
 			return_value=$?
 			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success"
