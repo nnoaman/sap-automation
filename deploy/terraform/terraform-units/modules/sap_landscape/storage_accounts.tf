@@ -35,6 +35,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   cross_tenant_replication_enabled     = false
   tags                                 = var.tags
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
+  default_to_oauth_authentication      = true
   public_network_access_enabled        = var.public_network_access_enabled
   network_rules {
                 default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
@@ -167,6 +168,7 @@ resource "azurerm_storage_account" "witness_storage" {
   cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
+  default_to_oauth_authentication      = true
 
   tags                                 = var.tags
   network_rules {
@@ -303,6 +305,7 @@ resource "azurerm_storage_account" "transport" {
   allow_nested_items_to_be_public      = false
 
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
+  default_to_oauth_authentication      = true
 
   cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
@@ -505,6 +508,7 @@ resource "azurerm_storage_account" "install" {
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
+  default_to_oauth_authentication      = true
 
 }
 

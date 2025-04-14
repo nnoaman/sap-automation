@@ -36,6 +36,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
   cross_tenant_replication_enabled     = false
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
+  default_to_oauth_authentication      = true
 
   blob_properties {
                     delete_retention_policy {
@@ -318,6 +319,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
   cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
+  default_to_oauth_authentication      = true
 
   routing {
             publish_microsoft_endpoints = true
