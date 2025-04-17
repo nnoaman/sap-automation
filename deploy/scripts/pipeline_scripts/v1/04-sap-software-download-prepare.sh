@@ -25,7 +25,7 @@ export AZURE_DEVOPS_EXT_PAT
 
 cd "$CONFIG_REPO_PATH" || exit
 
-environment_file_name=".sap_deployment_automation/$ENVIRONMENT_CODE$LOCATION_CODE"
+environment_file_name=".sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 # Print the execution environment details
 print_header
