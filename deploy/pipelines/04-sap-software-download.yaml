@@ -122,6 +122,7 @@ stages:
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             env:
+              AZURE_DEVOPS_EXT_PAT:       $(System.AccessToken)
               CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
               CHECK_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
               CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
