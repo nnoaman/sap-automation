@@ -58,16 +58,6 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
 data "azuread_client_config" "current" {}
 
-resource "azurerm_role_assignment" "storage_tfstate" {
-  provider                             = azurerm.main
-  count                                = length(var.storage_account_tfstate.arm_id) > 0 ? 0 : 1
-  # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
-  scope                                = azurerm_storage_account.storage_tfstate[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = data.azuread_client_config.current.object_id
-
-}
-
 // Imports existing storage account to use for tfstate
 data "azurerm_storage_account" "storage_tfstate" {
   provider                             = azurerm.main
