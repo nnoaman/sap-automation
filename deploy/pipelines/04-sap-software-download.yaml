@@ -67,6 +67,7 @@ stages:
               CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
               CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
               CHECK_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
+              ZONE:                       ${{ upper(parameters.control_plane_name) }}
             name:                      ParameterValidation
             displayName:               Parameter Validation
           - task:                      Bash@3
