@@ -9,7 +9,8 @@ locals {
                                            codename           = var.codename
                                            resource_group     = {
                                              name             = var.resourcegroup_name
-                                             arm_id           = var.resourcegroup_arm_id
+                                             id               = var.resourcegroup_arm_id
+                                             exists           = length(var.resourcegroup_arm_id) > 0
                                                }
                                            tags               = try(coalesce(var.resourcegroup_tags, var.tags, {}), {})
                                            assign_permissions = var.assign_permissions

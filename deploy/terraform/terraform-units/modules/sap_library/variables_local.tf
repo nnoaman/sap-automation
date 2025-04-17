@@ -15,10 +15,9 @@ locals {
                                               )
 
   // Resource group
-  resource_group_exists                     = length(var.infrastructure.resource_group.arm_id) > 0
 
-  resource_group_name                       = local.resource_group_exists ? (
-                                                try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
+  resource_group_name                       = var.infrastructure.resource_group.exists ? (
+                                                try(split("/", var.infrastructure.resource_group.id)[4], "")) : (
                                                 length(var.infrastructure.resource_group.name) > 0 ? (
                                                   var.infrastructure.resource_group.name) : (
                                                   format("%s%s%s",
@@ -28,14 +27,14 @@ locals {
                                                   )
                                                 )
                                               )
-  resource_group_library_location           = local.resource_group_exists ? (
+  resource_group_library_location           = var.infrastructure.resource_group.exists ? (
                                                  data.azurerm_resource_group.library[0].location) : (
                                                  azurerm_resource_group.library[0].location
                                                )
 
   // Storage account for sapbits
-  storage_account_SAPmedia                           = length(var.storage_account_sapbits.arm_id) > 0 ? (
-                                                split("/", var.storage_account_sapbits.arm_id)[8]) : (
+  storage_account_SAPmedia                  = var.storage_account_sapbits.exists ? (
+                                                split("/", var.storage_account_sapbits.id)[8]) : (
                                                 length(var.storage_account_sapbits.name) > 0 ? (
                                                   var.storage_account_sapbits.name) : (
                                                   var.naming.storageaccount_names.LIBRARY.library_storageaccount_name

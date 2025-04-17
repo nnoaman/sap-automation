@@ -10,12 +10,12 @@
 
 output "created_resource_group_id"              {
                                                   description = "Created resource group ID"
-                                                  value       = local.resource_group_exists ? data.azurerm_resource_group.library[0].id : azurerm_resource_group.library[0].id
+                                                  value       = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.library[0].id : azurerm_resource_group.library[0].id
                                                 }
 
 output "created_resource_group_subscription_id" {
                                                   description = "Created resource group' subscription ID"
-                                                  value = local.resource_group_exists ? (
+                                                  value = var.infrastructure.resource_group.exists ? (
                                                     split("/", data.azurerm_resource_group.library[0].id))[2] : (
                                                     split("/", azurerm_resource_group.library[0].id)[2]
                                                   )
@@ -23,7 +23,7 @@ output "created_resource_group_subscription_id" {
 
 output "created_resource_group_name"            {
                                                   description = "Created resource group name"
-                                                  value = local.resource_group_exists ? (
+                                                  value = var.infrastructure.resource_group.exists ? (
                                                     data.azurerm_resource_group.library[0].name) : (
                                                     azurerm_resource_group.library[0].name
                                                   )

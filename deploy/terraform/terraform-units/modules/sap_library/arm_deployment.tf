@@ -2,7 +2,7 @@
 resource "azurerm_resource_group_template_deployment" "sap_library" {
   provider = azurerm.main
   name     = "SDAF.core.sap_library"
-  resource_group_name = local.resource_group_exists ? (
+  resource_group_name = var.infrastructure.resource_group.exists ? (
     data.azurerm_resource_group.library[0].name) : (
     azurerm_resource_group.library[0].name
   )

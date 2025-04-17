@@ -100,7 +100,7 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
 #   resource_group_name                  = coalesce(
 #                                            var.dns_settings.privatelink_dns_resourcegroup_name,
 #                                            var.dns_settings.management_dns_resourcegroup_name,
-#                                            local.resource_group_exists ? (
+#                                            var.infrastructure.resource_group.exists ? (
 #                                              data.azurerm_resource_group.library[0].name
 #                                              ) : (
 #                                              azurerm_resource_group.library[0].name
@@ -134,11 +134,11 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                            local.prefix,
                                            var.naming.resource_suffixes.storage_private_link_tf
                                          )
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.library[0].name) : (
                                            azurerm_resource_group.library[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.library[0].location) : (
                                            azurerm_resource_group.library[0].location
                                          )
@@ -192,11 +192,11 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                                            local.prefix,
                                            var.naming.resource_suffixes.storage_private_link_tf
                                          )
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.library[0].name) : (
                                            azurerm_resource_group.library[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.library[0].location) : (
                                            azurerm_resource_group.library[0].location
                                          )
@@ -378,7 +378,7 @@ resource "azurerm_management_lock" "storage_sapbits" {
 #   resource_group_name                  = coalesce(
 #                                            var.dns_settings.privatelink_dns_resourcegroup_name,
 #                                            var.dns_settings.management_dns_resourcegroup_name,
-#                                             local.resource_group_exists ? (
+#                                             var.infrastructure.resource_group.exists ? (
 #                                               data.azurerm_resource_group.library[0].name) : (
 #                                               azurerm_resource_group.library[0].name)
 #                                          )
@@ -406,12 +406,12 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                            local.prefix,
                                            var.naming.resource_suffixes.storage_private_link_sap
                                          )
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                           data.azurerm_resource_group.library[0].name) : (
                                           azurerm_resource_group.library[0].name
                                         )
 
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.library[0].location) : (
                                            azurerm_resource_group.library[0].location
                                          )
@@ -465,7 +465,7 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
                                            azurerm_private_endpoint.storage_sapbits
                                          ]
   name                                 = var.storage_account_sapbits.sapbits_blob_container.name
-  storage_account_id                   = !var.storage_account_sapbits.exists ? (
+  storage_account_id                   = var.storage_account_sapbits.exists ? (
                                              data.azurerm_storage_account.storage_sapbits[0].id) : (
                                              azurerm_storage_account.storage_sapbits[0].id
                                            )
@@ -503,7 +503,7 @@ data "azurerm_private_dns_zone" "storage" {
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
-                                           local.resource_group_exists ? (
+                                           var.infrastructure.resource_group.exists ? (
                                                     split("/", data.azurerm_resource_group.library[0].id))[2] : (
                                                     split("/", azurerm_resource_group.library[0].id)[2]
                                                   )
@@ -518,7 +518,7 @@ data "azurerm_private_dns_zone" "table" {
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
-                                           local.resource_group_exists ? (
+                                           var.infrastructure.resource_group.exists ? (
                                                     split("/", data.azurerm_resource_group.library[0].id))[2] : (
                                                     split("/", azurerm_resource_group.library[0].id)[2]
                                                   )

@@ -9,7 +9,7 @@
 
 resource "azurerm_resource_group" "library" {
   provider                             = azurerm.main
-  count                                = local.resource_group_exists ? 0 : 1
+  count                                = var.infrastructure.resource_group.exists ? 0 : 1
   name                                 = local.resource_group_name
   location                             = var.infrastructure.region
   tags                                 = var.infrastructure.tags
@@ -25,8 +25,8 @@ resource "azurerm_resource_group" "library" {
 // Imports data of existing resource group
 data "azurerm_resource_group" "library" {
   provider                             = azurerm.main
-  count                                = local.resource_group_exists ? 1 : 0
-  name                                 = split("/", var.infrastructure.resource_group.arm_id)[4]
+  count                                = var.infrastructure.resource_group.exists ? 1 : 0
+  name                                 = split("/", var.infrastructure.resource_group.id)[4]
 }
 
 // TODO: Add management lock when this issue is addressed https://github.com/terraform-providers/terraform-provider-azurerm/issues/5473
@@ -46,8 +46,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
                                          )
 
   resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name,
-                                           local.resource_group_exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                           var.infrastructure.resource_group.exists ? (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
                                          ))
   private_dns_zone_name                = var.dns_settings.dns_label
@@ -72,8 +72,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
 
   resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
-                                           local.resource_group_exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                           var.infrastructure.resource_group.exists ? (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
                                          ))
   private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
@@ -98,8 +98,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
 
   resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
-                                           local.resource_group_exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                           var.infrastructure.resource_group.exists ? (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
                                          ))
   private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
@@ -125,8 +125,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_additional" 
 
   resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
-                                           local.resource_group_exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                           var.infrastructure.resource_group.exists ? (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
                                          ))
   private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
@@ -151,8 +151,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig_ad
 
   resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
-                                           local.resource_group_exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                           var.infrastructure.resource_group.exists ? (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
                                          ))
   private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
@@ -175,8 +175,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            "vault"
                                          )
   resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
-                                           local.resource_group_exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                           var.infrastructure.resource_group.exists ? (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
                                            )) : (
                                            var.dns_settings.privatelink_dns_resourcegroup_name
@@ -201,8 +201,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault_management" {
                                            "vault"
                                          )
   resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
-                                           local.resource_group_exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                           var.infrastructure.resource_group.exists ? (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
                                            )) : (
                                            var.dns_settings.privatelink_dns_resourcegroup_name
@@ -229,8 +229,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault_agent" {
                                            "vault-agent"
                                          )
   resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
-                                           local.resource_group_exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                           var.infrastructure.resource_group.exists ? (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
                                            )) : (
                                            var.dns_settings.privatelink_dns_resourcegroup_name
@@ -256,8 +256,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob_agent" {
                                            "vault-agent"
                                          )
   resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
-                                           local.resource_group_exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                           var.infrastructure.resource_group.exists ? (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
                                            )) : (
                                            var.dns_settings.privatelink_dns_resourcegroup_name
