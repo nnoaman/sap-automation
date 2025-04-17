@@ -74,7 +74,7 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
   count                                = length(try(var.key_vault.keyvault_id_for_deployment_credentials, "")) > 0 ? 1 : 0
   content_type                         = "secret"
   name                                 = "sa-connection-string"
-  value                                = length(var.storage_account_tfstate.arm_id) > 0 ? (
+  value                                = var.storage_account_tfstate.exists ? (
                                            data.azurerm_storage_account.storage_tfstate[0].primary_connection_string) : (
                                            azurerm_storage_account.storage_tfstate[0].primary_connection_string
                                          )
@@ -97,7 +97,7 @@ resource "azurerm_key_vault_secret" "tfstate" {
   count                                = length(try(var.key_vault.keyvault_id_for_deployment_credentials, "")) > 0 ? 1 : 0
   content_type                         = "configuration"
   name                                 = "tfstate"
-  value                                = format("https://%s.blob.core.windows.net", length(var.storage_account_tfstate.arm_id) > 0 ? (data.azurerm_storage_account.storage_tfstate[0].name) : (azurerm_storage_account.storage_tfstate[0].name))
+  value                                = format("https://%s.blob.core.windows.net", var.storage_account_tfstate.exists ? (data.azurerm_storage_account.storage_tfstate[0].name) : (azurerm_storage_account.storage_tfstate[0].name))
   key_vault_id                         = var.key_vault.keyvault_id_for_deployment_credentials
   expiration_date                      = try(var.deployer_tfstate.set_secret_expiry, false) ? (
                                            time_offset.secret_expiry_date.rfc3339) : (

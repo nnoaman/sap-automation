@@ -80,7 +80,7 @@ output "random_id"                               {
 output "remote_state_storage_account_name"       {
                                                    description = "Storage account name for Terraform remote state"
                                                    value = var.storage_account_tfstate.exists ? (
-                                                     split("/", var.storage_account_tfstate.arm_id)[8]) : (
+                                                     split("/", var.storage_account_tfstate.id)[8]) : (
                                                      length(var.storage_account_tfstate.name) > 0 ? (
                                                        var.storage_account_tfstate.name) : (
                                                        var.naming.storageaccount_names.LIBRARY.terraformstate_storageaccount_name
@@ -90,7 +90,7 @@ output "remote_state_storage_account_name"       {
 
 output "tfstate_resource_id"                     {
                                                    description = "value of the Azure resource id for the tfstate storage account"
-                                                   value = length(var.storage_account_tfstate.arm_id) > 0 ? (
+                                                   value = var.storage_account_tfstate.exists ? (
                                                      data.azurerm_storage_account.storage_tfstate[0].id) : (
                                                      try(azurerm_storage_account.storage_tfstate[0].id, "")
                                                    )

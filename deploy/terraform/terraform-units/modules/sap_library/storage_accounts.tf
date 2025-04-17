@@ -161,8 +161,8 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                  var.naming.resource_suffixes.storage_private_svc_tf
                                )
                                is_manual_connection = false
-                               private_connection_resource_id = length(var.storage_account_tfstate.arm_id) > 0 ? (
-                                 var.storage_account_tfstate.arm_id) : (
+                               private_connection_resource_id = var.storage_account_tfstate.exists ? (
+                                 var.storage_account_tfstate.id) : (
                                  azurerm_storage_account.storage_tfstate[0].id
                                )
                                subresource_names = [
@@ -219,8 +219,8 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                                  var.naming.resource_suffixes.storage_private_svc_tf
                                )
                                is_manual_connection = false
-                               private_connection_resource_id = length(var.storage_account_tfstate.arm_id) > 0 ? (
-                                 var.storage_account_tfstate.arm_id) : (
+                               private_connection_resource_id = var.storage_account_tfstate.exists ? (
+                                 var.storage_account_tfstate.id) : (
                                  azurerm_storage_account.storage_tfstate[0].id
                                )
                                subresource_names = [
@@ -250,7 +250,7 @@ resource "azurerm_storage_container" "storagecontainer_tfstate" {
                                          ]
   name                                 = var.storage_account_tfstate.tfstate_blob_container.name
 
-  storage_account_id                   = length(var.storage_account_tfstate.arm_id) > 0 ? (
+  storage_account_id                   = var.storage_account_tfstate.exists ? (
                                              data.azurerm_storage_account.storage_tfstate[0].id) : (
                                              azurerm_storage_account.storage_tfstate[0].id
                                            )
@@ -262,7 +262,7 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfstate_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_tfstate.tfstate_blob_container.name
-                                           storage_account_name = length(var.storage_account_tfstate.arm_id) > 0 ? (
+                                           storage_account_name = var.storage_account_tfstate.exists > 0 ? (
                                              data.azurerm_storage_account.storage_tfstate[0].name) : (
                                              azurerm_storage_account.storage_tfstate[0].name
                                            )
@@ -275,7 +275,7 @@ resource "azurerm_storage_container" "storagecontainer_tfvars" {
                                          ]
   name                                 = "tfvars"
 
-  storage_account_id                   = length(var.storage_account_tfstate.arm_id) > 0 ? (
+  storage_account_id                   = var.storage_account_tfstate.exists ? (
                                              data.azurerm_storage_account.storage_tfstate[0].id) : (
                                              azurerm_storage_account.storage_tfstate[0].id
                                            )
@@ -540,7 +540,7 @@ data "azurerm_private_dns_zone" "table" {
 
 resource "azurerm_management_lock" "storage_tfstate" {
   provider                             = azurerm.main
-  count                                = (length(var.storage_account_tfstate.arm_id) > 0) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  count                                = var.storage_account_tfstate.exists ? 0 : var.place_delete_lock_on_resources ? 1 : 0
   name                                 = format("%s-lock", azurerm_storage_account.storage_tfstate[0].name)
   scope                                = azurerm_storage_account.storage_tfstate[0].id
   lock_level                           = "CanNotDelete"
