@@ -46,7 +46,6 @@ stages:
           bom_base_name:               ${{ parameters.bom_base_name }}
           control_plane_name:          ${{ parameters.control_plane_name }}
           re_download:                 ${{ parameters.re_download }}
-          region:                      ${{ parameters.region }}
     displayName:                       Preparation
     jobs:
       - job: Prepare_download_job
@@ -97,9 +96,8 @@ stages:
       - template:                      variables/04-sap-software-download-variables.yaml
         parameters:
           bom_base_name:               ${{ parameters.bom_base_name }}
-          environment:                 ${{ parameters.environment }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
           re_download:                 ${{ parameters.re_download }}
-          region:                      ${{ parameters.region }}
     displayName:                       Download software
 
     jobs:
