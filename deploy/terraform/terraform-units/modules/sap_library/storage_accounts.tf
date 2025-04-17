@@ -433,7 +433,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                          var.naming.resource_suffixes.storage_private_svc_sap
                                        )
                                is_manual_connection = false
-                               private_connection_resource_id = !var.storage_account_sapbits.exists ? (
+                               private_connection_resource_id = var.storage_account_sapbits.exists ? (
                                  data.azurerm_storage_account.storage_sapbits[0].id) : (
                                  azurerm_storage_account.storage_sapbits[0].id
                                )
