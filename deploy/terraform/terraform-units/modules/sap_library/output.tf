@@ -38,8 +38,8 @@ output "created_resource_group_name"            {
 
 output "tfstate_storage_account"                 {
                                                    description = "TFState storage account name"
-                                                   value = length(var.storage_account_tfstate.arm_id) > 0 ? (
-                                                     split("/", var.storage_account_tfstate.arm_id)[8]) : (
+                                                   value = var.storage_account_tfstate.exists ? (
+                                                     split("/", var.storage_account_tfstate.id)[8]) : (
                                                      length(var.storage_account_tfstate.name) > 0 ? (
                                                        var.storage_account_tfstate.name) : (
                                                        var.naming.storageaccount_names.LIBRARY.terraformstate_storageaccount_name
@@ -54,8 +54,8 @@ output "storagecontainer_tfstate"                {
 
 output "sapbits_storage_account_name"            {
                                                    description = "SAPBits storage account name"
-                                                   value = length(var.storage_account_sapbits.arm_id) > 0 ? (
-                                                     split("/", var.storage_account_sapbits.arm_id)[8]) : (
+                                                   value = var.storage_account_sapbits.exists ? (
+                                                     split("/", var.storage_account_sapbits.id)[8]) : (
                                                      length(var.storage_account_sapbits.name) > 0 ? (
                                                        var.storage_account_sapbits.name) : (
                                                        var.naming.storageaccount_names.LIBRARY.library_storageaccount_name
@@ -79,7 +79,7 @@ output "random_id"                               {
 
 output "remote_state_storage_account_name"       {
                                                    description = "Storage account name for Terraform remote state"
-                                                   value = length(var.storage_account_tfstate.arm_id) > 0 ? (
+                                                   value = var.storage_account_tfstate.exists ? (
                                                      split("/", var.storage_account_tfstate.arm_id)[8]) : (
                                                      length(var.storage_account_tfstate.name) > 0 ? (
                                                        var.storage_account_tfstate.name) : (
@@ -99,7 +99,7 @@ output "tfstate_resource_id"                     {
 output "sa_connection_string"                    {
                                                    description = "Connection string to storage account"
                                                    sensitive   = true
-                                                   value = length(var.storage_account_tfstate.arm_id) > 0 ? (
+                                                   value = var.storage_account_tfstate.exists ? (
                                                      data.azurerm_storage_account.storage_tfstate[0].primary_connection_string) : (
                                                      try(azurerm_storage_account.storage_tfstate[0].primary_connection_string, "")
                                                    )
