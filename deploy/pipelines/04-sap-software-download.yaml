@@ -62,11 +62,12 @@ stages:
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             env:
-              CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
+              AZURE_DEVOPS_EXT_PAT:       $(System.AccessToken)
               CHECK_ARM_CLIENT_ID:        $(ARM_CLIENT_ID),
               CHECK_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
-              CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
               CHECK_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
+              CHECK_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
+              CHECK_ARM_TENANT_ID:        $(ARM_TENANT_ID)
               ZONE:                       ${{ upper(parameters.control_plane_name) }}
             name:                      ParameterValidation
             displayName:               Parameter Validation
