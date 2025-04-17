@@ -47,7 +47,7 @@ locals {
                                          }
 
    storage_account_tfstate              = {
-                                           i    d                                    = var.library_terraform_state_arm_id
+                                           id                                        = var.library_terraform_state_arm_id
                                            exists                                    = length(var.library_terraform_state_arm_id) > 0
                                            name                                      = var.library_terraform_state_name
                                            account_tier                              = var.library_terraform_state_account_tier
