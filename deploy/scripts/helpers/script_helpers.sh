@@ -943,7 +943,7 @@ function ImportAndReRunApply {
 
 	fi
 
-	print_banner "ImportAndReRunApply" "Exiting function ImportAndReRunApply" "info"
+	print_banner "ImportAndReRunApply" "Exiting function ImportAndReRunApply" "info" "return code: $import_return_value"
 
 	return $import_return_value
 }
