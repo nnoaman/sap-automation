@@ -254,9 +254,8 @@ function install_deployer() {
 					return $return_value
 				fi
 				return 0
-			fi
-		else
-			  print_banner "$banner_title" "Running terraform init" "info"
+			else
+				print_banner "$banner_title" "Running terraform init" "info"
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -backend-config "path=${param_dirname}/terraform.tfstate"; then
 					return_value=$?
 					print_banner "$banner_title" "Terraform init succeeded." "success"
@@ -266,7 +265,7 @@ function install_deployer() {
 					unset TF_DATA_DIR
 					return $return_value
 				fi
-
+			fi
 		fi
 		echo "Parameters:                          $allParameters"
 		terraform -chdir="${terraform_module_directory}" refresh $allParameters
