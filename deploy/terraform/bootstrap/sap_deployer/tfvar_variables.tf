@@ -25,6 +25,12 @@ variable "location"                              {
                                                    type        = string
                                                  }
 
+variable "subscription_id"                       {
+                                                   description = "Defines the Azure subscription_id"
+                                                   type        = string
+                                                   default     = null
+                                                 }
+
 variable "prevent_deletion_if_contains_resources" {
                                                     description = "Controls if resource groups are deleted even if they contain resources"
                                                     type        = bool
