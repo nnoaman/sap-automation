@@ -862,15 +862,15 @@ function ImportAndReRunApply {
 				done
 				rm "$fileName"
 				# shellcheck disable=SC2086
-				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters; then
-					import_return_value=$?
-					print_banner "Installer" "Terraform plan failed" "error"
-				else
+				if terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters; then
 					import_return_value=$?
 					print_banner "Installer" "Terraform plan succeeded" "success"
+				else
+					import_return_value=$?
+					print_banner "Installer" "Terraform plan failed" "error"
 				fi
 
-				if [ $import_return_value -eq 2 ]; then
+				if [ $import_return_value -ne 2 ]; then
 
 					print_banner "Installer" "Re-running Terraform apply after import" "info"
 
