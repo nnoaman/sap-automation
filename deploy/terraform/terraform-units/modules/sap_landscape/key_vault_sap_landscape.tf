@@ -315,7 +315,7 @@ resource "time_offset" "secret_expiry_date" {
 }
 
 resource "time_sleep" "wait_for_role_assignment" {
-  create_duration                      = "120s"
+  create_duration                      = "60s"
 
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
@@ -323,188 +323,11 @@ resource "time_sleep" "wait_for_role_assignment" {
                                            azurerm_role_assignment.role_assignment_spn_officer,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
 
                                          ]
 }
 
-
-// Key pair/password will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
-resource "azurerm_key_vault_secret" "sid_ppk" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
-                                         ]
-  count                                = length(var.key_vault.private_key_secret_name) == 0 ? 1 : 0
-  content_type                         = "secret"
-  name                                 = local.sid_public_key_secret_name
-  value                                = local.sid_private_key
-  key_vault_id                         = var.key_vault.user.exists ? (
-                                            data.azurerm_key_vault.kv_user[0].id) : (
-                                            azurerm_key_vault.kv_user[0].id
-                                          )
-  expiration_date                      = var.key_vault.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-}
-
-data "azurerm_key_vault_secret" "sid_ppk" {
-  provider                              = azurerm.main
-  count                                 = length(var.key_vault.private_key_secret_name) > 0 ? 1 : 0
-  name                                  = local.sid_public_key_secret_name
-  key_vault_id                          = var.key_vault.user.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-}
-
-resource "azurerm_key_vault_secret" "sid_pk" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
-                                         ]
-  count                                = length(var.key_vault.public_key_secret_name) == 0 ? 1 : 0
-  content_type                         = "secret"
-  name                                 = local.sid_private_key_secret_name
-  value                                = local.sid_public_key
-  key_vault_id                         = var.key_vault.user.exists ? (
-                                           data.azurerm_key_vault.kv_user[0].id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-  expiration_date                      = var.key_vault.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-}
-
-data "azurerm_key_vault_secret" "sid_pk" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
-                                         ]
-  count                                = length(var.key_vault.public_key_secret_name) >  0 ? 1 : 0
-  name                                 = local.sid_private_key_secret_name
-  key_vault_id                         = var.key_vault.user.exists ? (
-                                           data.azurerm_key_vault.kv_user[0].id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-}
-
-
-// Credentials will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
-resource "azurerm_key_vault_secret" "sid_username" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
-                                         ]
-  count                                = length(var.key_vault.username_secret_name) == 0 ? 1 : 0
-  content_type                         = "configuration"
-  name                                 = local.sid_username_secret_name
-  value                                = local.input_sid_username
-  key_vault_id                         = var.key_vault.user.exists ? (
-                                           data.azurerm_key_vault.kv_user[0].id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-  expiration_date                      = var.key_vault.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-}
-
-data "azurerm_key_vault_secret" "sid_username" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
-                                         ]
-  count                                = length(var.key_vault.username_secret_name) > 0 ? 1 : 0
-  name                                 = local.sid_username_secret_name
-  key_vault_id                         = var.key_vault.user.exists ? (
-                                           data.azurerm_key_vault.kv_user[0].id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-}
-
-resource "azurerm_key_vault_secret" "sid_password" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
-                                         ]
-  count                                = length(var.key_vault.password_secret_name) == 0 ? 1 : 0
-  name                                 = local.sid_password_secret_name
-  content_type                         = "secret"
-  value                                = local.input_sid_password
-  key_vault_id                         = var.key_vault.user.exists ? (
-                                           data.azurerm_key_vault.kv_user[0].id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-}
-
-resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
-                                         ]
-  content_type                         = "configuration"
-  name                                 = "deployer-kv-name"
-  value                                = local.deployer_keyvault_user_name
-  key_vault_id                         = var.key_vault.user.exists ? (
-                                           data.azurerm_key_vault.kv_user[0].id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-}
-
-data "azurerm_key_vault_secret" "sid_password" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
-                                         ]
-  count                                = length(var.key_vault.password_secret_name) > 0 ? 1 : 0
-  name                                 = local.sid_password_secret_name
-  key_vault_id                         = var.key_vault.user.exists ? (
-                                           data.azurerm_key_vault.kv_user[0].id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-}
-
-
-//Witness access key
-resource "azurerm_key_vault_secret" "witness_access_key" {
-  provider                             = azurerm.main
-  depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
-                                         ]
-  count                                = 1
-  content_type                         = "secret"
-  name                                 = replace(
-                                          format("%s%s%s",
-                                            length(local.prefix) > 0 ? (
-                                              local.prefix) : (
-                                              var.infrastructure.environment
-                                            ),
-                                            var.naming.separator,
-                                            local.resource_suffixes.witness_accesskey
-                                          ),
-                                          "/[^A-Za-z0-9-]/",
-                                          ""
-                                        )
-  value                                = length(var.witness_storage_account.id) > 0 ? (
-                                           data.azurerm_storage_account.witness_storage[0].primary_access_key) : (
-                                           azurerm_storage_account.witness_storage[0].primary_access_key
-                                         )
-  key_vault_id                         = var.key_vault.user.exists ? (
-                                           data.azurerm_key_vault.kv_user[0].id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-}
 
 //Witness access key
 
@@ -646,3 +469,193 @@ resource "azurerm_private_endpoint" "kv_user" {
 
 }
 
+
+// Key pair/password will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
+resource "azurerm_key_vault_secret" "sid_ppk" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                         ]
+  count                                = length(var.key_vault.private_key_secret_name) == 0 ? 1 : 0
+  content_type                         = "secret"
+  name                                 = local.sid_public_key_secret_name
+  value                                = local.sid_private_key
+  key_vault_id                         = var.key_vault.user.exists ? (
+                                            data.azurerm_key_vault.kv_user[0].id) : (
+                                            azurerm_key_vault.kv_user[0].id
+                                          )
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+}
+
+data "azurerm_key_vault_secret" "sid_ppk" {
+  provider                              = azurerm.main
+  count                                 = length(var.key_vault.private_key_secret_name) > 0 ? 1 : 0
+  name                                  = local.sid_public_key_secret_name
+  key_vault_id                          = var.key_vault.user.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+}
+
+resource "azurerm_key_vault_secret" "sid_pk" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                         ]
+  count                                = length(var.key_vault.public_key_secret_name) == 0 ? 1 : 0
+  content_type                         = "secret"
+  name                                 = local.sid_private_key_secret_name
+  value                                = local.sid_public_key
+  key_vault_id                         = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+}
+
+data "azurerm_key_vault_secret" "sid_pk" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment
+                                         ]
+  count                                = length(var.key_vault.public_key_secret_name) >  0 ? 1 : 0
+  name                                 = local.sid_private_key_secret_name
+  key_vault_id                         = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+}
+
+
+// Credentials will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
+resource "azurerm_key_vault_secret" "sid_username" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                         ]
+  count                                = length(var.key_vault.username_secret_name) == 0 ? 1 : 0
+  content_type                         = "configuration"
+  name                                 = local.sid_username_secret_name
+  value                                = local.input_sid_username
+  key_vault_id                         = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+}
+
+data "azurerm_key_vault_secret" "sid_username" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment
+                                         ]
+  count                                = length(var.key_vault.username_secret_name) > 0 ? 1 : 0
+  name                                 = local.sid_username_secret_name
+  key_vault_id                         = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+}
+
+resource "azurerm_key_vault_secret" "sid_password" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                         ]
+  count                                = length(var.key_vault.password_secret_name) == 0 ? 1 : 0
+  name                                 = local.sid_password_secret_name
+  content_type                         = "secret"
+  value                                = local.input_sid_password
+  key_vault_id                         = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+}
+
+resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                         ]
+  content_type                         = "configuration"
+  name                                 = "deployer-kv-name"
+  value                                = local.deployer_keyvault_user_name
+  key_vault_id                         = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+}
+
+data "azurerm_key_vault_secret" "sid_password" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment
+                                         ]
+  count                                = length(var.key_vault.password_secret_name) > 0 ? 1 : 0
+  name                                 = local.sid_password_secret_name
+  key_vault_id                         = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+}
+
+
+//Witness access key
+resource "azurerm_key_vault_secret" "witness_access_key" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                         ]
+  count                                = 1
+  content_type                         = "secret"
+  name                                 = replace(
+                                          format("%s%s%s",
+                                            length(local.prefix) > 0 ? (
+                                              local.prefix) : (
+                                              var.infrastructure.environment
+                                            ),
+                                            var.naming.separator,
+                                            local.resource_suffixes.witness_accesskey
+                                          ),
+                                          "/[^A-Za-z0-9-]/",
+                                          ""
+                                        )
+  value                                = length(var.witness_storage_account.id) > 0 ? (
+                                           data.azurerm_storage_account.witness_storage[0].primary_access_key) : (
+                                           azurerm_storage_account.witness_storage[0].primary_access_key
+                                         )
+  key_vault_id                         = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+}
