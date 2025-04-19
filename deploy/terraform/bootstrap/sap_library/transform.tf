@@ -26,9 +26,9 @@ locals {
                                            id = coalesce(try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,""), var.spn_keyvault_id, local.spn_key_vault_arm_id)
                                          }
   storage_account_sapbits              = {
+                                            name                     = var.library_sapmedia_name
                                             id                       = var.library_sapmedia_arm_id
                                             exists                   = length(var.library_sapmedia_arm_id) > 0
-                                            name                     = var.library_sapmedia_name
                                             account_tier             = var.library_sapmedia_account_tier
                                             account_replication_type = var.library_sapmedia_account_replication_type
                                             account_kind             = var.library_sapmedia_account_kind
@@ -48,9 +48,9 @@ locals {
                                          }
 
   storage_account_tfstate              = {
+                                           name                                      = var.library_terraform_state_name
                                            id                                        = var.library_terraform_state_arm_id
                                            exists                                    = length(var.library_terraform_state_arm_id) > 0
-                                           name                                      = var.library_terraform_state_name
                                            account_tier                              = var.library_terraform_state_account_tier
                                            account_replication_type                  = var.library_terraform_state_account_replication_type
                                            account_kind                              = var.library_terraform_state_account_kind
