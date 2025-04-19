@@ -26,9 +26,9 @@ locals {
                                            id = coalesce(try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,""), var.spn_keyvault_id, local.spn_key_vault_arm_id)
                                          }
   storage_account_sapbits              = {
-                                            name                     = var.library_sapmedia_name
                                             id                       = var.library_sapmedia_arm_id
                                             exists                   = length(var.library_sapmedia_arm_id) > 0
+                                            name                     = var.library_sapmedia_name
                                             account_tier             = var.library_sapmedia_account_tier
                                             account_replication_type = var.library_sapmedia_account_replication_type
                                             account_kind             = var.library_sapmedia_account_kind
@@ -42,15 +42,15 @@ locals {
                                               is_existing            = var.library_sapmedia_blob_container_is_existing
                                               name                   = coalesce(var.library_sapmedia_blob_container_name, module.sap_namegenerator.naming.resource_suffixes.sapbits)
                                             }
-                                           shared_access_key_enabled = var.shared_access_key_enabled
-                                           public_network_access_enabled = var.public_network_access_enabled
+                                           shared_access_key_enabled                 = var.shared_access_key_enabled
+                                           public_network_access_enabled             = var.public_network_access_enabled
                                            enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
                                          }
 
-  storage_account_tfstate              = {
-                                           name                                      = var.library_terraform_state_name
+   storage_account_tfstate              = {
                                            id                                        = var.library_terraform_state_arm_id
                                            exists                                    = length(var.library_terraform_state_arm_id) > 0
+                                           name                                      = var.library_terraform_state_name
                                            account_tier                              = var.library_terraform_state_account_tier
                                            account_replication_type                  = var.library_terraform_state_account_replication_type
                                            account_kind                              = var.library_terraform_state_account_kind
@@ -73,7 +73,6 @@ locals {
                                            public_network_access_enabled             = var.public_network_access_enabled
                                            enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
                                          }
-
 
   dns_settings                         = {
                                            use_custom_dns_a_registration             = var.use_custom_dns_a_registration
