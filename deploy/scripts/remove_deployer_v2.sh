@@ -22,9 +22,8 @@ set -euo pipefail
 # Enable debug mode if DEBUG is set to 'true'
 if [[ "${DEBUG:-false}" == 'true' ]]; then
 	# Enable debugging
-	set -x
 	# Exit on error
-	set -o errexit
+	set -euox pipefail
 	echo "Environment variables:"
 	printenv | sort
 fi
@@ -56,7 +55,7 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 
 #Internal helper functions
-function showhelp {
+function show_deployer_help {
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -71,7 +70,7 @@ function showhelp {
 	echo "#   ~/.sap_deployment_automation folder                                                 #"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo "#   Usage: remove_deployer.sh                                                           #"
+	echo "#   Usage: remove_deployer_v2.sh                                                        #"
 	echo "#    -p deployer parameter file                                                         #"
 	echo "#                                                                                       #"
 	echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
@@ -108,7 +107,7 @@ function parse_arguments() {
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
-		showhelp
+		show_deployer_help
 		return 1
 	fi
 
@@ -123,7 +122,7 @@ function parse_arguments() {
 			shift
 			;;
 		-h | --help)
-			showhelp
+			show_deployer_help
 			exit 3
 			shift
 			;;
@@ -164,6 +163,8 @@ function parse_arguments() {
 	fi
 
 }
+
+# Function to validate dependencies
 function sdaf_remove_deployer() {
 	deployment_system=sap_deployer
 
@@ -190,7 +191,7 @@ function sdaf_remove_deployer() {
 
 	param_dirname=$(pwd)
 
-	var_file="${parameterFilename}"
+	var_file="${param_dirname}/${parameterFilename}"
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
