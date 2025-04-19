@@ -133,20 +133,26 @@ stages:
             displayName:               Store deployment credentials in Key Vault
             env:
               APPLICATION_CONFIGURATION_NAME: $(APPLICATION_CONFIGURATION_NAME)
-              ARM_SUBSCRIPTION_ID:          $(ParameterValidation.ARM_SUBSCRIPTION_ID)
-              ARM_USE_MSI:                  true
-              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
-              CLIENT_ID:                    $(ParameterValidation.ARM_CLIENT_ID)
-              CLIENT_SECRET:                $(ParameterValidation.ARM_CLIENT_SECRET)
-              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
-              DEPLOYER_KEYVAULT:            $(DEPLOYER_KEYVAULT)
-              OBJECT_ID:                    $(ParameterValidation.ARM_OBJECT_ID)
-              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-              TENANT_ID:                    $(ParameterValidation.ARM_TENANT_ID)
-              USE_MSI:                      $(Use_MSI)
-              ZONE:                         ${{ upper(parameters.control_plane_name) }}
+              ARM_SUBSCRIPTION_ID:            $(ParameterValidation.ARM_SUBSCRIPTION_ID)
+              ARM_USE_MSI:                    true
+              AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
+              CLIENT_ID:                      $(ParameterValidation.ARM_CLIENT_ID)
+              CLIENT_SECRET:                  $(ParameterValidation.ARM_CLIENT_SECRET)
+              CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:             ${{ parameters.control_plane_name }}
+              DEPLOYER_KEYVAULT:              $(DEPLOYER_KEYVAULT)
+              OBJECT_ID:                      $(ParameterValidation.ARM_OBJECT_ID)
+              SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+              TENANT_ID:                      $(ParameterValidation.ARM_TENANT_ID)
+              TF_VAR_agent_ado_url:           $(System.CollectionUri)
+              TF_VAR_agent_pat:               $(System.AccessToken)
+              TF_VAR_agent_pool:              $(POOL)
+              TF_VAR_ansible_core_version:    $(ansible_core_version)
+              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
+              TF_VAR_tf_version:              $(tf_version)
+              USE_MSI:                        $(Use_MSI)
+              ZONE:                           ${{ upper(parameters.control_plane_name) }}
   - stage:                             DeployControlplaneStage
     dependsOn:
                                        - Prepare_Deployer
@@ -160,7 +166,6 @@ stages:
           use_deployer:                ${{ parameters.use_deployer }}
           force_reset:                 ${{ parameters.force_reset }}
     displayName:                       Deploy the control plane
-
     jobs:
       - job:                           DeployControlplaneJob
         displayName:                   Deploy the control plane
@@ -195,32 +200,32 @@ stages:
             displayName:               Deploy control plane Part 2
             env:
               APPLICATION_CONFIGURATION_NAME:   $(APPLICATION_CONFIGURATION_NAME)
-              APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
-              ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
-              AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
-              CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_NAME:             ${{ parameters.control_plane_name }}
-              DEPLOYER_TFSTATE_KEY:           "${{ parameters.control_plane_name }}-INFRASTRUCTURE.terraform.tfstate"
-              DEPLOYER_KEYVAULT:              $(DEPLOYER_KEYVAULT)
-              FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
-              IS_PIPELINE_DEPLOYMENT:         true
-              OBJECT_ID:                      $(ParameterValidation.ARM_OBJECT_ID)
-              CLIENT_ID:                      $(ParameterValidation.ARM_CLIENT_ID)
-              POOL:                           $(POOL)
-              SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-              TENANT_ID:                      $(ParameterValidation.ARM_TENANT_ID)
-              TF_IN_AUTOMATION:               true
-              TF_LOG:                         DEBUG
-              TF_VAR_agent_ado_url:           $(System.CollectionUri)
-              TF_VAR_agent_pat:               $(PAT)
-              TF_VAR_agent_pool:              $(POOL)
-              TF_VAR_ansible_core_version:    $(ansible_core_version)
-              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
-              TF_VAR_subscription_id:         $(ARM_SUBSCRIPTION_ID)
-              TF_VAR_tf_version:              $(tf_version)
-              TF_VAR_use_spn:                 $(Use_MSI)
-              USE_MSI:                        $(USE_MSI)
+              APP_REGISTRATION_APP_ID:          $(APP_REGISTRATION_APP_ID)
+              ARM_SUBSCRIPTION_ID:              $(ARM_SUBSCRIPTION_ID)
+              AZURE_DEVOPS_EXT_PAT:             $(System.AccessToken)
+              CONFIG_REPO_PATH:                 ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:               ${{ parameters.control_plane_name }}
+              DEPLOYER_TFSTATE_KEY:             "${{ parameters.control_plane_name }}-INFRASTRUCTURE.terraform.tfstate"
+              DEPLOYER_KEYVAULT:                $(DEPLOYER_KEYVAULT)
+              FORCE_RESET:                      ${{ lower(parameters.force_reset) }}
+              IS_PIPELINE_DEPLOYMENT:           true
+              OBJECT_ID:                        $(ParameterValidation.ARM_OBJECT_ID)
+              CLIENT_ID:                        $(ParameterValidation.ARM_CLIENT_ID)
+              POOL:                             $(POOL)
+              SAP_AUTOMATION_REPO_PATH:         ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:               $(System.AccessToken)
+              TENANT_ID:                        $(ParameterValidation.ARM_TENANT_ID)
+              TF_IN_AUTOMATION:                 true
+              TF_LOG:                           DEBUG
+              TF_VAR_agent_ado_url:             $(System.CollectionUri)
+              TF_VAR_agent_pat:                 $(System.AccessToken)
+              TF_VAR_agent_pool:                $(POOL)
+              TF_VAR_ansible_core_version:      $(ansible_core_version)
+              TF_VAR_app_registration_app_id:   $(APP_REGISTRATION_APP_ID)
+              TF_VAR_subscription_id:           $(ARM_SUBSCRIPTION_ID)
+              TF_VAR_tf_version:                $(tf_version)
+              TF_VAR_use_spn:                   $(Use_MSI)
+              USE_MSI:                          $(Use_MSI)
           - task: Bash@3
             inputs:
               targetType:              'filePath'
