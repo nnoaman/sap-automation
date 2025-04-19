@@ -490,6 +490,11 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  timeouts                              {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                        }
 }
 
 data "azurerm_key_vault_secret" "sid_ppk" {
@@ -518,6 +523,11 @@ resource "azurerm_key_vault_secret" "sid_pk" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  timeouts                              {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                        }
 }
 
 data "azurerm_key_vault_secret" "sid_pk" {
@@ -554,6 +564,11 @@ resource "azurerm_key_vault_secret" "sid_username" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  timeouts                              {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                        }
 }
 
 data "azurerm_key_vault_secret" "sid_username" {
@@ -588,6 +603,11 @@ resource "azurerm_key_vault_secret" "sid_password" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  timeouts                              {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                        }
 }
 
 resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
@@ -608,6 +628,11 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  timeouts                              {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                        }
 }
 
 data "azurerm_key_vault_secret" "sid_password" {
@@ -658,4 +683,10 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+
+  timeouts                              {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                        }
 }
