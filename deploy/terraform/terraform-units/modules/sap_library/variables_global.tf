@@ -20,8 +20,15 @@ variable "infrastructure"              {
                                                     }
                                        }
 
-variable "storage_account_sapbits"     {}
-variable "storage_account_tfstate"     {}
+variable "storage_account_sapbits"     {
+                                         description = "Details of the storage account for SAP installation media and the Bill of Materials files"
+                                         default     = {}
+                                       }
+
+variable "storage_account_tfstate"     {
+                                         description = "Details of the storage account for Terraform"
+                                         default     = {}
+                                       }
 variable "dns_settings"                {
                                          description = "DNS details for the deployment"
                                          default     = {}
