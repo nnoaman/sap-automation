@@ -27,9 +27,9 @@ provider "azurerm"                     {
                                                                    }
                                                     key_vault      {
                                                                      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
-                                                                     purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
-                                                                     purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
-                                                                     purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                                     purge_soft_deleted_keys_on_destroy         = false
+                                                                     purge_soft_deleted_secrets_on_destroy      = false
+                                                                     purge_soft_deleted_certificates_on_destroy = false
                                                                    }
                                                     storage        {
                                                                         data_plane_available = var.data_plane_available
