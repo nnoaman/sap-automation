@@ -261,7 +261,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
 }
 
 resource "azurerm_role_assignment" "scs" {
-  provider                             = azurerm.deployer
+  provider                             = azurerm.main
   depends_on                           = [ azurerm_linux_virtual_machine.scs  ]
   count                                = (
                                            var.use_msi_for_clusters &&
@@ -278,12 +278,12 @@ resource "azurerm_role_assignment" "scs" {
   scope                                = azurerm_linux_virtual_machine.scs[count.index].id
 
   role_definition_name                 = var.fencing_role_name
-  principal_id                         =  azurerm_linux_virtual_machine.scs[count.index].identity[0].principal_id
+  principal_id                         = azurerm_linux_virtual_machine.scs[count.index].identity[0].principal_id
 
 }
 
 resource "azurerm_role_assignment" "scs_ha" {
-  provider                             = azurerm.deployer
+  provider                             = azurerm.main
   depends_on                           = [ azurerm_linux_virtual_machine.scs  ]
   count                                = (
                                             var.use_msi_for_clusters &&
@@ -300,7 +300,7 @@ resource "azurerm_role_assignment" "scs_ha" {
   scope                                = azurerm_linux_virtual_machine.scs[count.index].id
 
   role_definition_name                 = var.fencing_role_name
-  principal_id                         =  azurerm_linux_virtual_machine.scs[(count.index +1) % local.scs_server_count].identity[0].principal_id
+  principal_id                         = azurerm_linux_virtual_machine.scs[(count.index +1) % local.scs_server_count].identity[0].principal_id
 
 }
 
@@ -378,7 +378,6 @@ resource "azurerm_windows_virtual_machine" "scs" {
   tags                               = merge(var.application_tier.scs_tags, var.tags)
 
   encryption_at_host_enabled         = var.infrastructure.encryption_at_host_enabled
-
 
   dynamic "os_disk" {
                       iterator = disk
