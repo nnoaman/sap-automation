@@ -248,8 +248,6 @@ function bootstrap_deployer() {
 	export DEPLOYER_KEYVAULT
 	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
 		export APPLICATION_CONFIGURATION_ID
-		TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
-		export TF_VAR_application_configuration_id
 	fi
 	if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
 		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
@@ -352,6 +350,10 @@ function bootstrap_library {
 
 	if [ 2 -eq $step ]; then
 		print_banner "$banner_title" "Bootstrapping the library..." "info"
+		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
+			export TF_VAR_application_configuration_id
+		fi
 
 		relative_path="${library_dirname}"
 		export TF_DATA_DIR="${relative_path}/.terraform"
@@ -504,6 +506,8 @@ function migrate_library_state() {
 
 	if [ -z "$terraform_storage_account_name" ]; then
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID:-" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
+  		export TF_VAR_application_configuration_id
 
 			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
