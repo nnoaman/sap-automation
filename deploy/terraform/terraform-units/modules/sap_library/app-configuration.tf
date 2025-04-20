@@ -15,10 +15,10 @@ data  "azurerm_app_configuration" "app_config" {
 }
 
 data "azurerm_app_configuration_key" "deployer_network_id" {
-  count                  = local.application_configuration_deployed ? 1 : 0
-  configuration_store_id = data.azurerm_app_configuration.app_config[0].id
-  key                    = format("%s_Deployer_network_id", var.deployer.control_plane_name)
-  label                  = var.deployer.control_plane_name
+  count                                = local.application_configuration_deployed ? 1 : 0
+  configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
+  key                                  = format("%s_Deployer_network_id", var.deployer.control_plane_name)
+  label                                = var.deployer.control_plane_name
 }
 
 

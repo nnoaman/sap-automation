@@ -248,6 +248,8 @@ function bootstrap_deployer() {
 	export DEPLOYER_KEYVAULT
 	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
 		export APPLICATION_CONFIGURATION_ID
+		TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
+		export TF_VAR_application_configuration_id
 	fi
 	if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
 		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
