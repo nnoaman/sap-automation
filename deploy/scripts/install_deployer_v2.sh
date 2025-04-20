@@ -426,6 +426,8 @@ function install_deployer() {
 
 	APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 	if [ -n "${APP_SERVICE_NAME}" ]; then
+		printf -v val %-.20s "$DEPLOYER_KEYVAULT"
+		print_banner "$banner_title" "Application Configuration: $val" "info"
 		save_config_var "APP_SERVICE_NAME" "${deployer_config_information}"
 		export APP_SERVICE_NAME
 	fi

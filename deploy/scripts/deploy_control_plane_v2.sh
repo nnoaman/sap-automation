@@ -231,15 +231,15 @@ function bootstrap_deployer() {
 
 		echo "Calling install_deployer_v2.sh:         $allParameters"
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
-			local_return_code=$?
-			echo "Return code from install_deployer_v2: ${local_return_code}"
-			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error" "Return code: ${local_return_code}"
-		else
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
 			local_return_code=$?
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
 			step=1
 			save_config_var "step" "${deployer_config_information}"
+		else
+			local_return_code=$?
+			echo "Return code from install_deployer_v2: ${local_return_code}"
+			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error" "Return code: ${local_return_code}"
 		fi
 	fi
 
