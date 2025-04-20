@@ -268,13 +268,11 @@ if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --dep
 	--auto-approve --ado "$msi_flag" --only_deployer; then
 	return_code=$?
 	echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
-	echo "Return code from deploy_control_plane_v2 $return_code."
 else
 	return_code=$?
 	echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
-	echo "Return code from deploy_control_plane_v2 $return_code."
-
 fi
+
 echo ""
 echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset}"
 echo ""
@@ -290,6 +288,17 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	export APPLICATION_CONFIGURATION_NAME
+	echo "APPLICATION_CONFIGURATION_NAME:      ${DEPLOYER_KEYVAULT}"
+	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+	if [ 0 -eq $return_code ]; then
+
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+		if printenv APPLICATION_CONFIGURATION_NAME; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+		fi
+
+	fi
 
 fi
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
@@ -347,15 +356,5 @@ fi
 
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
 	echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
-fi
-echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-if [ 0 = $return_code ]; then
-
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
-	if printenv APPLICATION_CONFIGURATION_NAME; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-	fi
-
 fi
 exit $return_code
