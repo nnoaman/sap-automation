@@ -423,7 +423,7 @@ function migrate_deployer_state() {
 
 	cd "${deployer_dirname}" || exit
 	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	  print_banner "$banner_title" "Sourcing parameters from: $APPLICATION_CONFIGURATION_NAME" "info"
+		print_banner "$banner_title" "Sourcing parameters from: $APPLICATION_CONFIGURATION_NAME" "info"
 
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -459,7 +459,7 @@ function migrate_deployer_state() {
 		exit 11
 	fi
 
-  echo ""
+	echo ""
 	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}""
 	echo ""
 
@@ -560,7 +560,7 @@ function migrate_library_state() {
 		exit 11
 	fi
 
-  echo ""
+	echo ""
 	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name} --control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}""
 	echo ""
 	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
@@ -641,7 +641,7 @@ function retrieve_parameters() {
 			fi
 		fi
 
-    ARM_SUBSCRIPTION_ID=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+		ARM_SUBSCRIPTION_ID=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 		export ARM_SUBSCRIPTION_ID
 		TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 		export TF_VAR_subscription_id
@@ -812,7 +812,6 @@ function deploy_control_plane() {
 	echo "Library State File:                  ${library_tfstate_key}"
 	echo "Deployer Subscription:               ${subscription}"
 
-
 	generic_config_information="${CONFIG_DIR}"/config
 	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
 
@@ -872,15 +871,29 @@ function deploy_control_plane() {
 		# set_executing_user_environment_variables "none"
 	fi
 
-	if ! bootstrap_deployer; then
+	if bootstrap_deployer; then
+		return_value=0
+		if [ 1 -eq $only_deployer ]; then
+			printf -v key_vault_name '%-40s' "${DEPLOYER_KEYVAULT}"
+			printf -v app_config_name '%-40s' "$APPLICATION_CONFIGURATION_NAME"
+			printf -v ctrl_plane_name '%-40s' "$CONTROL_PLANE_NAME"
+
+			echo ""
+			echo "###############################################################################"
+			echo "#                                                                             #"
+			echo -e "# $cyan Please save these values: $reset_formatting                                                 #"
+			echo "#     - Key Vault:          ${key_vault_name}           #"
+			echo "#     - App Config:         ${app_config_name}          #"
+			echo "#     - Control Plane Name: ${ctrl_plane_name}          #"
+			echo "#                                                                             #"
+			echo "###############################################################################"
+			return 0
+		fi
+	else
 		return_value=$?
 		if [ 0 -ne "$return_value" ]; then
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed!!" "error" "Return code: $return_value"
 			return 10
-		fi
-	else
-		if [ 1 -eq "${only_deployer:-0}" ]; then
-			return 0
 		fi
 	fi
 
@@ -895,7 +908,7 @@ function deploy_control_plane() {
 		print_banner "Control Plane Deployment" "Executing deployment steps failed" "error"
 	fi
 
-	printf -v key_vvault_name '%-40s' "${DEPLOYER_KEYVAULT}"
+	printf -v key_vault_name '%-40s' "${DEPLOYER_KEYVAULT}"
 	printf -v storage_account '%-40s' "${terraform_storage_account_name}"
 	printf -v app_config_name '%-40s' "$APPLICATION_CONFIGURATION_NAME"
 	printf -v ctrl_plane_name '%-40s' "$CONTROL_PLANE_NAME"
@@ -904,7 +917,7 @@ function deploy_control_plane() {
 	echo "###############################################################################"
 	echo "#                                                                             #"
 	echo -e "# $cyan Please save these values: $reset_formatting                                                 #"
-	echo "#     - Key Vault:          ${key_vvault_name}          #"
+	echo "#     - Key Vault:          ${key_vault_name}           #"
 	echo "#     - Storage Account:    ${storage_account}          #"
 	echo "#     - App Config:         ${app_config_name}          #"
 	echo "#     - Control Plane Name: ${ctrl_plane_name}          #"
