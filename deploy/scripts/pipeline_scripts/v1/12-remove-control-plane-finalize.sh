@@ -267,6 +267,7 @@ if [ 0 == $return_code ]; then
 
 		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
+		remove_variable "$VARIABLE_GROUP_ID" "APPSERVICE_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
