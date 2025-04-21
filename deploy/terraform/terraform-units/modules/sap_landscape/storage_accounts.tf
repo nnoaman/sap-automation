@@ -53,7 +53,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
                                                   var.infrastructure.virtual_networks.sap.subnet_iscsi.exists ? var.infrastructure.virtual_networks.sap.subnet_iscsi.id : azurerm_subnet.iscsi[0].id) : (
                                                   null
                                                 ), length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
-                                                length(var.additional_network_id) > 0 ? var.additional_network_id : null
+                                                length(var.infrastructure.additional_subnet_id) > 0 ? var.infrastructure.additional_subnet_id : null
                                                 ]
                                               ) : null
                 ip_rules                   = var.public_network_access_enabled ? compact([
@@ -182,7 +182,7 @@ resource "azurerm_storage_account" "witness_storage" {
                                                     null
                                                   ),
                                                   length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
-                                                  length(var.additional_network_id) > 0 ? var.additional_network_id : null
+                                                  length(var.infrastructure.additional_subnet_id) > 0 ? var.infrastructure.additional_subnet_id : null
                                                   ]
                                                 ) : null
                   ip_rules                   = var.public_network_access_enabled ? compact([
@@ -321,7 +321,7 @@ resource "azurerm_storage_account" "transport" {
                                                     null
                                                   ),
                                                   length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
-                                                  length(var.additional_network_id) > 0 ? var.additional_network_id : null
+                                                  length(var.infrastructure.additional_subnet_id) > 0 ? var.infrastructure.additional_subnet_id : null
                                                   ]
                                                 ) : null
                   ip_rules                   = var.public_network_access_enabled ? compact([

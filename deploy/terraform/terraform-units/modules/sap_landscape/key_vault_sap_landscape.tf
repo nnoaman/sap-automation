@@ -56,7 +56,7 @@ resource "azurerm_key_vault" "kv_user" {
                                                 ""
                                               ),
                                               local.deployer_subnet_management_id,
-                                              var.additional_network_id
+                                              var.infrastructure.additional_subnet_id
                                             ]
                                           )
             }

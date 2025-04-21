@@ -1211,6 +1211,17 @@ variable "additional_network_id"                {
 
                                                  }
 
+variable "additional_subnet_id"                {
+                                                   description = "Agent subnet resource ID"
+                                                   default     = ""
+                                                   validation    {
+                                                                 condition     = length(var.additional_subnet_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.additional_subnet_id))
+                                                                 error_message = "If specified the 'additional_subnet_id' variable must be a correct Azure resource identifier."
+                                                               }
+
+                                                 }
+
+
 ###############################################################################
 #                                                                             #
 #                            Application  configuration                       #

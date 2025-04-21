@@ -184,10 +184,10 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 # // Peers additional VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
   provider                             = azurerm.peering
-  count                                = length(try(var.additional_network_id, "")) > 0 ? 1 : 0
+  count                                = length(try(var.infrastructure.additional_network_id, "")) > 0 ? 1 : 0
   name                                 = substr(
                                            format("%s_to_%s",
-                                             split("/", var.additional_network_id)[8],
+                                             split("/", var.infrastructure.additional_network_id)[8],
                                              var.infrastructure.virtual_networks.sap.exists  ? (
                                                data.azurerm_virtual_network.vnet_sap[0].name) : (
                                                azurerm_virtual_network.vnet_sap[0].name
@@ -196,8 +196,8 @@ resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
                                            0,
                                            80
                                          )
-  virtual_network_name                 = split("/", var.additional_network_id)[8]
-  resource_group_name                  = split("/", var.additional_network_id)[4]
+  virtual_network_name                 = split("/", var.infrastructure.additional_network_id)[8]
+  resource_group_name                  = split("/", var.infrastructure.additional_network_id)[4]
   remote_virtual_network_id            = var.infrastructure.virtual_networks.sap.exists  ? (
                                            data.azurerm_virtual_network.vnet_sap[0].id) : (
                                            azurerm_virtual_network.vnet_sap[0].id
@@ -210,13 +210,13 @@ resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
 
 resource "azurerm_virtual_network_peering" "peering_sap_additional_network" {
   provider                             = azurerm.main
-  count                                = length(try(var.additional_network_id, "")) > 0 ? 1 : 0
+  count                                = length(try(var.infrastructure.additional_network_id, "")) > 0 ? 1 : 0
   name                                 = substr(
                                            format("%s_to_%s",
                                              var.infrastructure.virtual_networks.sap.exists  ? (
                                                data.azurerm_virtual_network.vnet_sap[0].name) : (
                                                azurerm_virtual_network.vnet_sap[0].name
-                                             ), split("/", var.additional_network_id)[8]
+                                             ), split("/", var.infrastructure.additional_network_id)[8]
                                            ),
                                            0,
                                            80
@@ -229,7 +229,7 @@ resource "azurerm_virtual_network_peering" "peering_sap_additional_network" {
                                            data.azurerm_virtual_network.vnet_sap[0].name) : (
                                            azurerm_virtual_network.vnet_sap[0].name
                                          )
-  remote_virtual_network_id            = var.additional_network_id
+  remote_virtual_network_id            = var.infrastructure.additional_network_id
   allow_virtual_network_access         = true
   allow_forwarded_traffic              = true
 }

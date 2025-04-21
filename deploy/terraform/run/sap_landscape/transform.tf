@@ -31,24 +31,30 @@ locals {
                                          }
 
   temp_infrastructure                  = {
-                                           environment                   = var.environment
-                                           region                        = lower(var.location)
-                                           codename                      = var.codename
-                                           tags                          = var.resourcegroup_tags
-                                           deploy_monitoring_extension   = var.deploy_monitoring_extension
-                                           deploy_defender_extension     = var.deploy_defender_extension
-                                           user_assigned_identity_id     = var.user_assigned_identity_id
-                                           patch_mode                    = var.patch_mode
-                                           patch_assessment_mode         = var.patch_assessment_mode
-                                           shared_access_key_enabled     = var.shared_access_key_enabled
-                                           shared_access_key_enabled_nfs = var.shared_access_key_enabled_nfs
+                                           additional_network_id         = length(var.additional_network_id) > 0 ? (
+                                                                            var.additional_network_id) : (
+                                                                            try(length(data.terraform_remote_state.deployer[0].outputs.additional_network_id) > 0, false) ? (
+                                                                              data.terraform_remote_state.deployer[0].outputs.additional_network_id) : (
+                                                                              ""))
+                                           additional_subnet_id          = var.additional_subnet_id
                                            application_configuration_id  = try(coalesce(
                                                                              var.application_configuration_id,
                                                                              try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
                                                                            ), "")
-                                           encryption_at_host_enabled    = var.encryption_at_host_enabled
-                                           platform_updates              = var.platform_updates
+                                           codename                      = var.codename
                                            control_plane_name            = var.control_plane_name
+                                           deploy_defender_extension     = var.deploy_defender_extension
+                                           deploy_monitoring_extension   = var.deploy_monitoring_extension
+                                           encryption_at_host_enabled    = var.encryption_at_host_enabled
+                                           environment                   = var.environment
+                                           patch_assessment_mode         = var.patch_assessment_mode
+                                           patch_mode                    = var.patch_mode
+                                           platform_updates              = var.platform_updates
+                                           region                        = lower(var.location)
+                                           shared_access_key_enabled     = var.shared_access_key_enabled
+                                           shared_access_key_enabled_nfs = var.shared_access_key_enabled_nfs
+                                           tags                          = var.resourcegroup_tags
+                                           user_assigned_identity_id     = var.user_assigned_identity_id
                                          }
 
   authentication                       = {
