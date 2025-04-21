@@ -122,7 +122,7 @@ function show_help {
 # Function to parse command line arguments
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n install_library_v2 -o c:n:p:d:v:ih --longoptions control_plane_name:, application_configuration_name:,parameter_file:,deployer_statefile_foldername:,keyvault:,auto-approve,help -- "$@")
+	input_opts=$(getopt -n install_library_v2 -o c:n:p:d:v:ih --longoptions control_plane_name:,application_configuration_name:,parameter_file:,deployer_statefile_foldername:,keyvault:,auto-approve,help -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
