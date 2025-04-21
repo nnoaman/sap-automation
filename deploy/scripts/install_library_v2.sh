@@ -122,7 +122,7 @@ function show_help {
 # Function to parse command line arguments
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n install_library_v2 -o p:d:v:ih --longoptions parameter_file:,deployer_statefile_foldername:,keyvault:,auto-approve,help -- "$@")
+	input_opts=$(getopt -n install_library_v2 -o c:n:p:d:v:ih --longoptions control_plane_name:, application_configuration_name:,parameter_file:,deployer_statefile_foldername:,keyvault:,auto-approve,help -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -137,6 +137,12 @@ function parse_arguments() {
 			parameter_file_name="$2"
 			shift 2
 			;;
+		-c | --control_plane_name)
+			CONTROL_PLANE_NAME="$2"
+			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+			export TF_VAR_control_plane_name
+			shift 2
+			;;
 		-d | --deployer_statefile_foldername)
 			deployer_statefile_foldername="$2"
 			shift 2
@@ -144,6 +150,15 @@ function parse_arguments() {
 		-i | --auto-approve)
 			approve="--auto-approve"
 			shift
+			;;
+		-n | --application_configuration_name)
+			APPLICATION_CONFIGURATION_NAME="$2"
+			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+			export APPLICATION_CONFIGURATION_ID
+			export APPLICATION_CONFIGURATION_NAME
+			TF_VAR_application_configuration_id="${APPLICATION_CONFIGURATION_ID}"
+			export TF_VAR_application_configuration_id
+			shift 2
 			;;
 		-h | --help)
 			showhelp

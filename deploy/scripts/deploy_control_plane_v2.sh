@@ -362,21 +362,23 @@ function bootstrap_library {
 		cd "${library_dirname}" || exit
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
 
-		echo "Calling install_library_v2.sh with: --parameter_file ${library_parameter_file_name} --deployer_statefile_foldername ${relative_path} ${autoApproveParameter}"
+		echo "Calling install_library_v2.sh with: --parameter_file ${library_parameter_file_name} --deployer_statefile_foldername ${relative_path} ${autoApproveParameter} --control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library_v2.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library_v2.sh" \
 			--parameter_file "${library_parameter_file_name}" \
 			--deployer_statefile_foldername "${relative_path}" \
+			--control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-} \
 			"$autoApproveParameter"; then
-			print_banner "$banner_title" "Bootstrapping the library failed." "error"
-			step=2
-			save_config_var "step" "${deployer_config_information}"
-			exit 20
-		else
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			print_banner "$banner_title" "Bootstrapping the library succeeded." "success"
-
+			unset TF_VAR_application_configuration_id
+		else
+			print_banner "$banner_title" "Bootstrapping the library failed." "error"
+			step=2
+			save_config_var "step" "${deployer_config_information}"
+			unset TF_VAR_application_configuration_id
+			exit 20
 		fi
 
 		terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")

@@ -711,19 +711,6 @@ function sdaf_installer() {
 
 			print_banner "$banner_title" "Deployed using the Terraform templates version: $deployed_using_version" "info"
 
-			# version_compare "${deployed_using_version}" "3.13.2.0"
-			# older_version=$?
-			# if [ 2 == $older_version ]; then
-			# 	echo ""
-			# 	echo "#########################################################################################"
-			# 	echo "#                                                                                       #"
-			# 	echo -e "#           $bold_red  Deployed using an older version $reset_formatting                                          #"
-			# 	echo "#                                                                                       #"
-			# 	echo "#########################################################################################"
-			# 	echo ""
-			# 	echo "##vso[task.logissue type=warning]Deployed using an older version ${deployed_using_version}. Performing state management operations"
-
-			# fi
 		fi
 	fi
 
