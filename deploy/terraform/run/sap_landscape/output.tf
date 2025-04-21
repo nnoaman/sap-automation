@@ -139,6 +139,11 @@ output "landscape_key_vault_user_arm_id"         {
                                                    value       = length(var.user_keyvault_id) > 0 ? var.user_keyvault_id : module.sap_landscape.kv_user
                                                  }
 
+output "user_credential_vault_id"         {
+                                                   description = "Azure resource identifier for the user credential keyvault"
+                                                   value       = module.sap_landscape.user_credential_vault_id
+                                                 }
+
 output "sid_password_secret_name"                {
                                                    description = "Name of key vault secret containing the password for the infrastructure"
                                                    value       = try(module.sap_landscape.sid_password_secret_name, "")

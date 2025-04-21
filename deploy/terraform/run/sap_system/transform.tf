@@ -536,8 +536,8 @@ locals {
 
   key_vault                            = {
                                            user                                   = {
-                                                                                      id     = coalesce(data.terraform_remote_state.landscape.outputs.landscape_key_vault_user_arm_id, var.user_keyvault_id)
-                                                                                      exists = length(coalesce(data.terraform_remote_state.landscape.outputs.landscape_key_vault_user_arm_id, var.user_keyvault_id)) > 0
+                                                                                      id     = coalesce(data.terraform_remote_state.landscape.outputs.user_credential_vault_id, var.user_keyvault_id)
+                                                                                      exists = length(coalesce(data.terraform_remote_state.landscape.outputs.user_credential_vault_id, var.user_keyvault_id)) > 0
                                                                                     }
                                            spn                                    = {
                                                                                       id     = coalesce(try(data.azurerm_app_configuration_key.credentials_vault[0].value, ""),var.spn_keyvault_id)

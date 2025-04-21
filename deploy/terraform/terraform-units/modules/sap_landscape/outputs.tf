@@ -201,8 +201,16 @@ output "subnet_mgmt_id"                         {
 output "kv_user"                                {
                                                   description = "Azure resource identifier for the user credential keyvault"
                                                   value       = var.key_vault.user.exists ? (
-                                                                  try(data.azurerm_key_vault.kv_user[0].id, "")) : (
-                                                                  try(azurerm_key_vault.kv_user[0].id, "")
+                                                                  data.azurerm_key_vault.kv_user[0].id) : (
+                                                                  azurerm_key_vault.kv_user[0].id
+                                                                )
+                                                }
+
+output "user_credential_vault_id"               {
+                                                  description = "Azure resource identifier for the user credential keyvault"
+                                                  value       = var.key_vault.user.exists ? (
+                                                                  data.azurerm_key_vault.kv_user[0].id) : (
+                                                                  azurerm_key_vault.kv_user[0].id
                                                                 )
                                                 }
 
