@@ -269,9 +269,12 @@ function retrieve_parameters() {
 			app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
 
 			if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-				print_banner "Set Secrets" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
-				keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${prefix}")
-				print_banner "Set Secrets" "Key vault:$keyvault" "info" "${CONTROL_PLANE_NAME}_KeyVaultName ${prefix}"
+
+				print_banner "$banner_title" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
+
+				keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+				print_banner "$banner_title" "Key vault: $keyvault" "info" "${CONTROL_PLANE_NAME}_KeyVaultName ${prefix}"
+
 				keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
 				STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
 
