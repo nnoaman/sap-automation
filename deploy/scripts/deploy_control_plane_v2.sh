@@ -61,7 +61,7 @@ terraform_storage_account_name=""
 #   source_helper_scripts "script1.sh" "script2.sh"            														 #
 ############################################################################################
 
-source_helper_scripts() {
+function source_helper_scripts() {
 	local -a helper_scripts=("$@")
 	for script in "${helper_scripts[@]}"; do
 		if [[ -f "$script" ]]; then

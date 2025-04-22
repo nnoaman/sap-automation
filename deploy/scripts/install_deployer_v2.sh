@@ -40,7 +40,15 @@ else
 	exit 1
 fi
 
-#Internal helper functions
+################################################################################
+# Function to display a help message for the deployer installation script.     #
+# Arguments:                                                                   #
+#   None                                                                       #
+# Returns:                                                                     #
+#   None                                                                       #
+# Usage:                                                                       #
+#   show_deployer_help                                                         #
+################################################################################
 function show_deployer_help {
 	echo ""
 	echo "#########################################################################################"
@@ -96,7 +104,6 @@ function source_helper_scripts() {
 		fi
 	done
 }
-
 
 ############################################################################################
 # Function to parse all the command line arguments passed to the script.                   #
@@ -186,6 +193,15 @@ function parse_arguments() {
 	return 0
 }
 
+############################################################################################
+# Function to install the deployer.                                                        #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   install_deployer                                                                       #
+############################################################################################
 function install_deployer() {
 	deployment_system=sap_deployer
 	local green="\033[0;32m"
@@ -474,9 +490,17 @@ function install_deployer() {
 	return $return_value
 }
 
-# Main script
-if install_deployer "$@"; then
-	exit 0
-else
-	exit $?
+###############################################################################
+# Main script execution                                                       #
+# This script is designed to be run directly, not sourced.                    #
+# It will execute the install_deployer function and handle the exit codes.      #
+###############################################################################
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+	# Only run if script is executed directly, not when sourced
+
+	if install_deployer "$@"; then
+		exit 0
+	else
+		exit $?
+	fi
 fi

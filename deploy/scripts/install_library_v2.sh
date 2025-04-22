@@ -39,37 +39,6 @@ CONFIG_REPO_PATH="${script_directory}/.."
 CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 readonly CONFIG_DIR
 
-#Internal helper functions
-function showhelp {
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                                                                                       #"
-	echo "#   This file contains the logic to deploy the deployer.                                #"
-	echo "#   The script experts the following exports:                                           #"
-	echo "#                                                                                       #"
-	echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-	echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation        #"
-	echo "#                                                                                       #"
-	echo "#   The script will persist the parameters needed between the executions in the         #"
-	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
-	echo "#                                                                                       #"
-	echo "#                                                                                       #"
-	echo "#   Usage: install_deployer.sh                                                          #"
-	echo "#    -p deployer parameter file                                                         #"
-	echo "#                                                                                       #"
-	echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
-	echo "#    -h Show help                                                                       #"
-	echo "#                                                                                       #"
-	echo "#   Example:                                                                            #"
-	echo "#                                                                                       #"
-	echo "#   [REPO-ROOT]deploy/scripts/install_deployer.sh \                                     #"
-	echo "#      -p PROD-WEEU-DEP00-INFRASTRUCTURE.json \                                         #"
-	echo "#      -i true                                                                          #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-}
-
 ############################################################################################
 # This function sources the provided helper scripts and checks if they exist.              #
 # If a script is not found, it prints an error message and exits with a non-zero status.   #
@@ -96,8 +65,16 @@ function source_helper_scripts() {
 	done
 }
 
-#Internal helper functions
-function show_help {
+############################################################################################
+# Function to display a help message for the library installation script.                  #
+# Arguments:                                                                               #
+#   1. Parameter file name                                                                 #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   show_library_help                                                                      #
+############################################################################################
+function show_library_help {
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -146,7 +123,7 @@ function parse_arguments() {
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
-		show_help
+		show_library_help
 		exit 1
 	fi
 
@@ -264,13 +241,21 @@ function retrieve_parameters() {
 			export TF_VAR_management_subscription_id
 			export TF_VAR_spn_keyvault_id
 
-
 		fi
 
 	fi
 
 }
 
+############################################################################################
+# Function to install the SAP Library.                                                        #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   install_library                                                                       #
+############################################################################################
 
 function install_library() {
 	local green="\033[0;32m"
@@ -582,9 +567,16 @@ function install_library() {
 	return $return_value
 }
 
-# Main script
-if install_library "$@"; then
-	exit 0
-else
-	exit $?
+###############################################################################
+# Main script execution                                                       #
+# This script is designed to be run directly, not sourced.                    #
+# It will execute the install_library function and handle the exit codes.     #
+###############################################################################
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+	# Only run if
+	if install_library "$@"; then
+		exit 0
+	else
+		exit $?
+	fi
 fi

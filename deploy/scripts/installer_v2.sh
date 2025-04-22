@@ -50,6 +50,17 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$path
 fi
 
+###############################################################################
+# Function to show an error message and exit with a non-zero status           #
+# Arguments:                                                                  #
+#   None                                                                      #
+# Returns:                                                                    #
+#   0 if all required environment variables are set                           #
+#   1 if any required environment variable is not set                         #
+# Usage: 																																		  #
+#   missing																											              #
+###############################################################################
+
 function missing {
 	printf -v val %-.40s "$1"
 	echo ""
@@ -67,8 +78,20 @@ function missing {
 	return 0
 }
 
-# Function to source helper scripts
-source_helper_scripts() {
+############################################################################################
+# This function sources the provided helper scripts and checks if they exist.              #
+# If a script is not found, it prints an error message and exits with a non-zero status.   #
+# Arguments:                                                                               #
+#   1. Array of helper script paths                                                        #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   source_helper_scripts <helper_script1> <helper_script2> ...                            #
+# Example:                   																				                       #
+#   source_helper_scripts "script1.sh" "script2.sh"            														 #
+############################################################################################
+
+function source_helper_scripts() {
 	local -a helper_scripts=("$@")
 	for script in "${helper_scripts[@]}"; do
 		if [[ -f "$script" ]]; then
@@ -392,12 +415,18 @@ function retrieve_parameters() {
 
 }
 
+############################################################################################
+# Function to persist the files to the storage account. The function copies the .tfvars    #
+# files, the terraform.tfstate files, the <SID>hosts file and the sap-parameters.yaml file #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   persist_files                                                                          #
+############################################################################################
+
 function persist_files() {
-	#################################################################################
-	#                                                                               #
-	#                           Copy tfvars to storage account                      #
-	#                                                                               #
-	#################################################################################
 
 	print_banner "Installer" "Backup tfvars to storage account" "info"
 
@@ -449,6 +478,23 @@ function persist_files() {
 
 }
 
+############################################################################################
+# Function to test if a resource would be recreated.                                       #
+# Arguments:                                                                               #
+#   1. List of <Terraform resource names-Description> items                                #
+#   2. File name                                                                           #
+# Returns:                                                                                 #
+#   0 if the resource would be recreated, 1 if it would not be recreated                   #
+# Usage:                                                                                   #
+# resources=(
+#			"module.sap_library.azurerm_storage_account.storage_sapbits~SAP Library Storage Account"
+#			"module.sap_library.azurerm_storage_container.storagecontainer_sapbits~SAP Library Storage Account container"
+#			"module.sap_library.azurerm_storage_account.storage_tfstate~Terraform State Storage Account"
+#			"module.sap_library.azurerm_storage_container.storagecontainer_sapbits~Terraform State Storage Account container"
+#		)
+#   test_for_removal "${resources[@]}" <file_name>                                         #
+############################################################################################
+
 function test_for_removal() {
 	local local_return_code=0
 	local file_name=$2
@@ -465,6 +511,16 @@ function test_for_removal() {
 	fi
 	return $local_return_code
 }
+
+#############################################################################################
+# Function to run the installer script.                                                     #
+# Arguments:                                                                                #
+#   None                                                                                    #
+# Returns:                                                                                  #
+#   0 on success, non-zero on failure                                                       #
+# Usage:                                                                                    #
+#   sdaf_installer                                                                          #
+#############################################################################################
 
 function sdaf_installer() {
 	landscape_tfstate_key=""
@@ -1113,6 +1169,12 @@ function sdaf_installer() {
 
 	exit 0
 }
+
+###############################################################################
+# Main script execution                                                       #
+# This script is designed to be run directly, not sourced.                    #
+# It will execute the sdaf_installer function and handle the exit codes.      #
+###############################################################################
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	# Only run if script is executed directly, not when sourced
