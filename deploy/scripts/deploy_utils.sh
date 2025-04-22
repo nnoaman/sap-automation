@@ -144,6 +144,22 @@ function getAndStoreTerraformStateStorageAccountDetails {
 	echo "Found the storage account:           ${REMOTE_STATE_SA}"
 }
 
+##############################################################################
+# Function to get the value of a variable from the Azure App Configuration
+# Arguments:
+# 1. The application configuration ID
+# 2. The variable name
+# 3. The label of the variable
+# The function returns the value of the variable.
+# The function uses the Azure CLI to get the value of the variable from the
+# Azure App Configuration.
+# Usage:
+# getVariableFromApplicationConfiguration <application_configuration_id> <variable_name> <label>
+# Example:
+# getVariableFromApplicationConfiguration /subscriptions/<subscription_id>/resourceGroups/<resource_group_name>/providers/Microsoft.AppConfiguration/configurationStores/<app_configuration_name> <variable_name> <label>
+# The function returns the value of the variable.
+##############################################################################
+
 function getVariableFromApplicationConfiguration() {
 	local application_configuration_id="$1"
 	local variable_name="$2"
