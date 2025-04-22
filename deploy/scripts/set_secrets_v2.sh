@@ -10,14 +10,13 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 SCRIPT_NAME="$(basename "$0")"
 
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
-	echo "prefix variables:"
-	printenv | sort
-
+if printenv DEBUG; then
+	if [ $DEBUG = True ]; then
+		set -x
+		DEBUG=True
+		echo "prefix variables:"
+		printenv | sort
+	fi
 fi
 export DEBUG
 set -eu
@@ -272,7 +271,7 @@ function retrieve_parameters() {
 			if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 				print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
 				keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${prefix}")
-        keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+				keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
 				STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
 
 				export keyvault
