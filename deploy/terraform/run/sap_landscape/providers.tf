@@ -53,7 +53,7 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {}
                                          alias                      = "deployer"
-                                         subscription_id            = coalesce(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         subscription_id            = coalesce(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "", local.SAPLibrary_subscription_id)
                                          client_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null
                                          client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value : null
                                          tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value: null
