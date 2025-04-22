@@ -220,6 +220,11 @@ function parse_arguments() {
 		return 10
 	}
 
+	[[ -z "$subscription" ]] && {
+		print_banner "$banner_title" "subscription is required" "error"
+		return 10
+	}
+
 	if [ 0 -eq "$deploy_using_msi_only" ]; then
 
 		if [ -z "$client_id" ]; then
