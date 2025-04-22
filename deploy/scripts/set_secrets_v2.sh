@@ -141,7 +141,7 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n set_secrets_v2 -o v:s:c:p:t:b:n:hwma --longoptions prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,workload,help,msi,ado -- "$@")
+	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:hwma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,workload,help,msi,ado -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -160,6 +160,10 @@ function parse_arguments() {
 			keyvault="$2"
 			shift 2
 			;;
+		-c | --control_plane_name)
+			CONTROL_PLANE_NAME="$2"
+			shift 2
+			;;
 		-n | --application_configuration_name)
 			APPLICATION_CONFIGURATION_NAME="$2"
 			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
@@ -171,7 +175,7 @@ function parse_arguments() {
 			subscription="$2"
 			shift 2
 			;;
-		-c | --client_id)
+		-i | --client_id)
 			client_id="$2"
 			shift 2
 			;;
@@ -268,6 +272,9 @@ function retrieve_parameters() {
 			if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 				print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
 				keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${prefix}")
+        keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+				STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
+
 				export keyvault
 			fi
 		fi
