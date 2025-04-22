@@ -287,6 +287,8 @@ function retrieve_parameters() {
 		}
 	fi
 
+	return 0
+
 }
 
 function set_all_secrets() {
@@ -306,7 +308,9 @@ function set_all_secrets() {
 	print_banner "$banner_title" "Starting script $SCRIPT_NAME" "info"
 
 	# Parse command line arguments
-	if ! parse_arguments "$@"; then
+	if parse_arguments "$@"; then
+		return_code=0
+	else
 		print_banner "$banner_title " "Validating parameters failed" "error"
 		return $?
 	fi
