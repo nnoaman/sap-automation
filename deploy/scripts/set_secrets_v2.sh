@@ -10,7 +10,6 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 SCRIPT_NAME="$(basename "$0")"
 
-
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
@@ -46,7 +45,7 @@ function setSecretValue {
 	local value=$4
 	local type=$5
 	local local_return_code=0
-	current_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv )
+	current_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv)
 	if [ "${value}" != "${current_value}" ]; then
 		if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}"; then
 			local_return_code=$?
@@ -82,14 +81,14 @@ function show_help {
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
 	echo "#   Usage: set_secrets_v2.sh                                                            #"
-	echo "#      -e or --prefix                        prefix                                     #"
-	echo "#      -r or --region                        region name                                #"
-	echo "#      -v or --vault                         Azure keyvault name                        #"
-	echo "#      -s or --subscription                  subscription                               #"
-	echo "#      -c or --spn_id                        SPN application id                         #"
-	echo "#      -p or --spn_secret                    SPN password                               #"
-	echo "#      -t or --tenant_id                     SPN Tenant id                              #"
-	echo "#      -h or --help                          Show help                                  #"
+	echo "#      -p or --prefix                          prefix                                   #"
+	echo "#      -v or --key_vault                       Azure keyvault name                      #"
+	echo "#      -s or --subscription                    subscription                             #"
+	echo "#      -n or --application_configuration_name  Application configuration name           #"
+	echo "#      -c or --spn_id                          SPN application id                       #"
+	echo "#      -p or --spn_secret                      SPN password                             #"
+	echo "#      -t or --tenant_id                       SPN Tenant id                            #"
+	echo "#      -h or --help                            Show help                                #"
 	echo "#                                                                                       #"
 	echo "#   Example:                                                                            #"
 	echo "#                                                                                       #"
@@ -261,25 +260,24 @@ function parse_arguments() {
 ############################################################################################
 
 function retrieve_parameters() {
+	if printenv APPLICATION_CONFIGURATION_ID; then
+		if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+			app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
+			app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
 
-	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
-		app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
-
-		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
-			keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${prefix}")
-			export keyvault
+			if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+				print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
+				keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${prefix}")
+				export keyvault
+			fi
 		fi
+		[[ -z "$keyvault" ]] && {
+			print_banner "$banner_title" "key_vault is required" "error"
+			return 10
+		}
 	fi
-	[[ -z "$keyvault" ]] && {
-		print_banner "$banner_title" "key_vault is required" "error"
-		return 10
-	}
-
 
 }
-
 
 function set_all_secrets() {
 	deploy_using_msi_only=0
@@ -303,7 +301,7 @@ function set_all_secrets() {
 		return $?
 	fi
 
-  retrieve_parameters
+	retrieve_parameters
 	return_code=0
 
 	echo "#########################################################################################"
