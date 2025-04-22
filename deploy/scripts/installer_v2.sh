@@ -81,7 +81,16 @@ source_helper_scripts() {
 	done
 }
 
-# Function to parse command line arguments
+############################################################################################
+# Function to parse all the command line arguments passed to the script.                   #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   parse_arguments                                                                        #
+############################################################################################
+
 function parse_arguments() {
 	local input_opts
 	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
@@ -286,7 +295,17 @@ function parse_arguments() {
 
 }
 
-# Function to retrieve data from Azure App Configuration
+############################################################################################
+# This function reads the parameters from the Azure Application Configuration and sets     #
+# the environment variables.                                                               #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   retrieve_parameters                                                                    #
+############################################################################################
+
 function retrieve_parameters() {
 
 	TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"

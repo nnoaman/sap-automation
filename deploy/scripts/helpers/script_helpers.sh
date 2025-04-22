@@ -14,6 +14,24 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$PATH:$path
 fi
 
+########################################################################################
+#                                                                                      #
+# Function to Print a Banner                                                           #
+# Arguments:                                                                           #
+#   $1 - Title of the banner                                                           #
+#   $2 - Message to display                                                            #
+#   $3 - Type of message (error, success, warning, info)                               #
+#   $4 - Secondary message (optional)                                                  #
+# Returns:                                                                             #
+#   None                                                                               #
+########################################################################################
+# Example usage:		                                                                   #
+#   print_banner "Title" "This is a message" "info" "Secondary message"                #
+#   print_banner "Title" "This is a message" "error"                                   #
+#   print_banner "Title" "This is a message" "success" "Secondary message"             #
+#                                                                                      #
+########################################################################################
+
 function print_banner() {
 	local title="$1"
 	local message="$2"
@@ -96,6 +114,19 @@ function print_banner() {
 	echo ""
 }
 
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:                                                                        #
+#   show_help_installer_v2                                                              #
+#                                                                                       #
+#########################################################################################
+
 function show_help_installer_v2 {
 	echo ""
 	echo "#########################################################################################"
@@ -144,6 +175,19 @@ function show_help_installer_v2 {
 	echo "#########################################################################################"
 	return 0
 }
+
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:                                                                        #
+#   show_help_remover_v2                                                                #
+#                                                                                       #
+#########################################################################################
 
 function show_help_remover_v2 {
 	echo ""
@@ -194,6 +238,19 @@ function show_help_remover_v2 {
 	return 0
 }
 
+
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:                                                                        #
+#   control_plane_showhelp                                                              #
+#                                                                                       #
+#########################################################################################
 function control_plane_showhelp {
 	echo ""
 	echo "#################################################################################################################"
@@ -247,6 +304,18 @@ function control_plane_showhelp {
 	echo "#################################################################################################################"
 }
 
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:                                                                        #
+#   control_plane_show_help_v2                                                          #
+#                                                                                       #
+#########################################################################################
 function control_plane_show_help_v2 {
 	echo ""
 	echo "###################################################################################################################"
@@ -306,6 +375,19 @@ function control_plane_show_help_v2 {
 	echo "#                                                                                                                 #"
 	echo "###################################################################################################################"
 }
+
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:                                                                        #
+#   remove_control_plane_show_help_v2                                                   #
+#                                                                                       #
+#########################################################################################
 
 function remove_control_plane_show_help_v2 {
 	echo ""
@@ -367,6 +449,18 @@ function remove_control_plane_show_help_v2 {
 	echo "###################################################################################################################"
 }
 
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   Missing parameter                                                                   #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:                                                                        #
+#   control_plane_missing "Environment"                                                 #
+#                                                                                       #
+#########################################################################################
 
 function control_plane_missing {
 	printf -v val '%-40s' "$1"
@@ -391,6 +485,21 @@ function control_plane_missing {
 	echo "#########################################################################################"
 
 }
+
+
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   Missing parameter                                                                   #
+#   Script name                                                                         #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:                                                                        #
+#   control_plane_missing_v2 "Environment" "control_plane_missing_v2"                   #
+#                                                                                       #
+#########################################################################################
 
 function control_plane_missing_v2 {
 	printf -v val '%-40s' "$1"
@@ -423,6 +532,18 @@ function control_plane_missing_v2 {
 
 }
 
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:                                                                        #
+#   workload_zone_showhelp                                                              #
+#                                                                                       #
+#########################################################################################
 
 function workload_zone_showhelp {
 	echo ""
@@ -475,6 +596,18 @@ function workload_zone_showhelp {
 	echo "##############################################################################################"
 }
 
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   Missing parameter                                                                   #
+# Returns:                                                                              #
+#   None                                                                                #
+# Example usage:                                                                        #
+#   workload_zone_missing "Environment"                                                 #
+#                                                                                       #
+#########################################################################################
+
 function workload_zone_missing {
 	printf -v val %-.40s "$1"
 	echo ""
@@ -505,6 +638,19 @@ function workload_zone_missing {
 	echo "#      -h or --help                          Help                                       #"
 	echo "#########################################################################################"
 }
+
+#########################################################################################
+#                                                                                       #
+# Function to validate the exports needed for the script                                #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   0 - Success                                                                         #
+#   65 - Missing environment variables                                                  #
+# Example usage:                                                                        #
+#   validate_exports                                                                    #
+#                                                                                       #
+#########################################################################################
 
 function validate_exports {
 	if [ -z "$SAP_AUTOMATION_REPO_PATH" ]; then
@@ -557,6 +703,20 @@ function validate_exports {
 	return 0
 }
 
+
+#########################################################################################
+#                                                                                       #
+# Function to validate the WEb App exports needed for the script                        #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   0 - Success                                                                         #
+#   65 - Missing environment variables                                                  #
+# Example usage:                                                                        #
+#   validate_webapp_exports                                                             #
+#                                                                                       #
+#########################################################################################
+
 function validate_webapp_exports {
 	if [ -z "$TF_VAR_app_registration_app_id" ]; then
 		echo ""
@@ -595,6 +755,20 @@ function validate_webapp_exports {
 
 	return 0
 }
+
+
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:                                                                        #
+#   show_help                                                                           #
+#                                                                                       #
+#########################################################################################
 
 function showhelp {
 	echo ""
@@ -638,6 +812,18 @@ function showhelp {
 	echo "#########################################################################################"
 }
 
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   Missing parameter                                                                   #
+# Returns:                                                                              #
+#   None                                                                                #
+# Example usage:                                                                        #
+#   missing "Environment"                                                               #
+#                                                                                       #
+#########################################################################################
+
 function missing {
 	printf -v val %-.40s "$option"
 	echo ""
@@ -655,6 +841,21 @@ function missing {
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 }
+
+#########################################################################################
+#                                                                                       #
+# Function to validate the dependencies needed for the script                           #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   0 - Success                                                                         #
+#   2 - Terraform not found                                                             #
+#   64 - Incorrect parameter file                                                       #
+#   65 - Missing environment variables                                                  #
+# Example usage:                                                                        #
+#   validate_dependencies                                                               #
+#                                                                                       #
+#########################################################################################
 
 function validate_dependencies {
 	tfPath="/opt/terraform/bin/terraform"
@@ -709,6 +910,17 @@ function validate_dependencies {
 	return 0
 }
 
+################################################################################
+#                                                                              #
+# Function to validate the key parameters needed for the script                #
+# Arguments:                                                                   #
+#   $1 - The name of the parameter file to validate                            #
+# Returns:                                                                     #
+#   0 - Success                                                                #
+#   64 - Incorrect parameter file                                              #
+#                                                                              #
+################################################################################
+
 function validate_key_parameters {
 	echo "Validating:                          $1"
 
@@ -740,6 +952,23 @@ function validate_key_parameters {
 	return 0
 }
 
+#####################################################################################
+#                                                                                   #
+# Function to compare two version numbers                                           #
+# Arguments:                                                                        #
+#   $1 - The first version number to compare                                        #
+#   $2 - The second version number to compare                                       #
+# Returns:                                                                          #
+#   0 - The first version is equal to the second version                            #
+#   1 - The first version is greater than the second version                        #
+#   2 - The first version is less than the second version                           #
+#                                                                                   #
+# Example usage:                                                                    #
+#   version_compare "1.0.0" "1.0.1"                                                 #
+#   version_compare "1.0.1" "1.0.0"                                                 #
+#                                                                                   #
+#####################################################################################
+
 function version_compare {
 	echo "Comparison:                          $1 <= $2"
 
@@ -766,6 +995,20 @@ function version_compare {
 	done
 	return 0
 }
+
+#####################################################################################
+#                                                                                   #
+# Function to replace the resource ID in the state file                             #
+# Arguments:                                                                        #
+#   $1 - The module ID of the resource to replace                                   #
+#   $2 - The directory of the Terraform module                                      #
+#   $3 - The resource type to replace                                               #
+#   $4 - The import parameters to use for the import command                        #
+# Returns:                                                                          #
+#   0 - Success                                                                     #
+#   1 - Failure                                                                     #
+#                                                                                   #
+#####################################################################################
 
 function ReplaceResourceInStateFile {
 
@@ -802,6 +1045,24 @@ function ReplaceResourceInStateFile {
 
 	return $?
 }
+
+####################################################################################
+# Function to import resources and re-run apply                                    #
+# This function is used to import resources that already exist in Azure            #
+# and re-run the apply command to ensure that the state file is updated            #
+# with the correct resource IDs.                                                   #
+# It checks for errors in the Terraform plan and apply output                      #
+# and handles them accordingly.                                                    #
+# It also checks for resources that can be imported and attempts to import them.	 #
+# Arguments:                                                                       #
+#   $1 - The name of the file to check for errors in the Terraform output.         #
+#   $2 - The directory of the Terraform module.                                    #
+#   $3 - The import parameters to use for the import command.                      #
+#   $4 - The apply parameters to use for the apply command.                        #
+# Returns:                                                                         #
+#   0 - Success, no errors found.                                                  #
+#   1 - Errors found during the apply phase.                                       #
+####################################################################################
 
 function ImportAndReRunApply {
 	local fileName=$1
@@ -948,6 +1209,22 @@ function ImportAndReRunApply {
 	return $import_return_value
 }
 
+########################################################################################
+# Function to check if a resource would be recreated in the Terraform plan output.     #
+# This function is used to check if a resource would be recreated in the Terraform     #
+# plan output. It checks for the presence of the string "must be replaced" in the      #
+# Terraform plan output. If the string is found, it indicates that the resource would  #
+# be recreated. The function returns 0 if the resource would be recreated, and 1 if it #
+# would not.                                                                           #
+# Arguments:                                                                           #
+#   $1 - The module ID of the resource to check.                                       #
+#   $2 - The name of the file to check for the presence of the string.                 #
+#   $3 - The short name of the resource.                                               #
+# Returns:                                                                             #
+#   0 - The resource would be recreated.                                               #
+#   1 - The resource would not be recreated.                                           #
+########################################################################################
+
 function testIfResourceWouldBeRecreated {
 	local moduleId="$1"
 	local fileName="$2"
@@ -963,6 +1240,21 @@ function testIfResourceWouldBeRecreated {
 	fi
 	return $return_value
 }
+
+###########################################################################################
+# Function to validate the key vault access.                                              #
+# This function checks if the key vault exists and if the user has access to it.          #
+# It uses the Azure CLI to check for the key vault and its access policies.               #
+# If the key vault does not exist or the user does not have access, it will retry         #
+# after 60 seconds. If the key vault is still not accessible, it will exit with an error  #
+# code. If the user has access, it will return 0.                                         #
+# Arguments:                                                                              #
+#   $1 - The name of the key vault to check.                                              #
+#   $2 - The subscription ID to check the key vault in.                                   #
+# Returns:                                                                                #
+#   0 - The key vault exists and the user has access.                                     #
+#   10 - The key vault does not exist or the user does not have access.                   #
+###########################################################################################
 
 function validate_key_vault {
 	local keyvault_to_check=$1
@@ -1013,6 +1305,22 @@ function validate_key_vault {
 	return $return_value
 
 }
+############################################################################################
+#                                                                                          #
+# Function to log on to Azure using either a service principal or managed service identity #
+# This function checks if the ARM_USE_MSI environment variable is set to true. If it is,   #
+# it uses managed service identity to log on to Azure. If it is not, it uses a service     #
+# principal to log on to Azure. It also sets the TF_VAR_use_spn variable to true or false  #
+# depending on the authentication method used. It also checks if the ARM_SUBSCRIPTION_ID   #
+# environment variable is set to the correct subscription ID. If it is not, it updates     #
+# the ARM_SUBSCRIPTION_ID environment variable to the correct subscription ID.             #
+# Arguments:                                                                               #
+#   $1 - The value of the ARM_USE_MSI environment variable.                                #
+# Returns:                                                                                 #
+#   0 - Success, logged on to Azure.                                                       #
+#   1 - Failure, unable to log on to Azure.                                                #
+#                                                                                          #
+#############################################################################################
 
 function LogonToAzure() {
 	local useMSI=$1
@@ -1041,5 +1349,4 @@ function LogonToAzure() {
 			export ARM_SUBSCRIPTION_ID
 		fi
 	fi
-
 }

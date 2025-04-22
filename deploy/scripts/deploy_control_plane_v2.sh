@@ -48,7 +48,19 @@ fi
 
 terraform_storage_account_name=""
 
-# Function to source helper scripts
+############################################################################################
+# This function sources the provided helper scripts and checks if they exist.              #
+# If a script is not found, it prints an error message and exits with a non-zero status.   #
+# Arguments:                                                                               #
+#   1. Array of helper script paths                                                        #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   source_helper_scripts <helper_script1> <helper_script2> ...                            #
+# Example:                   																				                       #
+#   source_helper_scripts "script1.sh" "script2.sh"            														 #
+############################################################################################
+
 source_helper_scripts() {
 	local -a helper_scripts=("$@")
 	for script in "${helper_scripts[@]}"; do
@@ -62,7 +74,16 @@ source_helper_scripts() {
 	done
 }
 
-# Function to parse command line arguments
+############################################################################################
+# Function to parse all the command line arguments passed to the script.                   #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   parse_arguments                                                                        #
+############################################################################################
+
 function parse_arguments() {
 	approve=""
 	subscription=$ARM_SUBSCRIPTION_ID
@@ -633,7 +654,17 @@ function copy_files_to_public_deployer() {
 
 }
 
-# Function to retrieve data from Azure App Configuration
+############################################################################################
+# This function reads the parameters from the Azure Application Configuration and sets     #
+# the environment variables.                                                               #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   retrieve_parameters                                                                    #
+############################################################################################
+
 function retrieve_parameters() {
 
 	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then

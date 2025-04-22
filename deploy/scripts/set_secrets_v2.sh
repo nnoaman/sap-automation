@@ -4,12 +4,6 @@
 
 #error codes include those from /usr/include/sysexits.h
 
-#colors for terminal
-
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
-
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -30,7 +24,21 @@ export DEBUG
 set -eu
 
 deploy_using_msi_only=0
+keyvault=""
 
+###############################################################################
+# Function to set a secret in Azure Key Vault                                 #
+# Arguments:                                                                  #
+#   1. Key Vault name                                                         #
+#   2. Subscription ID                                                        #
+#   3. Secret name                                                            #
+#   4. Secret value                                                           #
+#   5. Secret type                                                            #
+# Returns:             																			                  #
+#   0 on success, non-zero on failure                                         #
+# Usage:                                                                      #
+#   setSecretValue <keyvault> <subscription> <secret_name> <value> <type>     #
+###############################################################################
 function setSecretValue {
 	local keyvault=$1
 	local subscription=$2
@@ -58,7 +66,14 @@ function setSecretValue {
 
 }
 
-function showhelp {
+###############################################################################
+# Function to show the help                                                   #
+# Returns:                                                                    #
+#   0 on success, non-zero on failure                                         #
+# Usage:                                                                      #
+#   show_help                                                                 #
+###############################################################################
+function show_help {
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -66,8 +81,8 @@ function showhelp {
 	echo "#   This file contains the logic to add the SPN secrets to the keyvault.                #"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo "#   Usage: set_secret.sh                                                                #"
-	echo "#      -e or --prefix                   prefix name                           #"
+	echo "#   Usage: set_secrets_v2.sh                                                            #"
+	echo "#      -e or --prefix                        prefix                                     #"
 	echo "#      -r or --region                        region name                                #"
 	echo "#      -v or --vault                         Azure keyvault name                        #"
 	echo "#      -s or --subscription                  subscription                               #"
@@ -78,9 +93,8 @@ function showhelp {
 	echo "#                                                                                       #"
 	echo "#   Example:                                                                            #"
 	echo "#                                                                                       #"
-	echo "#   [REPO-ROOT]deploy/scripts/set_secret.sh \                                           #"
-	echo "#      --prefix PROD  \                                                            #"
-	echo "#      --region weeu  \                                                                 #"
+	echo "#   [REPO-ROOT]deploy/scripts/set_secret_v2.sh \                                        #"
+	echo "#      --prefix PROD-WEEU-SAP02  \                                                      #"
 	echo "#      --vault prodweeuusrabc  \                                                        #"
 	echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \                            #"
 	echo "#      --spn_id yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy \                                  #"
@@ -90,7 +104,19 @@ function showhelp {
 	echo "#########################################################################################"
 }
 
-# Function to source helper scripts
+############################################################################################
+# This function sources the provided helper scripts and checks if they exist.              #
+# If a script is not found, it prints an error message and exits with a non-zero status.   #
+# Arguments:                                                                               #
+#   1. Array of helper script paths                                                        #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   source_helper_scripts <helper_script1> <helper_script2> ...                            #
+# Example:                   																				                       #
+#   source_helper_scripts "script1.sh" "script2.sh"            														 #
+############################################################################################
+
 function source_helper_scripts() {
 	local -a helper_scripts=("$@")
 	for script in "${helper_scripts[@]}"; do
@@ -104,15 +130,23 @@ function source_helper_scripts() {
 	done
 }
 
-#process inputs - may need to check the option i for auto approve as it is not used
-# Function to parse command line arguments
+############################################################################################
+# Function to parse all the command line arguments passed to the script.                   #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   parse_arguments                                                                        #
+############################################################################################
+
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n set_secrets_v2 -o v:s:c:p:t:b:g:hwma --longoptions prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_id:,keyvault_subscription:,workload,help,msi,ado -- "$@")
+	input_opts=$(getopt -n set_secrets_v2 -o v:s:c:p:t:b:n:hwma --longoptions prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,workload,help,msi,ado -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
-		showhelp
+		show_help
 		exit 1
 	fi
 
@@ -127,8 +161,11 @@ function parse_arguments() {
 			keyvault="$2"
 			shift 2
 			;;
-		-g | --application_configuration_id)
-			APPLICATION_CONFIGURATION_ID="$2"
+		-n | --application_configuration_name)
+			APPLICATION_CONFIGURATION_NAME="$2"
+			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+			export APPLICATION_CONFIGURATION_ID
+			export APPLICATION_CONFIGURATION_NAME
 			shift 2
 			;;
 		-b | --subscription)
@@ -163,7 +200,7 @@ function parse_arguments() {
 			shift
 			;;
 		-h | --help)
-			showhelp
+			show_help
 			exit 3
 
 			;;
@@ -175,11 +212,6 @@ function parse_arguments() {
 	done
 
 	banner_title="Set Secrets"
-
-	[[ -z "$keyvault" ]] && {
-		print_banner "$banner_title" "key_vault is required" "error"
-		return 10
-	}
 
 	[[ -z "$prefix" ]] && {
 		print_banner "$banner_title" "prefix is required" "error"
@@ -217,6 +249,38 @@ function parse_arguments() {
 
 }
 
+############################################################################################
+# This function reads the parameters from the Azure Application Configuration and sets     #
+# the environment variables.                                                               #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   retrieve_parameters                                                                    #
+############################################################################################
+
+function retrieve_parameters() {
+
+	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
+		app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
+
+		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
+			keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${prefix}")
+			export keyvault
+		fi
+	fi
+	[[ -z "$keyvault" ]] && {
+		print_banner "$banner_title" "key_vault is required" "error"
+		return 10
+	}
+
+
+}
+
+
 function set_all_secrets() {
 	deploy_using_msi_only=0
 
@@ -239,6 +303,7 @@ function set_all_secrets() {
 		return $?
 	fi
 
+  retrieve_parameters
 	return_code=0
 
 	echo "#########################################################################################"

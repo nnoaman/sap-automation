@@ -71,7 +71,19 @@ function show_deployer_help {
 	echo "#########################################################################################"
 }
 
-# Function to source helper scripts
+############################################################################################
+# This function sources the provided helper scripts and checks if they exist.              #
+# If a script is not found, it prints an error message and exits with a non-zero status.   #
+# Arguments:                                                                               #
+#   1. Array of helper script paths                                                        #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   source_helper_scripts <helper_script1> <helper_script2> ...                            #
+# Example:                   																				                       #
+#   source_helper_scripts "script1.sh" "script2.sh"            														 #
+############################################################################################
+
 function source_helper_scripts() {
 	local -a helper_scripts=("$@")
 	for script in "${helper_scripts[@]}"; do
@@ -85,8 +97,17 @@ function source_helper_scripts() {
 	done
 }
 
-#process inputs - may need to check the option i for auto approve as it is not used
-# Function to parse command line arguments
+
+############################################################################################
+# Function to parse all the command line arguments passed to the script.                   #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   parse_arguments                                                                        #
+############################################################################################
+
 function parse_arguments() {
 	local input_opts
 	input_opts=$(getopt -n install_deployer_v2 -o p:c:ih --longoptions parameter_file:,control_plane_name:,auto-approve,help -- "$@")

@@ -213,7 +213,17 @@ parse_arguments() {
 
 }
 
-# Function to retrieve data from Azure App Configuration
+############################################################################################
+# This function reads the parameters from the Azure Application Configuration and sets     #
+# the environment variables.                                                               #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   retrieve_parameters                                                                    #
+############################################################################################
+
 function retrieve_parameters() {
 	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
