@@ -411,6 +411,9 @@ function sdaf_remover() {
 	param_dirname=$(pwd)
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
+	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+	export TF_VAR_subscription_id
+
 	#§init "${CONFIG_DIR}" "${generic_config_information}" "${system_config_information}"
 
 	var_file="${param_dirname}"/"${parameterFilename}"
