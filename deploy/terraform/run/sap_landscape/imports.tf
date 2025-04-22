@@ -21,6 +21,13 @@ data "azurerm_app_configuration_key" "deployer_state_file" {
   label                  = local.control_plane_name
 }
 
+data "azurerm_app_configuration_key" "deployer_subscription_id" {
+  count                  = var.use_deployer ? length(coalesce(var.application_configuration_id, data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id)) > 0 ? 1 : 0 : 0
+  configuration_store_id = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
+  key                    = format("%s_SubscriptionId", local.control_plane_name)
+  label                  = local.control_plane_name
+}
+
 data "terraform_remote_state" "deployer" {
   backend                              = "azurerm"
 
