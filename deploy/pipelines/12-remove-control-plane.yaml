@@ -98,6 +98,10 @@ stages:
           - template:                  templates\download.yaml
             parameters:
               getLatestFromBranch:     true
+          - task:                      TerraformInstaller@1
+            displayName:               Install terraform
+            inputs:
+              terraformVersion:        latest
           - task:                      PostBuildCleanup@4
           - task:                      AzureCLI@2
             continueOnError:           false
