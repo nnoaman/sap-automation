@@ -64,8 +64,21 @@ fi
 
 terraform_storage_account_name=""
 
-# Function to source helper scripts
-source_helper_scripts() {
+############################################################################################
+# This function sources the provided helper scripts and checks if they exist.              #
+# If a script is not found, it prints an error message and exits with a non-zero status.   #
+# Arguments:                                                                               #
+#   1. Array of helper script paths                                                        #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   source_helper_scripts <helper_script1> <helper_script2> ...                            #
+# Example:                   																				                       #
+#   source_helper_scripts "script1.sh" "script2.sh"            														 #
+############################################################################################
+
+
+function source_helper_scripts() {
 	local -a helper_scripts=("$@")
 	for script in "${helper_scripts[@]}"; do
 		if [[ -f "$script" ]]; then
@@ -78,8 +91,17 @@ source_helper_scripts() {
 	done
 }
 
-# Function to parse command line arguments
-parse_arguments() {
+############################################################################################
+# Function to parse all the command line arguments passed to the script.                   #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   parse_arguments                                                                        #
+############################################################################################
+
+function parse_arguments() {
 	local input_opts
 	input_opts=$(getopt -n remove_control_plane_v2 -o c:d:l:s:b:r:ihag --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
 	VALID_ARGUMENTS=$?
@@ -291,6 +313,16 @@ function retrieve_parameters() {
 
 }
 
+
+#############################################################################################
+# Function to remove the control plane.                                                     #
+# Arguments:                                                                                #
+#   None                                                                                    #
+# Returns:                                                                                  #
+#   0 on success, non-zero on failure                                                       #
+# Usage:                                                                                    #
+#   remove_control_plane                                                                    #
+#############################################################################################
 function remove_control_plane() {
 	step=0
 	ado_flag="none"
@@ -608,5 +640,17 @@ function remove_control_plane() {
 	exit $return_value
 }
 
-remove_control_plane "$@"
-return $?
+################################################################################
+# Main script execution                                                        #
+# This script is designed to be run directly, not sourced.                     #
+# It will execute the remove_control_plane function and handle the exit codes. #
+################################################################################
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+	# Only run if script is executed directly, not when sourced
+	if remove_control_plane "$@"; then
+		exit 0
+	else
+		exit $?
+	fi
+fi
+

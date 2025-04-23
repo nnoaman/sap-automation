@@ -83,7 +83,6 @@ function source_helper_scripts() {
 	done
 }
 
-
 ############################################################################################
 # Function to parse all the command line arguments passed to the script.                   #
 # Arguments:                                                                               #
@@ -93,7 +92,6 @@ function source_helper_scripts() {
 # Usage:                                                                                   #
 #   parse_arguments                                                                        #
 ############################################################################################
-
 
 function parse_arguments() {
 	local input_opts
@@ -389,9 +387,17 @@ function retrieve_parameters() {
 	fi
 }
 
+############################################################################################
+# Function to remove a SDAF component.                                                     #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   sdaf_remover                                                                           #
+############################################################################################
 function sdaf_remover() {
 	landscape_tfstate_key=""
-	landscape_tfstate_key_exists=false
 	called_from_ado=0
 	extra_vars=""
 	WORKLOAD_ZONE_NAME=""
@@ -407,6 +413,7 @@ function sdaf_remover() {
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
+		print_banner "$banner_title" "Validating parameters failed" "error"
 		return $?
 	fi
 
@@ -769,6 +776,12 @@ function sdaf_remover() {
 
 	exit "$return_value"
 }
+
+###############################################################################
+# Main script execution                                                       #
+# This script is designed to be run directly, not sourced.                    #
+# It will execute the sdaf_remover function and handle the exit codes.        #
+###############################################################################
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	# Only run if script is executed directly, not when sourced

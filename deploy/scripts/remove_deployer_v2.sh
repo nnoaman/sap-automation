@@ -54,7 +54,15 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	export PATH=$path
 fi
 
-#Internal helper functions
+#####################################################################################
+# Function to display a help message for the script.                                #
+# Arguments:                                                                        #
+#   None                                                                            #
+# Returns:                                                                          #
+#   None                                                                            #
+# Usage:                                                                            #
+#   show_deployer_help                                                              #
+#####################################################################################
 function show_deployer_help {
 	echo ""
 	echo "#########################################################################################"
@@ -186,7 +194,15 @@ function parse_arguments() {
 
 }
 
-# Function to validate dependencies
+############################################################################################
+# Function to remove the deployer.                                                         #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   sdaf_remove_deployer                                                                   #
+############################################################################################
 function sdaf_remove_deployer() {
 	deployment_system=sap_deployer
 
@@ -350,5 +366,17 @@ function sdaf_remove_deployer() {
 	return $return_value
 }
 
-sdaf_remove_deployer "$@"
-exit $?
+
+################################################################################
+# Main script execution                                                        #
+# This script is designed to be run directly, not sourced.                     #
+# It will execute the sdaf_remove_deployer function and handle the exit codes. #
+################################################################################
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+	# Only run if script is executed directly, not when sourced
+	if sdaf_remove_deployer "$@"; then
+		exit 0
+	else
+		exit $?
+	fi
+fi

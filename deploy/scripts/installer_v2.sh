@@ -541,7 +541,8 @@ function sdaf_installer() {
 	source_helper_scripts "${helper_scripts[@]}"
 
 	# Parse command line arguments
-	if ! parse_arguments "$@"; then
+		if ! parse_arguments "$@"; then
+		print_banner "$banner_title" "Validating parameters failed" "error"
 		return $?
 	fi
 

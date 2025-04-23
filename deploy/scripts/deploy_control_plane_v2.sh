@@ -556,7 +556,6 @@ function migrate_deployer_state() {
 
 }
 
-
 #############################################################################################
 # Function to migrate the state file for the SAP library.                                   #
 # Arguments:                                                                                #
@@ -585,7 +584,7 @@ function migrate_library_state() {
 	if [ -z "$terraform_storage_account_name" ]; then
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID:-" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
-  		export TF_VAR_application_configuration_id
+			export TF_VAR_application_configuration_id
 
 			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -1093,9 +1092,16 @@ EOF
 	return $return_value
 }
 
-# Main script
-if deploy_control_plane "$@"; then
-	exit 0
-else
-	exit $?
+################################################################################
+# Main script execution                                                        #
+# This script is designed to be run directly, not sourced.                     #
+# It will execute the deploy_control_plane function and handle the exit codes. #
+################################################################################
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+	# Only run if script is executed directly, not when sourced
+	if deploy_control_plane "$@"; then
+		exit 0
+	else
+		exit $?
+	fi
 fi
