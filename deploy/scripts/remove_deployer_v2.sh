@@ -34,13 +34,6 @@ readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
 
-
-if checkforEnvVar "TEST_ONLY"; then
-	TEST_ONLY="${TEST_ONLY}"
-else
-	TEST_ONLY="false"
-fi
-
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$path
@@ -111,7 +104,6 @@ function source_helper_scripts() {
 	done
 }
 
-
 ############################################################################################
 # Function to parse all the command line arguments passed to the script.                   #
 # Arguments:                                                                               #
@@ -124,6 +116,7 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
+	local return_code=0
 	#process inputs - may need to check the option i for auto approve as it is not used
 	input_opts=$(getopt -n remove_deployer_v2 -o p:ih --longoptions parameter_file:,auto-approve,help -- "$@")
 	is_input_opts_valid=$?
@@ -168,20 +161,23 @@ function parse_arguments() {
 	fi
 
 	# Check that parameter files have environment and location defined
-	validate_key_parameters "$parameterFilename"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		exit $return_code
+	if ! validate_key_parameters "$parameterFilename"; then
+		return $?
 	fi
 
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	# Convert the region to the correct code
 	get_region_code $region
-	# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
-	validate_exports
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		exit $return_code
+
+	# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
+	if ! validate_exports; then
+		return $?
+	fi
+
+	if checkforEnvVar "TEST_ONLY"; then
+		TEST_ONLY="${TEST_ONLY}"
+	else
+		TEST_ONLY="false"
 	fi
 
 }
@@ -214,7 +210,6 @@ function sdaf_remove_deployer() {
 	CONTROL_PLANE_NAME=$(echo "$key" | cut -d'-' -f1-3)
 	export "CONTROL_PLANE_NAME"
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-
 
 	#Persisting the parameters across executions
 	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
@@ -359,7 +354,6 @@ function sdaf_remove_deployer() {
 	echo "Return from remove_deployer.sh"
 	return $return_value
 }
-
 
 ################################################################################
 # Main script execution                                                        #
