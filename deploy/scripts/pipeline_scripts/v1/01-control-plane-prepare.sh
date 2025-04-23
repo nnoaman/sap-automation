@@ -62,7 +62,6 @@ deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${C
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
-
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
 	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
@@ -261,16 +260,21 @@ else
 	export TF_VAR_use_spn
 	echo "Deployer using:                      Service Principal"
 fi
+aa
 
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_tfvars_file_name}" \
-	--library_parameter_file "${library_tfvars_file_name}" \
-	--subscription "$ARM_SUBSCRIPTION_ID" \
-	--auto-approve --ado "$msi_flag" --only_deployer; then
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_tfvars_file_name}" \
+	--auto-approve -c --control_plane_name "$CONTROL_PLANE_NAME"; then
 	return_code=$?
-	echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
+	echo "##vso[task.logissue type=warning]Return code from install_deployer_v2.s $return_code."
+	step=1
+	save_config_var "step" "${deployer_environment_file_name}"
+
 else
 	return_code=$?
-	echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
+	echo "##vso[task.logissue type=error]Return code from install_deployer_v2.s $return_code."
+	step=0
+	save_config_var "step" "${deployer_environment_file_name}"
+
 fi
 
 echo ""
