@@ -268,7 +268,7 @@ function parse_arguments() {
 ############################################################################################
 
 function retrieve_parameters() {
-	if printenv APPLICATION_CONFIGURATION_ID; then
+	if checkforEnvVar APPLICATION_CONFIGURATION_ID; then
 		if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
 			app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
 			app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)

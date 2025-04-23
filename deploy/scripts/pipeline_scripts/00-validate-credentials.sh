@@ -50,7 +50,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 	if [ -n "${az_var}" ]; then
 		echo "##vso[task.setvariable variable=APPLICATION_CONFIGURATION_ID;isOutput=true]$az_var"
 	else
-		if printenv APPLICATION_CONFIGURATION_ID; then
+		if checkforEnvVar APPLICATION_CONFIGURATION_ID; then
 			echo "##vso[task.setvariable variable=APPLICATION_CONFIGURATION_ID;isOutput=true]$APPLICATION_CONFIGURATION_ID"
 		fi
 	fi
