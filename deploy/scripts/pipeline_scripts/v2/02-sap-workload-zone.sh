@@ -239,8 +239,9 @@ if [ -z "$tfstate_resource_id" ]; then
 	export tfstate_resource_id
 fi
 
-print_banner "$banner_title" "Starting the deployment" "info"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
+print_banner "$banner_title" "Starting the deployment" "info"
+
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
 	--ado --auto-approve; then

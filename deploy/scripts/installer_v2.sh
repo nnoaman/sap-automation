@@ -2,10 +2,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#colors for terminal
-bold_red="\e[1;31m"
-
-reset_formatting="\e[0m"
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
@@ -13,8 +9,9 @@ set -o pipefail
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
+
+script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+SCRIPT_NAME="$(basename "$0")"
 
 # Fail on any error, undefined variable, or pipeline failure
 
@@ -27,14 +24,12 @@ if [[ "${DEBUG:-false}" == 'true' ]]; then
 	printenv | sort
 fi
 
-# Constants
-readonly script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-
-SCRIPT_NAME="$(basename "$0")"
 
 if printenv "CONFIG_REPO_PATH"; then
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 else
+	bold_red="\e[1;31m"
+	reset_formatting="\e[0m"
 	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
 	exit 1
 fi
