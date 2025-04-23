@@ -378,11 +378,11 @@ module "output_files" {
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
 
-  subnet_cidr_anf                             = module.hdb_node.ANF_subnet_prefix
-  subnet_cidr_app                             = module.app_tier.subnet_cidr_app
-  subnet_cidr_client                          = module.common_infrastructure.subnet_cidr_client
-  subnet_cidr_db                              = module.common_infrastructure.subnet_cidr_db
-  subnet_cidr_storage                         = module.common_infrastructure.subnet_cidr_storage
+  subnet_cidr_anf                               = module.hdb_node.ANF_subnet_prefix
+  subnet_cidr_app                               = module.app_tier.subnet_cidr_app
+  subnet_cidr_client                            = module.common_infrastructure.subnet_cidr_client
+  subnet_cidr_db                                = module.common_infrastructure.subnet_cidr_db
+  subnet_cidr_storage                           = module.common_infrastructure.subnet_cidr_storage
 
   #########################################################################################
   #  SAP Application information                                                          #
