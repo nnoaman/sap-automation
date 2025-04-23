@@ -500,6 +500,11 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
 data "azurerm_key_vault_secret" "sid_ppk" {
   provider                              = azurerm.main
   count                                 = length(var.key_vault.private_key_secret_name) > 0 ? 1 : 0
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                         ]
   name                                  = local.sid_public_key_secret_name
   key_vault_id                          = var.key_vault.user.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
@@ -533,7 +538,9 @@ resource "azurerm_key_vault_secret" "sid_pk" {
 data "azurerm_key_vault_secret" "sid_pk" {
   provider                             = azurerm.main
   depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
   count                                = length(var.key_vault.public_key_secret_name) >  0 ? 1 : 0
   name                                 = local.sid_private_key_secret_name
@@ -574,7 +581,9 @@ resource "azurerm_key_vault_secret" "sid_username" {
 data "azurerm_key_vault_secret" "sid_username" {
   provider                             = azurerm.main
   depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
   count                                = length(var.key_vault.username_secret_name) > 0 ? 1 : 0
   name                                 = local.sid_username_secret_name
@@ -638,7 +647,9 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
 data "azurerm_key_vault_secret" "sid_password" {
   provider                             = azurerm.main
   depends_on                           = [
-                                           time_sleep.wait_for_role_assignment
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
   count                                = length(var.key_vault.password_secret_name) > 0 ? 1 : 0
   name                                 = local.sid_password_secret_name
