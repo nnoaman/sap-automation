@@ -35,15 +35,7 @@ readonly script_directory
 SCRIPT_NAME="$(basename "$0")"
 
 
-if printenv "CONFIG_REPO_PATH"; then
-	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-else
-	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
-	exit 1
-fi
-readonly CONFIG_DIR
-
-if printenv "TEST_ONLY"; then
+if checkforEnvVar "TEST_ONLY"; then
 	TEST_ONLY="${TEST_ONLY}"
 else
 	TEST_ONLY="false"
@@ -221,6 +213,8 @@ function sdaf_remove_deployer() {
 
 	CONTROL_PLANE_NAME=$(echo "$key" | cut -d'-' -f1-3)
 	export "CONTROL_PLANE_NAME"
+	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+
 
 	#Persisting the parameters across executions
 	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
@@ -313,7 +307,7 @@ function sdaf_remove_deployer() {
 
 	#Provide a way to limit the number of parallel tasks for Terraform
 	#Provide a way to limit the number of parallel tasks for Terraform
-	if printenv "TF_PARALLELLISM"; then
+	if checkforEnvVar "TF_PARALLELLISM"; then
 		parallelism=$TF_PARALLELLISM
 	fi
 

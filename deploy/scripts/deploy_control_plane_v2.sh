@@ -34,12 +34,7 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-if printenv "CONFIG_REPO_PATH"; then
-	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-else
-	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
-	exit 1
-fi
+
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
@@ -221,6 +216,7 @@ function parse_arguments() {
 	if [ 0 != $return_code ]; then
 		exit $return_code
 	fi
+	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	# Convert the region to the correct code
 	get_region_code "$region"

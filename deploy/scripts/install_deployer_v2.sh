@@ -33,12 +33,6 @@ readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
 
-if printenv "CONFIG_REPO_PATH"; then
-	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-else
-	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
-	exit 1
-fi
 
 ################################################################################
 # Function to display a help message for the deployer installation script.     #
@@ -234,6 +228,7 @@ function install_deployer() {
 	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 	generic_config_information="${automation_config_directory}"config
 	deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
+	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	if [ ! -f "$deployer_config_information" ]; then
 		if [ -f "${CONFIG_DIR}/${environment}${region_code}" ]; then
@@ -348,7 +343,7 @@ function install_deployer() {
 		parallelism=10
 
 		#Provide a way to limit the number of parallel tasks for Terraform
-		if printenv "TF_PARALLELLISM"; then
+		if checkforEnvVar "TF_PARALLELLISM"; then
 			parallelism=$TF_PARALLELLISM
 		fi
 

@@ -50,13 +50,6 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-if printenv "CONFIG_REPO_PATH"; then
-	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-else
-	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
-	exit 1
-fi
-
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$path
@@ -340,6 +333,8 @@ function remove_control_plane() {
 
 	# Parse command line arguments
 	parse_arguments "$@"
+	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+
 
 	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
 

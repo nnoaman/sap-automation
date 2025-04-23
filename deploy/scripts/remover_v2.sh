@@ -38,15 +38,8 @@ SCRIPT_NAME="$(basename "$0")"
 banner_title="Remover"
 
 
-if printenv "CONFIG_REPO_PATH"; then
-	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-else
-	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
-	exit 1
-fi
-readonly CONFIG_DIR
 
-if printenv "TEST_ONLY"; then
+if checkforEnvVar "TEST_ONLY"; then
 	TEST_ONLY="${TEST_ONLY}"
 else
 	TEST_ONLY="false"
@@ -270,6 +263,7 @@ function parse_arguments() {
 	if ! validate_key_parameters "$parameterFilename"; then
 		return $?
 	fi
+	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
 		system_config_information="${CONFIG_DIR}/${WORKLOAD_ZONE_NAME}"
@@ -424,7 +418,7 @@ function sdaf_remover() {
 	parallelism=10
 
 	#Provide a way to limit the number of parallel tasks for Terraform
-	if printenv "TF_PARALLELLISM"; then
+	if checkforEnvVar "TF_PARALLELLISM"; then
 		parallelism=$TF_PARALLELLISM
 	fi
 	echo ""

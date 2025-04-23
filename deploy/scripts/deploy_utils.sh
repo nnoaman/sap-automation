@@ -249,7 +249,7 @@ function checkforDevOpsVar() {
 # AZUREPS_HOST_ENVIRONMENT=cloud-shell/1.0
 function checkIfCloudShell() {
 	local isRunInCloudShell=1 # default value is false
-	if printenv "POWERSHELL_DISTRIBUTION_CHANNEL"; then
+	if checkforEnvVar "POWERSHELL_DISTRIBUTION_CHANNEL"; then
 		if [ "$POWERSHELL_DISTRIBUTION_CHANNEL" == "CloudShell" ]; then
 			isRunInCloudShell=0
 		fi

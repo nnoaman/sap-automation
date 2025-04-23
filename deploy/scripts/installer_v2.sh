@@ -538,7 +538,7 @@ function sdaf_installer() {
 	parallelism=10
 
 	#Provide a way to limit the number of parallel tasks for Terraform
-	if printenv "TF_PARALLELLISM"; then
+	if checkforEnvVar "TF_PARALLELLISM"; then
 		parallelism=$TF_PARALLELLISM
 	fi
 
@@ -779,7 +779,7 @@ function sdaf_installer() {
 
 	# Default to use MSI
 	credentialVariable=" -var use_spn=false "
-	if printenv TF_VAR_use_spn; then
+	if checkforEnvVar TF_VAR_use_spn; then
 		use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
 		if [ "$use_spn" == "true" ]; then
 			credentialVariable=" -var use_spn=true "
