@@ -9,10 +9,8 @@ set -o pipefail
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 
-echo "0"
 script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 SCRIPT_NAME="$(basename "$0")"
-echo "1"
 
 # Fail on any error, undefined variable, or pipeline failure
 
@@ -23,14 +21,6 @@ if [[ "${DEBUG:-false}" == 'true' ]]; then
 	set -euox pipefail
 	echo "Environment variables:"
 	printenv | sort
-fi
-
-echo "3"
-
-if printenv "TEST_ONLY"; then
-	TEST_ONLY="${TEST_ONLY}"
-else
-	TEST_ONLY="false"
 fi
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
@@ -303,6 +293,12 @@ function parse_arguments() {
 		return 2
 	fi
 
+	if checkforEnvVar "TEST_ONLY"; then
+		TEST_ONLY="${TEST_ONLY}"
+	else
+		TEST_ONLY="false"
+	fi
+
 	return 0
 
 }
@@ -519,7 +515,7 @@ function sdaf_installer() {
 	WORKLOAD_ZONE_NAME=""
 	local green="\e[0;32m"
 	local reset="\e[0m"
-	echo "00"
+
 	# Define an array of helper scripts
 	helper_scripts=(
 		"${script_directory}/helpers/script_helpers.sh"
