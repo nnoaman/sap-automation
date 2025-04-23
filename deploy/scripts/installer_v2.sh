@@ -2,7 +2,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
@@ -13,6 +12,7 @@ set -o pipefail
 echo "0"
 script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 SCRIPT_NAME="$(basename "$0")"
+echo "1"
 
 # Fail on any error, undefined variable, or pipeline failure
 
@@ -25,7 +25,9 @@ if [[ "${DEBUG:-false}" == 'true' ]]; then
 	printenv | sort
 fi
 
-if printenv "CONFIG_REPO_PATH"; then
+echo "3"
+
+if checkforEnvVar "CONFIG_REPO_PATH"; then
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 else
 	bold_red="\e[1;31m"
@@ -518,13 +520,13 @@ function test_for_removal() {
 
 function sdaf_installer() {
 	landscape_tfstate_key=""
-	landscape_tfstate_key_exists=false
+	landscape_tfstate_key_exists="false"
 	called_from_ado=0
 	extra_vars=""
 	WORKLOAD_ZONE_NAME=""
 	local green="\e[0;32m"
 	local reset="\e[0m"
-echo "00"
+	echo "00"
 	# Define an array of helper scripts
 	helper_scripts=(
 		"${script_directory}/helpers/script_helpers.sh"
@@ -535,7 +537,7 @@ echo "00"
 	source_helper_scripts "${helper_scripts[@]}"
 
 	# Parse command line arguments
-		if ! parse_arguments "$@"; then
+	if ! parse_arguments "$@"; then
 		print_banner "$banner_title" "Validating parameters failed" "error"
 		return $?
 	fi
