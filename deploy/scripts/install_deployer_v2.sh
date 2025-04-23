@@ -167,7 +167,7 @@ function parse_arguments() {
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}"/.terraform
 	if [ "$param_dirname" != '.' ]; then
-		print_banner "$banner_title" "Parameter file is not in the current directory: $parameter_file_name" "error"
+		print_banner "$banner_title" "Parameter file is not in the current directory ($param_dirname)" "error" "$parameter_file_name"
 		return 3
 	fi
 
