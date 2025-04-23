@@ -208,11 +208,22 @@ function checkforEnvVar() {
 		echo "Error: Define $1 environment variable"
 		return 1
 	else
-		echo "OK: $1 environment variable is defined"
-		getEnvVarValue "$1"
+#		getEnvVarValue "$1"
 		return 0
 	fi
 }
+
+###############################################################################
+# Function to check if a variable is set in the environment                   #
+# Arguments:                                                                  #
+# 1. The name of the variable to check                                        #
+# The function returns 0 if the variable is set, 1 if it is not set           #
+# Usage:                                                                      #
+# checkforDevOpsVar <variable_name>                                           #
+# Example:                                                                    #
+# checkforDevOpsVar "AZURE_DEVOPS_EXT_PAT"                                    #
+# The function returns 0 if the variable is set, 1 if it is not set           #
+###############################################################################
 
 function checkforDevOpsVar() {
 	local env_var_value=
