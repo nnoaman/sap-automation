@@ -205,7 +205,6 @@ function checkforEnvVar() {
 	local env_var=
 	env_var=$(declare -p "$1")
 	if ! [[ -v $1 && $env_var =~ ^declare\ -x ]]; then
-		echo "Error: Define $1 environment variable"
 		return 1
 	else
 #		getEnvVarValue "$1"
