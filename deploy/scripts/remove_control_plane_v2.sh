@@ -546,7 +546,7 @@ function remove_control_plane() {
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	use_spn="false"
-	if printenv TF_VAR_use_spn ; then
+	if checkforEnvVar TF_VAR_use_spn ; then
 		use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
 	fi
 
