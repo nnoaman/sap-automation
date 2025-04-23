@@ -248,13 +248,13 @@ function retrieve_parameters() {
 }
 
 ############################################################################################
-# Function to install the SAP Library.                                                        #
+# Function to install the SAP Library.                                                     #
 # Arguments:                                                                               #
 #   None                                                                                   #
 # Returns:                                                                                 #
 #   0 on success, non-zero on failure                                                      #
 # Usage:                                                                                   #
-#   install_library                                                                       #
+#   install_library                                                                        #
 ############################################################################################
 
 function install_library() {

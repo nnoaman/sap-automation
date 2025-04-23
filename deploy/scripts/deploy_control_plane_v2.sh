@@ -227,7 +227,17 @@ function parse_arguments() {
 
 }
 
-# Function to bootstrap the deployer
+############################################################################################
+# Function to install the Deployer and its supporting infrastructure.                      #
+# Can be run from a Microsoft hosted agent or a self-hosted agent.                         #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   bootstrap_deployer                                                                     #
+############################################################################################
+
 function bootstrap_deployer() {
 	##########################################################################################
 	#                                                                                        #
@@ -281,6 +291,16 @@ function bootstrap_deployer() {
 	cd "$root_dirname" || exit
 	return $local_return_code
 }
+
+############################################################################################
+# Function to validate the Key Vault access.                                               #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   validate_keyvault_access                                                               #
+############################################################################################
 
 function validate_keyvault_access {
 
@@ -357,6 +377,20 @@ function validate_keyvault_access {
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	return $return_code
 }
+
+############################################################################################
+# Function to install the SAP Library and its supporting infrastructure.                   #
+# Storage accounts for installation media and Terraform state files are created.           #
+# (Optionally)                                                                             #
+#   Private DNS zones                                                                      #
+# Must be run from a self-hosted agent.                                                    #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   bootstrap_library                                                                      #
+############################################################################################
 
 function bootstrap_library {
 	##########################################################################################
@@ -437,6 +471,16 @@ function bootstrap_library {
 	fi
 }
 
+#############################################################################################
+# Function to migrate the state file for the deployer.                                      #
+# Arguments:                                                                                #
+#   None                                                                                    #
+# Returns:                                                                                  #
+#   0 on success, non-zero on failure                                                       #
+# Usage:                                                                                    #
+#   migrate_library_state                                                                   #
+#############################################################################################
+
 function migrate_deployer_state() {
 	##########################################################################################
 	#                                                                                        #
@@ -511,6 +555,17 @@ function migrate_deployer_state() {
 	cd "$root_dirname" || exit
 
 }
+
+
+#############################################################################################
+# Function to migrate the state file for the SAP library.                                   #
+# Arguments:                                                                                #
+#   None                                                                                    #
+# Returns:                                                                                  #
+#   0 on success, non-zero on failure                                                       #
+# Usage:                                                                                    #
+#   migrate_library_state                                                                   #
+#############################################################################################
 
 function migrate_library_state() {
 	##########################################################################################
@@ -610,6 +665,16 @@ function migrate_library_state() {
 	step=5
 	save_config_var "step" "${deployer_config_information}"
 }
+
+############################################################################################
+# Function to copy the parameter files to the deployer.                                    #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#   copy_files_to_public_deployer                                                          #
+############################################################################################
 
 function copy_files_to_public_deployer() {
 	if [ "${ado_flag}" != "--ado" ]; then
@@ -739,7 +804,23 @@ function retrieve_parameters() {
 
 }
 
-# Function to execute deployment steps
+############################################################################################
+# Function to execute the deployment steps.                                                #
+# Step 1: Bootstrap the deployer                                                           #
+# Step 1: Validate key vault access                                                        #
+# Step 2: Bootstrap the library                                                            #
+# Step 3: Migrate the deployer state                                                       #
+# Step 4: Migrate the library state                                                        #
+# Step 5: Copy files to the public deployer                                                #
+#                                                                                          #
+# Arguments:                                                                               #
+#   step: The current step number                                                          #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                                                                                   #
+#  execute_deployment_steps <step>                                                         #
+############################################################################################
+
 function execute_deployment_steps() {
 	local step=$1
 	return_value=0
@@ -806,6 +887,15 @@ function execute_deployment_steps() {
 	return 0
 }
 
+#############################################################################################
+# Function to deploy the control plane.                                                     #
+# Arguments:                                                                                #
+#   None                                                                                    #
+# Returns:                                                                                  #
+#   0 on success, non-zero on failure                                                       #
+# Usage:                                                                                    #
+#   deploy_control_plane                                                                    #
+#############################################################################################
 function deploy_control_plane() {
 	force=0
 	step=0
@@ -825,7 +915,11 @@ function deploy_control_plane() {
 	print_banner "Control Plane Deployment" "Entering $SCRIPT_NAME" "info"
 
 	# Parse command line arguments
-	parse_arguments "$@"
+	if ! parse_arguments "$@"; then
+		print_banner "$banner_title" "Validating parameters failed" "error"
+		return $?
+	fi
+
 	echo "ADO flag:                            ${ado_flag}"
 	ARM_SUBSCRIPTION_ID=${subscription}
 	export ARM_SUBSCRIPTION_ID
