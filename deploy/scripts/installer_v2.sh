@@ -27,15 +27,6 @@ fi
 
 echo "3"
 
-if checkforEnvVar "CONFIG_REPO_PATH"; then
-	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-else
-	bold_red="\e[1;31m"
-	reset_formatting="\e[0m"
-	echo -e "${bold_red}CONFIG_REPO_PATH is not set${reset_formatting}"
-	exit 1
-fi
-
 if printenv "TEST_ONLY"; then
 	TEST_ONLY="${TEST_ONLY}"
 else
@@ -277,6 +268,8 @@ function parse_arguments() {
 	if ! validate_exports; then
 		return $?
 	fi
+
+	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	# Check that Terraform and Azure CLI is installed
 	if ! validate_dependencies; then
