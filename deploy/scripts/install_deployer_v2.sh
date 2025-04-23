@@ -164,6 +164,9 @@ function parse_arguments() {
 		export CONTROL_PLANE_NAME
 	fi
 
+	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
+	echo "Current directory:                   $(pwd)"
+
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}"/.terraform
 	if [ "$param_dirname" != '.' ]; then

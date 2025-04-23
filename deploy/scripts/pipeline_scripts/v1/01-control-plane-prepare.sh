@@ -275,12 +275,8 @@ else
 	echo "##vso[task.logissue type=error]Return code from install_deployer_v2.sh $return_code."
 	step=0
 	save_config_var "step" "${deployer_environment_file_name}"
-
+	return 10
 fi
-
-echo ""
-echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset}"
-echo ""
 
 set -eu
 
