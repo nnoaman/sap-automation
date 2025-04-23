@@ -250,7 +250,7 @@ locals {
                                                                           )
                                         web_instance_number             = var.web_instance_number
                                         web_sid                         = upper(var.web_sid)
-                                        web_sku                         = local.enable_app_tier_deployment ? coalesce(var.webdispatcher_server_sku, var.application_server_sku) : ""
+                                        web_sku                         = local.enable_app_tier_deployment ? trimspace(coalesce(var.webdispatcher_server_sku, var.application_server_sku, " ")) : ""
                                         web_use_ppg                     = (var.webdispatcher_server_count) > 0 ? var.use_scalesets_for_deployment ? (
                                                                             false) : (
                                                                             var.webdispatcher_server_use_ppg
