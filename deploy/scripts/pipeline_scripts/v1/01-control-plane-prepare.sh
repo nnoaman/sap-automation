@@ -260,7 +260,8 @@ else
 	export TF_VAR_use_spn
 	echo "Deployer using:                      Service Principal"
 fi
-aa
+
+cd "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_tfvars_file_name}" \
 	--auto-approve -c --control_plane_name "$CONTROL_PLANE_NAME"; then
