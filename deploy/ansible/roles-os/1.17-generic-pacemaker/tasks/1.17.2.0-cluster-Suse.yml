@@ -449,8 +449,6 @@
                                        op monitor interval=10s
           register:                    crm_configure_result
           failed_when:
-          register:                    crm_configure_result
-          failed_when:
                                        - "crm_configure_result.stderr | lower | regex_search('error|fail')" # Check if the resource is created successfully
 
         - name:                        "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured (pcmk < 2.13)"
