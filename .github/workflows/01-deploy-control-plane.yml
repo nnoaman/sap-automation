@@ -1,0 +1,237 @@
+name: Deploy Control Plane
+run-name: Deploy Control Plane by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      control_plane_name:
+        description: 'Control Plane Name, use the following syntax: ENV-LOCA-VNET'
+        required: true
+        default: 'MGMT-WEEU-DEP01'
+      force_reset:
+        description: 'Force a re-install - may require multiple re-runs'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_OBJECT_ID: ${{ secrets.AZURE_OBJECT_ID }}
+  TF_IN_AUTOMATION: true
+  TF_LOG: DEBUG
+  ANSIBLE_CORE_VERSION: '2.12'
+  TF_VERSION: '1.3.6'
+  APP_REGISTRATION_APP_ID: ${{ secrets.APP_REGISTRATION_APP_ID }}
+  USE_MSI: false
+
+jobs:
+  prepare-deployer:
+    name: Prepare Deployer
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/nnoaman/sap-automation:github-actions-v2
+    outputs:
+      this_agent: ${{ steps.prepare_control_plane.outputs.this_agent }}
+      deployer_keyvault: ${{ steps.prepare_control_plane.outputs.deployer_keyvault }}
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get app token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v3
+        with:
+          application_id: ${{ secrets.APPLICATION_ID }}
+          application_private_key: ${{ secrets.APPLICATION_PRIVATE_KEY }}
+          #organization: ${{ github.repository_owner }}
+
+      - name: Azure Login with Service Principal
+        if: ${{ vars.USE_MSI != 'true' }}
+        uses: Azure/Login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
+
+      - name: Prepare Control Plane
+        id: prepare_control_plane
+        run: |
+          echo "Running control plane preparation"
+          cd ${SAP_AUTOMATION_REPO_PATH}
+          bash ./sap-automation/deploy/scripts/pipeline_scripts/v2/01-control-plane-prepare.sh
+        env:
+          CONTROL_PLANE_NAME: ${{ inputs.control_plane_name }}
+          DEPLOYER_TFSTATE_KEY: "${{ inputs.control_plane_name }}-INFRASTRUCTURE.terraform.tfstate"
+          FORCE_RESET: ${{ inputs.force_reset }}
+          IS_PIPELINE_DEPLOYMENT: true
+          TF_VAR_agent_pool: 'Default'
+          TF_VAR_ansible_core_version: ${{ env.ANSIBLE_CORE_VERSION }}
+          TF_VAR_tf_version: ${{ env.TF_VERSION }}
+          TF_VAR_app_registration_app_id: ${{ env.APP_REGISTRATION_APP_ID }}
+
+  populate-keyvault:
+    name: Save Deployment Credentials in Azure Keyvault
+    needs: prepare-deployer
+    runs-on: ${{ needs.prepare-deployer.outputs.this_agent || 'ubuntu-latest' }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: sap-automation
+
+      - name: Azure Login with Service Principal
+        if: ${{ vars.USE_MSI != 'true' }}
+        uses: Azure/Login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Parameter Validation
+        id: parameter_validation
+        run: |
+          bash ./sap-automation/deploy/scripts/pipeline_scripts/v2/00-store-secrets-in-keyvault.sh
+        env:
+          CONTROL_PLANE_NAME: ${{ inputs.control_plane_name }}
+          DEPLOYER_KEYVAULT: ${{ needs.prepare-deployer.outputs.deployer_keyvault }}
+          CLIENT_ID: ${{ env.ARM_CLIENT_ID }}
+          CLIENT_SECRET: ${{ env.ARM_CLIENT_SECRET }}
+          OBJECT_ID: ${{ env.ARM_OBJECT_ID }}
+          TENANT_ID: ${{ env.ARM_TENANT_ID }}
+          TF_VAR_agent_pool: 'Default'
+          TF_VAR_ansible_core_version: ${{ env.ANSIBLE_CORE_VERSION }}
+          TF_VAR_app_registration_app_id: ${{ env.APP_REGISTRATION_APP_ID }}
+          TF_VAR_tf_version: ${{ env.TF_VERSION }}
+          USE_MSI: ${{ env.USE_MSI }}
+          ZONE: ${{ inputs.control_plane_name }}
+
+  deploy-control-plane:
+    name: Deploy Control Plane
+    needs: [prepare-deployer, populate-keyvault]
+    runs-on: ${{ needs.prepare-deployer.outputs.this_agent || 'ubuntu-latest' }}
+    outputs:
+      HAS_WEBAPP: ${{ steps.get_webapp_variables.outputs.HAS_WEBAPP }}
+      APPSERVICE_NAME: ${{ steps.get_webapp_variables.outputs.APPSERVICE_NAME }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: sap-automation
+
+      - name: Azure Login with Service Principal
+        if: ${{ vars.USE_MSI != 'true' }}
+        uses: Azure/Login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Parameter Validation
+        id: param_validation
+        run: |
+          bash ./sap-automation/deploy/scripts/pipeline_scripts/v2/00-validate-credentials.sh
+        env:
+          ZONE: ${{ inputs.control_plane_name }}
+          ARM_CLIENT_SECRET: ${{ env.ARM_CLIENT_SECRET }}
+
+      - name: Deploy Control Plane
+        run: |
+          echo "Running control plane deployment"
+          cd ${SAP_AUTOMATION_REPO_PATH}
+          bash ./sap-automation/deploy/scripts/pipeline_scripts/v2/01-control-plane-deploy.sh
+        env:
+          APP_REGISTRATION_APP_ID: ${{ env.APP_REGISTRATION_APP_ID }}
+          CONFIG_REPO_PATH: ${{ github.workspace }}/${{ inputs.config_repo_path }}
+          CONTROL_PLANE_NAME: ${{ inputs.control_plane_name }}
+          DEPLOYER_TFSTATE_KEY: "${{ inputs.control_plane_name }}-INFRASTRUCTURE.terraform.tfstate"
+          DEPLOYER_KEYVAULT: ${{ needs.prepare-deployer.outputs.deployer_keyvault }}
+          FORCE_RESET: ${{ inputs.force_reset }}
+          IS_PIPELINE_DEPLOYMENT: true
+          OBJECT_ID: ${{ env.ARM_OBJECT_ID }}
+          CLIENT_ID: ${{ env.ARM_CLIENT_ID }}
+          SAP_AUTOMATION_REPO_PATH: ${{ github.workspace }}/${{ inputs.sap_automation_repo_path }}
+          TENANT_ID: ${{ env.ARM_TENANT_ID }}
+          TF_VAR_agent_pool: 'Default'
+          TF_VAR_ansible_core_version: ${{ env.ANSIBLE_CORE_VERSION }}
+          TF_VAR_app_registration_app_id: ${{ env.APP_REGISTRATION_APP_ID }}
+          TF_VAR_subscription_id: ${{ env.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_tf_version: ${{ env.TF_VERSION }}
+          TF_VAR_use_spn: ${{ env.USE_MSI }}
+          USE_MSI: ${{ env.USE_MSI }}
+
+      - name: Get Web App Variables
+        id: get_webapp_variables
+        run: |
+          bash ./sap-automation/deploy/scripts/pipeline_scripts/01-webapp-variables.sh
+        env:
+          CONTROL_PLANE_NAME: ${{ inputs.control_plane_name }}
+          CONFIG_REPO_PATH: ${{ github.workspace }}/${{ inputs.config_repo_path }}
+
+  deploy-web-app:
+    name: Deploy SAP Configuration Web App
+    needs: [prepare-deployer, deploy-control-plane]
+    if: needs.deploy-control-plane.outputs.HAS_WEBAPP == 'true'
+    runs-on: ${{ needs.prepare-deployer.outputs.this_agent || 'ubuntu-latest' }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: sap-automation
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Build Web Application
+        run: |
+          dotnet build "${{ github.workspace }}/sap-automation/Webapp/SDAF/*.csproj"
+
+      - name: Publish Web Application
+        run: |
+          dotnet publish "${{ github.workspace }}/sap-automation/Webapp/SDAF/*.csproj" --output webapp-publish --configuration Release
+          cd webapp-publish
+          zip -r ../webapp.zip *
+
+      - name: Azure Login with Service Principal
+        if: ${{ vars.USE_MSI != 'true' }}
+        uses: Azure/Login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+
+      - name: Deploy Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ needs.deploy-control-plane.outputs.APPSERVICE_NAME }}
+          package: webapp.zip
+          startup-command: ''
+
+      - name: Configure Web App
+        run: |
+          az webapp config appsettings set --name ${{ needs.deploy-control-plane.outputs.APPSERVICE_NAME }} \
+            --settings \
+            'CollectionUri=${{ github.server_url }}' \
+            'ProjectName=${{ github.repository }}' \
+            'RepositoryId=${{ github.repository }}' \
+            'SourceBranch=${{ github.ref_name }}' \
+            'IS_PIPELINE_DEPLOYMENT=true' \
+            'CONTROL_PLANE_NAME=${{ inputs.control_plane_name }}'
+
+      - name: Document Web App Configuration Steps
+        run: |
+          echo "Web App Configuration Steps"
+          cd ${SAP_AUTOMATION_REPO_PATH}
+          bash ./sap-automation/deploy/scripts/pipeline_scripts/01-webapp-configuration.sh
+        env:
+          CONTROL_PLANE_NAME: ${{ inputs.control_plane_name }}
+          APP_REGISTRATION_APP_ID: ${{ env.APP_REGISTRATION_APP_ID }}
