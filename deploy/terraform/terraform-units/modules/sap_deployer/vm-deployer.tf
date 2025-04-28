@@ -203,6 +203,10 @@ resource "azurerm_linux_virtual_machine" "deployer" {
                                           }
 
   tags                                 = local.tags
+
+  lifecycle                                {
+                                             ignore_changes = [ identity ]
+                                           }
 }
 
 
