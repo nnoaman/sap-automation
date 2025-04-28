@@ -33,7 +33,6 @@ readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
 
-
 ################################################################################
 # Function to display a help message for the deployer installation script.     #
 # Arguments:                                                                   #
@@ -331,6 +330,14 @@ function install_deployer() {
 	if [ -f plan_output.log ]; then
 		rm plan_output.log
 	fi
+
+	if [ "${TEST_ONLY}" == "True" ]; then
+		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
+
+		exit 10
+	fi
+
+	exit 10
 
 	#########################################################################################
 	#                                                                                       #
