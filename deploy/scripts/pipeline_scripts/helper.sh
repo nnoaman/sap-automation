@@ -157,24 +157,33 @@ function saveVariableInVariableGroup() {
 function configureNonDeployer() {
 	green="\e[1;32m"
 	reset="\e[0m"
-	local tf_version=$1
-	local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
-	echo -e "$green--- Install dos2unix ---$reset"
-	sudo apt-get -qq install dos2unix
 
-	sudo apt-get -qq install zip
+	# Check if running in GitHub Actions
+	if [ -n "${GITHUB_ACTIONS}" ]; then
+		echo -e "$green--- Running in GitHub Actions environment ---$reset"		# Skip all installation commands for GitHub Actions as they are already in the Dockerfile
+		return 0
+	else
+		echo -e "$green--- Running in Azure DevOps or standard environment ---$reset"
+		local tf_version=$1
+		local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
 
-	echo -e "$green --- Install terraform ---$reset"
+		echo -e "$green--- Install dos2unix ---$reset"
+		sudo apt-get -qq install dos2unix
 
-	wget -q "$tf_url"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo "##vso[task.logissue type=error]Unable to download Terraform version $tf_version."
-		exit 2
+		sudo apt-get -qq install zip
+
+		echo -e "$green --- Install terraform ---$reset"
+
+		wget -q "$tf_url"
+		return_code=$?
+		if [ 0 != $return_code ]; then
+			echo "##vso[task.logissue type=error]Unable to download Terraform version $tf_version."
+			exit 2
+		fi
+		unzip -qq "terraform_${tf_version}_linux_amd64.zip"
+		sudo mv terraform /bin/
+		rm -f "terraform_${tf_version}_linux_amd64.zip"
 	fi
-	unzip -qq "terraform_${tf_version}_linux_amd64.zip"
-	sudo mv terraform /bin/
-	rm -f "terraform_${tf_version}_linux_amd64.zip"
 }
 
 function LogonToAzure() {
