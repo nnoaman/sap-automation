@@ -240,7 +240,7 @@ function install_deployer() {
 
 	init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-	var_file="${parameter_file_name}"
+	var_file="${param_dirname}/${parameter_file_name}"
 
 	echo ""
 	echo -e "${green}Deployment information:"
