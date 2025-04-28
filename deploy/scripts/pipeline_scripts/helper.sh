@@ -324,6 +324,24 @@ function print_header() {
 	fi
 
 	echo "Agent pool:                          $THIS_AGENT"
+
+	# Initialize SYSTEM variables if not already defined (for GitHub Actions compatibility)
+	if [ -z "${SYSTEM_COLLECTIONURI+x}" ]; then
+		if [ -n "${GITHUB_ACTIONS+x}" ]; then
+			SYSTEM_COLLECTIONURI=${GITHUB_SERVER_URL:-"https://github.com"}
+		else
+			SYSTEM_COLLECTIONURI="N/A"
+		fi
+	fi
+
+	if [ -z "${SYSTEM_TEAMPROJECT+x}" ]; then
+		if [ -n "${GITHUB_ACTIONS+x}" ]; then
+			SYSTEM_TEAMPROJECT=${GITHUB_REPOSITORY:-"N/A"}
+		else
+			SYSTEM_TEAMPROJECT="N/A"
+		fi
+	fi
+
 	echo "Organization:                        $SYSTEM_COLLECTIONURI"
 	echo "Project:                             $SYSTEM_TEAMPROJECT"
 	echo ""
@@ -359,7 +377,12 @@ function configure_devops() {
 		az extension add --name azure-devops --output none --only-show-errors
 	fi
 
-	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
+	# Only configure Azure DevOps CLI if we have the necessary variables
+	if [ -n "${SYSTEM_COLLECTIONURI+x}" ] && [ -n "${SYSTEM_TEAMPROJECTID+x}" ]; then
+		az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
+	else
+		echo "Skipping Azure DevOps CLI configuration - running in a non-Azure DevOps environment"
+	fi
 
 	if ! az extension list --query "[?contains(name, 'resource-graph')]" --output table; then
 		az extension add --name resource-graph
