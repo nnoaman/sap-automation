@@ -13,14 +13,14 @@ detect_platform() {
     # Default to CLI for interactive use
     export PLATFORM="cli"
   fi
-  
+
   echo "Using platform: ${PLATFORM}"
 }
 
 # Load platform-specific functions
 load_platform_functions() {
   local platform_dir="$(dirname "${BASH_SOURCE[0]}")/platform"
-  
+
   if [ "${PLATFORM}" == "github" ]; then
     source "${platform_dir}/github_functions.sh"
   elif [ "${PLATFORM}" == "devops" ]; then
@@ -38,9 +38,9 @@ configure_platform_variables() {
   if [ "${PLATFORM}" == "github" ]; then
     # Map GitHub Actions variables to common names
     [ -z "${SAP_AUTOMATION_REPO_PATH}" ] && export SAP_AUTOMATION_REPO_PATH="${GITHUB_WORKSPACE}/sap-automation"
-    [ -z "${CONFIG_REPO_PATH}" ] && export CONFIG_REPO_PATH="${GITHUB_WORKSPACE}"
+    [ -z "${CONFIG_REPO_PATH}" ] && export CONFIG_REPO_PATH="${GITHUB_WORKSPACE}/WORKSPACES"
     export APP_TOKEN="${GITHUB_TOKEN}"
-    
+
     # Setup output for GitHub Actions
     export GITHUB_OUTPUT=${GITHUB_OUTPUT:-/dev/null}
   elif [ "${PLATFORM}" == "devops" ]; then
@@ -49,7 +49,7 @@ configure_platform_variables() {
     [ -z "${CONFIG_REPO_PATH}" ] && export CONFIG_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}"
     export DEVOPS_PAT="${AZURE_DEVOPS_EXT_PAT:-${SYSTEM_ACCESSTOKEN}}"
   fi
-  
+
   # Setup common paths for scripts
   export SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
   export SHARED_FUNCTIONS_FILE="${SCRIPT_DIR}/shared_functions_v2.sh"
@@ -59,13 +59,13 @@ configure_platform_variables() {
 set_output_variable() {
   local name=$1
   local value=$2
-  
+
   if [ "${PLATFORM}" == "github" ]; then
     echo "${name}=${value}" >> ${GITHUB_OUTPUT}
   elif [ "${PLATFORM}" == "devops" ]; then
     echo "##vso[task.setvariable variable=${name};isOutput=true]${value}"
   fi
-  
+
   # Also export it for local shell usage
   export "${name}=${value}"
 }
@@ -75,7 +75,7 @@ init_platform() {
   detect_platform
   configure_platform_variables
   load_platform_functions
-  
+
   # Source shared functions if file exists
   if [ -f "${SHARED_FUNCTIONS_FILE}" ]; then
     source "${SHARED_FUNCTIONS_FILE}"
