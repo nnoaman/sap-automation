@@ -333,11 +333,8 @@ function install_deployer() {
 
 	if [ "${TEST_ONLY}" == "True" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
-
 		exit 10
 	fi
-
-	exit 10
 
 	#########################################################################################
 	#                                                                                       #
