@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/cbl-mariner/base/core:2.0
 
 ARG TF_VERSION=1.7.5
 ARG YQ_VERSION=v4.42.1
+ARG NODE_VERSION=18.19.1
 
 RUN tdnf install -y \
   ansible \
@@ -36,6 +37,11 @@ RUN curl -fsSo terraform.zip \
   https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
   unzip terraform.zip && \
   install -Dm755 terraform /usr/bin/terraform
+
+# Install Node.js
+RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | tar -xz -C /usr/local --strip-components=1 && \
+  ln -s /usr/local/bin/node /usr/bin/node && \
+  ln -s /usr/local/bin/npm /usr/bin/npm
 
 # Install yq, as there are two competing versions and Azure Linux uses the jq wrappers, which breaks the GitHub Workflows
 RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz | tar zx && \
