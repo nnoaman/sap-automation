@@ -159,9 +159,11 @@ else
 fi
 
 TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
-if is_valid_guid $TF_VAR_spn_id; then
-	export TF_VAR_spn_id
-	echo "Service Principal Object id:         $TF_VAR_spn_id"
+if [ -n $TF_VAR_spn_id ]; then
+	if is_valid_guid $TF_VAR_spn_id; then
+		export TF_VAR_spn_id
+		echo "Service Principal Object id:         $TF_VAR_spn_id"
+	fi
 fi
 
 # Reset the account if sourcing was done
