@@ -308,6 +308,21 @@ function print_header() {
 	echo -e "${green}DevOps information:"
 	echo -e "-------------------------------------------------------------------------------$reset"
 
+	# Initialize THIS_AGENT if not already defined
+	if [ -z "${THIS_AGENT+x}" ]; then
+		# For GitHub Actions
+		if [ -n "${GITHUB_ACTIONS+x}" ]; then
+			THIS_AGENT=${RUNNER_NAME:-"GitHub Actions Runner"}
+		# For Azure DevOps
+		elif [ -n "${TF_BUILD+x}" ]; then
+			THIS_AGENT=${AGENT_NAME:-"Azure DevOps Agent"}
+		# Default value for CLI or other environments
+		else
+			THIS_AGENT="CLI"
+		fi
+		export THIS_AGENT
+	fi
+
 	echo "Agent pool:                          $THIS_AGENT"
 	echo "Organization:                        $SYSTEM_COLLECTIONURI"
 	echo "Project:                             $SYSTEM_TEAMPROJECT"

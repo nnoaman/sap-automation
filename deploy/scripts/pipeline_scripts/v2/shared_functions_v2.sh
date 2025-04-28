@@ -4,6 +4,61 @@
 
 # This script contains shared functions that work across platforms (GitHub and Azure DevOps)
 
+initialize_platform_variables() {
+  # Set default for THIS_AGENT to avoid the "unbound variable" error
+  if [ "${PLATFORM}" == "github" ]; then
+    # For GitHub Actions
+    export THIS_AGENT=${RUNNER_NAME:-"GitHub Actions Runner"}
+  elif [ "${PLATFORM}" == "devops" ]; then
+    # For Azure DevOps, normally provided by the platform
+    export THIS_AGENT=${AGENT_NAME:-"Azure DevOps Agent"}
+  else
+    # Default value for CLI or other environments
+    export THIS_AGENT=${THIS_AGENT:-"CLI"}
+  fi
+}
+
+# Create a collapsible group in GitHub Actions logs or a styled header in other platforms
+start_group() {
+  local title="$1"
+
+  if [ "${PLATFORM}" == "github" ]; then
+    # GitHub Actions specific syntax for collapsible groups
+    echo "::group::${title}"
+  else
+    # For Azure DevOps or CLI, use colored formatting
+    local cyan="\e[1;36m"
+    local reset="\e[0m"
+    local separator="-------------------------------------------------------------------------------"
+    echo ""
+    echo -e "${cyan}${separator}${reset}"
+    echo -e "${cyan}${title}${reset}"
+    echo -e "${cyan}${separator}${reset}"
+  fi
+}
+
+# End a collapsible group in GitHub Actions logs (no action needed for other platforms)
+end_group() {
+  if [ "${PLATFORM}" == "github" ]; then
+    echo "::endgroup::"
+  fi
+}
+
+# Safe variable getter - avoids "unbound variable" errors by providing defaults
+safe_get_var() {
+  local var_name="$1"
+  local default_value="${2:-}"
+
+  # Return variable value if set, otherwise return default
+  echo "${!var_name:-$default_value}"
+}
+
+# Call initialization when this file is loaded
+initialize_platform_variables
+
+# Flag to prevent duplicate loading
+export SHARED_FUNCTIONS_LOADED="true"
+
 function get_platform() {
     if [[ -v GITHUB_ACTIONS ]]; then
         echo "github"
