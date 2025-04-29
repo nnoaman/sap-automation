@@ -44,7 +44,8 @@
                 <p>Name of the variable group. "SDAF-" will be prepended.</p>
             </div>
             <div class="right-input">
-                @Html.TextBox("newName", "", new { @class = "ms-TextField-field" })
+                @Html.TextBoxFor(m => m.name, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.name)
             </div>
         </div>
         <div class="ms-TextField">
@@ -53,11 +54,14 @@
                 <p>Add a description for the variable group. </p>
             </div>
             <div class="right-input">
-                @Html.TextBox("description", Model.description, new { @class = "ms-TextField-field" })
+                @Html.TextBoxFor(m => m.description, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.description)
             </div>
         </div>
         <div class="text-center">
-            <h3 style="text-align: left">Agent Pool settings</h3>
+            <br />
+            <h3 style="text-align: center">Agent Pool settings</h3>
+            <br />
         </div>
         <div class="ms-TextField">
             <div class="left-input">
@@ -80,16 +84,18 @@
             </div>
         </div>
         <div class="text-center">
-            <h3 style="text-align: left">Application configuration settings </h3>
+            <br />
+            <h3 style="text-align: center">Application configuration settings </h3>
+            <br />
         </div>
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.LabelFor(m => m.variables.APPLICATION_CONFIGURATION_ID, new { @class = $"ms-Label" })
-                <p>Enter the Azure Resource Id for the Azure App Configuration instance.</p>
+                @Html.LabelFor(m => m.variables.APPLICATION_CONFIGURATION_NAME, new { @class = $"ms-Label" })
+                <p>Enter the name of the Azure App Configuration instance.</p>
             </div>
             <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.APPLICATION_CONFIGURATION_ID.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.APPLICATION_CONFIGURATION_ID)
+                @Html.TextBoxFor(m => m.variables.APPLICATION_CONFIGURATION_NAME.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.APPLICATION_CONFIGURATION_NAME)
             </div>
         </div>
         <div class="ms-TextField">
@@ -103,7 +109,9 @@
             </div>
         </div>
         <div class="text-center">
-            <h3 style="text-align: left">Application Registration details</h3>
+            <br />
+            <h3 style="text-align: center">Application Registration details</h3>
+            <br />
         </div>
         <div class="ms-TextField">
             <div class="left-input">
@@ -126,8 +134,21 @@
             </div>
         </div>
         <div class="text-center">
-            <h3 style="text-align: left">Deployment credentials</h3>
+            <br />
+            <h3 style="text-align: center">Deployment credentials</h3>
+            <br />
         </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.Use_MSI, new { @class = $"ms-Label" })
+                <p>'True' if using MSI for deployment</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.Use_MSI.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.Use_MSI)
+            </div>
+        </div>
+
 
         <div class="ms-TextField">
             <div class="left-input">
