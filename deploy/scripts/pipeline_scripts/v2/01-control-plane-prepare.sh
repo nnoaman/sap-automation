@@ -301,6 +301,9 @@ echo -e "$green--- Control Plane deployment---$reset"
 if [ "$PLATFORM" == "devops" ]; then
   platform_flag="--ado"
 elif [ "$PLATFORM" == "github" ]; then
+  # Set required environment variables for GitHub
+  export USER=${GITHUB_ACTOR:-githubuser}
+  export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
   platform_flag="--github"
 else
   platform_flag=""

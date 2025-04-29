@@ -88,7 +88,7 @@ function parse_arguments() {
 	library_parameter_file=""
 
 	local input_opts
-	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
+	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi,github -- "$@")
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -150,6 +150,10 @@ function parse_arguments() {
 			;;
 		-v | --ado)
 			ado_flag="--ado"
+			shift
+			;;
+		--github)
+			ado_flag="--github"
 			shift
 			;;
 		-r | --recover)
