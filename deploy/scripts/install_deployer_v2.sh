@@ -184,7 +184,6 @@ function parse_arguments() {
 	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
 	echo "Current directory:                   $(pwd)"
 	echo "Parameter file:                      ${parameter_file_name}"
-	echo "Validating:                          ${parameter_file_name}"
 
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}"/.terraform
@@ -262,17 +261,20 @@ function install_deployer() {
 		fi
 	fi
 
-	param_dirname=$(pwd)
+	# Ensure we use the original directory for the parameter file
+	original_dir=$(pwd)
 
 	init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-	var_file="${parameter_file_name}"
+	# Use absolute path for var_file to avoid path resolution issues
+	var_file=$(realpath "${parameter_file_name}")
 
 	echo ""
 	echo -e "${green}Deployment information:"
 	echo -e "-------------------------------------------------------------------------------$reset"
 
 	echo "Configuration file:                  $parameter_file_name"
+	echo "Configuration file (full path):      $var_file"
 	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
@@ -285,7 +287,18 @@ function install_deployer() {
 	extra_vars=""
 
 	if [ -f terraform.tfvars ]; then
-		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+		extra_vars=" -var-file=${original_dir}/terraform.tfvars "
+	fi
+
+	# Create a symlink to the parameter file in the current directory if needed
+	if [[ -n "${GITHUB_ACTIONS}" ]]; then
+		echo "Running in GitHub Actions environment"
+		echo "Creating symlink to parameter file in current directory if needed"
+		parameter_file_basename=$(basename "${parameter_file_name}")
+		if [[ ! -f "${parameter_file_basename}" && -f "${var_file}" ]]; then
+			echo "Creating symlink: ${parameter_file_basename} -> ${var_file}"
+			ln -sf "${var_file}" "${parameter_file_basename}"
+		fi
 	fi
 
 	allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")

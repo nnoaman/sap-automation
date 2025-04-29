@@ -260,6 +260,20 @@ function bootstrap_deployer() {
 
 		cd "${deployer_dirname}" || exit
 
+		# In GitHub Actions, copy the parameter file to the current directory to ensure Terraform can find it
+		if [[ -n "${GITHUB_ACTIONS}" ]]; then
+			echo "Running in GitHub Actions environment"
+			# Create a local copy of the parameter file if it doesn't already exist
+			parameter_file_basename=$(basename "${deployer_parameter_file}")
+			if [[ ! -f "${parameter_file_basename}" && -f "${deployer_parameter_file}" ]]; then
+				echo "Creating local copy of parameter file: ${parameter_file_basename} from ${deployer_parameter_file}"
+				cp -f "${deployer_parameter_file}" "${parameter_file_basename}"
+				deployer_parameter_file_name="${parameter_file_basename}"
+				allParameters=$(printf " --parameter_file %s %s" "${deployer_parameter_file_name}" "${autoApproveParameter}")
+				echo "Updated parameters: $allParameters"
+			fi
+		fi
+
 		echo "Calling install_deployer_v2.sh:         $allParameters"
 
 		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
@@ -729,17 +743,25 @@ function copy_files_to_public_deployer() {
 ############################################################################################
 
 function retrieve_parameters() {
+	# Initialize APPLICATION_CONFIGURATION_ID to prevent unbound variable errors
+	APPLICATION_CONFIGURATION_ID=${APPLICATION_CONFIGURATION_ID:-""}
 
-	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID" || true
+		# If still not set, initialize to empty string
+		APPLICATION_CONFIGURATION_ID=${APPLICATION_CONFIGURATION_ID:-""}
 	fi
 
-	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+	if is_valid_id "${APPLICATION_CONFIGURATION_ID}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		application_configuration_name=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f9)
 		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 		if [ -z "$key_vault_id" ]; then
-			if [ $ado_flag == "--ado" ]; then
+			if [ "${ado_flag:-none}" == "--ado" ]; then
 				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+			elif [ "${ado_flag:-none}" == "--github" ]; then
+				echo "::warning::Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+			else
+				echo "Warning: Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 			fi
 		fi
 
@@ -785,18 +807,25 @@ function retrieve_parameters() {
 			load_config_vars "${deployer_config_information}" \
 				tfstate_resource_id DEPLOYER_KEYVAULT
 
-			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
-			export TF_VAR_spn_keyvault_id
+			# Ensure DEPLOYER_KEYVAULT is not unbound
+			DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
+
+			if [ -n "${DEPLOYER_KEYVAULT}" ] && [ -n "${ARM_SUBSCRIPTION_ID:-}" ]; then
+				TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv 2>/dev/null || echo "")
+				export TF_VAR_spn_keyvault_id
+			fi
 
 			export TF_VAR_tfstate_resource_id
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			export terraform_storage_account_name
+			if [ -n "${tfstate_resource_id:-}" ]; then
+				terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+				export terraform_storage_account_name
 
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			export terraform_storage_account_resource_group_name
+				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+				export terraform_storage_account_resource_group_name
 
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-			export terraform_storage_account_subscription_id
+				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+				export terraform_storage_account_subscription_id
+			fi
 		fi
 	fi
 
