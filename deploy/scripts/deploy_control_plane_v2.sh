@@ -615,7 +615,6 @@ function migrate_library_state() {
 					export terraform_storage_account_name
 					export terraform_storage_account_resource_group_name
 					export terraform_storage_account_subscription_id
-					save_config_vars "${deployer_config_information}" "tfstate_resource_id"
 
 				fi
 			else
@@ -732,7 +731,7 @@ function copy_files_to_public_deployer() {
 function retrieve_parameters() {
 
 	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
+		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID" || true
 	fi
 
 	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then

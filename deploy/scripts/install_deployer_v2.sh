@@ -146,10 +146,33 @@ function parse_arguments() {
 		esac
 	done
 
-	if [ ! -f "${parameter_file_name}" ]; then
+	# If it's a relative path in GitHub Actions
+	if [[ -n "${GITHUB_ACTIONS}" && ! -f "${parameter_file_name}" ]]; then
+		echo "Running in GitHub Actions, checking alternative file paths..."
 
+		# Try common path patterns for GitHub Actions
+		possible_paths=(
+			"${parameter_file_name}"
+			"$(pwd)/${parameter_file_name}"
+			"$(dirname "$(pwd)")/${parameter_file_name}"
+			"${GITHUB_WORKSPACE}/WORKSPACES/DEPLOYER/${CONTROL_PLANE_NAME}-INFRASTRUCTURE/${parameter_file_name}"
+		)
+
+		for path in "${possible_paths[@]}"; do
+			if [[ -f "$path" ]]; then
+				echo "Found parameter file at: $path"
+				parameter_file_name="$path"
+				break
+			fi
+		done
+	fi
+
+	if [ ! -f "${parameter_file_name}" ]; then
 		printf -v val %-40.40s "$parameter_file_name"
 		print_banner "$banner_title" "Parameter file does not exist: $parameter_file_name" "error"
+		echo "Current directory: $(pwd)"
+		echo "Files in current directory:"
+		ls -la
 		return 2 #No such file or directory
 	fi
 
@@ -160,6 +183,8 @@ function parse_arguments() {
 
 	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
 	echo "Current directory:                   $(pwd)"
+	echo "Parameter file:                      ${parameter_file_name}"
+	echo "Validating:                          ${parameter_file_name}"
 
 	param_dirname=$(dirname "${parameter_file_name}")
 	export TF_DATA_DIR="${param_dirname}"/.terraform
