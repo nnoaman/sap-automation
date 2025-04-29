@@ -107,7 +107,7 @@ function print_banner() {
 		local centered_secondary_message
 		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
 		echo -e "#${color}${centered_secondary_message}${reset}#"
-		echo "#                                                                               #"
+		echo "#                                                                             #"
 	fi
 	echo "#################################################################################"
 	echo -e "${reset}"
@@ -268,7 +268,7 @@ function control_plane_showhelp {
 	echo "#    the deployer and the library and the environment.                                                          #"
 	echo "#                                                                                                               #"
 	echo "#   The script will persist the parameters needed between the executions in the                                 #"
-	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                                         #"
+	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                        #"
 	echo "#                                                                                                               #"
 	echo "#                                                                                                               #"
 	echo "#   Usage: deploy_controlplane.sh                                                                               #"
@@ -1260,50 +1260,71 @@ function validate_key_vault {
 	local keyvault_to_check=$1
 	local subscription=$2
 	return_value=0
+	max_retries=5
+	retry_count=0
+	retry_delay=30
 
-	kv_name_check=$(az keyvault show --name="$keyvault_to_check" --subscription "${subscription}" --query name)
-	return_value=$?
-	if [ -z "$kv_name_check" ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                             $cyan  Retrying keyvault access $reset_formatting                               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		sleep 60
-		kv_name_check=$(az keyvault show --name="$keyvault_to_check" --subscription "${subscription}" --query name)
+	echo "Validating key vault:               $keyvault_to_check"
+	echo "Using subscription:                 $subscription"
+
+	while [ $retry_count -lt $max_retries ]; do
+		kv_name_check=$(az keyvault show --name="$keyvault_to_check" --subscription "${subscription}" --query name --output tsv 2>/dev/null)
 		return_value=$?
+
+		if [ $return_value -eq 0 ] && [ -n "$kv_name_check" ]; then
+			echo "Key vault exists:                   $keyvault_to_check"
+
+			# Check if the current identity has access to the key vault
+			kv_access_check=$(az keyvault secret list --vault-name="$keyvault_to_check" --subscription "${subscription}" --query "[0].id" --output tsv 2>/dev/null)
+			access_return_value=$?
+
+			if [ $access_return_value -eq 0 ]; then
+				echo "Access to key vault verified:       Yes"
+				break
+			else
+				echo "Access check failed for key vault:  $keyvault_to_check (attempt ${retry_count})"
+				echo "Detecting current identity..."
+
+				# Determine if using Service Principal or Managed Identity
+				if [ "${USE_MSI:-false}" == "true" ]; then
+					echo "Using Managed Identity for authentication"
+					current_identity=$(az account show --query "user.name" --output tsv)
+				else
+					echo "Using Service Principal for authentication"
+					current_identity=$(az account show --query "user.name" --output tsv)
+				fi
+
+				echo "Current identity:                  $current_identity"
+
+				# Attempt to grant Key Vault Secrets Officer role if possible
+				az keyvault set-policy --name "$keyvault_to_check" --subscription "${subscription}" --object-id "${ARM_OBJECT_ID:-}" --secret-permissions get list set delete backup restore recover purge 2>/dev/null
+
+				echo "Waiting for RBAC permissions to propagate (${retry_delay}s)..."
+				sleep $retry_delay
+				# Exponential backoff
+				retry_delay=$((retry_delay * 2))
+			fi
+		else
+			echo "Key vault not found:                $keyvault_to_check (attempt ${retry_count})"
+			if [ $retry_count -eq $max_retries ]; then
+				echo "Maximum retries reached. Key vault validation failed."
+				return 10 #File not accessible
+			fi
+
+			sleep $retry_delay
+			# Exponential backoff
+			retry_delay=$((retry_delay * 2))
+		fi
+
+		((retry_count++))
+	done
+
+	if [ $retry_count -eq $max_retries ]; then
+		echo "Maximum retries reached. Key vault validation failed."
+		return 10 #File not accessible
 	fi
 
-	if [ -z "$kv_name_check" ]; then
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                               $bold_red  Unable to access keyvault: $keyvault_to_check $reset_formatting                            #"
-		echo "#                             Please ensure the key vault exists.                       #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		exit 10
-	fi
-
-	access_error=$(az keyvault secret list --vault "$keyvault_to_check" --subscription "${subscription}" --only-show-errors | grep "The user, group or application" || true)
-	if [ -n "${access_error}" ]; then
-
-		az_subscription_id=$(az account show --query id -o tsv)
-		printf -v val %-40.40s "$az_subscription_id"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#$bold_red User account ${val} does not have access to: $keyvault  $reset_formatting"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-
-		echo "##vso[task.setprogress value=40;]Progress Indicator"
-		return 65
-
-	fi
 	return $return_value
-
 }
 ############################################################################################
 #                                                                                          #
