@@ -33,15 +33,15 @@ resource "azapi_resource" "ams_instance" {
                                             azurerm_virtual_network.vnet_sap,
                                             azurerm_subnet.ams
                                           ]
-  body                                  = jsonencode({
-                                            properties = {
-                                                            appLocation: local.region,
-                                                            routingPreference: "RouteAll",
-                                                            logAnalyticsWorkspaceArmId: length(local.ams_laws_arm_id) > 0 ? local.ams_laws_arm_id : null,
-                                                            managedResourceGroupConfiguration: {
-                                                              name: "managedrg-ams"
-                                                            },
-                                                           monitorSubnet: var.infrastructure.virtual_networks.sap.subnet_ams.exists ? var.infrastructure.virtual_networks.sap.subnet_ams.id : azurerm_subnet.ams[0].id,
-                                                          }
-                                          })
+  body = jsonencode({
+    properties = {
+      appLocation                        = local.region
+      routingPreference                  = "RouteAll"
+      logAnalyticsWorkspaceArmId         = length(local.ams_laws_arm_id) > 0 ? local.ams_laws_arm_id : null
+      managedResourceGroupConfiguration  = {
+        name = "managedrg-ams"
+      }
+      monitorSubnet                      = var.infrastructure.virtual_networks.sap.subnet_ams.exists ? var.infrastructure.virtual_networks.sap.subnet_ams.id : azurerm_subnet.ams[0].id
+    }
+  })
 }
