@@ -5,15 +5,15 @@ function setup_dependencies() {
 
     az extension add -upgrade --name azure-devops --output none > /dev/null 2>&1
 
-    az devops configure --defaults organization=${System.CollectionUri} project='${System.TeamProject}' --output none > /dev/null 2>&1
-    export VARIABLE_GROUP_ID=$(az pipelines variable-group list --q uery "[?name=='${variable_group}'].id | [0]")
+    az devops configure --defaults organization=${System.CollectionUri} project='${System.TeamProjectId}' --output none > /dev/null 2>&1
+    export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='${variable_group}'].id | [0]" --output tsv)
 
     if [ $VARIABLE_GROUP_ID == "" ]; then
         exit_error "Cannot find a variable group with the name ${variable_group}" 1
     fi
 
     echo "VARIABLE_GROUP_ID=${VARIABLE_GROUP_ID}"
-    echo AZURE_DEVOPS_EXT_PAT=${PAT}
+    echo AZURE_DEVOPS_EXT_PAT=${System.System_AccessToken}
     echo deployer=${parent_variable_group}
 }
 
