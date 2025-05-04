@@ -5,6 +5,7 @@
 # Source the shared platform configuration
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 source "${SCRIPT_DIR}/shared_platform_config.sh"
+. ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/shared_functions.sh
 
 # Define colors for output
 green="\e[1;32m"
@@ -309,6 +310,44 @@ else
   platform_flag=""
 fi
 
+if [[ $(get_platform) = github ]]; then
+    export TF_VAR_SERVER_URL=${GITHUB_SERVER_URL}
+    export TF_VAR_API_URL=${GITHUB_API_URL}
+    export TF_VAR_REPOSITORY=${GITHUB_REPOSITORY}
+    export TF_VAR_APP_TOKEN=${APP_TOKEN}
+fi
+end_group
+
+git pull -q
+
+start_group "Decrypting state files"
+# Import PGP key if it exists, otherwise generate it
+if [ -f ${CONFIG_REPO_PATH}/private.pgp ]; then
+    set +e
+    gpg --list-keys sap-azure-deployer@example.com
+    return_code=$?
+    set -e
+
+    if [ ${return_code} != 0 ]; then
+        echo ${ARM_CLIENT_SECRET} | gpg --batch --passphrase-fd 0 --import ${CONFIG_REPO_PATH}/private.pgp
+    fi
+else
+    echo ${ARM_CLIENT_SECRET} | ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh
+    gpg --output ${CONFIG_REPO_PATH}/private.pgp --armor --export-secret-key sap-azure-deployer@example.com
+    git add ${CONFIG_REPO_PATH}/private.pgp
+    commit_changes "Adding PGP key for encryption of state file" true
+fi
+
+if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg ]; then
+    echo "Decrypting state file"
+    echo ${ARM_CLIENT_SECRET} | \
+        gpg --batch \
+        --passphrase-fd 0 \
+        --output ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate \
+        --decrypt ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
+fi
+end_group
+
 # Deploy the control plane
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_tfvars_file_name}" \
 	--library_parameter_file "${library_tfvars_file_name}" \
@@ -389,17 +428,39 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	added=1
 fi
 
+if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate ]; then
+    rm DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg > /dev/null 2>&1 || true
+
+    gpg --batch \
+        --output DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg \
+        --encrypt \
+        --disable-dirmngr\
+        --recipient sap-azure-deployer@example.com \
+        --trust-model always \
+        DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate
+    git add -f DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
+fi
+
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-	sudo apt-get install zip -y
 	if [ "$PLATFORM" == "devops" ]; then
+			sudo apt-get install zip -y
       pass=${SYSTEM_COLLECTIONID//-/}
+			zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+			git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
     elif [ "$PLATFORM" == "github" ]; then
-      pass=${GITHUB_REPOSITORY//-/}
+			rm DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg > /dev/null 2>&1 || true
+
+			gpg --batch \
+					--output DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg \
+					--encrypt \
+					--disable-dirmngr\
+					--recipient sap-azure-deployer@example.com \
+					--trust-model always \
+					DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate
+			git add -f DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
     else
       pass="localpassword"
     fi
-	zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 	added=1
 fi
 
@@ -413,16 +474,20 @@ if [ 1 = $added ]; then
         echo "##vso[task.logissue type=error]Failed to push changes to the repository."
       fi
     elif [ "$PLATFORM" == "github" ]; then
-      git config --global user.email "github-actions@github.com"
-      git config --global user.name "GitHub Actions"
-      git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
-      if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-        echo "ERROR: Failed to push changes to the repository."
-      fi
+			set +e
+			git diff --cached --quiet
+			git_diff_return_code=$?
+			set -e
+			if [ 1 == $git_diff_return_code ]; then
+					commit_changes "Added updates for deployment."
+			fi
+
+			if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+					upload_summary .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+			fi
     fi
 fi
 
-# Platform-specific summary handling
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
     if [ "$PLATFORM" == "devops" ]; then
       echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
@@ -439,8 +504,10 @@ if [ 0 = $return_code ]; then
       saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
       saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
     elif [ "$PLATFORM" == "github" ]; then
-      # For GitHub, we've already set the output variables for the workflow
       echo "Variables set as GitHub Actions outputs"
+    	set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME}
+    	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
+			set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT}
     fi
 fi
 
