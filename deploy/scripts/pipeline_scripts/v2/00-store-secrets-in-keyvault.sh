@@ -7,6 +7,9 @@ reset="\e[0m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
+source "${SCRIPT_DIR}/shared_platform_config.sh"
+. ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/shared_functions.sh
+
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -15,7 +18,6 @@ parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
-
 
 banner_title="Deploy Workload Zone"
 
@@ -42,11 +44,6 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 return_code=0
-
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-
-cd "${CONFIG_REPO_PATH}" || exit
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
@@ -78,16 +75,24 @@ fi
 # Print the execution environment details
 print_header
 
-# Configure DevOps
-configure_devops
+echo ""
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+  # Configure DevOps
+  configure_devops
+
+  if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+    echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+    echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+    exit 2
+  fi
+  export VARIABLE_GROUP_ID
+elif [ "$PLATFORM" == "github" ]; then
+  # No specific variable group setup for GitHub Actions
+  # Values will be stored in GitHub Environment variables
+  echo "Configuring for GitHub Actions"
 fi
-export VARIABLE_GROUP_ID
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
