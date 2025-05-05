@@ -118,7 +118,7 @@ fi
 
 echo "Step:                                $step"
 
-if [ 0 != "${step}" ]; then
+if [ "0" != "${step}:-0" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 	  echo "##vso[task.logissue type=warning]Already prepared"
 	else
