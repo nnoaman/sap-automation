@@ -342,6 +342,7 @@ function validate_keyvault_access {
 
 					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
 					save_config_var "keyvault" "${deployer_config_information}"
+					save_config_var "deployer_tfstate_key" "${deployer_config_information}"
 				else
 					echo "Terraform state:                     local"
 					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/bootstrap/sap_deployer/

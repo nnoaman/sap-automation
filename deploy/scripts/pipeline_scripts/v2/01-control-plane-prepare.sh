@@ -423,22 +423,9 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
 	added=1
 fi
 
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/.terraform/terraform.tfstate ]; then
+	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/.terraform/terraform.tfstate"
 	added=1
-fi
-
-if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate ]; then
-    rm DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg > /dev/null 2>&1 || true
-
-    gpg --batch \
-        --output DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg \
-        --encrypt \
-        --disable-dirmngr\
-        --recipient sap-azure-deployer@example.com \
-        --trust-model always \
-        DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate
-    git add -f DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
 fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
@@ -449,7 +436,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 			git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
     elif [ "$PLATFORM" == "github" ]; then
 			rm DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg > /dev/null 2>&1 || true
-
+			echo "Encrypting state file"
 			gpg --batch \
 					--output DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg \
 					--encrypt \
@@ -497,6 +484,7 @@ if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.
 fi
 
 # Add variables to variable group or GitHub environment
+start_group "Adding variables to platform variable group"
 echo -e "$green--- Adding variables to storage ---$reset"
 if [ 0 = $return_code ]; then
     if [ "$PLATFORM" == "devops" ]; then
@@ -505,10 +493,13 @@ if [ 0 = $return_code ]; then
       saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
     elif [ "$PLATFORM" == "github" ]; then
       echo "Variables set as GitHub Actions outputs"
+			APPLICATION_CONFIGURATION_NAME=$(config_value_with_key "APPLICATION_CONFIGURATION_NAME")
     	set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME}
     	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
+			DEPLOYER_KEYVAULT=$(config_value_with_key "DEPLOYER_KEYVAULT")
 			set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT}
     fi
 fi
+end_group
 
 exit $return_code
