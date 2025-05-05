@@ -87,11 +87,13 @@ if [ "$PLATFORM" == "devops" ]; then
     exit 2
   fi
   export VARIABLE_GROUP_ID
+  git checkout -q "$BUILD_SOURCEBRANCHNAME"
 	echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 elif [ "$PLATFORM" == "github" ]; then
   # No specific variable group setup for GitHub Actions
   # Values will be stored in GitHub Environment variables
   echo "Configuring for GitHub Actions"
+  git checkout -q "$GITHUB_REF_NAME"
 fi
 
 echo -e "$green--- Read parameter values ---$reset"
