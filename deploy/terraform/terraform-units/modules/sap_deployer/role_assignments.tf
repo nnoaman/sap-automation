@@ -1,11 +1,4 @@
 
-
-data "azurerm_client_config" "current" {
-  provider                             = azurerm.main
-
-                                       }
-
-
 #######################################4#######################################8
 #                                                                              #
 #                                Role Assignments                              #
