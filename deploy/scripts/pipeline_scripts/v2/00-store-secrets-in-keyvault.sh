@@ -42,6 +42,8 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 fi
 export DEBUG
 set -eu
+echo "Environment variables:"
+printenv | sort
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
@@ -50,11 +52,6 @@ return_code=0
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 	print_banner "$banner_title" "Using Service Principals for deployment" "info"
-
-	if ! printenv ARM_SUBSCRIPTION_ID; then
-		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the variable group/environment."
-		exit 2
-	fi
 
 	if ! printenv CLIENT_ID; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the variable group/environment."
