@@ -94,8 +94,6 @@ elif [ "$PLATFORM" == "github" ]; then
   echo "Configuring for GitHub Actions"
 fi
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
 echo -e "$green--- Read parameter values ---$reset"
 
 deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
