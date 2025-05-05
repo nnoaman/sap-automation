@@ -34,8 +34,6 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-
-
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$path
@@ -281,22 +279,22 @@ function bootstrap_deployer() {
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
 			step=1
 			save_config_var "step" "${deployer_config_information}"
+			load_config_vars "${deployer_config_information}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_ID" "APPLICATION_CONFIGURATION_NAME"
+			echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
+			export DEPLOYER_KEYVAULT
+
+			if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+				export APPLICATION_CONFIGURATION_ID
+			fi
+			if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+				echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
+				export APPLICATION_CONFIGURATION_NAME
+			fi
 		else
 			local_return_code=$?
 			echo "Return code from install_deployer_v2: ${local_return_code}"
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error" "Return code: ${local_return_code}"
 		fi
-	fi
-
-	load_config_vars "${deployer_config_information}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_ID" "APPLICATION_CONFIGURATION_NAME"
-	echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
-	export DEPLOYER_KEYVAULT
-	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-		export APPLICATION_CONFIGURATION_ID
-	fi
-	if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
-		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
-		export APPLICATION_CONFIGURATION_NAME
 	fi
 
 	if [ $ado_flag == "--ado" ]; then

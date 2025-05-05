@@ -1,5 +1,4 @@
 
-
 #######################################4#######################################8
 #                                                                              #
 #                                Role Assignments                              #
@@ -19,7 +18,10 @@ resource "azurerm_role_assignment" "deployer_msi" {
   count                                = var.assign_subscription_permissions  ? 1 : 0
   scope                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
   role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? (
+                                           azurerm_user_assigned_identity.deployer[0].principal_id) : (
+                                           data.azurerm_user_assigned_identity.deployer[0].principal_id
+                                         )
 }
 
 
@@ -36,7 +38,10 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
   count                                = var.assign_subscription_permissions ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Contributor"
-  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? (
+                                           azurerm_user_assigned_identity.deployer[0].principal_id) : (
+                                           data.azurerm_user_assigned_identity.deployer[0].principal_id
+                                         )
 }
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
@@ -44,7 +49,10 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   count                                = var.assign_subscription_permissions ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "User Access Administrator"
-  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? (
+                                           azurerm_user_assigned_identity.deployer[0].principal_id) : (
+                                           data.azurerm_user_assigned_identity.deployer[0].principal_id
+                                         )
   # condition_version                    = "2.0"
   # condition                            = <<-EOT
   #                                           (
@@ -72,11 +80,11 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions ? 0 : 0
+  count                                = var.assign_subscription_permissions && !local.run_as_msi ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "User Access Administrator"
   principal_type                       = "ServicePrincipal"
-  principal_id                         = var.spn_id
+  principal_id                         = data.azurerm_client_config.current.object_id
   # condition_version                    = "2.0"
   # condition                            = <<-EOT
   #                                           (
@@ -116,11 +124,11 @@ resource "azurerm_role_assignment" "appconfig_data_owner_msi" {
 
 resource "azurerm_role_assignment" "appconfig_data_owner_spn" {
   provider                             = azurerm.main
-  count                                = length(var.spn_id) > 0 && var.assign_subscription_permissions && var.app_config_service.deploy ? 1 : 0
+  count                                = var.assign_subscription_permissions && var.app_config_service.deploy && !local.run_as_msi ?  1 : 0
   scope                                = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
   role_definition_name                 = "App Configuration Data Owner"
   principal_type                       = "ServicePrincipal"
-  principal_id                         = var.spn_id
+  principal_id                         = data.azurerm_client_config.current.object_id
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi" {
@@ -133,11 +141,11 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
   provider                             = azurerm.main
-  count                                = length(var.spn_id) > 0 && var.assign_subscription_permissions && var.key_vault.enable_rbac_authorization ? 1 : 0
+  count                                = var.assign_subscription_permissions && var.key_vault.enable_rbac_authorization  && !local.run_as_msi ?  1 : 0
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Administrator"
   principal_type                       = "ServicePrincipal"
-  principal_id                         = var.spn_id
+  principal_id                         = data.azurerm_client_config.current.object_id
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi_officer" {
@@ -192,5 +200,15 @@ resource "azurerm_role_assignment" "subscription_contributor_msi" {
   provider                             = azurerm.main
   scope                                = data.azurerm_subscription.primary.id
   role_definition_name                 = "Contributor"
-  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? (
+                                           azurerm_user_assigned_identity.deployer[0].principal_id) : (
+                                           data.azurerm_user_assigned_identity.deployer[0].principal_id
+                                         )
+}
+
+locals {
+  run_as_msi                           = length(var.deployer.user_assigned_identity_id) == 0 ? (
+                                           var.bootstrap ? false : azurerm_user_assigned_identity.deployer[0].principal_id == data.azurerm_client_config.current.object_id ) : (
+                                           data.azurerm_user_assigned_identity.deployer[0].principal_id == data.azurerm_client_config.current.object_id
+                                         )
 }

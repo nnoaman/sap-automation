@@ -51,6 +51,7 @@ resource "azurerm_app_configuration_key" "deployer_state_file_name" {
   depends_on                           = [
                                             time_sleep.wait_for_appconfig_data_owner_assignment,
                                             azurerm_private_endpoint.app_config
+
                                          ]
 
   configuration_store_id               = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
