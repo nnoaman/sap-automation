@@ -57,6 +57,10 @@ module "sap_deployer" {
   use_private_endpoint                          = var.use_private_endpoint
   use_service_endpoint                          = var.use_service_endpoint
   webapp_client_secret                          = var.webapp_client_secret
+  app_token                                     = var.APP_TOKEN
+  repository                                    = var.REPOSITORY
+  server_url                                    = var.SERVER_URL
+  api_url                                       = var.API_URL
 }
 
 module "sap_namegenerator" {
