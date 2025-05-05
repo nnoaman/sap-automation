@@ -419,7 +419,7 @@ ls -lart
 
 ls -lart .sap_deployment_automation
 
-ls lart DEPLOYER/$DEPLOYER_FOLDERNAME
+ls -lart DEPLOYER/$DEPLOYER_FOLDERNAME
 
 set -x
 
