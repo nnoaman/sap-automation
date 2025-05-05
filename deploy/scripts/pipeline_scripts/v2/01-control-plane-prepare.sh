@@ -415,8 +415,13 @@ echo -e "$green--- Update repo ---$reset"
 
 pwd
 
-ls  -lart
+ls -lart
 
+ls -lart .sap_deployment_automation
+
+ls lart DEPLOYER/$DEPLOYER_FOLDERNAME
+
+set -x
 
 if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
@@ -431,18 +436,6 @@ fi
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
 	added=1
-fi
-
-if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate ]; then
-	rm DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg >/dev/null 2>&1 || true
-
-	gpg --batch \
-		--output DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg \
-		--encrypt \
-		--disable-dirmngr --recipient sap-azure-deployer@example.com \
-		--trust-model always \
-		DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate
-	git add -f DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
 fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
