@@ -42,7 +42,6 @@ set -eu
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 return_code=0
 
 echo -e "$green--- Validations ---$reset"
@@ -88,6 +87,7 @@ if [ "$PLATFORM" == "devops" ]; then
     exit 2
   fi
   export VARIABLE_GROUP_ID
+	echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 elif [ "$PLATFORM" == "github" ]; then
   # No specific variable group setup for GitHub Actions
   # Values will be stored in GitHub Environment variables
