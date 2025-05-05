@@ -15,7 +15,7 @@ cyan="\e[1;36m"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME "
 fi
 
 #External helper functions
@@ -61,8 +61,8 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 # Common configuration for both platforms
-file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+file_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 
 if [ -z "${TF_VAR_ansible_core_version:-}" ]; then
 	TF_VAR_ansible_core_version=2.16
@@ -76,6 +76,7 @@ ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+DEPLOYER_FOLDERNAME"${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
 
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
@@ -188,10 +189,6 @@ if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 fi
-
-echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "$deployer_tfvars_file_name"
-dos2unix -q "$library_tfvars_file_name"
 
 # Handle application configuration
 if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
@@ -447,7 +444,7 @@ if [ 1 = $added ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 		git config --global user.name "$BUILD_REQUESTEDFOR"
-		git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
+		git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
 		if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 			echo "##vso[task.logissue type=error]Failed to push changes to the repository."
 		fi
