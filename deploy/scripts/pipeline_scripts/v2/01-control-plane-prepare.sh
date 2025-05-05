@@ -415,7 +415,8 @@ echo -e "$green--- Update repo ---$reset"
 
 pwd
 
-ls -lart
+ls  -lart
+
 
 if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
