@@ -72,30 +72,10 @@ fi
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
+ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
-deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-
-# Validate input files
-if [ ! -f "$deployer_tfvars_file_name" ]; then
-	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
-	fi
-	exit 2
-fi
-
-if [ ! -f "$library_tfvars_file_name" ]; then
-	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
-	fi
-	exit 2
-fi
 
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
@@ -349,8 +329,10 @@ fi
 end_group
 
 # Deploy the control plane
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_tfvars_file_name}" \
-	--library_parameter_file "${library_tfvars_file_name}" \
+
+cd "${CONFIG_REPO_PATH}" || exit
+
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --control_plane_name "${CONTROL_PLANE_NAME}" \
 	--subscription "$ARM_SUBSCRIPTION_ID" \
 	--auto-approve ${platform_flag} ${msi_flag} --only_deployer; then
 	return_code=$?
@@ -419,7 +401,7 @@ ls -lart
 
 ls -lart .sap_deployment_automation
 
-ls -lart DEPLOYER/$DEPLOYER_FOLDERNAME
+ls -lart "DEPLOYER/$DEPLOYER_FOLDERNAME"
 
 set -x
 
