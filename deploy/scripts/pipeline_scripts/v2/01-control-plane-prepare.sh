@@ -294,11 +294,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	export USER=${GITHUB_ACTOR:-githubuser}
 	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
 	platform_flag="--github"
-else
-	platform_flag=""
-fi
-
-if [[ $(get_platform) = github ]]; then
 	TF_VAR_SERVER_URL=${GITHUB_SERVER_URL}
 	export TF_VAR_SERVER_URL
 
@@ -308,12 +303,12 @@ if [[ $(get_platform) = github ]]; then
 	TF_VAR_REPOSITORY=${GITHUB_REPOSITORY}
 	export TF_VAR_REPOSITORY
 
-	TF_VAR_APP_TOKEN=${APP_TOKEN}
-	export TF_VAR_APP_TOKEN
-
 	TF_VAR_PLATFORM="github"
 	export TF_VAR_PLATFORM
+else
+	platform_flag=""
 fi
+
 end_group
 
 git pull -q
