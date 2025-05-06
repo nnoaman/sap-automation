@@ -78,7 +78,7 @@ function get_value_with_key() {
         exit_error "Cannot get value with an empty key" 1
     fi
 
-    if [[ -v APP_CONFIGURATION_NAME ]]; then
+    if [[ -n ${APP_CONFIGURATION_NAME+x} ]]; then
         value=$(__appconfig_get_value_with_key $key)
     else
         value=$(__get_value_with_key $key)
