@@ -601,6 +601,27 @@ variable "ansible_core_version"                       {
                                                         description = "If provided, the version of ansible core to be installed"
                                                         default     = "2.16"
                                                       }
+variable "PLATFORM"                                   {
+                                                        description = "Type of agent to be used"
+                                                        type       = string
+                                                        default = "devops"
+                                                      }
+variable "APP_TOKEN"                                 {
+                                                        description = "If provided, contains token to access github"
+                                                        default = ""
+                                                     }
+variable "SERVER_URL"                                {
+                                                       description = "If provided, contains the Server Url of the GitHub instance"
+                                                       default = "https://github.com"
+                                                     }
+variable "API_URL"                                   {
+                                                       description = "If provided, contains the API Url of the GitHub instance"
+                                                       default = "https://api.github.com"
+                                                     }
+variable "REPOSITORY"                                {
+                                                       description = "If provided, contains the Reference to tue repositry (e.g. owner/repository)"
+                                                       default = ""
+                                                     }
 
 #########################################################################################
 #                                                                                       #

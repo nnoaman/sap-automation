@@ -6,7 +6,7 @@ function setup_dependencies() {
     # Install Azure CLI extensions if needed
     az config set extension.use_dynamic_install=yes_without_prompt > /dev/null 2>&1
 
-    echo "Working with environment: ${DEPLOYER_FOLDERNAME}"
+    echo "Working with environment: ${CONTROL_PLANE_NAME}"
 }
 
 function exit_error() {
@@ -56,7 +56,7 @@ function __get_value_with_key() {
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${DEPLOYER_FOLDERNAME}/variables/${key}" | jq -r '.value // empty')
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/variables/${key}" | jq -r '.value // empty')
 
     echo $value
 }
@@ -67,7 +67,7 @@ function __set_value_with_key() {
 
     old_value=$(__get_value_with_key ${key})
 
-    echo "Saving value for key in environment ${DEPLOYER_FOLDERNAME}: ${key}"
+    echo "Saving value for key in environment ${CONTROL_PLANE_NAME}: ${key}"
 
     if [[ -z "${old_value}" ]]; then
         curl -Ss -o /dev/null \
@@ -75,7 +75,7 @@ function __set_value_with_key() {
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${APP_TOKEN}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${DEPLOYER_FOLDERNAME}/variables" \
+            -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/variables" \
             -d "{\"name\":\"${key}\", \"value\":\"${new_value}\"}"
     elif [[ "${old_value}" != "${new_value}" ]]; then
         curl -Ss -o /dev/null \
@@ -83,7 +83,7 @@ function __set_value_with_key() {
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${APP_TOKEN}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${DEPLOYER_FOLDERNAME}/variables/${key}" \
+            -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/variables/${key}" \
             -d "{\"name\":\"${key}\", \"value\":\"${new_value}\"}"
     fi
 }
@@ -97,7 +97,7 @@ function __get_secret_with_key() {
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${DEPLOYER_FOLDERNAME}/secrets/${key}")
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/secrets/${key}")
 
     if [[ $status_code == "200" ]]; then
         echo "REDACTED_SECRET_EXISTS"
@@ -110,14 +110,14 @@ function __set_secret_with_key() {
     key=$1
     value=$2
 
-    echo "Saving secret value for key in environment ${DEPLOYER_FOLDERNAME}: ${key}"
+    echo "Saving secret value for key in environment ${CONTROL_PLANE_NAME}: ${key}"
 
     # Get public key for the repository to encrypt the secret
     public_key_response=$(curl -Ss \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${DEPLOYER_FOLDERNAME}/secrets/public-key")
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/secrets/public-key")
 
     public_key=$(echo $public_key_response | jq -r .key)
     public_key_id=$(echo $public_key_response | jq -r .key_id)
@@ -131,7 +131,7 @@ function __set_secret_with_key() {
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${DEPLOYER_FOLDERNAME}/secrets/${key}")
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/secrets/${key}")
 
     method="PUT"
     if [[ $status_code != "200" ]]; then
@@ -145,7 +145,7 @@ function __set_secret_with_key() {
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${DEPLOYER_FOLDERNAME}/secrets/${key}" \
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/secrets/${key}" \
         -d "{\"encrypted_value\":\"ENCRYPTED_VALUE\", \"key_id\":\"${public_key_id}\"}"
 }
 

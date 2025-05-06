@@ -93,8 +93,11 @@ variable "deployer_vm_count"           {
                                          default     = 1
                                        }
 variable "arm_client_id"               { description = "ARM client id" }
-
-
+variable "platform"                    {
+                                         description = "Type of agent to be used"
+                                         type       = string
+                                         default    = "devops"
+                                       }
 
 #########################################################################################
 #                                                                                       #
@@ -109,7 +112,21 @@ variable "ansible_core_version"        { description = "If provided, the version
 variable "Agent_IP"                    { description = "If provided, contains the IP address of the agent" }
 variable "spn_id"                      { description = "SPN ID to be used for the deployment" }
 
-
+#########################################################################################
+#                                                                                       #
+#  GitHub Actions definitions                                                           #
+#                                                                                       #
+#########################################################################################
+variable "app_token"                  { description = "If provided, contains token to access GitHub"}
+variable "server_url"                 {
+                                       description = "If provided, contains the Server Url of the GitHub instance"
+                                       default = "https://github.com"
+                                      }
+variable "api_url"                    {
+                                       description = "If provided, contains the API Url of the GitHub instance"
+                                       default = "https://api.github.com"
+                                      }
+variable "repository"                 { description = "If provided, contains the Reference to tue repositry (e.g. owner/repository)" }
 #######################################4#######################################8
 #                                                                              #
 #  Miscellaneous settings                                                      #

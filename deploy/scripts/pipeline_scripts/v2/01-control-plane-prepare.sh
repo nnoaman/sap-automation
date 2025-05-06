@@ -394,8 +394,8 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
 	added=1
 fi
 
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/.terraform/terraform.tfstate ]; then
+	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/.terraform/terraform.tfstate"
 	added=1
 fi
 
@@ -454,6 +454,7 @@ if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME.md" ];
 fi
 
 # Add variables to variable group or GitHub environment
+start_group "Adding variables to platform variable group"
 echo -e "$green--- Adding variables to storage ---$reset"
 if [ "$PLATFORM" == "devops" ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
@@ -465,5 +466,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME} ${CONTROL_PLANE_NAME}
 	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT} ${CONTROL_PLANE_NAME}
 fi
+end_group
 
 exit $return_code
