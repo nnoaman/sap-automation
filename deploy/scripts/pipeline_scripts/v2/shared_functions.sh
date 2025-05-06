@@ -32,11 +32,11 @@ function get_platform() {
 
 case $(get_platform) in
 github)
-    . ${SAP_AUTOMATION_REPO_PATH}/deploy/automation/platform/github_functions.sh
+    . ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/platform/github_functions.sh
     ;;
 
 devops)
-    . ${SAP_AUTOMATION_REPO_PATH}/deploy/automation/platform/devops_functions.sh
+    . ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/platform/devops_functions.sh
     ;;
 
 *)
