@@ -52,6 +52,7 @@ function commit_changes() {
 
 function __get_value_with_key() {
     key=$1
+    env=$2
 
     # TODO: If you want to use this function, you need to implement it
     value=$()
@@ -62,6 +63,7 @@ function __get_value_with_key() {
 function __set_value_with_key() {
     key=$1
     new_value=$2
+    env=$3
 
     # TODO: If you want to use this function, you need to implement it
 }
