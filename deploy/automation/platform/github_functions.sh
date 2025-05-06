@@ -46,7 +46,7 @@ function commit_changes() {
 
 function __get_value_with_key() {
     key=$1
-		env=$2
+		env=${2:-$CONTROL_PLANE_NAME}
 
     value=$(curl -Ss \
         -H "Accept: application/vnd.github+json" \
@@ -60,7 +60,7 @@ function __get_value_with_key() {
 function __set_value_with_key() {
     key=$1
     new_value=$2
-		env=$3
+		env=${3:-$CONTROL_PLANE_NAME}
 
     old_value=$(__get_value_with_key ${key})
 
