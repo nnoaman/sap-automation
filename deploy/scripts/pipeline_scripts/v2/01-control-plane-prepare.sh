@@ -461,9 +461,9 @@ if [ "$PLATFORM" == "devops" ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 elif [ "$PLATFORM" == "github" ]; then
 	echo "Variables set as GitHub Actions outputs"
-	set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME}
-	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
-	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT}
+	set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME} ${CONTROL_PLANE_NAME}
+	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME} ${CONTROL_PLANE_NAME}
+	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT} ${CONTROL_PLANE_NAME}
 fi
 
 exit $return_code
