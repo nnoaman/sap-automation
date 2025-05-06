@@ -48,7 +48,7 @@ esac
 function __appconfig_get_value_with_key() {
     key=$1
 
-    var=$(az appconfig kv show -n ${APP_CONFIGURATION_NAME} --key ${key} --label ${CONTROL_PLANE_NAME} --query value --output tsv)
+    var=$(az appconfig kv show -n ${APP_CONFIGURATION_NAME} --key ${key} --label ${CONTROL_PLANE_NAME} --query value --output tsv --auth-mode login --only-show-errors)
 
     echo $var
 }
@@ -58,7 +58,7 @@ function __appconfig_set_value_with_key() {
     value=$2
 
     echo "Saving value for key in ${APP_CONFIGURATION_NAME}: ${key}"
-    var=$(az appconfig kv set -n ${APP_CONFIGURATION_NAME} --key ${key} --label ${CONTROL_PLANE_NAME} --value ${value} --content-type text/plain --yes)
+    var=$(az appconfig kv set -n ${APP_CONFIGURATION_NAME} --key ${key} --label ${CONTROL_PLANE_NAME} --value ${value} --content-type text/plain --yes  --auth-mode login --only-show-errors)
 
     echo $var
 }
@@ -66,7 +66,7 @@ function __appconfig_set_value_with_key() {
 function __appconfig_get_secret_with_key() {
     key=$1
 
-    var=$(az appconfig kv show -n ${APP_CONFIGURATION_NAME} --key ${key} --label ${CONTROL_PLANE_NAME} --query value --secret --output tsv)
+    var=$(az appconfig kv show -n ${APP_CONFIGURATION_NAME} --key ${key} --label ${CONTROL_PLANE_NAME} --query value --secret --output tsv  --auth-mode login --only-show-errors)
 
     echo $var
 }
