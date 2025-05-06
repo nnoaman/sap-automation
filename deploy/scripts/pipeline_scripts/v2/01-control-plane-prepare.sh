@@ -303,6 +303,7 @@ if [[ $(get_platform) = github ]]; then
 	export TF_VAR_API_URL=${GITHUB_API_URL}
 	export TF_VAR_REPOSITORY=${GITHUB_REPOSITORY}
 	export TF_VAR_APP_TOKEN=${APP_TOKEN}
+	export TF_VAR_PLATFORM="github"
 fi
 end_group
 
