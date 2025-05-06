@@ -141,6 +141,19 @@ locals {
                                            devops_authentication_type          = var.app_service_devops_authentication_type
                                            encryption_at_host_enabled          = var.encryption_at_host_enabled
                                            deployer_public_ip_tags             = try(var.deployer_public_ip_tags, {})
+                                           devops                              = {
+                                                                                   agent_ado_url        = var.agent_ado_url
+                                                                                   agent_pat            = var.agent_pat
+                                                                                   agent_pool           = var.agent_pool
+                                                                                   app_token            = var.APP_TOKEN
+                                                                                   repository           = var.REPOSITORY
+                                                                                   server_url           = var.SERVER_URL
+                                                                                   api_url              = var.API_URL
+                                                                                   platform             = var.PLATFORM
+                                                                                   ansible_core_version = var.ansible_core_version
+                                                                                   tf_version           = var.tf_version
+
+                                                                                 }
                                          }
 
   authentication                       = {

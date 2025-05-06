@@ -21,10 +21,6 @@ module "sap_deployer" {
   Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   additional_network_id                         = var.additional_network_id
   additional_users_to_add_to_keyvault_policies  = var.additional_users_to_add_to_keyvault_policies
-  agent_ado_url                                 = var.agent_ado_url
-  agent_pat                                     = var.agent_pat
-  agent_pool                                    = var.agent_pool
-  ansible_core_version                          = var.ansible_core_version
   app_config_service                            = local.app_config_service
   app_service                                   = local.app_service
   arm_client_id                                 = var.arm_client_id
@@ -53,15 +49,9 @@ module "sap_deployer" {
   spn_id                                        = var.use_spn ? coalesce(var.spn_id, data.azurerm_key_vault_secret.client_id[0].value) : ""
   ssh-timeout                                   = var.ssh-timeout
   subnets_to_add                                = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
-  tf_version                                    = var.tf_version
   use_private_endpoint                          = var.use_private_endpoint
   use_service_endpoint                          = var.use_service_endpoint
   webapp_client_secret                          = var.webapp_client_secret
-  app_token                                     = var.APP_TOKEN
-  repository                                    = var.REPOSITORY
-  server_url                                    = var.SERVER_URL
-  api_url                                       = var.API_URL
-  platform                                      = var.PLATFORM
 }
 
 module "sap_namegenerator" {

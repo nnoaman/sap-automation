@@ -236,22 +236,22 @@ resource "azurerm_virtual_machine_extension" "configure" {
                                                  format(
                                                  "%s/templates/configure_deployer.sh.tmpl", path.module),
                                                  {
-                                                   tfversion            = var.tf_version,
+                                                   tfversion            = var.deployer.devops.tf_version,
                                                    rg_name              = local.resourcegroup_name,
                                                    client_id            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].client_id : data.azurerm_user_assigned_identity.deployer[0].client_id,
                                                    subscription_id      = data.azurerm_subscription.primary.subscription_id,
                                                    tenant_id            = data.azurerm_subscription.primary.tenant_id,
                                                    local_user           = local.username
-                                                   pool                 = var.agent_pool
-                                                   pat                  = var.agent_pat
-                                                   ado_repo             = var.agent_ado_url
+                                                   pool                 = var.deployer.devops.agent_pool
+                                                   pat                  = var.deployer.devops.agent_pat
+                                                   ado_repo             = var.deployer.devops.agent_ado_url
                                                    use_webapp           = var.app_service.use
-                                                   ansible_core_version = var.ansible_core_version
-                                                   api_url              = var.api_url
-                                                   app_token            = var.app_token
-                                                   platform             = var.platform
-                                                   repository           = var.repository
-                                                   server_url           = var.server_url
+                                                   ansible_core_version = var.deployer.devops.ansible_core_version
+                                                   api_url              = var.deployer.devops.api_url
+                                                   app_token            = var.deployer.devops.app_token
+                                                   platform             = var.deployer.devops.platform
+                                                   repository           = var.deployer.devops.repository
+                                                   server_url           = var.deployer.devops.server_url
                                                  }
                                                )
                                              )
