@@ -236,7 +236,7 @@ resource "azurerm_virtual_machine_extension" "configure" {
                                                  format(
                                                  "%s/templates/configure_deployer.sh.tmpl", path.module),
                                                  {
-                                                   tfversion            = var.deployer.devops.tf_version,
+                                                   tf_version           = var.deployer.devops.tf_version,
                                                    rg_name              = local.resourcegroup_name,
                                                    client_id            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].client_id : data.azurerm_user_assigned_identity.deployer[0].client_id,
                                                    subscription_id      = data.azurerm_subscription.primary.subscription_id,
