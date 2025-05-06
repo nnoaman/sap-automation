@@ -60,10 +60,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
 fi
 
-# Common configuration for both platforms
-file_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-
 if [ -z "${TF_VAR_ansible_core_version:-}" ]; then
 	TF_VAR_ansible_core_version=2.16
 	export TF_VAR_ansible_core_version
@@ -77,6 +73,7 @@ LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
+DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
 
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
@@ -347,44 +344,21 @@ set -eu
 
 # Process deployment outputs
 if [ -f "${deployer_environment_file_name}" ]; then
-	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -z "$file_deployer_tfstate_key" ]; then
-		deployer_tfstate_key=$file_deployer_tfstate_key
-		export deployer_tfstate_key
-	fi
-	echo "Deployer State File:                 $deployer_tfstate_key"
 
-	file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Key Vault:                  ${file_key_vault}"
+	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
 
-	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform Remote State Account:       ${file_REMOTE_STATE_SA}"
+	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+		echo "APPLICATION_CONFIGURATION_NAME:       ${APPLICATION_CONFIGURATION_NAME}"
 	fi
 
-	file_REMOTE_STATE_RG=$(grep -m1 "^REMOTE_STATE_RG" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
-	fi
 
 	# Set output variables for GitHub Actions
 	if [ "$PLATFORM" == "github" ]; then
-		set_output_variable "deployer_keyvault" "${file_key_vault}"
+		set_output_variable "deployer_keyvault" "${DEPLOYER_KEYVAULT}"
 		set_output_variable "this_agent" "self-hosted"
 	fi
-fi
-
-# Add variables to variable group or GitHub environment
-echo -e "$green--- Adding variables to storage ---$reset"
-if [ "$PLATFORM" == "devops" ]; then
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
-elif [ "$PLATFORM" == "github" ]; then
-	echo "Variables set as GitHub Actions outputs"
-	set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME}
-	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
-	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT}
 fi
 
 echo -e "$green--- Adding deployment automation configuration to repository ---$reset"
@@ -405,8 +379,8 @@ if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 	added=1
 fi
 
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/DEPLOYER_TFVARS_FILENAME" ]; then
+	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/DEPLOYER_TFVARS_FILENAME"
 	added=1
 fi
 
@@ -453,5 +427,19 @@ if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME.md" ];
 		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
+
+# Add variables to variable group or GitHub environment
+echo -e "$green--- Adding variables to storage ---$reset"
+if [ "$PLATFORM" == "devops" ]; then
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Variables set as GitHub Actions outputs"
+	set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME}
+	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
+	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT}
+fi
+
 
 exit $return_code
