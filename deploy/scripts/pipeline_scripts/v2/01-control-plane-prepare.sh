@@ -297,37 +297,32 @@ end_group
 
 git pull -q
 
+cd "${CONFIG_REPO_PATH}" || exit
+
 start_group "Decrypting state files"
-# Import PGP key if it exists, otherwise generate it
-if [ -f ${CONFIG_REPO_PATH}/private.pgp ]; then
-	set +e
-	gpg --list-keys sap-azure-deployer@example.com
-	return_code=$?
-	set -e
 
-	if [ ${return_code} != 0 ]; then
-		echo ${ARM_CLIENT_SECRET} | gpg --batch --passphrase-fd 0 --import ${CONFIG_REPO_PATH}/private.pgp
-	fi
+
+if [ "$PLATFORM" == "devops" ]; then
+	pass=${SYSTEM_COLLECTIONID//-/}
+elif [ "$PLATFORM" == "github" ]; then
+	pass=${GITHUB_REPOSITORY//-/}
 else
-	echo ${ARM_CLIENT_SECRET} | ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh
-	gpg --output ${CONFIG_REPO_PATH}/private.pgp --armor --export-secret-key sap-azure-deployer@example.com
-	git add ${CONFIG_REPO_PATH}/private.pgp
-	commit_changes "Adding PGP key for encryption of state file" true
+	pass="localpassword"
 fi
 
-if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg ]; then
-	echo "Decrypting state file"
-	echo ${ARM_CLIENT_SECRET} |
-		gpg --batch \
-			--passphrase-fd 0 \
-			--output ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate \
-			--decrypt ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+      pass=${SYSTEM_COLLECTIONID//-/}
+    elif [ "$PLATFORM" == "github" ]; then
+      pass=${GITHUB_REPOSITORY//-/}
+    else
+      pass="localpassword"
+    fi
+	echo "Unzipping the deployer state file"
+	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
-end_group
 
 # Deploy the control plane
-
-cd "${CONFIG_REPO_PATH}" || exit
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --control_plane_name "${CONTROL_PLANE_NAME}" \
 	--subscription "$ARM_SUBSCRIPTION_ID" \
@@ -349,6 +344,19 @@ echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset}"
 echo ""
 
 set -eu
+
+# Add variables to variable group or GitHub environment
+echo -e "$green--- Adding variables to storage ---$reset"
+if [ "$PLATFORM" == "devops" ]; then
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Variables set as GitHub Actions outputs"
+	set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME}
+	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
+	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT}
+fi
 
 # Process deployment outputs
 if [ -f "${deployer_environment_file_name}" ]; then
@@ -392,16 +400,6 @@ fi
 
 echo -e "$green--- Update repo ---$reset"
 
-pwd
-
-ls -lart
-
-ls -lart .sap_deployment_automation
-
-ls -lart "DEPLOYER/$DEPLOYER_FOLDERNAME"
-
-set -x
-
 if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
 	added=1
@@ -418,24 +416,9 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		sudo apt-get install zip -y
-		pass=${SYSTEM_COLLECTIONID//-/}
-		zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-	elif [ "$PLATFORM" == "github" ]; then
-		rm DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg >/dev/null 2>&1 || true
-
-		gpg --batch \
-			--output DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg \
-			--encrypt \
-			--disable-dirmngr --recipient sap-azure-deployer@example.com \
-			--trust-model always \
-			DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate
-		git add -f DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
-	else
-		pass="localpassword"
-	fi
+	sudo apt-get install zip -y
+	zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 	added=1
 fi
 
@@ -457,32 +440,17 @@ if [ 1 = $added ]; then
 			commit_changes "Added updates for deployment."
 		fi
 
-		if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-			upload_summary .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+		if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME.md" ]; then
+			upload_summary ".sap_deployment_automation/$CONTROL_PLANE_NAME.md"
 		fi
 	fi
 fi
 
-if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
+if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" >>$GITHUB_STEP_SUMMARY
-	fi
-fi
-
-# Add variables to variable group or GitHub environment
-echo -e "$green--- Adding variables to storage ---$reset"
-if [ 0 = $return_code ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
-	elif [ "$PLATFORM" == "github" ]; then
-		echo "Variables set as GitHub Actions outputs"
-		set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME}
-		set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
-		set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT}
+		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 
