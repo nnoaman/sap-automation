@@ -148,11 +148,16 @@ locals {
                                            deployer_public_ip_tags             = try(var.deployer_public_ip_tags, {})
 
                                            devops                              = {
-                                                                                   app_token                           = var.APP_TOKEN
-                                                                                   repository                          = var.REPOSITORY
-                                                                                   server_url                          = var.SERVER_URL
-                                                                                   api_url                             = var.API_URL
-                                                                                   platform                            = var.PLATFORM
+                                                                                   agent_ado_url        = var.agent_ado_url
+                                                                                   agent_pat            = var.agent_pat
+                                                                                   agent_pool           = var.agent_pool
+                                                                                   app_token            = var.APP_TOKEN
+                                                                                   repository           = var.REPOSITORY
+                                                                                   server_url           = var.SERVER_URL
+                                                                                   api_url              = var.API_URL
+                                                                                   platform             = var.PLATFORM
+                                                                                   ansible_core_version = var.ansible_core_version
+                                                                                   tf_version           = var.tf_version
                                                                                  }
 
 
