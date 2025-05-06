@@ -33,7 +33,7 @@ resource "null_resource" "prepare-deployer" {
                                              pool                 = var.deployer.devops.agent_pool,
                                              pat                  = var.deployer.devops.agent_pat,
                                              ado_repo             = var.deployer.devops.agent_ado_url,
-                                             use_webapp           = var.deployer.devops.app_service.use
+                                             use_webapp           = var.app_service.use
                                              ansible_core_version = var.deployer.devops.ansible_core_version
                                              api_url              = var.deployer.devops.api_url
                                              app_token            = var.deployer.devops.app_token
@@ -66,7 +66,7 @@ resource "null_resource" "prepare-deployer" {
 }
 
 resource "local_file" "configure_deployer" {
-  count                                = local.enable_deployer_public_ip ? 0 : var.deployer_vm_count > 0 ? 1 : 0
+  count                                = local.enable_deployer_public_ip ? 1 : var.deployer_vm_count > 0 ? 1 : 0
   content                              = templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
                                            tf_version           = var.deployer.devops.tf_version,
                                            rg_name              = local.resourcegroup_name,
@@ -77,7 +77,7 @@ resource "local_file" "configure_deployer" {
                                            pool                 = var.deployer.devops.agent_pool,
                                            pat                  = var.deployer.devops.agent_pat,
                                            ado_repo             = var.deployer.devops.agent_ado_url,
-                                           use_webapp           = var.deployer.app_service.use
+                                           use_webapp           = var.app_service.use
                                            ansible_core_version = var.deployer.devops.ansible_core_version
                                            api_url              = var.deployer.devops.api_url
                                            app_token            = var.deployer.devops.app_token
