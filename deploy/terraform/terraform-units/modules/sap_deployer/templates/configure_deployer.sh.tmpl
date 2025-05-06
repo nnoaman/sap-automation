@@ -860,6 +860,10 @@ function install_deps_ubuntu() {
   sudo service docker start
 }
 
+echo "------------------"
+echo "$${platform}"
+echo "------------------"
+
 # Install Docker and dependencies for GitHub runner if platform is github
 if [ "$${platform}" == "github" ]; then
   echo "Setting up GitHub runner environment"

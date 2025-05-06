@@ -104,11 +104,6 @@ variable "platform"                    {
 #  ADO definitions                                                                      #
 #                                                                                       #
 #########################################################################################
-
-variable "agent_pool"                  { description = "If provided, contains the name of the agent pool to be used" }
-variable "agent_pat"                   { description = "If provided, contains the Personal Access Token to be used" }
-variable "agent_ado_url"               { description = "If provided, contains the Url to the ADO repository" }
-variable "ansible_core_version"        { description = "If provided, the version of ansible core to be installed" }
 variable "Agent_IP"                    { description = "If provided, contains the IP address of the agent" }
 variable "spn_id"                      { description = "SPN ID to be used for the deployment" }
 

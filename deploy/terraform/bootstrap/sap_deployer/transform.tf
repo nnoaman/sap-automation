@@ -147,6 +147,14 @@ locals {
                                            encryption_at_host_enabled          = var.encryption_at_host_enabled
                                            deployer_public_ip_tags             = try(var.deployer_public_ip_tags, {})
 
+                                           devops                              = {
+                                                                                   app_token                           = var.APP_TOKEN
+                                                                                   repository                          = var.REPOSITORY
+                                                                                   server_url                          = var.SERVER_URL
+                                                                                   api_url                             = var.API_URL
+                                                                                   platform                            = var.PLATFORM
+                                                                                 }
+
 
                                          }
 
