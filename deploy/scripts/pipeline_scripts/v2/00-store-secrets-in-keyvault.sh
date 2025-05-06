@@ -7,7 +7,6 @@ reset="\e[0m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
-
 # Source the shared platform configuration
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 source "${SCRIPT_DIR}/shared_platform_config.sh"
@@ -22,7 +21,7 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-banner_title="Deploy Workload Zone"
+banner_title="Store credentials in Key Vault"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
@@ -78,47 +77,31 @@ echo ""
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
-  # Configure DevOps
-  configure_devops
+	# Configure DevOps
+	configure_devops
 
-  if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-    echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-    echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-    exit 2
-  fi
-  export VARIABLE_GROUP_ID
-  git checkout -q "$BUILD_SOURCEBRANCHNAME"
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
 	echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 elif [ "$PLATFORM" == "github" ]; then
-  # No specific variable group setup for GitHub Actions
-  # Values will be stored in GitHub Environment variables
-  echo "Configuring for GitHub Actions"
-  git checkout -q "$GITHUB_REF_NAME"
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
 fi
 
 echo -e "$green--- Read parameter values ---$reset"
-
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
-export deployer_tfstate_key
-
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-
-	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
-	if [ -z "$key_vault_id" ]; then
-		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
-	fi
-else
-	load_config_vars "${workload_environment_file_name}" "keyvault"
-	key_vault="$keyvault"
-	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
-
-fi
+key_vault="$DEPLOYER_KEYVAULT"
+key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
 if [ -z "$key_vault" ]; then
-	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name')."
+	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APP_CONFIGURATION_NAME')."
 	exit 2
 fi
 
