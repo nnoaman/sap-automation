@@ -266,7 +266,7 @@ pkg_mgr_install() {
 # Ansible installation directories
 ansible_base="/opt/ansible"
 ansible_bin="$${ansible_base}/bin"
-ansible_venv="$${ansible_base}/venv/$${ansible_version}"
+ansible_venv="$${ansible_base}/venv/$${ansible_version:-2.16}"
 ansible_venv_bin="$${ansible_venv}/bin"
 ansible_collections="$${ansible_base}/collections"
 ansible_pip3="$${ansible_venv_bin}/pip3"
@@ -775,11 +775,11 @@ function setup_github_runner() {
 
   set +e
   runner_token_response=$(curl -sS --fail-with-body \
-  -X POST \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer ${app_token}" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  -L "${api_url}/repos/${repository}/actions/runners/registration-token" )
+    -X POST \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer ${app_token}" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    -L "${api_url}/repos/${repository}/actions/runners/registration-token")
   exit_code=$?
   set -e
 
@@ -818,7 +818,7 @@ function install_deps_mariner() {
     zlib
 
   # Install jq, the Mariner version is ancient
-  curl -sSfL $(curl -sSf https://api.github.com/repos/jqlang/jq/releases/latest | grep browser_download_url | egrep 'jq-linux-amd64"' | tr -d " " | tr -d "\""| sed 's/browser_download_url://g') -o jq
+  curl -sSfL $(curl -sSf https://api.github.com/repos/jqlang/jq/releases/latest | grep browser_download_url | egrep 'jq-linux-amd64"' | tr -d " " | tr -d "\"" | sed 's/browser_download_url://g') -o jq
   sudo install -m755 jq /usr/local/bin/jq
 
   # Add the user to the docker group
@@ -850,7 +850,7 @@ function install_deps_ubuntu() {
     moby-engine
 
   # Install jq, the Ubuntu version is ancient
-  curl -sSfL $(curl -sSf https://api.github.com/repos/jqlang/jq/releases/latest | grep browser_download_url | egrep 'jq-linux-amd64"' | tr -d " " | tr -d "\""| sed 's/browser_download_url://g') -o jq
+  curl -sSfL $(curl -sSf https://api.github.com/repos/jqlang/jq/releases/latest | grep browser_download_url | egrep 'jq-linux-amd64"' | tr -d " " | tr -d "\"" | sed 's/browser_download_url://g') -o jq
   sudo install -m755 jq /usr/local/bin/jq
 
   # Add the user to the docker group
@@ -865,16 +865,16 @@ if [ "$${platform}" == "github" ]; then
   echo "Setting up GitHub runner environment"
 
   # Install Docker based on the OS distribution (only for Ubuntu and Mariner for GitHub runners)
-  case $(cat /etc/os-release | grep "^ID="| cut -d= -f2 | tr -d "\"" | tr '[:upper:]' '[:lower:]') in
-    (*mariner*)
-      install_deps_mariner
-      ;;
-    (*ubuntu*)
-      install_deps_ubuntu
-      ;;
-    (*)
-      echo "Docker installation for $(get_distro_name) is not supported for GitHub runners. Continuing with setup."
-      ;;
+  case $(cat /etc/os-release | grep "^ID=" | cut -d= -f2 | tr -d "\"" | tr '[:upper:]' '[:lower:]') in
+  *mariner*)
+    install_deps_mariner
+    ;;
+  *ubuntu*)
+    install_deps_ubuntu
+    ;;
+  *)
+    echo "Docker installation for $(get_distro_name) is not supported for GitHub runners. Continuing with setup."
+    ;;
   esac
 
   # Create and setup GitHub runner
@@ -947,26 +947,6 @@ if [ "$${platform}" != "github" ]; then
 
       echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}" | sudo tee -a /etc/profile.d/deploy_server.sh
       sudo chmod 775 /etc/profile.d/deploy_server.sh
-      # Install dotNet
-      case "$(get_distro_name)" in
-      ubuntu)
-        sudo snap install dotnet-sdk --classic
-        sudo snap alias dotnet-sdk.dotnet dotnet
-        ;;
-      sles)
-        # sudo rpm -Uvh https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm
-        # sudo ln --force -s /etc/yum.repos.d/microsoft-prod.repo /etc/zypp/repos.d/microsoft-prod.repo
-        # sudo zypper install dotnet-sdk-7.0
-        sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
-        sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-        sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 8.0
-        ;;
-      rhel*)
-        sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
-        sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-        sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 8.0
-        ;;
-      esac
     else
       echo "NO PAT specified"
       echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
@@ -977,3 +957,25 @@ if [ "$${platform}" != "github" ]; then
       echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
     fi
   fi
+fi
+
+# Install dotNet
+case "$(get_distro_name)" in
+ubuntu)
+  sudo snap install dotnet-sdk --classic
+  sudo snap alias dotnet-sdk.dotnet dotnet
+  ;;
+sles)
+  # sudo rpm -Uvh https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm
+  # sudo ln --force -s /etc/yum.repos.d/microsoft-prod.repo /etc/zypp/repos.d/microsoft-prod.repo
+  # sudo zypper install dotnet-sdk-7.0
+  sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
+  sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 8.0
+  ;;
+rhel*)
+  sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
+  sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 8.0
+  ;;
+esac
