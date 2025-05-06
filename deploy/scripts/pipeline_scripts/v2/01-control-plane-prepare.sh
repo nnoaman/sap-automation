@@ -75,7 +75,7 @@ mkdir -p .sap_deployment_automation
 ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
 
 echo "Configuration file:                  $deployer_environment_file_name"
@@ -345,19 +345,6 @@ echo ""
 
 set -eu
 
-# Add variables to variable group or GitHub environment
-echo -e "$green--- Adding variables to storage ---$reset"
-if [ "$PLATFORM" == "devops" ]; then
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
-elif [ "$PLATFORM" == "github" ]; then
-	echo "Variables set as GitHub Actions outputs"
-	set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME}
-	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
-	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT}
-fi
-
 # Process deployment outputs
 if [ -f "${deployer_environment_file_name}" ]; then
 	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
@@ -385,6 +372,19 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		set_output_variable "deployer_keyvault" "${file_key_vault}"
 		set_output_variable "this_agent" "self-hosted"
 	fi
+fi
+
+# Add variables to variable group or GitHub environment
+echo -e "$green--- Adding variables to storage ---$reset"
+if [ "$PLATFORM" == "devops" ]; then
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Variables set as GitHub Actions outputs"
+	set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME}
+	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
+	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT}
 fi
 
 echo -e "$green--- Adding deployment automation configuration to repository ---$reset"

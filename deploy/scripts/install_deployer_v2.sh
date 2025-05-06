@@ -33,7 +33,6 @@ readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
 
-
 ################################################################################
 # Function to display a help message for the deployer installation script.     #
 # Arguments:                                                                   #
@@ -250,7 +249,7 @@ function install_deployer() {
 	#Persisting the parameters across executions
 	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 	generic_config_information="${automation_config_directory}"config
-	deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
+	deployer_config_information="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	if [ ! -f "$deployer_config_information" ]; then
@@ -460,15 +459,18 @@ function install_deployer() {
 					else
 						return_value=$?
 					fi
+					if [ -f apply_output.json ]; then
+						# shellcheck disable=SC2086
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+							return_value=0
+						else
+							return_value=$?
+						fi
+					fi
 				fi
 			fi
-		fi
 
-		echo "Terraform Apply return code:         $return_value"
-
-		if [ 0 != $return_value ]; then
-			print_banner "$banner_title" "!!! Error when creating the deployer !!!." "error"
-			return 10
+			echo "Terraform Apply return code:         $return_value"
 		fi
 	fi
 
@@ -516,6 +518,10 @@ function install_deployer() {
 	fi
 
 	unset TF_DATA_DIR
+	if [ 0 != $return_value ]; then
+		print_banner "$banner_title" "!!! Error when creating the deployer !!!." "error"
+		return_value=10
+	fi
 
 	print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
