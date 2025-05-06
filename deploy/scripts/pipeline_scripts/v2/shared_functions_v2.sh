@@ -99,7 +99,7 @@ function get_value_with_key() {
         exit_error "Cannot get value with an empty key" 1
     fi
 
-    if [[ -v APP_CONFIGURATION_NAME ]]; then
+    if [[ -n "$APP_CONFIGURATION_NAME" ]]; then
         value=$(__appconfig_get_value_with_key $key)
     else
         value=$(__get_value_with_key $key)
@@ -111,15 +111,16 @@ function get_value_with_key() {
 function set_value_with_key() {
     key=$1
     value=$2
+    env=${3:-$CONTROL_PLANE_NAME}
 
-    if [[ $key == "" ]]; then
+    if [[ -z "$key" ]]; then
         exit_error "Cannot set value with an empty key" 1
     fi
 
-    if [[ -v APP_CONFIGURATION_NAME ]]; then
-        __appconfig_set_value_with_key $key $value
+    if [[ -n "$APP_CONFIGURATION_NAME" ]]; then
+        __appconfig_set_value_with_key "$key" "$value" "$env"
     else
-        __set_value_with_key $key $value
+        __set_value_with_key "$key" "$value" "$env"
     fi
 }
 
@@ -130,7 +131,7 @@ function get_secret_with_key() {
         exit_error "Cannot get secret with an empty key" 1
     fi
 
-    if [[ -v APP_CONFIGURATION_NAME ]]; then
+    if [[ -n "$APP_CONFIGURATION_NAME" ]]; then
         value=$(__appconfig_get_secret_with_key $key)
     else
         value=$(__get_secret_with_key $key)
@@ -147,7 +148,7 @@ function set_secret_with_key() {
         exit_error "Cannot set secret with an empty key" 1
     fi
 
-    if [[ -v APP_CONFIGURATION_NAME ]]; then
+    if [[ -n "$APP_CONFIGURATION_NAME" ]]; then
         __appconfig_set_secret_with_key $key $value
     else
         __set_secret_with_key $key $value
