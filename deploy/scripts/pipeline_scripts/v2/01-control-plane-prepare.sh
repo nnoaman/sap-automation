@@ -239,16 +239,30 @@ fi
 echo -e "$green--- Variables ---$reset"
 
 # Handle state.zip differently per platform
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		pass=${SYSTEM_COLLECTIONID//-/}
-	elif [ "$PLATFORM" == "github" ]; then
-		pass=${GITHUB_REPOSITORY//-/}
-	else
-		pass="localpassword"
+
+if [ "$PLATFORM" == "devops" ]; then
+	pass=${SYSTEM_COLLECTIONID//-/}
+elif [ "$PLATFORM" == "github" ]; then
+	pass=${GITHUB_REPOSITORY//-/}
+else
+	pass="localpassword"
+fi
+
+# Import PGP key if it exists, otherwise generate it
+if [ -f ${CONFIG_REPO_PATH}/private.pgp ]; then
+	set +e
+	gpg --list-keys sap-azure-deployer@example.com
+	return_code=$?
+	set -e
+
+	if [ ${return_code} != 0 ]; then
+		echo ${ARM_CLIENT_SECRET} | gpg --batch --passphrase-fd 0 --import ${CONFIG_REPO_PATH}/private.pgp
 	fi
-	echo "Unzipping state.zip"
-	unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+else
+	echo ${pass} | ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh
+	gpg --output ${CONFIG_REPO_PATH}/private.pgp --armor --export-secret-key sap-azure-deployer@example.com
+	git add ${CONFIG_REPO_PATH}/private.pgp
+	commit_changes "Adding PGP key for encryption of state file" true
 fi
 
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -298,27 +312,24 @@ cd "${CONFIG_REPO_PATH}" || exit
 
 start_group "Decrypting state files"
 
-
-if [ "$PLATFORM" == "devops" ]; then
-	pass=${SYSTEM_COLLECTIONID//-/}
-elif [ "$PLATFORM" == "github" ]; then
-	pass=${GITHUB_REPOSITORY//-/}
-else
-	pass="localpassword"
+if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg ]; then
+	echo "Decrypting state file"
+	echo ${pass} |
+		gpg --batch \
+			--passphrase-fd 0 \
+			--output ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate \
+			--decrypt ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-      pass=${SYSTEM_COLLECTIONID//-/}
-    elif [ "$PLATFORM" == "github" ]; then
-      pass=${GITHUB_REPOSITORY//-/}
-    else
-      pass="localpassword"
-    fi
 	echo "Unzipping the deployer state file"
 	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
+
+end_group
+
+start_group "Deploy the control plane"
 # Deploy the control plane
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --control_plane_name "${CONTROL_PLANE_NAME}" \
@@ -352,7 +363,6 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
 		echo "APPLICATION_CONFIGURATION_NAME:       ${APPLICATION_CONFIGURATION_NAME}"
 	fi
-
 
 	# Set output variables for GitHub Actions
 	if [ "$PLATFORM" == "github" ]; then
@@ -390,9 +400,24 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-	sudo apt-get install zip -y
-	zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+	if [ "$PLATFORM" == "devops" ]; then
+		sudo apt-get install zip -y
+		pass=${SYSTEM_COLLECTIONID//-/}
+		zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+	elif [ "$PLATFORM" == "github" ]; then
+		rm DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg >/dev/null 2>&1 || true
+		echo "Encrypting state file"
+		gpg --batch \
+			--output DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg \
+			--encrypt \
+			--disable-dirmngr --recipient sap-azure-deployer@example.com \
+			--trust-model always \
+			DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate
+		git add -f DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
+	else
+		pass="localpassword"
+	fi
 	added=1
 fi
 
@@ -440,6 +465,5 @@ elif [ "$PLATFORM" == "github" ]; then
 	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
 	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT}
 fi
-
 
 exit $return_code
