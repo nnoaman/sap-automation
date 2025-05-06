@@ -91,6 +91,8 @@ elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
+	DEPLOYER_KEYVAULT=$(get_value_with_key DEPLOYER_KEYVAULT "$CONTROL_PLANE_NAME")
+	APP_CONFIGURATION_NAME=$(get_value_with_key APP_CONFIGURATION_NAME "$CONTROL_PLANE_NAME")
 fi
 
 echo -e "$green--- Read parameter values ---$reset"
