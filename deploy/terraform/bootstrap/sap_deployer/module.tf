@@ -60,6 +60,8 @@ module "sap_deployer" {
   repository                                   = var.REPOSITORY
   server_url                                   = var.SERVER_URL
   api_url                                      = var.API_URL
+  platform                                      = var.PLATFORM
+
 }
 
 module "sap_namegenerator" {
