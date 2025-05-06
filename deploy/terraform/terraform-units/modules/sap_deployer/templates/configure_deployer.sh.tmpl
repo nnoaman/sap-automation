@@ -95,6 +95,7 @@ if [ "$${platform}" == "github" ]; then
   if [[ "$${missing_vars}" == "true" ]]; then
     echo "Missing required GitHub variables. Cannot setup GitHub runner."
     platform="none"
+    exit 10
   fi
 fi
 
