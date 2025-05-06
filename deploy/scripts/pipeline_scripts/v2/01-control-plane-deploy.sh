@@ -8,7 +8,7 @@ source "${SCRIPT_DIR}/shared_platform_config.sh"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-  echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 fi
 
 green="\e[1;32m"
@@ -52,7 +52,7 @@ echo -e "$green--- File Validations ---$reset"
 if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
 	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found" "error"
 	if [ "$PLATFORM" == "devops" ]; then
-	  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+		echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
 	fi
 	exit 2
 fi
@@ -60,7 +60,7 @@ fi
 if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
 	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found" "error"
 	if [ "$PLATFORM" == "devops" ]; then
-	  echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+		echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	fi
 	exit 2
 fi
@@ -88,18 +88,18 @@ print_header
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
-  # Configure DevOps
-  configure_devops
+	# Configure DevOps
+	configure_devops
 
-  if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-    echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-    echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-    exit 2
-  fi
-  export VARIABLE_GROUP_ID
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
 elif [ "$PLATFORM" == "github" ]; then
-  # No specific variable group setup for GitHub Actions
-  echo "Configuring for GitHub Actions - using environment variables"
+	# No specific variable group setup for GitHub Actions
+	echo "Configuring for GitHub Actions - using environment variables"
 fi
 
 # Check if running on deployer
@@ -109,7 +109,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	if ! LogonToAzure false; then
 		print_banner "$banner_title" "Login to Azure failed" "error"
 		if [ "$PLATFORM" == "devops" ]; then
-		  echo "##vso[task.logissue type=error]az login failed."
+			echo "##vso[task.logissue type=error]az login failed."
 		fi
 		exit 2
 	fi
@@ -129,10 +129,10 @@ else
 
 		# Get SPN ID differently per platform
 		if [ "$PLATFORM" == "devops" ]; then
-		  TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
+			TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
 		elif [ "$PLATFORM" == "github" ]; then
-		  # Use value from env or from GitHub environment
-		  TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
+			# Use value from env or from GitHub environment
+			TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
 		fi
 
 		if [ -n "$TF_VAR_spn_id" ]; then
@@ -162,17 +162,17 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$key_vault_id" ]; then
 		if [ "$PLATFORM" == "devops" ]; then
-		  echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+			echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 		else
-		  echo "ERROR: Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration."
+			echo "ERROR: Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration."
 		fi
 	fi
 	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 else
 	if [ "$PLATFORM" == "devops" ]; then
-	  echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not defined."
+		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	else
-	  echo "ERROR: Variable APPLICATION_CONFIGURATION_ID was not defined."
+		echo "ERROR: Variable APPLICATION_CONFIGURATION_ID was not defined."
 	fi
 	load_config_vars "${deployer_environment_file_name}" "keyvault"
 	key_vault="$keyvault"
@@ -239,24 +239,24 @@ fi
 # Handle state.zip differently per platform
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-      pass=${SYSTEM_COLLECTIONID//-/}
-    elif [ "$PLATFORM" == "github" ]; then
-      pass=${GITHUB_REPOSITORY//-/}
-    else
-      pass="localpassword"
-    fi
+		pass=${SYSTEM_COLLECTIONID//-/}
+	elif [ "$PLATFORM" == "github" ]; then
+		pass=${GITHUB_REPOSITORY//-/}
+	else
+		pass="localpassword"
+	fi
 	echo "Unzipping the library state file"
 	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-      pass=${SYSTEM_COLLECTIONID//-/}
-    elif [ "$PLATFORM" == "github" ]; then
-      pass=${GITHUB_REPOSITORY//-/}
-    else
-      pass="localpassword"
-    fi
+		pass=${SYSTEM_COLLECTIONID//-/}
+	elif [ "$PLATFORM" == "github" ]; then
+		pass=${GITHUB_REPOSITORY//-/}
+	else
+		pass="localpassword"
+	fi
 	echo "Unzipping the deployer state file"
 	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
@@ -285,11 +285,11 @@ echo -e "$green--- Control Plane deployment---$reset"
 
 # Platform-specific flags
 if [ "$PLATFORM" == "devops" ]; then
-  platform_flag="--ado"
+	platform_flag="--ado"
 elif [ "$PLATFORM" == "github" ]; then
-  platform_flag="--github"
+	platform_flag="--github"
 else
-  platform_flag=""
+	platform_flag=""
 fi
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
@@ -299,13 +299,13 @@ if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --dep
 	"${storage_account_parameter}" "${keyvault_parameter}"; then
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then
-	  echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
+		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
 	fi
 	echo "Return code from deploy_control_plane_v2 $return_code."
 else
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then
-	  echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
+		echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
 	fi
 	echo "Return code from deploy_control_plane_v2 $return_code."
 fi
@@ -316,9 +316,9 @@ cd "${CONFIG_REPO_PATH}" || exit
 
 # Pull latest changes from appropriate branch
 if [ "$PLATFORM" == "devops" ]; then
-  git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 elif [ "$PLATFORM" == "github" ]; then
-  git pull -q origin "$GITHUB_REF_NAME"
+	git pull -q origin "$GITHUB_REF_NAME"
 fi
 
 echo -e "$green--- Update repo ---$reset"
@@ -349,15 +349,34 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 			echo "Compressing the deployer state file"
+			if [ "$PLATFORM" == "devops" ]; then
+				sudo apt-get install zip -y
+				pass=${SYSTEM_COLLECTIONID//-/}
+				zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+			elif [ "$PLATFORM" == "github" ]; then
+				rm DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+				echo "Encrypting state file"
+				gpg --batch \
+					--output DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg \
+					--encrypt \
+					--disable-dirmngr --recipient sap-azure-deployer@example.com \
+					--trust-model always \
+					DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate
+				git add -f DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg
+			else
+				pass="localpassword"
+			fi
+
 			sudo apt-get -qq install zip
 
 			if [ "$PLATFORM" == "devops" ]; then
-              pass=${SYSTEM_COLLECTIONID//-/}
-            elif [ "$PLATFORM" == "github" ]; then
-              pass=${GITHUB_REPOSITORY//-/}
-            else
-              pass="localpassword"
-            fi
+				pass=${SYSTEM_COLLECTIONID//-/}
+			elif [ "$PLATFORM" == "github" ]; then
+				pass=${GITHUB_REPOSITORY//-/}
+			else
+				pass="localpassword"
+			fi
 			zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
 			git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 			rm "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
@@ -374,6 +393,13 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			if [ 0 == $return_code ]; then
 				echo "Removing the deployer state zip file"
 				git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+				added=1
+			fi
+		fi
+		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" ]; then
+			if [ 0 == $return_code ]; then
+				echo "Removing the deployer state gpg file"
+				git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
 				added=1
 			fi
 		fi
@@ -397,22 +423,25 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
 	if [ -n "$local_backend" ]; then
 		echo "Library Terraform state:               local"
-		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-			sudo apt-get -qq install zip
-
-			echo "Compressing the library state file"
-			if [ "$PLATFORM" == "devops" ]; then
-              pass=${SYSTEM_COLLECTIONID//-/}
-            elif [ "$PLATFORM" == "github" ]; then
-              pass=${GITHUB_REPOSITORY//-/}
-            else
-              pass="localpassword"
-            fi
+		if [ "$PLATFORM" == "devops" ]; then
+			sudo apt-get install zip -y
+			pass=${SYSTEM_COLLECTIONID//-/}
 			zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
 			git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-			rm "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-			added=1
+		elif [ "$PLATFORM" == "github" ]; then
+			rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+			echo "Encrypting state file"
+			gpg --batch \
+				--output LIBRARY/$LIBRARY_FOLDERNAME/state.gpg \
+				--encrypt \
+				--disable-dirmngr --recipient sap-azure-deployer@example.com \
+				--trust-model always \
+				LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate
+			git add -f LIBRARY/$LIBRARY_FOLDERNAME/state.gpg
+		else
+			pass="localpassword"
 		fi
+		added=1
 	else
 		echo "Library Terraform state:               remote"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
@@ -427,48 +456,53 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
 			added=1
 		fi
+		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
+			echo "Removing the library state gpg file"
+			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
+			added=1
+		fi
 	fi
 fi
 
 # Commit changes based on platform
 if [ 1 = $added ]; then
-    if [ "$PLATFORM" == "devops" ]; then
-      git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-      git config --global user.name "$BUILD_REQUESTEDFOR"
-      commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
-    elif [ "$PLATFORM" == "github" ]; then
-      git config --global user.email "github-actions@github.com"
-      git config --global user.name "GitHub Actions"
-      commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
-    else
-      git config --global user.email "local@example.com"
-      git config --global user.name "Local User"
-      commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
-    fi
+	if [ "$PLATFORM" == "devops" ]; then
+		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+		git config --global user.name "$BUILD_REQUESTEDFOR"
+		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
+	elif [ "$PLATFORM" == "github" ]; then
+		git config --global user.email "github-actions@github.com"
+		git config --global user.name "GitHub Actions"
+		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
+	else
+		git config --global user.email "local@example.com"
+		git config --global user.name "Local User"
+		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
+	fi
 
 	if [ $DEBUG = True ]; then
 		git status --verbose
 		if git commit --message --verbose "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then
-			  if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-			    echo "Failed to push changes to the repository."
-			  fi
+				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
 			elif [ "$PLATFORM" == "github" ]; then
-			  if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-			    echo "Failed to push changes to the repository."
-			  fi
+				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
 			fi
 		fi
 	else
 		if git commit -m "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then
-			  if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-			    echo "Failed to push changes to the repository."
-			  fi
+				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
 			elif [ "$PLATFORM" == "github" ]; then
-			  if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-			    echo "Failed to push changes to the repository."
-			  fi
+				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
 			fi
 		fi
 	fi
@@ -477,29 +511,29 @@ fi
 # Add variables to storage based on platform
 echo -e "$green--- Adding variables to storage ---$reset"
 if [ 0 = $return_code ]; then
-    if [ "$PLATFORM" == "devops" ]; then
-      echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-      if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
-        echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
-      else
-        echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-        echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-      fi
-    elif [ "$PLATFORM" == "github" ]; then
-      # Set output variables for GitHub Actions
-      echo "Setting output variable for GitHub Actions"
-      set_output_variable "control_plane_name" "$CONTROL_PLANE_NAME"
-      set_output_variable "deployer_keyvault" "$key_vault"
-    fi
+	if [ "$PLATFORM" == "devops" ]; then
+		echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
+			echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+		fi
+	elif [ "$PLATFORM" == "github" ]; then
+		# Set output variables for GitHub Actions
+		echo "Setting output variable for GitHub Actions"
+		set_output_variable "control_plane_name" "$CONTROL_PLANE_NAME"
+		set_output_variable "deployer_keyvault" "$key_vault"
+	fi
 fi
 
 # Platform-specific summary handling
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
-    if [ "$PLATFORM" == "devops" ]; then
-      echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
-    elif [ "$PLATFORM" == "github" ]; then
-      cat "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" >> $GITHUB_STEP_SUMMARY
-    fi
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
+	elif [ "$PLATFORM" == "github" ]; then
+		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
+	fi
 fi
 
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"

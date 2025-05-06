@@ -46,12 +46,13 @@ function commit_changes() {
 
 function __get_value_with_key() {
     key=$1
+		env=${2:-$CONTROL_PLANE_NAME}
 
     value=$(curl -Ss \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${deployerfolder}/variables/${key}" | jq -r '.value // empty')
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/$env/variables/${key}" | jq -r '.value // empty')
 
     echo $value
 }
@@ -59,10 +60,11 @@ function __get_value_with_key() {
 function __set_value_with_key() {
     key=$1
     new_value=$2
+		env=${3:-$CONTROL_PLANE_NAME}
 
     old_value=$(__get_value_with_key ${key})
 
-    echo "Saving value for key in environment ${deployerfolder}: ${key}"
+    echo "Saving value for key in environment $env: ${key}"
 
     if [[ -z "${old_value}" ]]; then
         curl -Ss -o /dev/null \
@@ -70,7 +72,7 @@ function __set_value_with_key() {
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${APP_TOKEN}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${deployerfolder}/variables" \
+            -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${env}/variables" \
             -d "{\"name\":\"${key}\", \"value\":\"${new_value}\"}"
     elif [[ "${old_value}" != "${new_value}" ]]; then
         curl -Ss -o /dev/null \
@@ -78,7 +80,7 @@ function __set_value_with_key() {
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${APP_TOKEN}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${deployerfolder}/variables/${key}" \
+            -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${env}/variables/${key}" \
             -d "{\"name\":\"${key}\", \"value\":\"${new_value}\"}"
     fi
 }

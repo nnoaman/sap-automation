@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/cbl-mariner/base/core:2.0
 
-ARG TF_VERSION=1.7.5
+ARG TF_VERSION=1.11.4
 ARG YQ_VERSION=v4.42.1
 ARG NODE_VERSION=18.19.1
 
@@ -10,7 +10,7 @@ RUN tdnf install -y \
   ca-certificates \
   curl \
   dos2unix \
-  dotnet-sdk-7.0 \
+  dotnet-sdk-8.0 \
   gawk \
   gh \
   git \
