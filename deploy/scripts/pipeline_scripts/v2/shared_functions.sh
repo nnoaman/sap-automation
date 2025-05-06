@@ -90,15 +90,16 @@ function get_value_with_key() {
 function set_value_with_key() {
     key=$1
     value=$2
+		env=${3:-$CONTROL_PLANE_NAME}
 
     if [[ $key == "" ]]; then
         exit_error "Cannot set value with an empty key" 1
     fi
 
     if [[ -v APP_CONFIGURATION_NAME ]]; then
-        __appconfig_set_value_with_key $key $value
+        __appconfig_set_value_with_key $key $value $env
     else
-        __set_value_with_key $key $value
+        __set_value_with_key $key $value $env
     fi
 }
 
