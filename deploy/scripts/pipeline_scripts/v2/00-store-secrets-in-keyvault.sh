@@ -96,24 +96,19 @@ elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
-	if [[ ! -v $DEPLOYER_KEYVAULT ]]; then
-		DEPLOYER_KEYVAULT=$(get_value_with_key DEPLOYER_KEYVAULT "$CONTROL_PLANE_NAME")
-	fi
 fi
 
 echo -e "$green--- Read parameter values ---$reset"
-key_vault="$DEPLOYER_KEYVAULT"
 key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
-if [ -z "$key_vault" ]; then
-	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APP_CONFIGURATION_NAME')."
+if [ -z "$DEPLOYER_KEYVAULT" ]; then
 	exit 2
 fi
 
 if [ "$USE_MSI" != "true" ]; then
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "$DEPLOYER_KEYVAULT" --keyvault_subscription "$keyvault_subscription_id" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --client_tenant_id "$TENANT_ID" --ado; then
 		return_code=$?
 	else
@@ -122,7 +117,7 @@ if [ "$USE_MSI" != "true" ]; then
 		exit $return_code
 	fi
 else
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "$DEPLOYER_KEYVAULT" --keyvault_subscription "$keyvault_subscription_id" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --msi --ado; then
 		return_code=$?
 	else
