@@ -58,6 +58,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 fi
 
 if [ -z "${TF_VAR_ansible_core_version:-}" ]; then
@@ -469,10 +470,12 @@ if [ "$PLATFORM" == "devops" ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 elif [ "$PLATFORM" == "github" ]; then
 	echo "Variables set as GitHub Actions outputs"
-	set_value_with_key "APPLICATION_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME} ${CONTROL_PLANE_NAME}
-	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME} ${CONTROL_PLANE_NAME}
-	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT} ${CONTROL_PLANE_NAME}
-	set_value_with_key "MSI_ID" ${MSI_ID} ${CONTROL_PLANE_NAME}
+	APPLICATION_CONFIGURATION_NAME_VALUE=$(config_value_with_key "APPLICATION_CONFIGURATION_NAME")
+	DEPLOYER_KEYVAULT_VALUE=$(config_value_with_key "DEPLOYER_KEYVAULT")
+	set_value_with_key "APPLICATION_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME_VALUE}
+	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
+	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT_VALUE}
+	set_value_with_key "MSI_ID" ${MSI_ID}
 fi
 end_group
 
