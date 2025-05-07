@@ -102,7 +102,6 @@ if [ 0 -ne ${step:-0} ]; then
 	else
 		echo "WARNING: Already prepared"
 	fi
-	exit 0
 fi
 
 # Git checkout for the correct branch
@@ -330,7 +329,6 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	echo "Unzipping the deployer state file"
 	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
-
 
 end_group
 
