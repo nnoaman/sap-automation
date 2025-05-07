@@ -367,11 +367,14 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		echo "APPLICATION_CONFIGURATION_NAME:       ${APPLICATION_CONFIGURATION_NAME}"
 	fi
 
+	MSI_ID=$(grep -m1 "^MSI_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	echo "MSI_ID:                              ${MSI_ID}"
 	# Set output variables for GitHub Actions
 	if [ "$PLATFORM" == "github" ]; then
 		set_output_variable "deployer_keyvault" "${DEPLOYER_KEYVAULT}"
 		set_output_variable "this_agent" "self-hosted"
 		set_output_variable "app_config_name" "${APPLICATION_CONFIGURATION_NAME}"
+		set_output_variable "msi_id" "${MSI_ID}"
 	fi
 fi
 
@@ -466,9 +469,10 @@ if [ "$PLATFORM" == "devops" ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 elif [ "$PLATFORM" == "github" ]; then
 	echo "Variables set as GitHub Actions outputs"
-	set_value_with_key "APP_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME} ${CONTROL_PLANE_NAME}
+	set_value_with_key "APPLICATION_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME} ${CONTROL_PLANE_NAME}
 	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME} ${CONTROL_PLANE_NAME}
 	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT} ${CONTROL_PLANE_NAME}
+	set_value_with_key "MSI_ID" ${MSI_ID} ${CONTROL_PLANE_NAME}
 fi
 end_group
 

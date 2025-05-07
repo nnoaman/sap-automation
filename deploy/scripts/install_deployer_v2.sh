@@ -509,6 +509,12 @@ function install_deployer() {
 		export HAS_WEBAPP
 	fi
 
+	MSI_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_msi_id | tr -d \")
+	if [ -n "${MSI_ID}" ]; then
+		save_config_var "MSI_ID" "${deployer_config_information}"
+		export MSI_ID
+	fi
+
 	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${deployer_random_id}" ]; then
 		custom_random_id="${deployer_random_id:0:3}"
