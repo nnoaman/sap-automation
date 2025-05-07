@@ -74,7 +74,12 @@ fi
 print_header
 
 echo ""
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
+APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+	echo "APPLICATION_CONFIGURATION_NAME:       ${APPLICATION_CONFIGURATION_NAME}"
+fi
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
 	# Configure DevOps
@@ -93,9 +98,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
 	if [[ ! -v $DEPLOYER_KEYVAULT ]]; then
 		DEPLOYER_KEYVAULT=$(get_value_with_key DEPLOYER_KEYVAULT "$CONTROL_PLANE_NAME")
-	fi
-	if [[ ! -v $APP_CONFIGURATION_NAME ]]; then
-		APP_CONFIGURATION_NAME=$(get_value_with_key APP_CONFIGURATION_NAME "$CONTROL_PLANE_NAME")
 	fi
 fi
 
