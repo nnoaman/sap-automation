@@ -69,6 +69,9 @@ function __set_value_with_key() {
 
     echo "Saving value ${new_value} for key ${key} in environment variables ${CONTROL_PLANE_NAME}"
 
+		echo "OLD VALUE: $old_value"
+
+
     if [[ -z "${old_value}" ]]; then
         curl -Ss -o /dev/null \
             -X POST \
