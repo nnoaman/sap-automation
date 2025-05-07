@@ -373,6 +373,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	if [ "$PLATFORM" == "github" ]; then
 		set_output_variable "deployer_keyvault" "${DEPLOYER_KEYVAULT}"
 		set_output_variable "this_agent" "self-hosted"
+		set_output_variable "app_config_name" "${APPLICATION_CONFIGURATION_NAME}"
 	fi
 fi
 
