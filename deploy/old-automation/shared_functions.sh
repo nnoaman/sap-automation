@@ -48,7 +48,7 @@ esac
 function __appconfig_get_value_with_key() {
     key=$1
 
-    var=$(az appconfig kv show -n ${APP_CONFIGURATION_NAME} --key ${key} --label ${VARIABLE_GROUP_ID} --query value --output tsv)
+    var=$(az appconfig kv show -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${CONTROL_PLANE_NAME} --query value --output tsv --auth-mode login)
 
     echo $var
 }
@@ -57,8 +57,8 @@ function __appconfig_set_value_with_key() {
     key=$1
     value=$2
 
-    echo "Saving value for key in ${APP_CONFIGURATION_NAME}: ${key}"
-    var=$(az appconfig kv set -n ${APP_CONFIGURATION_NAME} --key ${key} --label ${VARIABLE_GROUP_ID} --value ${value} --content-type text/plain --yes)
+    echo "Saving value for key in ${APPLICATION_CONFIGURATION_NAME}: ${key}"
+    var=$(az appconfig kv set -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${CONTROL_PLANE_NAME} --value ${value} --content-type text/plain --yes  --auth-mode login)
 
     echo $var
 }
@@ -66,7 +66,7 @@ function __appconfig_set_value_with_key() {
 function __appconfig_get_secret_with_key() {
     key=$1
 
-    var=$(az appconfig kv show -n ${APP_CONFIGURATION_NAME} --key ${key} --label ${VARIABLE_GROUP_ID} --query value --secret --output tsv)
+    var=$(az appconfig kv show -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${CONTROL_PLANE_NAME} --query value --secret --output tsv  --auth-mode login)
 
     echo $var
 }
@@ -78,7 +78,7 @@ function get_value_with_key() {
         exit_error "Cannot get value with an empty key" 1
     fi
 
-    if [[ -v APP_CONFIGURATION_NAME ]]; then
+    if [[ -v APPLICATION_CONFIGURATION_NAME ]]; then
         value=$(__appconfig_get_value_with_key $key)
     else
         value=$(__get_value_with_key $key)
@@ -96,7 +96,7 @@ function set_value_with_key() {
         exit_error "Cannot set value with an empty key" 1
     fi
 
-    if [[ -v APP_CONFIGURATION_NAME ]]; then
+    if [[ -v APPLICATION_CONFIGURATION_NAME ]]; then
         __appconfig_set_value_with_key $key $value $env
     else
         __set_value_with_key $key $value $env
@@ -110,7 +110,7 @@ function get_secret_with_key() {
         exit_error "Cannot get secret with an empty key" 1
     fi
 
-    if [[ -v APP_CONFIGURATION_NAME ]]; then
+    if [[ -v APPLICATION_CONFIGURATION_NAME ]]; then
         value=$(__appconfig_get_secret_with_key $key)
     else
         value=$(__set_secret_with_key $key)
@@ -127,7 +127,7 @@ function set_secret_with_key() {
         exit_error "Cannot set secret with an empty key" 1
     fi
 
-    if [[ -v APP_CONFIGURATION_NAME ]]; then
+    if [[ -v APPLICATION_CONFIGURATION_NAME ]]; then
         __appconfig_set_secret_with_key $key $value
     else
         __set_secret_with_key $key $value
