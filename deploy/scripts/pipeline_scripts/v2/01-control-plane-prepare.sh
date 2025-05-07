@@ -465,19 +465,15 @@ fi
 start_group "Adding variables to platform variable group"
 echo -e "$green--- Adding variables to storage ---$reset"
 if [ "$PLATFORM" == "devops" ]; then
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 elif [ "$PLATFORM" == "github" ]; then
-	echo "Variables set as GitHub Actions outputs"
-	APPLICATION_CONFIGURATION_NAME_VALUE=$(config_value_with_key "APPLICATION_CONFIGURATION_NAME")
-	echo "APPLICATION_CONFIGURATION_NAME:       ${APPLICATION_CONFIGURATION_NAME_VALUE}"
-	DEPLOYER_KEYVAULT_VALUE=$(config_value_with_key "DEPLOYER_KEYVAULT")
-	echo "DEPLOYER_KEYVAULT:                   ${DEPLOYER_KEYVAULT_VALUE}"
-	set_value_with_key "APPLICATION_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME_VALUE}
-	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME}
-	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT_VALUE}
-	set_value_with_key "MSI_ID" ${MSI_ID}
+    echo "Variables set as GitHub Actions outputs"
+    set_value_with_key "APPLICATION_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME_VALUE} "env"
+    set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME} "env"
+    set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT_VALUE} "env"
+    set_value_with_key "MSI_ID" ${MSI_ID} "env"
 fi
 end_group
 

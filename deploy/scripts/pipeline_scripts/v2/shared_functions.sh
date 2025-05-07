@@ -90,15 +90,18 @@ function get_value_with_key() {
 function set_value_with_key() {
     key=$1
     value=$2
+    var_type=$3
 
-    if [[ $key == "" ]]; then
+    if [[ -z "$key" ]]; then
         exit_error "Cannot set value with an empty key" 1
     fi
 
-    if [[ -v APPLICATION_CONFIGURATION_NAME ]]; then
+    if [[ "$var_type" == "app_config" && -v APPLICATION_CONFIGURATION_NAME ]]; then
         __appconfig_set_value_with_key $key $value
-    else
+    elif [[ "$var_type" == "env" ]]; then
         __set_value_with_key $key $value
+		else
+        exit_error "Unknown var_type: $var_type" 2
     fi
 }
 
