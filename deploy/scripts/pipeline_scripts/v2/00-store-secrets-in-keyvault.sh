@@ -91,8 +91,12 @@ elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
-	DEPLOYER_KEYVAULT=$(get_value_with_key DEPLOYER_KEYVAULT "$CONTROL_PLANE_NAME")
-	APP_CONFIGURATION_NAME=$(get_value_with_key APP_CONFIGURATION_NAME "$CONTROL_PLANE_NAME")
+	if [[ ! -v $DEPLOYER_KEYVAULT ]]; then
+		DEPLOYER_KEYVAULT=$(get_value_with_key DEPLOYER_KEYVAULT "$CONTROL_PLANE_NAME")
+	fi
+	if [[ ! -v $APP_CONFIGURATION_NAME ]]; then
+		APP_CONFIGURATION_NAME=$(get_value_with_key APP_CONFIGURATION_NAME "$CONTROL_PLANE_NAME")
+	fi
 fi
 
 echo -e "$green--- Read parameter values ---$reset"
@@ -100,7 +104,6 @@ key_vault="$DEPLOYER_KEYVAULT"
 key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
-key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
 if [ -z "$key_vault" ]; then
 	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APP_CONFIGURATION_NAME')."
