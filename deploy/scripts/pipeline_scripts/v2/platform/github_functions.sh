@@ -51,13 +51,12 @@ function commit_changes() {
 
 function __get_value_with_key() {
     key=$1
-		env=${2:-$CONTROL_PLANE_NAME}
 
     value=$(curl -Ss \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${env}/variables/${key}" | jq -r '.value // empty')
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/variables/${key}" | jq -r '.value // empty')
 
     echo $value
 }
@@ -91,7 +90,6 @@ function __set_value_with_key() {
 
 function __get_secret_with_key() {
     key=$1
-		env=${2:-$CONTROL_PLANE_NAME}
 
     # GitHub Actions doesn't allow direct access to secrets via API
     # We can only check if the secret exists
@@ -99,7 +97,7 @@ function __get_secret_with_key() {
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${env}/secrets/${key}")
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/secrets/${key}")
 
     if [[ $status_code == "200" ]]; then
         echo "REDACTED_SECRET_EXISTS"
@@ -111,16 +109,15 @@ function __get_secret_with_key() {
 function __set_secret_with_key() {
     key=$1
     value=$2
-		env=${3:-$CONTROL_PLANE_NAME}
 
-    echo "Saving secret value for key in environment ${env}: ${key}"
+    echo "Saving secret value for key in environment : ${key}"
 
     # Get public key for the repository to encrypt the secret
     public_key_response=$(curl -Ss \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${env}/secrets/public-key")
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/secrets/public-key")
 
     public_key=$(echo $public_key_response | jq -r .key)
     public_key_id=$(echo $public_key_response | jq -r .key_id)
@@ -134,7 +131,7 @@ function __set_secret_with_key() {
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${env}/secrets/${key}")
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/secrets/${key}")
 
     method="PUT"
     if [[ $status_code != "200" ]]; then
@@ -148,7 +145,7 @@ function __set_secret_with_key() {
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer ${APP_TOKEN}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${env}/secrets/${key}" \
+        -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/secrets/${key}" \
         -d "{\"encrypted_value\":\"ENCRYPTED_VALUE\", \"key_id\":\"${public_key_id}\"}"
 }
 
