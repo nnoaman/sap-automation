@@ -73,13 +73,14 @@ function __set_value_with_key() {
 
 
     if [[ -z "${old_value}" ]]; then
-			curl -Ss -o /dev/null \
-				-X POST \
-				-H "Accept: application/vnd.github+json" \
-				-H "Authorization: Bearer ${APP_TOKEN}" \
-				-H "X-GitHub-Api-Version: 2022-11-28" \
-				-L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/MAY5-WEEU-DEP05/variables" \
-				-d "{\"name\":\"test2\", \"value\":\"helloworld\"}"
+				echo "Creating new variable ${key} with value ${new_value} with app token ${APP_TOKEN}"
+				curl -Ss -o /dev/null \
+					-X POST \
+					-H "Accept: application/vnd.github+json" \
+					-H "Authorization: Bearer ${APP_TOKEN}" \
+					-H "X-GitHub-Api-Version: 2022-11-28" \
+					-L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/MAY5-WEEU-DEP05/variables" \
+					-d "{\"name\":\"test2\", \"value\":\"helloworld\"}"
 
     elif [[ "${old_value}" != "${new_value}" ]]; then
 				echo "test"
@@ -91,8 +92,6 @@ function __set_value_with_key() {
             -L "${GITHUB_API_URL}/repositories/${GITHUB_REPOSITORY_ID}/environments/${CONTROL_PLANE_NAME}/variables/${key}" \
             -d "{\"name\":\"${key}\", \"value\":\"${new_value}\"}"
     fi
-		echo "Status of curl: $status"
-
 }
 
 function __get_secret_with_key() {
