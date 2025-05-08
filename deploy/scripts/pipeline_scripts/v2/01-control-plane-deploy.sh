@@ -236,6 +236,18 @@ cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 
 start_group "Decrypting state files"
+# Import PGP key if it exists, otherwise generate it
+if [ -f ${CONFIG_REPO_PATH}/private.pgp ]; then
+	echo "Importing PGP key"
+	set +e
+	gpg --list-keys sap-azure-deployer@example.com
+	return_code=$?
+	set -e
+
+	if [ ${return_code} != 0 ]; then
+		echo ${pass} | gpg --batch --passphrase-fd 0 --import ${CONFIG_REPO_PATH}/private.pgp
+	fi
+fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg" ]; then
 	echo "Decrypting state file"

@@ -251,15 +251,17 @@ fi
 
 # Import PGP key if it exists, otherwise generate it
 if [ -f ${CONFIG_REPO_PATH}/private.pgp ]; then
+	echo "Importing PGP key"
 	set +e
 	gpg --list-keys sap-azure-deployer@example.com
 	return_code=$?
 	set -e
 
 	if [ ${return_code} != 0 ]; then
-		echo ${ARM_CLIENT_SECRET} | gpg --batch --passphrase-fd 0 --import ${CONFIG_REPO_PATH}/private.pgp
+		echo ${pass} | gpg --batch --passphrase-fd 0 --import ${CONFIG_REPO_PATH}/private.pgp
 	fi
 else
+	echo "Generating PGP key"
 	echo ${pass} | ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh
 	gpg --output ${CONFIG_REPO_PATH}/private.pgp --armor --export-secret-key sap-azure-deployer@example.com
 	git add ${CONFIG_REPO_PATH}/private.pgp
