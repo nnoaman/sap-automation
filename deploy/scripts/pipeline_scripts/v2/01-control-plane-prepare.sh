@@ -59,6 +59,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
 
 if [ -z "${TF_VAR_ansible_core_version:-}" ]; then
