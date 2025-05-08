@@ -102,12 +102,12 @@ elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions - using environment variables"
 fi
 
-TF_VAR_tf_version=$(tf_version)
+TF_VAR_tf_version="${tf_version:-1.11.3}"
 export TF_VAR_tf_version
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
+	configureNonDeployer "${tf_version:-1.11.3}"
 
 	echo -e "$green--- az login ---$reset"
 	if ! LogonToAzure false; then
