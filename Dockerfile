@@ -27,17 +27,16 @@ RUN tdnf install -y \
   sshpass \
   sudo \
   tar \
-  terraform \
   unzip \
   util-linux \
   acl \
   which
 
 # Install Terraform
-# RUN curl -fsSo terraform.zip \
-#  https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
-# unzip terraform.zip && \
-# install -Dm755 terraform /usr/bin/terraform
+RUN curl -fsSo terraform.zip \
+ https://releases.hashicorp.com/terraform/1.11.4/terraform_1.11.4_linux_amd64.zip && \
+ unzip terraform.zip && \
+  install -Dm755 terraform /usr/bin/terraform
 
 # Install Node.js
 RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | tar -xz -C /usr/local --strip-components=1 && \
