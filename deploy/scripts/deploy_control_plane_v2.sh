@@ -169,6 +169,7 @@ function parse_arguments() {
 		deployer_parameter_file="$current_directory/DEPLOYER/$CONTROL_PLANE_NAME-INFRASTRUCTURE/$CONTROL_PLANE_NAME-INFRASTRUCTURE.tfvars"
 		echo "Deployer parameter file:             ${deployer_parameter_file}"
 	fi
+
 	if [ -z "${library_parameter_file}" ]; then
 		prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
 		library_parameter_file="$current_directory/LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
@@ -177,11 +178,11 @@ function parse_arguments() {
 	fi
 
 	if [ ! -f "${library_parameter_file}" ]; then
-		control_plane_missing_v2 'library parameter file' $SCRIPT_NAME
+		control_plane_missing_v2 'library tfvars file' "$SCRIPT_NAME"
 		exit 2 #No such file or directory
 	fi
 	if [ ! -f "${deployer_parameter_file}" ]; then
-		control_plane_missing_v2 'deployer parameter file' $SCRIPT_NAME
+		control_plane_missing_v2 'deployer tfvars file' "$SCRIPT_NAME"
 		exit 2 #No such file or directory
 	fi
 
