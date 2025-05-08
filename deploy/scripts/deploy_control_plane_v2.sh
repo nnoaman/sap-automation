@@ -78,6 +78,7 @@ function source_helper_scripts() {
 ############################################################################################
 
 function parse_arguments() {
+	local local_return_code=0
 	approve=""
 	subscription=$ARM_SUBSCRIPTION_ID
 	only_deployer=0
@@ -178,12 +179,13 @@ function parse_arguments() {
 		echo "Library parameter file:              ${library_parameter_file}"
 	fi
 
-	if [ ! -f "${library_parameter_file}" ]; then
-		control_plane_missing_v2 'library tfvars file' "$library_parameter_file"
-		exit 2 #No such file or directory
-	fi
 	if [ ! -f "${deployer_parameter_file}" ]; then
 		control_plane_missing_v2 'deployer tfvars file' "$deployer_parameter_file"
+		exit 2 #No such file or directory
+	fi
+
+	if [ ! -f "${library_parameter_file}" ]; then
+		control_plane_missing_v2 'library tfvars file' "$library_parameter_file"
 		exit 2 #No such file or directory
 	fi
 

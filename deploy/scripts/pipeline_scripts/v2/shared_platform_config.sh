@@ -46,7 +46,7 @@ configure_platform_variables() {
   elif [ "${PLATFORM}" == "devops" ]; then
     # Map Azure DevOps variables to common names
     [ -z "${SAP_AUTOMATION_REPO_PATH}" ] && export SAP_AUTOMATION_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}/sap-automation"
-    [ -z "${CONFIG_REPO_PATH}" ] && export CONFIG_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}"
+    [ -z "${CONFIG_REPO_PATH}" ] && export CONFIG_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}/WORKSPACES}"
     export DEVOPS_PAT="${AZURE_DEVOPS_EXT_PAT:-${SYSTEM_ACCESSTOKEN}}"
   fi
 
