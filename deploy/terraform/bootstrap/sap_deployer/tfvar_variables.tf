@@ -467,7 +467,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.9.8"
+                                                        default     = "1.11.4"
                                                       }
 
 variable "name_override_file"                         {
