@@ -223,6 +223,15 @@ else
 	storage_account_parameter=
 fi
 
+if [ "$PLATFORM" == "devops" ]; then
+	pass=${SYSTEM_COLLECTIONID//-/}
+elif [ "$PLATFORM" == "github" ]; then
+	pass=${GITHUB_REPOSITORY//-/}
+else
+	pass="localpassword"
+fi
+
+
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 
