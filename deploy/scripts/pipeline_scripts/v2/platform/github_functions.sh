@@ -67,13 +67,9 @@ function __set_value_with_key() {
 
     old_value=$(__get_value_with_key ${key})
 
-    echo "Saving value ${new_value} for key ${key} in environment variables ${CONTROL_PLANE_NAME}"
-
-		echo "OLD VALUE: $old_value"
-
+    echo "Saving value for key in environment variables ${CONTROL_PLANE_NAME}: ${key}"
 
     if [[ -z "${old_value}" ]]; then
-				echo "Creating new variable ${key} with value ${new_value} with app token ${APP_TOKEN}"
         curl -Ss -o /dev/null \
             -X POST \
             -H "Accept: application/vnd.github+json" \
@@ -83,7 +79,6 @@ function __set_value_with_key() {
             -d "{\"name\":\"${key}\", \"value\":\"${new_value}\"}"
 
     elif [[ "${old_value}" != "${new_value}" ]]; then
-				echo "test"
         curl -Ss -o /dev/null \
             -X PATCH \
             -H "Accept: application/vnd.github+json" \
