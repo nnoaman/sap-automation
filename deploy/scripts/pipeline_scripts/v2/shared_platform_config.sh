@@ -39,7 +39,7 @@ configure_platform_variables() {
     # Map GitHub Actions variables to common names
     [ -z "${SAP_AUTOMATION_REPO_PATH}" ] && export SAP_AUTOMATION_REPO_PATH="${GITHUB_WORKSPACE}/sap-automation"
     [ -z "${CONFIG_REPO_PATH}" ] && export CONFIG_REPO_PATH="${GITHUB_WORKSPACE}/WORKSPACES"
-    export APP_TOKEN="${GITHUB_TOKEN}"
+    #export APP_TOKEN="${GITHUB_TOKEN}"
 
     # Setup output for GitHub Actions
     export GITHUB_OUTPUT=${GITHUB_OUTPUT:-/dev/null}
