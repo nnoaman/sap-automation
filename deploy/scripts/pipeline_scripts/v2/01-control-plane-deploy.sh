@@ -5,7 +5,7 @@
 # Source the shared platform configuration
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 source "${SCRIPT_DIR}/shared_platform_config.sh"
-source "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/shared_functions.sh"
+source "${SCRIPT_DIR}/shared_functions.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 # Define colors for output
@@ -20,8 +20,8 @@ if [ "$PLATFORM" == "devops" ]; then
 fi
 
 #External helper functions
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
+
+script_directory="$(dirname "${SCRIPT_DIR}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
