@@ -1,6 +1,6 @@
 resource "azurerm_role_assignment" "webapp_blob" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && var.deployer.use ? (
+  count                                = var.infrastructure.assign_permissions && var.deployer.use && length(var.deployer_tfstate.webapp_identity) > 0 (
                                            length(try(var.deployer_tfstate.deployer_msi_id, "")) > 0 ? 1 : 0) : (
                                            0
                                            )
@@ -11,7 +11,7 @@ resource "azurerm_role_assignment" "webapp_blob" {
 
 resource "azurerm_role_assignment" "webapp_table" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && var.deployer.use ? (
+  count                                = var.infrastructure.assign_permissions && var.deployer.use  && length(var.deployer_tfstate.webapp_identity) ? (
                                            length(try(var.deployer_tfstate.deployer_msi_id, "")) > 0 ? 1 : 0) : (
                                            0
                                            )

@@ -34,7 +34,7 @@ RUN tdnf install -y \
 
 # Install Terraform
 RUN curl -fsSo terraform.zip \
- https://releases.hashicorp.com/terraform/1.11.4/terraform_1.11.4_linux_amd64.zip && \
+ https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
  unzip terraform.zip && \
   install -Dm755 terraform /usr/bin/terraform
 
