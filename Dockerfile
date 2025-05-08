@@ -27,6 +27,7 @@ RUN tdnf install -y \
   sshpass \
   sudo \
   tar \
+  terraform \
   unzip \
   util-linux \
   acl \
