@@ -5,76 +5,75 @@
 # Source the shared platform configuration
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 source "${SCRIPT_DIR}/shared_platform_config.sh"
+. ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/shared_functions.sh
+
+# Define colors for output
+green="\e[1;32m"
+reset="\e[0m"
+bold_red="\e[1;31m"
+cyan="\e[1;36m"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME "
 fi
 
-green="\e[1;32m"
-bold_red="\e[1;31m"
-reset="\e[0m"
-
-# External helper functions
+#External helper functions
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
-SCRIPT_NAME="$(basename "$0")"
-
-banner_title="Deploy Control Plane"
-#call stack has full script name when using source
-# shellcheck disable=SC1091
+# Source helper scripts
+source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
-#call stack has full script name when using source
-source "${parent_directory}/helper.sh"
-
-DEBUG=False
-
+DEBUG=false
 if [[ "$SYSTEM_DEBUG" == "True" || "$RUNNER_DEBUG" == "1" ]]; then
 	set -x
-	DEBUG=True
-	TF_LOG=DEBUG
-	export TF_LOG
-
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 fi
+
 export DEBUG
 set -eu
 
+# Print the execution environment details
+print_header
+echo ""
+
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	# Configure DevOps
+	configure_devops
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+fi
+
+banner_title="Deploy Control Plane"
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+
+DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
+DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
+prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
+LIBRARY_FOLDERNAME="$prefix-SAP_LIBRARY"
+LIBRARY_TFVARS_FILENAME="$prefix-SAP_LIBRARY.tfvars"
 
 echo -e "$green--- File Validations ---$reset"
 
-if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found" "error"
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
-	fi
-	exit 2
-fi
-
-if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
-	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found" "error"
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
-	fi
-	exit 2
-fi
-
-if [ -z "$CONTROL_PLANE_NAME" ]; then
-	CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
-	export CONTROL_PLANE_NAME
-fi
-
-application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
-
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 if [ -f "${deployer_environment_file_name}" ]; then
 	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
 	echo "Step:                                $step"
@@ -236,6 +235,22 @@ if [ -n "${key_vault}" ]; then
 	fi
 fi
 
+start_group "Decrypting state files"
+
+if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg ]; then
+	echo "Decrypting state file"
+	echo ${pass} |
+		gpg --batch \
+			--passphrase-fd 0 \
+			--output ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate \
+			--decrypt ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
+fi
+
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+	echo "Unzipping the deployer state file"
+	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+fi
+
 # Handle state.zip differently per platform
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
@@ -248,18 +263,16 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 	echo "Unzipping the library state file"
 	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
 fi
-
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		pass=${SYSTEM_COLLECTIONID//-/}
-	elif [ "$PLATFORM" == "github" ]; then
-		pass=${GITHUB_REPOSITORY//-/}
-	else
-		pass="localpassword"
-	fi
-	echo "Unzipping the deployer state file"
-	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg ]; then
+	echo "Decrypting state file"
+	echo ${pass} |
+		gpg --batch \
+			--passphrase-fd 0 \
+			--output ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate \
+			--decrypt ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg
 fi
+
+end_group
 
 export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log"
 
