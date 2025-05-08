@@ -102,9 +102,13 @@ elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions - using environment variables"
 fi
 
+TF_VAR_tf_version=$(tf_version)
+export TF_VAR_tf_version
+
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
+
 	echo -e "$green--- az login ---$reset"
 	if ! LogonToAzure false; then
 		print_banner "$banner_title" "Login to Azure failed" "error"
@@ -120,6 +124,8 @@ else
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
 		echo "Deployment using:                    Managed Identity"
+		ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+		export ARM_CLIENT_ID
 	else
 		TF_VAR_use_spn=true
 		export TF_VAR_use_spn
@@ -132,7 +138,7 @@ else
 			TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
 		elif [ "$PLATFORM" == "github" ]; then
 			# Use value from env or from GitHub environment
-			TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
+			TF_VAR_spn_id=${OBJECT_ID:-$TF_VAR_spn_id}
 		fi
 
 		if [ -n "$TF_VAR_spn_id" ]; then
@@ -142,8 +148,7 @@ else
 			fi
 		fi
 	fi
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
+
 fi
 
 cd "$CONFIG_REPO_PATH" || exit
@@ -157,28 +162,17 @@ fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
-	if [ -z "$key_vault_id" ]; then
-		if [ "$PLATFORM" == "devops" ]; then
-			echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
-		else
-			echo "ERROR: Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration."
-		fi
-	fi
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-else
+APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+
+key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+if [ -z "$key_vault_id" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not defined."
+		echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 	else
-		echo "ERROR: Variable APPLICATION_CONFIGURATION_ID was not defined."
+		echo "ERROR: Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration."
 	fi
-	load_config_vars "${deployer_environment_file_name}" "keyvault"
-	key_vault="$keyvault"
-	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
-	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
+tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 
 TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
 export TF_VAR_deployer_kv_user_arm_id
@@ -194,9 +188,9 @@ echo "Deployer tfVars:                     $DEPLOYER_TFVARS_FILENAME"
 echo "Library Folder:                      $LIBRARY_FOLDERNAME"
 echo "Library tfVars:                      $LIBRARY_TFVARS_FILENAME"
 
-if [ -n "${key_vault}" ]; then
-	echo "Deployer Key Vault:                  ${key_vault}"
-	keyvault_parameter=" --keyvault ${key_vault} "
+if [ -n "${DEPLOYER_KEYVAULT}" ]; then
+	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+	keyvault_parameter=" --keyvault ${DEPLOYER_KEYVAULT} "
 else
 	echo "Deployer Key Vault:                  undefined"
 	exit 2
@@ -226,25 +220,15 @@ fi
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 
-if [ -n "${key_vault}" ]; then
-	key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
-	if [ -n "${key_vault_id}" ]; then
-		if [ "$PLATFORM" == "devops" ] && [ "azure pipelines" = "$THIS_AGENT" ]; then
-			this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-			az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
-		fi
-	fi
-fi
-
 start_group "Decrypting state files"
 
-if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg ]; then
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg" ]; then
 	echo "Decrypting state file"
-	echo ${pass} |
+	echo "${pass}" |
 		gpg --batch \
 			--passphrase-fd 0 \
-			--output ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate \
-			--decrypt ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
+			--output "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate" \
+			--decrypt "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg"
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
@@ -264,13 +248,13 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 	echo "Unzipping the library state file"
 	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
 fi
-if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg ]; then
+if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
 	echo "Decrypting state file"
-	echo ${pass} |
+	echo "${pass}" |
 		gpg --batch \
 			--passphrase-fd 0 \
-			--output ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate \
-			--decrypt ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg
+			--output "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" \
+			--decrypt "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
 fi
 
 end_group
@@ -306,8 +290,8 @@ else
 	platform_flag=""
 fi
 
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
-	--library_parameter_file "${library_configuration_file}" \
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --control_plane_name "${CONTROL_PLANE_NAME}" \
+	--subscription "$ARM_SUBSCRIPTION_ID" \
 	--subscription "$terraform_storage_account_subscription_id" \
 	--auto-approve ${platform_flag} ${msi_flag} \
 	"${storage_account_parameter}" "${keyvault_parameter}"; then
@@ -382,18 +366,6 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 				pass="localpassword"
 			fi
 
-			sudo apt-get -qq install zip
-
-			if [ "$PLATFORM" == "devops" ]; then
-				pass=${SYSTEM_COLLECTIONID//-/}
-			elif [ "$PLATFORM" == "github" ]; then
-				pass=${GITHUB_REPOSITORY//-/}
-			else
-				pass="localpassword"
-			fi
-			zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-			git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-			rm "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
 			added=1
 		fi
 	else
