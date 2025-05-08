@@ -5,7 +5,7 @@
 # Source the shared platform configuration
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 source "${SCRIPT_DIR}/shared_platform_config.sh"
-. ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/shared_functions.sh
+source ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/shared_functions.sh
 
 # Define colors for output
 green="\e[1;32m"

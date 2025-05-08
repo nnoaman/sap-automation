@@ -5,7 +5,7 @@
 # Source the shared platform configuration
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 source "${SCRIPT_DIR}/shared_platform_config.sh"
-. ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/shared_functions.sh
+source" ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/shared_functions.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 # Define colors for output
@@ -16,7 +16,7 @@ cyan="\e[1;36m"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME "
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $CONTROL_PLANE_NAME "
 fi
 
 #External helper functions
@@ -27,7 +27,8 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 # Source helper scripts
 source "${parent_directory}/helper.sh"
-source "${grand_parent_directory}/deploy_utils.
+source "${grand_parent_directory}/deploy_utils.sh"
+
 DEBUG=false
 if [[ "$SYSTEM_DEBUG" == "True" || "$RUNNER_DEBUG" == "1" ]]; then
 	set -x
@@ -66,11 +67,11 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
 DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
+
 prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
+
 LIBRARY_FOLDERNAME="$prefix-SAP_LIBRARY"
 LIBRARY_TFVARS_FILENAME="$prefix-SAP_LIBRARY.tfvars"
-
-echo -e "$green--- File Validations ---$reset"
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
