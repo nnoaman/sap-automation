@@ -870,7 +870,7 @@ function validate_dependencies {
 
 	# if /opt/terraform exists, assign permissions to the user
 	if [ -d /opt/terraform ]; then
-		sudo chown -R "$USER" /opt/terraform
+		sudo chown -R "${USER:-azureadm}" /opt/terraform
 	fi
 
 	# Check terraform

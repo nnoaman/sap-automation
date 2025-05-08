@@ -265,13 +265,6 @@ fi
 
 # Handle state.zip differently per platform
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		pass=${SYSTEM_COLLECTIONID//-/}
-	elif [ "$PLATFORM" == "github" ]; then
-		pass=${GITHUB_REPOSITORY//-/}
-	else
-		pass="localpassword"
-	fi
 	echo "Unzipping the library state file"
 	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
 fi
