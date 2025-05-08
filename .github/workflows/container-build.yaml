@@ -40,7 +40,7 @@ jobs:
         jq_version=$(gh api https://api.github.com/repos/mikefarah/yq/releases/latest| jq '.name' -r)
         echo "jq=$jq_version" >> $GITHUB_OUTPUT
 
-        tf_version=$(curl -sSfL https://releases.hashicorp.com/terraform/index.json  | jq '.versions[].builds[].version' -r|egrep -v 'rc|beta|alpha' | tail -1)
+        tf_version=$(curl -s https://releases.hashicorp.com/terraform/index.json | jq -r '.versions | keys[]' | grep -Ev 'alpha|beta|rc' | sort -V | tail -n 1)
         echo "tf=$tf_version" >> $GITHUB_OUTPUT
 
     - name: Set up Docker Buildx
