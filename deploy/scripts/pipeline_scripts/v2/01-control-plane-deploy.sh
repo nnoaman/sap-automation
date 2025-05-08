@@ -60,6 +60,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
 
 banner_title="Deploy Control Plane"
@@ -67,14 +68,15 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
 DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
+deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 
 prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
 
 LIBRARY_FOLDERNAME="$prefix-SAP_LIBRARY"
 LIBRARY_TFVARS_FILENAME="$prefix-SAP_LIBRARY.tfvars"
+library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
-deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 if [ -f "${deployer_environment_file_name}" ]; then
 	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
 	echo "Step:                                $step"
@@ -292,7 +294,11 @@ else
 	platform_flag=""
 fi
 
+
+
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --control_plane_name "${CONTROL_PLANE_NAME}" \
+	--deployer_parameter_file "$deployer_configuration_file" \
+	--library_parameter_file  "$library_configuration_file" \
 	--subscription "$ARM_SUBSCRIPTION_ID" \
 	--subscription "$terraform_storage_account_subscription_id" \
 	--auto-approve ${platform_flag} ${msi_flag} \
