@@ -296,7 +296,7 @@ fi
 
 
 
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --control_plane_name "${CONTROL_PLANE_NAME}" \
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" \
 	--deployer_parameter_file "$deployer_configuration_file" \
 	--library_parameter_file  "$library_configuration_file" \
 	--subscription "$ARM_SUBSCRIPTION_ID" \
