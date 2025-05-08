@@ -7,6 +7,7 @@ SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 source "${SCRIPT_DIR}/shared_platform_config.sh"
 . ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/shared_functions.sh
 
+SCRIPT_NAME="$(basename "$0")"
 # Define colors for output
 green="\e[1;32m"
 reset="\e[0m"
@@ -26,8 +27,7 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 # Source helper scripts
 source "${parent_directory}/helper.sh"
-source "${grand_parent_directory}/deploy_utils.sh"
-
+source "${grand_parent_directory}/deploy_utils.
 DEBUG=false
 if [[ "$SYSTEM_DEBUG" == "True" || "$RUNNER_DEBUG" == "1" ]]; then
 	set -x
