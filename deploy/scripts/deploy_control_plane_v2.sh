@@ -165,6 +165,7 @@ function parse_arguments() {
 		esac
 	done
 	current_directory=$(pwd)
+	echo "Current directory:                   ${current_directory}"
 	if [ -z "${deployer_parameter_file}" ]; then
 		deployer_parameter_file="$current_directory/DEPLOYER/$CONTROL_PLANE_NAME-INFRASTRUCTURE/$CONTROL_PLANE_NAME-INFRASTRUCTURE.tfvars"
 		echo "Deployer parameter file:             ${deployer_parameter_file}"
@@ -178,11 +179,11 @@ function parse_arguments() {
 	fi
 
 	if [ ! -f "${library_parameter_file}" ]; then
-		control_plane_missing_v2 'library tfvars file' "$SCRIPT_NAME"
+		control_plane_missing_v2 'library tfvars file' "$library_parameter_file"
 		exit 2 #No such file or directory
 	fi
 	if [ ! -f "${deployer_parameter_file}" ]; then
-		control_plane_missing_v2 'deployer tfvars file' "$SCRIPT_NAME"
+		control_plane_missing_v2 'deployer tfvars file' "$deployer_parameter_file"
 		exit 2 #No such file or directory
 	fi
 
@@ -223,6 +224,8 @@ function parse_arguments() {
 
 	# Convert the region to the correct code
 	get_region_code "$region"
+
+	echo "Exiting parse_arguments with"
 
 }
 
