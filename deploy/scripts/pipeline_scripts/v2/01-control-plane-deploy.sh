@@ -21,9 +21,11 @@ fi
 
 #External helper functions
 
-script_directory="$(dirname "${SCRIPT_DIR}")"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
+
 
 # Source helper scripts
 source "${parent_directory}/helper.sh"
