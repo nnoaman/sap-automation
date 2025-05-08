@@ -110,12 +110,14 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.11.3}"
 
 	echo -e "$green--- az login ---$reset"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		if [ "$PLATFORM" == "devops" ]; then
-			echo "##vso[task.logissue type=error]az login failed."
+	if [ "$PLATFORM" == "devops" ]; then
+		if ! LogonToAzure false; then
+			print_banner "$banner_title" "Login to Azure failed" "error"
+			if [ "$PLATFORM" == "devops" ]; then
+				echo "##vso[task.logissue type=error]az login failed."
+			fi
+			exit 2
 		fi
-		exit 2
 	fi
 else
 	if [ "${USE_MSI:-false}" == "true" ]; then
