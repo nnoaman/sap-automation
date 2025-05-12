@@ -30,7 +30,14 @@ RUN tdnf install -y \
   unzip \
   util-linux \
   acl \
-  which
+  which \
+  nuget
+
+# Install Microsoft.AspNet.WebApi.Client package using NuGet and copy the DLL to the correct location
+RUN nuget install Microsoft.AspNet.WebApi.Client -Version 6.0.0 && \
+    mkdir -p /usr/share/dotnet/shared/Microsoft.AspNetCore.App/6.0.0/ && \
+    cp Microsoft.AspNet.WebApi.Client*/lib/net6.0/System.Net.Http.Formatting.dll /usr/share/dotnet/shared/Microsoft.AspNetCore.App/6.0.0/ && \
+    rm -rf Microsoft.AspNet.WebApi.Client*
 
 # Install Terraform
 RUN curl -fsSo terraform.zip \
@@ -62,14 +69,6 @@ RUN pip3 install --upgrade \
     setuptools \
     wheel \
     chmod
-
-# Install required .NET dependencies (to avoid runtime errors)
-RUN mkdir -p /tmp/dotnet-cache && \
-    cd /tmp/dotnet-cache && \
-    dotnet new webapp -n WarmupApp && \
-    cd WarmupApp && \
-    dotnet restore && \
-    cd / && rm -rf /tmp/dotnet-cache
 
 RUN git clone https://github.com/Azure/SAP-automation-samples.git /source/SAP-automation-samples
 
