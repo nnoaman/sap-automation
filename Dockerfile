@@ -10,7 +10,7 @@ RUN tdnf install -y \
   ca-certificates \
   curl \
   dos2unix \
-  dotnet-sdk-8.0 \
+  dotnet-sdk-6.0 \
   gawk \
   gh \
   git \
