@@ -63,13 +63,18 @@ RUN pip3 install --upgrade \
     wheel \
     chmod
 
-# Install required .NET dependencies (to avoid runtime errors)
-RUN mkdir -p /tmp/dotnet-cache && \
-    cd /tmp/dotnet-cache && \
-    dotnet new webapp -n WarmupApp && \
-    cd WarmupApp && \
-    dotnet restore && \
-    cd / && rm -rf /tmp/dotnet-cache
+# Download and extract Microsoft.AspNet.WebApi.Client NuGet package manually
+RUN curl -L -o /tmp/webapiclient.nupkg https://www.nuget.org/api/v2/package/Microsoft.AspNet.WebApi.Client/5.2.7 && \
+    mkdir -p /tmp/webapiclient && \
+    unzip -q /tmp/webapiclient.nupkg -d /tmp/webapiclient && \
+    DLL_SRC=/tmp/webapiclient/lib/net45/System.Net.Http.Formatting.dll && \
+    for ver in 6.0.0 7.0.0 8.0.0; do \
+      mkdir -p /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$ver/; \
+      cp $DLL_SRC /usr/share/dotnet/shared/Microsoft.AspNetCore.App/$ver/ || true; \
+      mkdir -p /usr/share/dotnet/shared/Microsoft.NETCore.App/$ver/; \
+      cp $DLL_SRC /usr/share/dotnet/shared/Microsoft.NETCore.App/$ver/ || true; \
+    done && \
+    rm -rf /tmp/webapiclient /tmp/webapiclient.nupkg
 
 RUN git clone https://github.com/Azure/SAP-automation-samples.git /source/SAP-automation-samples
 
