@@ -43,9 +43,6 @@ RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-li
   ln -s /usr/local/bin/node /usr/bin/node && \
   ln -s /usr/local/bin/npm /usr/bin/npm
 
-# Install dotnet
-RUN dotnet add package Microsoft.AspNet.WebApi.Client --version 6.0.0
-
 # Install yq, as there are two competing versions and Azure Linux uses the jq wrappers, which breaks the GitHub Workflows
 RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz | tar zx && \
   install -Dm755 yq_linux_amd64 /usr/bin/yq && \
