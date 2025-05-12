@@ -63,6 +63,14 @@ RUN pip3 install --upgrade \
     wheel \
     chmod
 
+# Install required .NET dependencies (to avoid runtime errors)
+RUN mkdir -p /tmp/dotnet-cache && \
+    cd /tmp/dotnet-cache && \
+    dotnet new webapp -n WarmupApp && \
+    cd WarmupApp && \
+    dotnet restore && \
+    cd / && rm -rf /tmp/dotnet-cache
+
 RUN git clone https://github.com/Azure/SAP-automation-samples.git /source/SAP-automation-samples
 
 RUN tdnf install -y acl
