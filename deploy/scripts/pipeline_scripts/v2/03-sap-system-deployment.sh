@@ -283,7 +283,9 @@ else
 fi
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
+if [ "$PLATFORM" == "devops" ]; then
 	echo "##vso[task.logissue type=error]Return code from installer $return_code."
+fi
 fi
 
 set +o errexit
