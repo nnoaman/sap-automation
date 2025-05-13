@@ -156,6 +156,7 @@ echo -e "-----------------------------------------------------------------------
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
+echo "Application Configuration:           ${APPLICATION_CONFIGURATION_NAME:-Undefined}"
 
 echo "Environment:                         $ENVIRONMENT"
 echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
@@ -273,7 +274,7 @@ echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
-	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
+	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "$APPLICATION_CONFIGURATION_NAME" \
 	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
 	$platform_flag --auto-approve; then
 	return_code=$?
