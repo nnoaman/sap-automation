@@ -89,7 +89,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 			else
 				echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]"
 			fi
-		else
+		elsepipeline_scripts/02-sap-workload-zone.sh
 			echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]"
 		fi
 	fi

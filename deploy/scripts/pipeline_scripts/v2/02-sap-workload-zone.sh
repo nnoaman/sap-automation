@@ -2,10 +2,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
+# Source the shared platform configuration
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+source "${SCRIPT_DIR}/shared_platform_config.sh"
+source "${SCRIPT_DIR}/shared_functions.sh"
+source "${SCRIPT_DIR}/set-colors.sh"
+
+SCRIPT_NAME="$(basename "$0")"
+
+# Set platform-specific output
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $CONTROL_PLANE_NAME "
+fi
 
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -13,29 +21,37 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
-
-SCRIPT_NAME="$(basename "$0")"
-
-banner_title="Deploy Workload Zone"
-
 #call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
-
-#call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
-DEBUG=False
+SCRIPT_NAME="$(basename "$0")"
 
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
+# Print the execution environment details
+print_header
+echo ""
 
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	# Configure DevOps
+	configure_devops
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
-export DEBUG
-set -eu
+
+banner_title="Deploy Workload Zone"
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
@@ -95,29 +111,35 @@ fi
 # Print the execution environment details
 print_header
 
-# Configure DevOps
-configure_devops
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	# Configure DevOps
+	configure_devops
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
+		echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+	fi
 
-if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
-	echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
-else
-	echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-	echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-fi
+	if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export PARENT_VARIABLE_GROUP_ID
 
-if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset_formatting"
-	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
-	exit 2
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	echo "Configuring for GitHub Actions - using environment variables"
 fi
-export PARENT_VARIABLE_GROUP_ID
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
@@ -138,7 +160,6 @@ if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
 		echo "Variable APPLICATION_CONFIGURATION_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 fi
-
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
@@ -272,7 +293,6 @@ if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
 	git add ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}"
 	added=1
 fi
-
 
 if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
 	git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
