@@ -850,6 +850,11 @@ function install_deps_ubuntu() {
     moby-containerd \
     moby-engine
 
+  # Install dotnet-sdk via snap for GitHub runners
+  echo "Installing dotnet-sdk via snap for GitHub runner"
+  sudo snap install dotnet-sdk --classic
+  sudo snap alias dotnet-sdk.dotnet dotnet
+
   # Install jq, the Ubuntu version is ancient
   curl -sSfL $(curl -sSf https://api.github.com/repos/jqlang/jq/releases/latest | grep browser_download_url | egrep 'jq-linux-amd64"' | tr -d " " | tr -d "\"" | sed 's/browser_download_url://g') -o jq
   sudo install -m755 jq /usr/local/bin/jq
