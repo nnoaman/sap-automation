@@ -32,6 +32,8 @@ function get_platform() {
     echo "unknown"
 }
 
+echo "Using platform:                $(get_platform)"
+
 case $(get_platform) in
 "github")
     source ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/platform/github_functions.sh
