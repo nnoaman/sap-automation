@@ -4,14 +4,20 @@
 set -euo pipefail
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-false}" == 'true' ]]; then
+if [[ "${SYSTEM_DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error
 	set -o errexit
 	echo "Environment variables:"
 	printenv | sort
+	DEBUG=True
+else
+	DEBUG=False
 fi
+
+export DEBUG
+
 
 # This file provides platform detection and configuration for V2 scripts
 # to support both Azure DevOps and GitHub Actions

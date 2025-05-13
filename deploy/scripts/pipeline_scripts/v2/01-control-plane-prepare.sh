@@ -28,19 +28,6 @@ grand_parent_directory="$(dirname "$parent_directory")"
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
-# Enable debug mode if DEBUG is set to 'true'
-if [[ "${SYSTEM_DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
-	# Enable debugging
-	set -x
-	# Exit on error
-	set -o errexit
-	echo "Environment variables:"
-	printenv | sort
-	DEBUG=True
-fi
-
-export DEBUG
-set -eu
 
 # Print the execution environment details
 print_header
