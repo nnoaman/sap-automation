@@ -159,7 +159,7 @@ function configureNonDeployer() {
 	reset="\e[0m"
 
 	# Check if running in GitHub Actions
-	if [ -n "${GITHUB_ACTIONS}" ]; then
+	if [ -v GITHUB_ACTIONS ]; then
 		echo -e "$green--- Running in GitHub Actions environment ---$reset"		# Skip all installation commands for GitHub Actions as they are already in the Dockerfile
 		return 0
 	else
