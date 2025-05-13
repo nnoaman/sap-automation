@@ -42,7 +42,7 @@ case $(get_platform) in
     ;;
 
 *)
-    echo -e "${boldred} -- unsupported platform -- ${reset}"
+    echo -e "${boldred} -- unsupported platform -- ${resetformatting}"
     exit 1
     ;;
 esac
