@@ -531,7 +531,7 @@ if [ 0 = $return_code ]; then
 		# Set output variables for GitHub Actions
 		echo "Setting output variable for GitHub Actions"
 		set_output_variable "control_plane_name" "$CONTROL_PLANE_NAME"
-		set_output_variable "deployer_keyvault" "$key_vault"
+		set_output_variable "deployer_keyvault" "$DEPLOYER_KEYVAULT"
 	fi
 fi
 
