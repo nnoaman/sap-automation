@@ -60,7 +60,7 @@ function print_banner() {
 		secondary_message="$secondary_message"
 	fi
 
-	local boldred="\e[1;31m"
+	local bold_red="\e[1;31m"
 	local cyan="\e[1;36m"
 	local green="\e[1;32m"
 	local reset="\e[0m"
@@ -69,7 +69,7 @@ function print_banner() {
 	local color
 	case "$type" in
 	error)
-		color="$boldred"
+		color="$bold_red"
 		;;
 	success)
 		color="$green"

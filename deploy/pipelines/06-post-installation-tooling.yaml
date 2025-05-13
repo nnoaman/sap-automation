@@ -86,7 +86,7 @@ stages:
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Running Post Installation on Systems defined in $(sap_system_folder)"
-              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              green="\e[1;32m" ; reset="\e[0m" ; bold_red="\e[1;31m"
 
                      HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
               ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo "Environment: $ENVIRONMENT"
@@ -106,7 +106,7 @@ stages:
                     fi
 
                 if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
-                  echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
+                  echo -e "$bold_red--- $(sap_system_configuration) was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
                   exit 2
                 fi
@@ -114,7 +114,7 @@ stages:
                 environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
 
                 if [ ! -f $environment_file_name ]; then
-                  echo -e "$boldred--- $ENVIRONMENT$LOCATION$NETWORK was not found ---$reset"
+                  echo -e "$bold_red--- $ENVIRONMENT$LOCATION$NETWORK was not found ---$reset"
                   echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $ENVIRONMENT$LOCATION$NETWORK was not found."
                   exit 2
                 fi
@@ -150,7 +150,7 @@ stages:
                 fi
 
                 if [ ! -f $params_file ]; then
-                  echo -e "$boldred--- $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml was not found ---$reset"
+                  echo -e "$bold_red--- $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml was not found."
                   exit 2
                 else
@@ -158,7 +158,7 @@ stages:
                 fi
 
                 if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml ]; then
-                  echo -e "$boldred--- $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml was not found ---$reset"
+                  echo -e "$bold_red--- $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml was not found."
                   exit 2
                 fi
@@ -196,7 +196,7 @@ stages:
                 az login --identity --allow-no-subscriptions --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
+                  echo -e "$bold_red--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
@@ -363,7 +363,7 @@ stages:
               failOnStderr:            false
           - script: |
               #!/bin/bash
-                green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+                green="\e[1;32m" ; reset="\e[0m" ; bold_red="\e[1;31m"
                 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"

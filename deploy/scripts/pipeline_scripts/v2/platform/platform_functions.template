@@ -16,7 +16,7 @@ function exit_error() {
     MESSAGE="$(caller | awk '{print $2":"$1} ') $1"
     ERROR_CODE=$2
 
-    echo -e "[ERROR] $boldred--- ${MESSAGE} ---${resetformatting}"
+    echo -e "[ERROR] $bold_red--- ${MESSAGE} ---${reset_formatting}"
 
     exit $ERROR_CODE
 }

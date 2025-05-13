@@ -38,7 +38,7 @@ function print_banner() {
 		tertiary_message="$tertiary_message"
 	fi
 
-	local boldred="\e[1;31m"
+	local bold_red="\e[1;31m"
 	local cyan="\e[1;36m"
 	local green="\e[1;32m"
 	local reset="\e[0m"
@@ -47,7 +47,7 @@ function print_banner() {
 	local color
 	case "$type" in
 	error)
-		color="$boldred"
+		color="$bold_red"
 		;;
 	success)
 		color="$green"
@@ -163,7 +163,7 @@ function configureNonDeployer() {
 		echo -e "$green--- Running in GitHub Actions environment ---$reset" # Skip all installation commands for GitHub Actions as they are already in the Dockerfile
 		return 0
 	else
-		echo -e "$green--- Running in Azure DevOps or standard environment ---$reset"
+		echo -e "$green--- Running in Azure DevOps or standard environment ---$reset_formatting"
 
 		local tf_version=$1
 		local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
@@ -174,7 +174,7 @@ function configureNonDeployer() {
 		sudo apt-get -qq install zip
 
 		if which terraform >/dev/null 2>&1; then
-			echo -e "${green}Terraform already installed, skipping installation $reset"
+			echo -e "${green}Terraform already installed, skipping installation $reset_formatting"
 		else
 			echo -e "$green --- Install terraform ---$reset"
 			wget -q "$tf_url"
