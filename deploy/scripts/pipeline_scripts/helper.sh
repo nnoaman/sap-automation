@@ -174,8 +174,9 @@ function configureNonDeployer() {
 		sudo apt-get -qq install zip
 
 		if which terraform >/dev/null 2>&1; then
-			echo -e "$green Terraform already installed, skipping installation $reset"
+			echo -e "${green}Terraform already installed, skipping installation $reset"
 		else
+			echo -e "$green --- Install terraform ---$reset"
 			wget -q "$tf_url"
 			return_code=$?
 			if [ 0 != $return_code ]; then
@@ -186,7 +187,6 @@ function configureNonDeployer() {
 			sudo mv terraform /bin/
 			rm -f "terraform_${tf_version}_linux_amd64.zip"
 		fi
-		echo -e "$green --- Install terraform ---$reset"
 
 	fi
 }

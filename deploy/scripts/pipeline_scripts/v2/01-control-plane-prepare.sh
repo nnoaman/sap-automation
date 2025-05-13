@@ -174,6 +174,7 @@ fi
 
 # Get SPN ID differently per platform
 if [ "$PLATFORM" == "devops" ]; then
+	echo "0"
 	TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
 elif [ "$PLATFORM" == "github" ]; then
 	# Use value from env or from GitHub environment
@@ -193,7 +194,8 @@ fi
 
 # Handle application configuration
 if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+	TF_VAR_management_subscription_id=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f3)
+
 	export TF_VAR_management_subscription_id
 fi
 
@@ -435,11 +437,11 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 fi
 
 if [ -f .sap_deployment_automation/terraform.log ]; then
-  rm .sap_deployment_automation/terraform.log
+	rm .sap_deployment_automation/terraform.log
 fi
 
 if [ -f LICENSE.txt ]; then
-  rm LICENSE.txt
+	rm LICENSE.txt
 fi
 
 # Commit changes based on platform
