@@ -2,55 +2,57 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
+# Source the shared platform configuration
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+source "${SCRIPT_DIR}/shared_platform_config.sh"
+source "${SCRIPT_DIR}/shared_functions.sh"
+source "${SCRIPT_DIR}/set-colors.sh"
 
+SCRIPT_NAME="$(basename "$0")"
 
-#External helper functions
+# Set platform-specific output
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $CONTROL_PLANE_NAME "
+fi
+
+# External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
-
-SCRIPT_NAME="$(basename "$0")"
-
-banner_title="Deploy SAP System"
-
 #call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
-
-#call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
-echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYSTEM_FOLDERNAME"
-
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
-
-fi
-export DEBUG
-set -eu
+SCRIPT_NAME="$(basename "$0")"
 
 # Print the execution environment details
 print_header
+echo ""
 
-# Configure DevOps
-configure_devops
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	# Configure DevOps
+	configure_devops
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
-export VARIABLE_GROUP_ID
+
+
+banner_title="Deploy SAP System"
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
@@ -299,34 +301,49 @@ if [ -f "${SID}_virtual_machines.json" ]; then
 	added=1
 fi
 
-if [ 1 == $added ]; then
-	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-	git config --global user.name "$BUILD_REQUESTEDFOR"
-	git commit -m "Added updates from SAP deployment of $SAP_SYSTEM_FOLDERNAME for $BUILD_BUILDNUMBER [skip ci]"
-
-	if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-		echo "##vso[task.logissue type=warning]Changes from SAP deployment of $SAP_SYSTEM_FOLDERNAME pushed to $BUILD_SOURCEBRANCHNAME"
+# Commit changes based on platform
+if [ 1 = $added ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+		git config --global user.name "$BUILD_REQUESTEDFOR"
+		commit_message="Added updates from SAP System Infrastructure Deployment of $SAP_SYSTEM_FOLDERNAME [skip ci]"
+	elif [ "$PLATFORM" == "github" ]; then
+		git config --global user.email "github-actions@github.com"
+		git config --global user.name "GitHub Actions"
+		commit_message="Added updates from SAP System Infrastructure Deployment of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 	else
-		echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
+		git config --global user.email "local@example.com"
+		git config --global user.name "Local User"
+		commit_message="Added updates from SAP System Infrastructure Deployment of $SAP_SYSTEM_FOLDERNAME [skip ci]"
+	fi
+
+	if [ "$DEBUG" = True ]; then
+		git status --verbose
+		if git commit --message --verbose "$commit_message"; then
+			if [ "$PLATFORM" == "devops" ]; then
+				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			elif [ "$PLATFORM" == "github" ]; then
+				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			fi
+		fi
+	else
+		if git commit -m "$commit_message"; then
+			if [ "$PLATFORM" == "devops" ]; then
+				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			elif [ "$PLATFORM" == "github" ]; then
+				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			fi
+		fi
 	fi
 fi
-
-# file_name=${SID}_inventory.md
-# if [ -f ${SID}_inventory.md ]; then
-#   az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
-
-#   # ToDo: Fix this later
-#   # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
-#   # echo "${WIKI_NAME_FOUND}"
-#   # if [ -n "${WIKI_NAME_FOUND}" ]; then
-#   #   eTag=$(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
-#   #   if [ -n "$eTag" ]; then
-#   #     az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none
-#   #   else
-#   #     az devops wiki page create --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --output none --only-show-errors
-#   #   fi
-#   # fi
-# fi
 
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 

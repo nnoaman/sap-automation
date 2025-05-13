@@ -144,23 +144,6 @@ fi
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 
-if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
-	APPLICATION_CONFIGURATION_ID=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID")
-	APPLICATION_CONFIGURATION_NAME=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"; then
-		echo "Variable APPLICATION_CONFIGURATION_ID was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
-	fi
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"; then
-		echo "Variable APPLICATION_CONFIGURATION_NAME was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_NAME was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable APPLICATION_CONFIGURATION_NAME was not added to the $VARIABLE_GROUP variable group."
-	fi
-fi
-
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 dos2unix -q tfvarsFile
@@ -299,17 +282,50 @@ if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
 	added=1
 fi
 
-if [ 1 == $added ]; then
-	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-	git config --global user.name "$BUILD_REQUESTEDFOR"
-	git commit -m "Added updates from SAP workload zone deployment of $WORKLOAD_ZONE_FOLDERNAME for $BUILD_BUILDNUMBER [skip ci]"
-
-	if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-		echo "##vso[task.logissue type=warning]Changes from SAP deployment of $WORKLOAD_ZONE_FOLDERNAME pushed to $BUILD_SOURCEBRANCHNAME"
+# Commit changes based on platform
+if [ 1 = $added ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+		git config --global user.name "$BUILD_REQUESTEDFOR"
+		commit_message="Added updates from Workload Zone Deployment for $WORKLOAD_ZONE_NAME $BUILD_BUILDNUMBER [skip ci]"
+	elif [ "$PLATFORM" == "github" ]; then
+		git config --global user.email "github-actions@github.com"
+		git config --global user.name "GitHub Actions"
+		commit_message="Added updates from Workload Zone Deployment for $WORKLOAD_ZONE_NAME [skip ci]"
 	else
-		echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
+		git config --global user.email "local@example.com"
+		git config --global user.name "Local User"
+		commit_message="Added updates from from Workload Zone Deployment for $WORKLOAD_ZONE_NAME [skip ci]"
+	fi
+
+	if [ "$DEBUG" = True ]; then
+		git status --verbose
+		if git commit --message --verbose "$commit_message"; then
+			if [ "$PLATFORM" == "devops" ]; then
+				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			elif [ "$PLATFORM" == "github" ]; then
+				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			fi
+		fi
+	else
+		if git commit -m "$commit_message"; then
+			if [ "$PLATFORM" == "devops" ]; then
+				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			elif [ "$PLATFORM" == "github" ]; then
+				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			fi
+		fi
 	fi
 fi
+
 
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
