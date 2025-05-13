@@ -6,13 +6,9 @@
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 source "${SCRIPT_DIR}/shared_platform_config.sh"
 source "${SCRIPT_DIR}/shared_functions.sh"
+source "${SCRIPT_DIR}/set-colors.sh"
 
 SCRIPT_NAME="$(basename "$0")"
-# Define colors for output
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
@@ -30,17 +26,6 @@ grand_parent_directory="$(dirname "$parent_directory")"
 # Source helper scripts
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
-
-DEBUG=false
-if [[ "$SYSTEM_DEBUG" == "True" || "$RUNNER_DEBUG" == "1" ]]; then
-	set -x
-	DEBUG=true
-	echo "Environment variables:"
-	printenv | sort
-fi
-
-export DEBUG
-set -eu
 
 # Print the execution environment details
 print_header
