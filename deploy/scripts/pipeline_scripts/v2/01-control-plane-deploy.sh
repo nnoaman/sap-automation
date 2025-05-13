@@ -472,6 +472,15 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	fi
 fi
 
+if [ -f .sap_deployment_automation/terraform.log ]; then
+  rm .sap_deployment_automation/terraform.log
+fi
+
+if [ -f LICENSE.txt ]; then
+  rm LICENSE.txt
+fi
+
+
 # Commit changes based on platform
 if [ 1 = $added ]; then
 	if [ "$PLATFORM" == "devops" ]; then
