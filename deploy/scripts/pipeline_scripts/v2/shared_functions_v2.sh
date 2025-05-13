@@ -28,7 +28,7 @@ start_group() {
 	else
 		# For Azure DevOps or CLI, use colored formatting
 		local cyan="\e[1;36m"
-		local reset="\e[0m"
+		local reset_formatting="\e[0m"
 		local separator="-------------------------------------------------------------------------------"
 		echo ""
 		echo -e "${cyan}${separator}${reset_formatting}"
