@@ -78,7 +78,7 @@ deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CO
 
 APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-	echo "APPLICATION_CONFIGURATION_NAME:       ${APPLICATION_CONFIGURATION_NAME}"
+	echo "Application Configuration Name:      ${APPLICATION_CONFIGURATION_NAME}"
 fi
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then

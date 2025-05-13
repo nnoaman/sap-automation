@@ -290,7 +290,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	export APPLICATION_CONFIGURATION_NAME
-	echo "APPLICATION_CONFIGURATION_NAME:      ${DEPLOYER_KEYVAULT}"
+	echo "Application Configuration Name:      ${APPLICATION_CONFIGURATION_NAME}"
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 	if [ 0 -eq $return_code ]; then
 
