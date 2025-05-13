@@ -30,19 +30,20 @@ source "${grand_parent_directory}/deploy_utils.sh"
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
+DEBUG=${DEBUG:-false}
+# Enable debug mode if DEBUG is set to 'true'
+if [[ "${SYSTEM_DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
+	# Enable debugging
 	set -x
-	DEBUG=True
+	# Exit on error
+	set -o errexit
 	echo "Environment variables:"
 	printenv | sort
-
+	DEBUG=True
 fi
+
 export DEBUG
 set -eu
-echo "Environment variables:"
-printenv | sort
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
