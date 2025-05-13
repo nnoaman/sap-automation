@@ -413,7 +413,7 @@ function sdaf_remover() {
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
 		print_banner "$banner_title" "Validating parameters failed" "error"
-		return $?
+		return 10
 	fi
 
 	print_banner "$banner_title" "Removal starter." "info" "Entering $SCRIPT_NAME"
