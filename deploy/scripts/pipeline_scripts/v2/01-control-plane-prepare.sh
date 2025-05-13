@@ -28,13 +28,16 @@ grand_parent_directory="$(dirname "$parent_directory")"
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
-DEBUG=false
-if [[ "$SYSTEM_DEBUG" == "True" || "$RUNNER_DEBUG" == "1" ]]; then
+# Enable debug mode if DEBUG is set to 'true'
+if [[ "${DEBUG:-false}" == 'true'  || "$RUNNER_DEBUG" == "1" ]] ; then
+	# Enable debugging
 	set -x
-	DEBUG=true
+	# Exit on error
+	set -o errexit
 	echo "Environment variables:"
 	printenv | sort
 fi
+
 
 export DEBUG
 set -eu
@@ -62,7 +65,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
 
-if [ -z "${TF_VAR_ansible_core_version:-}" ]; then
+if [ ! -v TF_VAR_ansible_core_version ]; then
 	TF_VAR_ansible_core_version=2.16
 	export TF_VAR_ansible_core_version
 fi

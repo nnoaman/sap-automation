@@ -27,7 +27,8 @@ detect_platform() {
 		PLATFORM="cli"
 	fi
 	export PLATFORM
-	echo "Using platform:            ${PLATFORM}"
+	echo "Using platform:                      ${PLATFORM}"
+
 }
 
 # Load platform-specific functions
