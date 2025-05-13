@@ -702,7 +702,7 @@ function copy_files_to_public_deployer() {
 			# Only run this when not on deployer
 			print_banner "Copy-Files" "Copying the parameter files..." "info"
 
-			if [ -n "${sshsecret}" ]; then
+			if [ -v sshsecret ]; then
 				step=3
 				save_config_var "step" "${deployer_config_information}"
 				printf "%s\n" "Collecting secrets from KV"
