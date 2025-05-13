@@ -298,6 +298,7 @@ else
 			git pull -q origin "$GITHUB_REF_NAME"
 		fi
 
+		# Clean up untracked files and directories, including ignored files, to ensure a clean working directory
 		git clean -d -f -X
 
 		if [ -f ".terraform/terraform.tfstate" ]; then
