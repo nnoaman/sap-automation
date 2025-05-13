@@ -3,11 +3,24 @@
 function setup_dependencies() {
     az config set extension.use_dynamic_install=yes_without_prompt > /dev/null 2>&1
 		az config set extension.dynamic_install_allow_preview=true --output none > /dev/null 2>&1
-		az extension add -upgrade --name azure-devops --output none > /dev/null 2>&1
 
-    az extension add -upgrade --name resource-graph --output none > /dev/null 2>&1
+		az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 
-    az devops configure --defaults organization=${System.CollectionUri} project='${System.TeamProjectId}' --output none > /dev/null 2>&1
+		if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
+			az extension add --name azure-devops --output none --only-show-errors
+		fi
+
+		# Only configure Azure DevOps CLI if we have the necessary variables
+		if [ -n "${SYSTEM_COLLECTIONURI+x}" ] && [ -n "${SYSTEM_TEAMPROJECTID+x}" ]; then
+			az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
+		else
+			echo "Skipping Azure DevOps CLI configuration - running in a non-Azure DevOps environment"
+		fi
+
+		if ! az extension list --query "[?contains(name, 'resource-graph')]" --output table; then
+			az extension add --name resource-graph
+		fi
+
     export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='${variable_group}'].id | [0]" --output tsv)
 
     if [ $VARIABLE_GROUP_ID == "" ]; then
