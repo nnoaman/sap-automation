@@ -638,7 +638,7 @@ function sdaf_installer() {
 
 	echo ""
 	echo -e "${green}Terraform details:"
-	echo -e "-------------------------------------------------------------------------${reset}"
+	echo -e "-------------------------------------------------------------------------${reset_formatting}"
 	echo "Statefile subscription:              ${terraform_storage_account_subscription_id}"
 	echo "Statefile storage account:           ${terraform_storage_account_name}"
 	echo "Statefile resource group:            ${terraform_storage_account_resource_group_name}"

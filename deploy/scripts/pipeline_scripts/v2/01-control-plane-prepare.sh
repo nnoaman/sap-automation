@@ -341,7 +341,7 @@ else
 	echo "Return code from deploy_control_plane_v2 $return_code."
 fi
 echo ""
-echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset}"
+echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset_formatting}"
 echo ""
 
 # Process deployment outputs

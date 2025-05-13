@@ -31,9 +31,9 @@ start_group() {
 		local reset="\e[0m"
 		local separator="-------------------------------------------------------------------------------"
 		echo ""
-		echo -e "${cyan}${separator}${reset}"
-		echo -e "${cyan}${title}${reset}"
-		echo -e "${cyan}${separator}${reset}"
+		echo -e "${cyan}${separator}${reset_formatting}"
+		echo -e "${cyan}${title}${reset_formatting}"
+		echo -e "${cyan}${separator}${reset_formatting}"
 	fi
 }
 

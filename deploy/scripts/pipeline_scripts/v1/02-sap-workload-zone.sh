@@ -161,7 +161,7 @@ landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 
 echo -e "${green}Deployment details:"
-echo -e "-------------------------------------------------------------------------${reset}"
+echo -e "-------------------------------------------------------------------------${reset_formatting}"
 
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"

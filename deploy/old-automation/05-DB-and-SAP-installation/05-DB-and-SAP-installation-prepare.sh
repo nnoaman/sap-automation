@@ -245,17 +245,17 @@ echo "DEBUG: Found control_plane_subscription = ${control_plane_subscription}"
 
 # Ensure we have values for required variables
 if [ -z "${workload_key_vault}" ]; then
-    echo -e "${bold_red}Error: Could not determine workload key vault${reset}"
+    echo -e "${bold_red}Error: Could not determine workload key vault${reset_formatting}"
     exit 1
 fi
 
 if [ -z "${workload_prefix}" ]; then
-    echo -e "${bold_red}Error: Could not determine workload prefix${reset}"
+    echo -e "${bold_red}Error: Could not determine workload prefix${reset_formatting}"
     exit 1
 fi
 
 if [ -z "${control_plane_subscription}" ]; then
-    echo -e "${bold_red}Error: Could not determine control plane subscription${reset}"
+    echo -e "${bold_red}Error: Could not determine control plane subscription${reset_formatting}"
     exit 1
 fi
 

@@ -99,18 +99,18 @@ function print_banner() {
 	echo -e "${color}"
 	echo "#################################################################################"
 	echo "#                                                                               #"
-	echo -e "#${color}${centered_title}${reset}#"
+	echo -e "#${color}${centered_title}${reset_formatting}#"
 	echo "#                                                                               #"
-	echo -e "#${color}${centered_message}${reset}#"
+	echo -e "#${color}${centered_message}${reset_formatting}#"
 	echo "#                                                                               #"
 	if [ ${#secondary_message} -gt 3 ]; then
 		local centered_secondary_message
 		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
-		echo -e "#${color}${centered_secondary_message}${reset}#"
+		echo -e "#${color}${centered_secondary_message}${reset_formatting}#"
 		echo "#                                                                               #"
 	fi
 	echo "#################################################################################"
-	echo -e "${reset}"
+	echo -e "${reset_formatting}"
 	echo ""
 }
 

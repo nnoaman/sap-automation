@@ -77,25 +77,25 @@ function print_banner() {
 	echo -e "${color}"
 	echo "#################################################################################"
 	echo "#                                                                               #"
-	echo -e "#${color}${centered_title}${reset}#"
+	echo -e "#${color}${centered_title}${reset_formatting}#"
 	echo "#                                                                               #"
-	echo -e "#${color}${centered_message}${reset}#"
+	echo -e "#${color}${centered_message}${reset_formatting}#"
 	echo "#                                                                               #"
 
 	if [ ${#secondary_message} -gt 3 ]; then
 		local centered_secondary_message
 		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
-		echo -e "#${color}${centered_secondary_message}${reset}#"
+		echo -e "#${color}${centered_secondary_message}${reset_formatting}#"
 		echo "#                                                                               #"
 	fi
 	if [ ${#tertiary_message} -gt 3 ]; then
 		local centered_tertiary_message
 		centered_tertiary_message=$(printf "%*s%s%*s" $padding_tertiary_message "" "$tertiary_message" $padding_tertiary_message "")
-		echo -e "#${color}${centered_tertiary_message}${reset}#"
+		echo -e "#${color}${centered_tertiary_message}${reset_formatting}#"
 		echo "#                                                                               #"
 	fi
 	echo "#################################################################################"
-	echo -e "${reset}"
+	echo -e "${reset_formatting}"
 	echo ""
 }
 
@@ -303,7 +303,7 @@ function get_variable_group_id() {
 
 	echo ""
 	echo -e "${green}Variable group information:"
-	echo -e "--------------------------------------------------------------------------------${reset}"
+	echo -e "--------------------------------------------------------------------------------${reset_formatting}"
 	echo "Variable group name:                 $variable_group_name"
 	echo "Variable group id:                   $variable_group_id"
 	echo ""
@@ -366,12 +366,12 @@ function print_header() {
 		echo "Deployer Agent Pool:                 $POOL"
 	fi
 	echo ""
-	echo -e "${green}Azure CLI version:${reset}"
-	echo -e "${green}-------------------------------------------------${reset}"
+	echo -e "${green}Azure CLI version:${reset_formatting}"
+	echo -e "${green}-------------------------------------------------${reset_formatting}"
 	az --version
 	echo ""
-	echo -e "${green}Terraform version:${reset}"
-	echo -e "${green}-------------------------------------------------${reset}"
+	echo -e "${green}Terraform version:${reset_formatting}"
+	echo -e "${green}-------------------------------------------------${reset_formatting}"
 	if [ -f /opt/terraform/bin/terraform ]; then
 		tfPath="/opt/terraform/bin/terraform"
 	else
