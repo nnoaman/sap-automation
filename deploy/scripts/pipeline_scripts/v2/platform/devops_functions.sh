@@ -78,16 +78,21 @@ function commit_changes() {
     message=$1
     is_custom_message=${2:-false}
 
-    git config --global user.email "${Build.RequestedForEmail}"
-    git config --global user.name "${Build.RequestedFor}"
+    git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+    git config --global user.name "$BUILD_REQUESTEDFOR"
 
     if [[ $is_custom_message == "true" ]]; then
         git commit -m "${message}"
     else
-        git commit -m "${message} - DevOps Build: ${Build.DefinitionName} [skip ci]"
+        git commit -m "${message} - DevOps Build: $BUILD_BUILDNUMBER [skip ci]"
     fi
+		if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+			echo "##vso[task.logissue type=warning]Changes pushed to $BUILD_SOURCEBRANCHNAME"
+		else
+			echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
+		fi
 
-    git -c http.extraheader="AUTHORIZATION: bearer ${System_AccessToken}" push --set-upstream origin ${Build.SourceBranchName}
+
 }
 
 function upload_summary() {
