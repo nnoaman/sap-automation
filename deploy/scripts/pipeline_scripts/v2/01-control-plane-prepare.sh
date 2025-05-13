@@ -29,7 +29,7 @@ source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-false}" == 'true'  || "${RUNNER_DEBUG:-0}" == "1" ]] ; then
+if [[ "${DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error
@@ -37,7 +37,6 @@ if [[ "${DEBUG:-false}" == 'true'  || "${RUNNER_DEBUG:-0}" == "1" ]] ; then
 	echo "Environment variables:"
 	printenv | sort
 fi
-
 
 export DEBUG
 set -eu
@@ -248,27 +247,26 @@ if [ "$PLATFORM" == "devops" ]; then
 	pass=${SYSTEM_COLLECTIONID//-/}
 elif [ "$PLATFORM" == "github" ]; then
 	pass=${GITHUB_REPOSITORY//-/}
-else
-	pass="localpassword"
-fi
+	# Import PGP key if it exists, otherwise generate it
+	if [ -f ${CONFIG_REPO_PATH}/private.pgp ]; then
+		echo "Importing PGP key"
+		set +e
+		gpg --list-keys sap-azure-deployer@example.com
+		return_code=$?
+		set -e
 
-# Import PGP key if it exists, otherwise generate it
-if [ -f ${CONFIG_REPO_PATH}/private.pgp ]; then
-	echo "Importing PGP key"
-	set +e
-	gpg --list-keys sap-azure-deployer@example.com
-	return_code=$?
-	set -e
-
-	if [ ${return_code} != 0 ]; then
-		echo ${pass} | gpg --batch --passphrase-fd 0 --import ${CONFIG_REPO_PATH}/private.pgp
+		if [ ${return_code} != 0 ]; then
+			echo ${pass} | gpg --batch --passphrase-fd 0 --import ${CONFIG_REPO_PATH}/private.pgp
+		fi
+	else
+		echo "Generating PGP key"
+		echo ${pass} | ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh
+		gpg --output ${CONFIG_REPO_PATH}/private.pgp --armor --export-secret-key sap-azure-deployer@example.com
+		git add ${CONFIG_REPO_PATH}/private.pgp
+		commit_changes "Adding PGP key for encryption of state file" true
 	fi
 else
-	echo "Generating PGP key"
-	echo ${pass} | ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh
-	gpg --output ${CONFIG_REPO_PATH}/private.pgp --armor --export-secret-key sap-azure-deployer@example.com
-	git add ${CONFIG_REPO_PATH}/private.pgp
-	commit_changes "Adding PGP key for encryption of state file" true
+	pass="localpassword"
 fi
 
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -471,15 +469,15 @@ fi
 start_group "Adding variables to platform variable group"
 echo -e "$green--- Adding variables to storage ---$reset"
 if [ "$PLATFORM" == "devops" ]; then
-    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 elif [ "$PLATFORM" == "github" ]; then
-    echo "Adding variables to GitHub environment"
-    set_value_with_key "APPLICATION_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME} "env"
-    set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME} "env"
-    set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT} "env"
-    set_value_with_key "MSI_ID" ${MSI_ID} "env"
+	echo "Adding variables to GitHub environment"
+	set_value_with_key "APPLICATION_CONFIGURATION_NAME" ${APPLICATION_CONFIGURATION_NAME} "env"
+	set_value_with_key "CONTROL_PLANE_NAME" ${CONTROL_PLANE_NAME} "env"
+	set_value_with_key "DEPLOYER_KEYVAULT" ${DEPLOYER_KEYVAULT} "env"
+	set_value_with_key "MSI_ID" ${MSI_ID} "env"
 fi
 end_group
 
