@@ -126,7 +126,7 @@ function saveVariableInVariableGroup() {
 
 	if [ -n "$variable_value" ]; then
 
-	  print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
+		print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
 
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
 		if [ "${DEBUG:-False}" = True ]; then
@@ -160,10 +160,11 @@ function configureNonDeployer() {
 
 	# Check if running in GitHub Actions
 	if [ -v GITHUB_ACTIONS ]; then
-		echo -e "$green--- Running in GitHub Actions environment ---$reset"		# Skip all installation commands for GitHub Actions as they are already in the Dockerfile
+		echo -e "$green--- Running in GitHub Actions environment ---$reset" # Skip all installation commands for GitHub Actions as they are already in the Dockerfile
 		return 0
 	else
 		echo -e "$green--- Running in Azure DevOps or standard environment ---$reset"
+
 		local tf_version=$1
 		local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
 
@@ -172,17 +173,21 @@ function configureNonDeployer() {
 
 		sudo apt-get -qq install zip
 
+		if $(which terraform >/dev/null 2>&1); then
+			echo -e "$green Terraform already installed, skipping installation $reset"
+		else
+			wget -q "$tf_url"
+			return_code=$?
+			if [ 0 != $return_code ]; then
+				echo "##vso[task.logissue type=error]Unable to download Terraform version $tf_version."
+				exit 2
+			fi
+			unzip -qq "terraform_${tf_version}_linux_amd64.zip"
+			sudo mv terraform /bin/
+			rm -f "terraform_${tf_version}_linux_amd64.zip"
+		fi
 		echo -e "$green --- Install terraform ---$reset"
 
-		wget -q "$tf_url"
-		return_code=$?
-		if [ 0 != $return_code ]; then
-			echo "##vso[task.logissue type=error]Unable to download Terraform version $tf_version."
-			exit 2
-		fi
-		unzip -qq "terraform_${tf_version}_linux_amd64.zip"
-		sudo mv terraform /bin/
-		rm -f "terraform_${tf_version}_linux_amd64.zip"
 	fi
 }
 
