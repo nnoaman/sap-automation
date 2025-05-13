@@ -434,6 +434,14 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 	added=1
 fi
 
+if [ -f .sap_deployment_automation/terraform.log ]; then
+  rm .sap_deployment_automation/terraform.log
+fi
+
+if [ -f LICENSE.txt ]; then
+  rm LICENSE.txt
+fi
+
 # Commit changes based on platform
 if [ 1 = $added ]; then
 	if [ "$PLATFORM" == "devops" ]; then
