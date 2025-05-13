@@ -129,8 +129,8 @@ function saveVariableInVariableGroup() {
 	  print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
 
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
-		if [ "$DEBUG" = True ]; then
-			echo "Variable value: $az_var"
+		if [ "${DEBUG:-False}" = True ]; then
+			echo "Variable value:  $az_var"
 			echo "Variable length: ${#az_var}"
 		fi
 		if [ ${#az_var} -gt 0 ]; then

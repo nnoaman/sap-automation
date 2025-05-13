@@ -29,13 +29,14 @@ source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
+if [[ "${SYSTEM_DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error
 	set -o errexit
 	echo "Environment variables:"
 	printenv | sort
+	DEBUG=True
 fi
 
 export DEBUG
