@@ -27,12 +27,13 @@ detect_platform() {
 		PLATFORM="cli"
 	fi
 	export PLATFORM
-	echo "Using platform: ${PLATFORM}"
+	echo "Using platform:            ${PLATFORM}"
 }
 
 # Load platform-specific functions
 load_platform_functions() {
-	local platform_dir="$(dirname "${BASH_SOURCE[0]}")/platform"
+	local platform_dir
+	platform_dir="$(dirname "${BASH_SOURCE[0]}")/platform"
 
 	if [ "${PLATFORM}" == "github" ]; then
 		source "${platform_dir}/github_functions.sh"
