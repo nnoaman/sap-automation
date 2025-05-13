@@ -37,7 +37,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	configure_devops
 
 	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 		exit 2
 	fi
@@ -81,7 +81,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	configure_devops
 
 	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 		exit 2
 	fi
@@ -98,7 +98,7 @@ export TF_VAR_tf_version
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.11.3}"
 
-	echo -e "$green--- az login ---$reset"
+	echo -e "$green--- az login ---$reset_formatting"
 	if [ "$PLATFORM" == "devops" ]; then
 		if ! LogonToAzure false; then
 			print_banner "$banner_title" "Login to Azure failed" "error"
@@ -170,7 +170,7 @@ export TF_VAR_deployer_kv_user_arm_id
 
 echo ""
 echo -e "${green}Terraform parameter information:"
-echo -e "-------------------------------------------------------------------------------$reset"
+echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo ""
@@ -284,7 +284,7 @@ if [ "$DEBUG" == True ]; then
 	echo "ARM Environment variables:"
 	printenv | grep ARM_
 fi
-echo -e "$green--- Control Plane deployment---$reset"
+echo -e "$green--- Control Plane deployment---$reset_formatting"
 
 # Platform-specific flags
 if [ "$PLATFORM" == "devops" ]; then
@@ -315,7 +315,7 @@ else
 	echo "Return code from deploy_control_plane_v2 $return_code."
 fi
 
-echo -e "$green--- Pushing the changes to the repository ---$reset"
+echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
 
@@ -326,7 +326,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	git pull -q origin "$GITHUB_REF_NAME"
 fi
 
-echo -e "$green--- Update repo ---$reset"
+echo -e "$green--- Update repo ---$reset_formatting"
 if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
 	git add ".sap_deployment_automation/$CONTROL_PLANE_NAME"
 	added=1
@@ -511,10 +511,10 @@ if [ 1 = $added ]; then
 fi
 
 # Add variables to storage based on platform
-echo -e "$green--- Adding variables to storage ---$reset"
+echo -e "$green--- Adding variables to storage ---$reset_formatting"
 if [ 0 = $return_code ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-		echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+		echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset_formatting"
 		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
 			echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
 		else

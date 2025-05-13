@@ -62,7 +62,7 @@ stages:
             persistCredentials:        true
             submodules:                true
           - bash: |
-              echo -e "$green --- Set secrets ---$reset"
+              echo -e "$green --- Set secrets ---$reset_formatting"
 
               az login --identity --allow-no-subscriptions --output none
               az keyvault secret set --vault-name $(Deployer_Key_Vault) --name "sapbits-location-base-path" --value $(storage_account_name) --output none

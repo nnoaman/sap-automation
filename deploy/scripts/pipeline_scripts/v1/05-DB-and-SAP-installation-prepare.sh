@@ -32,7 +32,7 @@ configure_devops
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -53,9 +53,9 @@ parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/s
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none --only-show-errors
 
-echo -e "$green--- Validations ---$reset"
+echo -e "$green--- Validations ---$reset_formatting"
 if [ ! -f "${environment_file_name}" ]; then
-	echo -e "$bold_red--- ${environment_file_name} was not found ---$reset"
+	echo -e "$bold_red--- ${environment_file_name} was not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
 	exit 2
 fi
@@ -70,25 +70,25 @@ if [ "azure pipelines" == "$THIS_AGENT" ]; then
 	exit 2
 fi
 
-echo -e "$green--- az login ---$reset"
+echo -e "$green--- az login ---$reset_formatting"
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
+	echo -e "$green--- az login ---$reset_formatting"
 	LogonToAzure false
 else
 	LogonToAzure "$USE_MSI"
 fi
 return_code=$?
 if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
+	echo -e "$bold_red--- Login failed ---$reset_formatting"
 	echo "##vso[task.logissue type=error]az login failed."
 	exit $return_code
 fi
 
 az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 
-echo -e "$green--- Get key_vault name ---$reset"
+echo -e "$green--- Get key_vault name ---$reset_formatting"
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
 
@@ -112,13 +112,13 @@ echo "Hosts file:                          ${SID}_hosts.yaml"
 echo "sap_parameters_file:                 $parameters_filename"
 echo "Configuration file:                  $environment_file_name"
 
-echo -e "$green--- Get Files from the DevOps Repository ---$reset"
+echo -e "$green--- Get Files from the DevOps Repository ---$reset_formatting"
 cd "$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 
-echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
+echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset_formatting"
 sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|' sap-parameters.yaml
 
-echo -e "$green--- Get connection details ---$reset"
+echo -e "$green--- Get connection details ---$reset_formatting"
 mkdir -p artifacts
 
 prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
@@ -154,5 +154,5 @@ cp "${SID}_hosts.yaml" artifacts/.
 
 2> >(while read line; do (echo >&2 "STDERROR: $line"); done)
 
-echo -e "$green--- Done ---$reset"
+echo -e "$green--- Done ---$reset_formatting"
 exit 0

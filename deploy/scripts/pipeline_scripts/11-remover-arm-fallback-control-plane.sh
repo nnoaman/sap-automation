@@ -37,7 +37,7 @@ print_header
 configure_devops
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -83,10 +83,10 @@ else
 	print_banner "Removal using ARM" "Resource group: $DEPLOYER_FOLDERNAME was not found" "warning"
 fi
 
-echo -e "$green--- Removing deployment automation configuration from devops repository ---$reset"
+echo -e "$green--- Removing deployment automation configuration from devops repository ---$reset_formatting"
 
 echo "##vso[task.setprogress value=90;]Progress Indicator"
-echo -e "$green--- Deleting variables ---$reset"
+echo -e "$green--- Deleting variables ---$reset_formatting"
 
 if [ 0 == $library_return_code ] && [ 0 == $deployer_return_code ]; then
 

@@ -95,7 +95,7 @@ VARIABLE_GROUP="SDAF-${CONTROL_PLANE_NAME}"
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -113,17 +113,17 @@ libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVA
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
 echo ""
-echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset"
+echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset_formatting"
 echo ""
 
 if [ ! -f "$deployerTFvarsFile" ]; then
-	echo -e "$bold_red--- File ${deployerTFvarsFile} was not found ---$reset"
+	echo -e "$bold_red--- File ${deployerTFvarsFile} was not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
 	exit 2
 fi
 
 if [ ! -f "${libraryTFvarsFile}" ]; then
-	echo -e "$bold_red--- File ${libraryTFvarsFile}  was not found ---$reset"
+	echo -e "$bold_red--- File ${libraryTFvarsFile}  was not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
@@ -136,7 +136,7 @@ export "CONTROL_PLANE_NAME"
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
-echo -e "$green--- Information ---$reset"
+echo -e "$green--- Information ---$reset_formatting"
 
 echo ""
 echo "Control Plane Name:                  ${CONTROL_PLANE_NAME}"
@@ -175,14 +175,14 @@ az appconfig update --name "$app_config_name" --resource-group "$app_config_reso
 sleep 30
 
 cd "$CONFIG_REPO_PATH" || exit
-echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
+echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset_formatting"
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	pass=${SYSTEM_COLLECTIONID//-/}
 	unzip -qq -o -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
-echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
+echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset_formatting"
 
 cd "$CONFIG_REPO_PATH/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 
@@ -198,7 +198,7 @@ fi
 
 echo "Return code from remove_deployer: $return_code."
 
-echo -e "$green--- Remove Control Plane Part 2 ---$reset"
+echo -e "$green--- Remove Control Plane Part 2 ---$reset_formatting"
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git pull -q
 
@@ -261,7 +261,7 @@ if [ 0 == $return_code ]; then
 			fi
 		fi
 	fi
-	echo -e "$green--- Deleting variables ---$reset"
+	echo -e "$green--- Deleting variables ---$reset_formatting"
 	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		echo "Deleting variables"
 

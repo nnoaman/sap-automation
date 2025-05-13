@@ -549,7 +549,7 @@ function sdaf_installer() {
 
 	echo ""
 	echo -e "${green}Deployment information:"
-	echo -e "-------------------------------------------------------------------------------$reset"
+	echo -e "-------------------------------------------------------------------------------$reset_formatting"
 	echo "Parameter file:                      $parameterFilename"
 	echo "Current directory:                   $(pwd)"
 	echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"

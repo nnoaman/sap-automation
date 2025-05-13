@@ -268,7 +268,7 @@ function install_deployer() {
 
 	echo ""
 	echo -e "${green}Deployment information:"
-	echo -e "-------------------------------------------------------------------------------$reset"
+	echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 	echo "Configuration file:                  $parameter_file_name"
 	echo "Configuration file (full path):      $var_file"

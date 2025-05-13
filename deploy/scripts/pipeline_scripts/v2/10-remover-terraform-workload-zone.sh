@@ -37,7 +37,7 @@ print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
+echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
@@ -57,7 +57,7 @@ configure_devops
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -67,7 +67,7 @@ export VARIABLE_GROUP_ID
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
+	echo -e "$green--- az login ---$reset_formatting"
 	if ! LogonToAzure false; then
 		print_banner "$banner_title" "Login to Azure failed" "error"
 		echo "##vso[task.logissue type=error]az login failed."
@@ -122,7 +122,7 @@ export deployer_tfstate_key
 
 echo ""
 echo -e "${green}Deployment details:"
-echo -e "-------------------------------------------------------------------------------$reset"
+echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 
 echo "Workload TFvars:                     $WORKLOAD_ZONE_TFVARS_FILENAME"
@@ -210,7 +210,7 @@ export workload_key_vault
 
 echo ""
 echo -e "${green}Terraform parameter information:"
-echo -e "-------------------------------------------------------------------------------$reset"
+echo -e "-------------------------------------------------------------------------------$reset_formatting"
 echo "Deployer state file:                 $deployer_tfstate_key"
 echo "Workload state file:                 $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
@@ -278,7 +278,7 @@ else
 			fi
 		fi
 
-		echo -e "$green--- Deleting variables ---$reset"
+		echo -e "$green--- Deleting variables ---$reset_formatting"
 		if [ -n "$VARIABLE_GROUP_ID"  ]; then
 			print_banner "Remove workload zone" "Deleting variables" "info"
 

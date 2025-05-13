@@ -59,12 +59,12 @@ function configureNonDeployer() {
 	reset="\e[0m"
 	local tf_version=$1
 	local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
-	echo -e "$green--- Install dos2unix ---$reset"
+	echo -e "$green--- Install dos2unix ---$reset_formatting"
 	sudo apt-get -qq install dos2unix
 
 	sudo apt-get -qq install zip
 
-	echo -e "$green --- Install terraform ---$reset"
+	echo -e "$green --- Install terraform ---$reset_formatting"
 
 	wget -q "$tf_url"
 	return_code_conf=$?

@@ -34,7 +34,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	configure_devops
 
 	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 		exit 2
 	fi
@@ -71,7 +71,7 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Forcing a re-install"
 	fi
-	echo -e "$bold_red--- Resetting the environment file ---$reset"
+	echo -e "$bold_red--- Resetting the environment file ---$reset_formatting"
 	step=0
 else
 	if [ -f "${deployer_environment_file_name}" ]; then
@@ -224,7 +224,7 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	export REINSTALL_RESOURCE_GROUP
 fi
 
-echo -e "$green--- Variables ---$reset"
+echo -e "$green--- Variables ---$reset_formatting"
 
 # Handle state.zip differently per platform
 
@@ -273,7 +273,7 @@ if [ "$DEBUG" == True ]; then
 	echo "ARM Environment variables:"
 	printenv | grep ARM_
 fi
-echo -e "$green--- Control Plane deployment---$reset"
+echo -e "$green--- Control Plane deployment---$reset_formatting"
 
 # Platform-specific flags
 if [ "$PLATFORM" == "devops" ]; then
@@ -366,7 +366,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	fi
 fi
 
-echo -e "$green--- Adding deployment automation configuration to repository ---$reset"
+echo -e "$green--- Adding deployment automation configuration to repository ---$reset_formatting"
 added=0
 cd "$CONFIG_REPO_PATH" || exit
 
@@ -377,7 +377,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	git pull -q origin "$GITHUB_REF_NAME"
 fi
 
-echo -e "$green--- Update repo ---$reset"
+echo -e "$green--- Update repo ---$reset_formatting"
 
 if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
@@ -457,7 +457,7 @@ if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME.md" ];
 fi
 
 # Add variables to variable group or GitHub environment
-echo -e "$green--- Adding variables ---$reset"
+echo -e "$green--- Adding variables ---$reset_formatting"
 start_group "Adding variables to platform variable group"
 if [ "$PLATFORM" == "devops" ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"

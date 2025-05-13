@@ -43,7 +43,7 @@ print_header
 configure_devops
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -51,7 +51,7 @@ export VARIABLE_GROUP_ID
 
 return_code=0
 
-echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset_formatting"
 ENVIRONMENT=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 echo "Environment:                           $ENVIRONMENT"
 

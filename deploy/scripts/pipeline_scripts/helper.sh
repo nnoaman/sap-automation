@@ -160,7 +160,7 @@ function configureNonDeployer() {
 
 	# Check if running in GitHub Actions
 	if [ -v GITHUB_ACTIONS ]; then
-		echo -e "$green--- Running in GitHub Actions environment ---$reset" # Skip all installation commands for GitHub Actions as they are already in the Dockerfile
+		echo -e "$green--- Running in GitHub Actions environment ---$reset_formatting" # Skip all installation commands for GitHub Actions as they are already in the Dockerfile
 		return 0
 	else
 		echo -e "$green--- Running in Azure DevOps or standard environment ---$reset_formatting"
@@ -168,7 +168,7 @@ function configureNonDeployer() {
 		local tf_version=$1
 		local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
 
-		echo -e "$green--- Install dos2unix ---$reset"
+		echo -e "$green--- Install dos2unix ---$reset_formatting"
 		sudo apt-get -qq install dos2unix
 
 		sudo apt-get -qq install zip
@@ -176,7 +176,7 @@ function configureNonDeployer() {
 		if which terraform >/dev/null 2>&1; then
 			echo -e "${green}Terraform already installed, skipping installation $reset_formatting"
 		else
-			echo -e "$green --- Install terraform ---$reset"
+			echo -e "$green --- Install terraform ---$reset_formatting"
 			wget -q "$tf_url"
 			return_code=$?
 			if [ 0 != $return_code ]; then
@@ -320,7 +320,7 @@ function print_header() {
 	local reset="\e[0m"
 	echo ""
 	echo -e "${green}DevOps information:"
-	echo -e "-------------------------------------------------------------------------------$reset"
+	echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 	# Initialize THIS_AGENT if not already defined
 	if [ -z "${THIS_AGENT+x}" ]; then
@@ -384,7 +384,7 @@ function print_header() {
 
 function configure_devops() {
 	echo ""
-	echo -e "$green--- Configure devops CLI extension ---$reset"
+	echo -e "$green--- Configure devops CLI extension ---$reset_formatting"
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 
 	if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then

@@ -54,7 +54,7 @@ configure_devops
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -65,7 +65,7 @@ dos2unix -q tfvarsFile
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
+	echo -e "$green--- az login ---$reset_formatting"
 	if ! LogonToAzure false; then
 		print_banner "$banner_title" "Login to Azure failed" "error"
 		echo "##vso[task.logissue type=error]az login failed."
@@ -121,7 +121,7 @@ export deployer_tfstate_key
 
 echo ""
 echo -e "${green}Deployment details:"
-echo -e "-------------------------------------------------------------------------------$reset"
+echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
@@ -207,7 +207,7 @@ export workload_key_vault
 
 echo ""
 echo -e "${green}Terraform parameter information:"
-echo -e "-------------------------------------------------------------------------------$reset"
+echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
 echo "Deployer statefile:                  $deployer_tfstate_key"

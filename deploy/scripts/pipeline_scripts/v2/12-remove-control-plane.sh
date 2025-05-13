@@ -44,7 +44,7 @@ print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
+	echo -e "$green--- az login ---$reset_formatting"
 	if ! LogonToAzure false; then
 		print_banner "$banner_title" "Login to Azure failed" "error"
 		echo "##vso[task.logissue type=error]az login failed."
@@ -89,7 +89,7 @@ VARIABLE_GROUP="SDAF-${CONTROL_PLANE_NAME}"
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -134,7 +134,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	sudo rm -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 fi
 
-echo -e "$green--- Running the remove remove_control_plane_v2 that destroys SAP library ---$reset"
+echo -e "$green--- Running the remove remove_control_plane_v2 that destroys SAP library ---$reset_formatting"
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
 	--deployer_parameter_file "$deployerTFvarsFile" \
@@ -151,7 +151,7 @@ fi
 
 echo "Return code from remove_control_plane_v2: $return_code."
 
-echo -e "$green--- Remove Control Plane Part 1 ---$reset"
+echo -e "$green--- Remove Control Plane Part 1 ---$reset_formatting"
 cd "$CONFIG_REPO_PATH" || exit
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 

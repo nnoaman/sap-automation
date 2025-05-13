@@ -46,7 +46,7 @@ configure_devops
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -69,7 +69,7 @@ fi
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
+	echo -e "$green--- az login ---$reset_formatting"
 	if ! LogonToAzure false; then
 		print_banner "$banner_title" "Login to Azure failed" "error"
 		echo "##vso[task.logissue type=error]az login failed."
@@ -124,7 +124,7 @@ export deployer_tfstate_key
 
 echo ""
 echo -e "${green}Deployment details:"
-echo -e "-------------------------------------------------------------------------------$reset"
+echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
@@ -209,7 +209,7 @@ export workload_key_vault
 
 echo ""
 echo -e "${green}Terraform parameter information:"
-echo -e "-------------------------------------------------------------------------------$reset"
+echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
 echo "Deployer statefile:                  $deployer_tfstate_key"
@@ -230,7 +230,7 @@ if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "
 else
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME failed" "error"
-	echo -e "$bold_red--- Deployment failed ---$reset"
+	echo -e "$bold_red--- Deployment failed ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Deployment failed."
 fi
 echo "Return code from deployment:         ${return_code}"
@@ -240,7 +240,7 @@ fi
 
 set +o errexit
 
-echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+echo -e "$green--- Add & update files in the DevOps Repository ---$reset_formatting"
 cd "$CONFIG_REPO_PATH" || exit
 # Pull changes
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
@@ -249,7 +249,7 @@ git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
-echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+echo -e "$green--- Add & update files in the DevOps Repository ---$reset_formatting"
 
 if [ -f stdout.az ]; then
 	rm stdout.az

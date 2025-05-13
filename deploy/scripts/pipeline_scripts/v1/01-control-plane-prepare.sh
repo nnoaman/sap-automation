@@ -37,7 +37,7 @@ echo ""
 configure_devops
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -63,13 +63,13 @@ deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DE
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
 if [ ! -f "$deployer_tfvars_file_name" ]; then
-	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
+	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
 	exit 2
 fi
 
 if [ ! -f "$library_tfvars_file_name" ]; then
-	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
+	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
@@ -81,7 +81,7 @@ if [ ! -f "${deployer_environment_file_name}" ]; then
 fi
 echo ""
 echo -e "${green}Parameter information:"
-echo -e "-------------------------------------------------------------------------------$reset"
+echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo "Configuration file:                  $deployer_environment_file_name"
@@ -90,7 +90,7 @@ echo "Location:                            $LOCATION"
 
 if [ "$FORCE_RESET" == "True" ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
-	echo -e "$bold_red--- Resetting the environment file ---$reset"
+	echo -e "$bold_red--- Resetting the environment file ---$reset_formatting"
 	step=0
 else
 	if [ -f "${deployer_environment_file_name}" ]; then
@@ -170,7 +170,7 @@ if printenv ARM_SUBSCRIPTION_ID; then
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 fi
 
-echo -e "$green--- Convert config files to UX format ---$reset"
+echo -e "$green--- Convert config files to UX format ---$reset_formatting"
 dos2unix -q "$deployer_tfvars_file_name"
 dos2unix -q "$library_tfvars_file_name"
 
@@ -236,7 +236,7 @@ if [ "$FORCE_RESET" == True ]; then
 	fi
 fi
 
-echo -e "$green--- Variables ---$reset"
+echo -e "$green--- Variables ---$reset_formatting"
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	# shellcheck disable=SC2001
@@ -291,7 +291,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	export APPLICATION_CONFIGURATION_NAME
 	echo "Application Configuration Name:      ${APPLICATION_CONFIGURATION_NAME}"
-	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset_formatting"
 	if [ 0 -eq $return_code ]; then
 
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
@@ -303,14 +303,14 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	fi
 
 fi
-echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset_formatting"
 added=0
 cd "$CONFIG_REPO_PATH" || exit
 
 # Pull changes
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
-echo -e "$green--- Update repo ---$reset"
+echo -e "$green--- Update repo ---$reset_formatting"
 
 if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 	git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"

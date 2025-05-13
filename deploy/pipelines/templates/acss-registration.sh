@@ -18,7 +18,7 @@ acss_sap_product=${ACSS_SAP_PRODUCT}
 acss_workloads_extension_url="https://aka.ms/ACSSCLI"
 #--------------------------------------+---------------------------------------8
 
-echo -e "$green-- CODE_FOLDER:${CODE_FOLDER} --$reset"
+echo -e "$green-- CODE_FOLDER:${CODE_FOLDER} --$reset_formatting"
 
 #--------------------------------------+---------------------------------------8
 #                                                                              |
@@ -28,11 +28,11 @@ echo -e "$green-- CODE_FOLDER:${CODE_FOLDER} --$reset"
 set -x
 if [ -z "$(az extension list | grep \"name\": | grep \"workloads\")" ]
 then
-  echo -e "$green--- Installing ACSS \"Workloads\" CLI extension ---$reset"
+  echo -e "$green--- Installing ACSS \"Workloads\" CLI extension ---$reset_formatting"
   # wget $acss_workloads_extension_url -O workloads-0.1.0-py3-none-any.whl || exit 1
   az extension add --name workloads --yes || exit 1
 else
-  echo -e "$green--- ACSS \"Workloads\" CLI extension already installed ---$reset"
+  echo -e "$green--- ACSS \"Workloads\" CLI extension already installed ---$reset_formatting"
 fi
 set +x
 #--------------------------------------+---------------------------------------8
@@ -53,7 +53,7 @@ az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SE
 # Get Terraform State Outputs
 # TODO: Should test if Terraform is available or needs to be installed
 #
-echo -e "$green--- Initializing Terraform for: $SAP_SYSTEM_CONFIGURATION_NAME ---$reset"
+echo -e "$green--- Initializing Terraform for: $SAP_SYSTEM_CONFIGURATION_NAME ---$reset_formatting"
 __configDir=${__basedir}
 __moduleDir=${CODE_FOLDER}/deploy/terraform/run/sap_system/
 TF_DATA_DIR=${__configDir}
@@ -76,12 +76,12 @@ init -upgrade=true                                                              
 --backend-config "key=${SAP_SYSTEM_CONFIGURATION_NAME}.terraform.tfstate"               \
 )
 [ $? -ne 0 ] && echo "$__output" && exit 1
-echo -e "$green--- Successfully configured the backend "azurerm"! Terraform will automatically use this backend unless the backend configuration changes. ---$reset"
+echo -e "$green--- Successfully configured the backend "azurerm"! Terraform will automatically use this backend unless the backend configuration changes. ---$reset_formatting"
 
 # Fetch values from Terraform State file
 # have awk only fetch the first line of the output: NR==2
 acss_scs_vm_id=$(     terraform -chdir="${__moduleDir}" output scs_vm_ids                  | awk -F\" 'NR==2{print $2}' | tr -d '\n\r\t[:space:]')
-echo -e "$green--- SCS VM ID: $acss_scs_vm_id ---$reset"
+echo -e "$green--- SCS VM ID: $acss_scs_vm_id ---$reset_formatting"
 acss_sid=$(           terraform -chdir="${__moduleDir}" output sid                         | tr -d '"')
 acss_resource_group=$(terraform -chdir="${__moduleDir}" output created_resource_group_name | tr -d '"')
 acss_location=$(      terraform -chdir="${__moduleDir}" output region                      | tr -d '"')
@@ -95,7 +95,7 @@ cd $__basedir
 # Register in ACSS                                                             |
 #                                                                              |
 #--------------------------------------+---------------------------------------8
-echo -e "$green--- Registering SID: $acss_sid in ACSS ---$reset"
+echo -e "$green--- Registering SID: $acss_sid in ACSS ---$reset_formatting"
 
 # Create JSON Payload as variable
 acss_configuration=$(cat << EOF

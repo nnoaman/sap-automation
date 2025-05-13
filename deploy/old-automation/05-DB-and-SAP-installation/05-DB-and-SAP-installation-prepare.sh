@@ -61,7 +61,7 @@ export DEBUG
 set -eu
 
 if [[ $(get_platform) = devops ]]; then
-	echo -e "$green--- Configure devops CLI extension ---$reset"
+	echo -e "$green--- Configure devops CLI extension ---$reset_formatting"
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 	AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 	export AZURE_DEVOPS_EXT_PAT
@@ -109,9 +109,9 @@ if [[ $(get_platform) = devops ]]; then
 	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
 fi
 
-echo -e "$green--- Validations ---$reset"
+echo -e "$green--- Validations ---$reset_formatting"
 if [ ! -f "${environment_file_name}" ]; then
-	echo -e "$bold_red--- ${environment_file_name} was not found ---$reset"
+	echo -e "$bold_red--- ${environment_file_name} was not found ---$reset_formatting"
 	exit_error "File ${environment_file_name} was not found." 2
 fi
 
@@ -318,5 +318,5 @@ cp "${SID}_hosts.yaml" artifacts/.
 
 2> >(while read line; do (echo >&2 "STDERROR: $line"); done)
 
-echo -e "$green--- Done ---$reset"
+echo -e "$green--- Done ---$reset_formatting"
 exit 0

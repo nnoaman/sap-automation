@@ -357,7 +357,7 @@ function remove_control_plane() {
 
 	echo ""
 	echo -e "${green}Terraform parameter information:"
-	echo -e "-------------------------------------------------------------------------------$reset"
+	echo -e "-------------------------------------------------------------------------------$reset_formatting"
 	echo ""
 	echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 	echo "Region code:                         ${region_code}"

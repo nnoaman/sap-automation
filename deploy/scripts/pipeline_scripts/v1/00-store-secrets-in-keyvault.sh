@@ -44,7 +44,7 @@ print_header
 configure_devops
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -52,7 +52,7 @@ export VARIABLE_GROUP_ID
 
 if printenv PARENT_VARIABLE_GROUP; then
 	if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset_formatting"
 		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 		exit 2
 	else
@@ -99,7 +99,7 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 cd "${CONFIG_REPO_PATH}" || exit
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
-echo -e "$green--- Validations ---$reset"
+echo -e "$green--- Validations ---$reset_formatting"
 if [ "$USE_MSI" != "true" ]; then
 
 	if ! printenv ARM_SUBSCRIPTION_ID; then
@@ -130,7 +130,7 @@ fi
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
+	echo -e "$green--- az login ---$reset_formatting"
 	if ! LogonToAzure false; then
 		print_banner "$banner_title" "Login to Azure failed" "error"
 		echo "##vso[task.logissue type=error]az login failed."
@@ -158,7 +158,7 @@ if [ ! -f "$environment_file_name" ]; then
 	fi
 fi
 
-echo -e "$green--- Read parameter values ---$reset"
+echo -e "$green--- Read parameter values ---$reset_formatting"
 
 deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key

@@ -49,7 +49,7 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 return_code=0
 
-echo -e "$green--- Validations ---$reset"
+echo -e "$green--- Validations ---$reset_formatting"
 if [ "$USE_MSI" != "true" ]; then
 	print_banner "$banner_title" "Using Service Principals for deployment" "info"
 
@@ -87,7 +87,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	configure_devops
 
 	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 		exit 2
 	fi
@@ -99,7 +99,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
 fi
 
-echo -e "$green--- Read parameter values ---$reset"
+echo -e "$green--- Read parameter values ---$reset_formatting"
 key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)

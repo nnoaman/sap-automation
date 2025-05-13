@@ -41,16 +41,16 @@ if [ "$USE_MSI" != "true" ]; then
   fi
 fi
 
-echo -e "$green--- az login ---$reset"
+echo -e "$green--- az login ---$reset_formatting"
 # Check if running on deployer
 if [ ! -f /etc/profile.d/deploy_server.sh ]; then
-  echo -e "$green--- az login ---$reset"
+  echo -e "$green--- az login ---$reset_formatting"
   LogonToAzure false
 fi
 return_code=$?
 
 if [ 0 != $return_code ]; then
-  echo -e "$bold_red--- Login failed ---$reset"
+  echo -e "$bold_red--- Login failed ---$reset_formatting"
   echo "##vso[task.logissue type=error]az login failed."
   exit $return_code
 fi

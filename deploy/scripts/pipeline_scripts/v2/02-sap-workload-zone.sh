@@ -45,15 +45,15 @@ echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
-echo -e "$cyan tfvarsFile: $tfvarsFile $reset"
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
+echo -e "$cyan tfvarsFile: $tfvarsFile $reset_formatting"
+echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
-	echo -e "$bold_red--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset"
+	echo -e "$bold_red--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_TFVARS_FILENAME was not found."
 	exit 2
 fi
@@ -61,7 +61,7 @@ fi
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
+	echo -e "$green--- az login ---$reset_formatting"
 	if ! LogonToAzure false; then
 		print_banner "$banner_title" "Login to Azure failed" "error"
 		echo "##vso[task.logissue type=error]az login failed."
@@ -99,7 +99,7 @@ print_header
 configure_devops
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -113,7 +113,7 @@ else
 fi
 
 if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -257,7 +257,7 @@ echo "Return code from deployment:         ${return_code}"
 
 set +o errexit
 
-echo -e "$green--- Pushing the changes to the repository ---$reset"
+echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"
 # Pull changes if there are other deployment jobs
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 

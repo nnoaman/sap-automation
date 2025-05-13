@@ -46,7 +46,7 @@ configure_devops
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
@@ -73,7 +73,7 @@ parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/s
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none --only-show-errors
 
-echo -e "$green--- Validations ---$reset"
+echo -e "$green--- Validations ---$reset_formatting"
 
 if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
 	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
@@ -88,7 +88,7 @@ fi
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
+	echo -e "$green--- az login ---$reset_formatting"
 	if ! LogonToAzure false; then
 		print_banner "$banner_title" "Login to Azure failed" "error"
 		echo "##vso[task.logissue type=error]az login failed."
@@ -109,7 +109,7 @@ echo "sap_parameters_file:                 $parameters_filename"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 
-echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
+echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset_formatting"
 sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|' sap-parameters.yaml
 
 mkdir -p artifacts
@@ -143,6 +143,6 @@ cp "${SID}_hosts.yaml" artifacts/.
 
 2> >(while read line; do (echo >&2 "STDERROR: $line"); done)
 
-echo -e "$green--- Done ---$reset"
+echo -e "$green--- Done ---$reset_formatting"
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 exit 0

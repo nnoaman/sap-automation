@@ -134,14 +134,14 @@ stages:
                 echo "running git push to ADO with force option"
                 if ! git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin HEAD:$(branch)  >> /tmp/$(log) 2>&1
                 then
-                   echo -e "$red--- Failed to push ---$reset"
+                   echo -e "$red--- Failed to push ---$reset_formatting"
                    exit 1
                 fi
               else
                 echo "running git push to ADO"
                 if ! git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  >> /tmp/$(log) 2>&1
                 then
-                   echo -e "$red--- Failed to push ---$reset"
+                   echo -e "$red--- Failed to push ---$reset_formatting"
                    exit 1
                 fi
 
