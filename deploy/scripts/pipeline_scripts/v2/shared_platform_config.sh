@@ -18,9 +18,9 @@ fi
 
 # Detect platform
 detect_platform() {
-	if [ -n "${GITHUB_ACTIONS}" ]; then
+	if [ -v GITHUB_ACTIONS ]; then
 		PLATFORM="github"
-	elif [ -n "${TF_BUILD}" ]; then
+	elif [ -v TF_BUILD ]; then
 		PLATFORM="devops"
 	else
 		# Default to CLI for interactive use
