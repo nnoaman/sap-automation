@@ -173,7 +173,7 @@ function configureNonDeployer() {
 
 		sudo apt-get -qq install zip
 
-		if $(which terraform >/dev/null 2>&1); then
+		if which terraform >/dev/null 2>&1; then
 			echo -e "$green Terraform already installed, skipping installation $reset"
 		else
 			wget -q "$tf_url"
