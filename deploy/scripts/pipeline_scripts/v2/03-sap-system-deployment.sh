@@ -295,6 +295,7 @@ cd "$CONFIG_REPO_PATH" || exit
 # Pull changes if there are other deployment jobs
 if [ "$PLATFORM" == "devops" ]; then
 	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+	git checkout -q "$BUILD_SOURCEBRANCHNAME"
 elif [ "$PLATFORM" == "github" ]; then
 	git pull -q origin "$GITHUB_REF_NAME"
 fi
