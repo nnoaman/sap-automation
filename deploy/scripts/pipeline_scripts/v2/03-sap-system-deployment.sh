@@ -43,14 +43,17 @@ if [ "$PLATFORM" == "devops" ]; then
 		exit 2
 	fi
 	export VARIABLE_GROUP_ID
+	platform_flag="--ado"
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
+	platform_flag="--github"
+	else
+	platform_flag=""
 fi
-
 
 banner_title="Deploy SAP System"
 
@@ -59,47 +62,67 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME"
 
 cd "${CONFIG_REPO_PATH}" || exit
-mkdir -p .sap_deployment_automation
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
+
+if [ "$PLATFORM" == "devops" ]; then
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	git pull -q origin "$GITHUB_REF_NAME"
+fi
 
 if [ ! -f "$CONFIG_REPO_PATH/$tfvarsFile" ]; then
 	print_banner "$banner_title" "$SAP_SYSTEM_TFVARS_FILENAME was not found" "error"
-	echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
+	fi
 	exit 2
 fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
+	configureNonDeployer "${tf_version:-1.11.3}"
+
 	echo -e "$green--- az login ---$reset_formatting"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
+	if [ "$PLATFORM" == "devops" ]; then
+		if ! LogonToAzure false; then
+			print_banner "$banner_title" "Login to Azure failed" "error"
+			if [ "$PLATFORM" == "devops" ]; then
+				echo "##vso[task.logissue type=error]az login failed."
+			fi
+			exit 2
+		fi
 	fi
 else
-	if [ "$USE_MSI" == "true" ]; then
+	if [ "${USE_MSI:-false}" == "true" ]; then
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
 		echo "Deployment using:                    Managed Identity"
+		ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+		export ARM_CLIENT_ID
 	else
 		TF_VAR_use_spn=true
 		export TF_VAR_use_spn
 		ARM_USE_MSI=false
 		export ARM_USE_MSI
 		echo "Deployment using:                    Service Principal"
-	fi
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
-fi
 
-if printenv OBJECT_ID; then
-	if is_valid_guid "$OBJECT_ID"; then
-		TF_VAR_spn_id="$OBJECT_ID"
-		export TF_VAR_spn_id
+		# Get SPN ID differently per platform
+		if [ "$PLATFORM" == "devops" ]; then
+			TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
+		elif [ "$PLATFORM" == "github" ]; then
+			# Use value from env or from GitHub environment
+			TF_VAR_spn_id=${OBJECT_ID:-$TF_VAR_spn_id}
+		fi
+
+		if [ -n "$TF_VAR_spn_id" ]; then
+			if is_valid_guid "$TF_VAR_spn_id"; then
+				export TF_VAR_spn_id
+				echo "Service Principal Object id:         $TF_VAR_spn_id"
+			fi
+		fi
 	fi
+
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -141,27 +164,43 @@ echo "SID:                                 $SID"
 echo "SID(filename):                       $SID_IN_FILENAME"
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	fi
 	exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	fi
 	exit 2
 fi
 
 if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	fi
 	exit 2
 fi
 
 if [ "$SID" != "$SID_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+	fi
 	exit 2
 fi
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-  application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
+
 	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$key_vault_id" ]; then
@@ -169,7 +208,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	fi
 	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$tfstate_resource_id" ]; then
-		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
 	fi
 	workload_key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultName" "${WORKLOAD_ZONE_NAME}")
 
@@ -185,12 +224,20 @@ else
 fi
 
 if [ -z "$key_vault" ]; then
-	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	fi
 	exit 2
 fi
 
 if [ -z "$tfstate_resource_id" ]; then
-	echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	fi
 	exit 2
 fi
 
@@ -225,7 +272,7 @@ cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
 	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
-	--ado --auto-approve ; then
+	"$platform_flag" --auto-approve; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success"
 else
@@ -243,14 +290,14 @@ set +o errexit
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset_formatting"
 cd "$CONFIG_REPO_PATH" || exit
-# Pull changes
-git pull -q origin "$BUILD_SOURCEBRANCHNAME"
-
 # Pull changes if there are other deployment jobs
+if [ "$PLATFORM" == "devops" ]; then
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	git pull -q origin "$GITHUB_REF_NAME"
+fi
 
 cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-
-echo -e "$green--- Add & update files in the DevOps Repository ---$reset_formatting"
 
 if [ -f stdout.az ]; then
 	rm stdout.az
