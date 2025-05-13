@@ -362,8 +362,6 @@ echo ""
 echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset}"
 echo ""
 
-set -eu
-
 # Process deployment outputs
 if [ -f "${deployer_environment_file_name}" ]; then
 
@@ -372,11 +370,11 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-		echo "APPLICATION_CONFIGURATION_NAME:       ${APPLICATION_CONFIGURATION_NAME}"
+		echo "Application Configuration Name:      ${APPLICATION_CONFIGURATION_NAME}"
 	fi
 
 	MSI_ID=$(grep -m1 "^MSI_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "MSI_ID:                              ${MSI_ID}"
+	echo "MSI_ID:                              ${MSI_ID:-}"
 	# Set output variables for GitHub Actions
 	if [ "$PLATFORM" == "github" ]; then
 		set_output_variable "deployer_keyvault" "${DEPLOYER_KEYVAULT}"
@@ -477,8 +475,8 @@ if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME.md" ];
 fi
 
 # Add variables to variable group or GitHub environment
+echo -e "$green--- Adding variables ---$reset"
 start_group "Adding variables to platform variable group"
-echo -e "$green--- Adding variables to storage ---$reset"
 if [ "$PLATFORM" == "devops" ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
