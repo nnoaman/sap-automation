@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source $(dirname "$0")/set-colors.sh
+
 function __is_github() {
     if [[ -v GITHUB_ACTIONS ]]; then
         echo "true"
