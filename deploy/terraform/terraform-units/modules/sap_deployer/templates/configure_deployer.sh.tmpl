@@ -854,6 +854,10 @@ function install_deps_ubuntu() {
   echo "Installing dotnet-sdk via snap for GitHub runner"
   sudo snap install dotnet-sdk --classic
   sudo snap alias dotnet-sdk.dotnet dotnet
+  echo 'export PATH="/snap/bin:$PATH"' >> /etc/profile.d/dotnet.sh
+  chmod +x /etc/profile.d/dotnet.sh
+  export PATH="/snap/bin:$PATH"
+  dotnet --info
 
   # Install jq, the Ubuntu version is ancient
   curl -sSfL $(curl -sSf https://api.github.com/repos/jqlang/jq/releases/latest | grep browser_download_url | egrep 'jq-linux-amd64"' | tr -d " " | tr -d "\"" | sed 's/browser_download_url://g') -o jq
