@@ -603,8 +603,8 @@ variable "ansible_core_version"                       {
                                                       }
 variable "PLATFORM"                                   {
                                                         description = "Type of agent to be used"
-                                                        type       = string
-                                                        default = "devops"
+                                                        type        = string
+                                                        default     = ""
                                                       }
 variable "APP_TOKEN"                                 {
                                                         description = "If provided, contains token to access github"
