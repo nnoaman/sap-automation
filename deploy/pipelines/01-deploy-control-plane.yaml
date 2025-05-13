@@ -33,6 +33,10 @@ parameters:
     displayName:                       Force a re-install - may require multiple re-runs
     type:                              boolean
 
+  - name:                              test
+    type:                              boolean
+    default:                           false
+
 stages:
   - stage:                             Prepare_Deployer
     condition:                         and(not(failed()), not(canceled()))
@@ -79,6 +83,7 @@ stages:
               OBJECT_ID:                      $(ARM_OBJECT_ID)
               SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+              TEST_ONLY:                      ${{ parameters.test }}
               TF_IN_AUTOMATION:               true
               TF_LOG:                         $(TF_LOG)
               TF_VAR_agent_ado_url:           $(System.CollectionUri)
