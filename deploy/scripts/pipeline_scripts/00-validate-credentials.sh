@@ -16,12 +16,12 @@ banner_title="Check credentials"
 # shellcheck disable=SC1091
 source "${parent_directory}/deploy_utils.sh"
 
-#call stack has full script name when using source
 source "${script_directory}/helper.sh"
+source "${script_directory}/v2/set-colors.sh"
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	DEBUG=True
 	echo "Environment variables:"
