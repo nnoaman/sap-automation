@@ -168,7 +168,6 @@ locals {
                                             password            = var.deployer_authentication_password
                                             path_to_public_key  = var.deployer_authentication_path_to_public_key
                                             path_to_private_key = var.deployer_authentication_path_to_private_key
-                                            use_spn             = var.use_spn
 
                                           }
   key_vault                            = {

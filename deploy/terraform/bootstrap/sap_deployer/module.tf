@@ -50,6 +50,7 @@ module "sap_deployer" {
   subnets_to_add                               = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
   use_private_endpoint                         = var.use_private_endpoint
   use_service_endpoint                         = var.use_service_endpoint
+  use_spn                                      = var.use_spn
   webapp_client_secret                         = var.webapp_client_secret
 }
 

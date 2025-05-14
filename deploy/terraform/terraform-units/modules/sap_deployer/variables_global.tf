@@ -21,6 +21,7 @@ variable "ssh-timeout"                     { description = "SSH timeout" }
 variable "network_logical_name"            { description = "Logical name of the network" }
 variable "use_private_endpoint"            { description = "Boolean value indicating if private endpoint should be used for the deployment" }
 variable "use_service_endpoint"            { description = "Boolean value indicating if service endpoints should be used for the deployment" }
+variable "use_spn"                         { description = "Boolean value indicating if SPN should be used for the deployment" }
 
 #########################################################################################
 #                                                                                       #
