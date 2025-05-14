@@ -93,8 +93,8 @@ fi
 
 TF_VAR_tf_version="${tf_version:-1.11.3}"
 export TF_VAR_tf_version
-TF_VAR_PLATFORM="github"
-export TF_VAR_PLATFORM
+TF_VAR_devops_platform="github"
+export TF_VAR_devops_platform
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then

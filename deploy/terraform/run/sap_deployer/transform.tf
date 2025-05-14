@@ -145,11 +145,11 @@ locals {
                                                                                    agent_ado_url        = var.agent_ado_url
                                                                                    agent_pat            = var.agent_pat
                                                                                    agent_pool           = var.agent_pool
-                                                                                   app_token            = var.APP_TOKEN
-                                                                                   repository           = var.REPOSITORY
-                                                                                   server_url           = var.SERVER_URL
-                                                                                   api_url              = var.API_URL
-                                                                                   platform             = var.PLATFORM
+                                                                                   app_token            = var.github_app_token
+                                                                                   repository           = var.github_repository
+                                                                                   server_url           = var.github_server_url
+                                                                                   api_url              = var.github_api_url
+                                                                                   platform             = var.devops_platform
                                                                                    ansible_core_version = var.ansible_core_version
                                                                                    tf_version           = var.tf_version
 
@@ -161,6 +161,7 @@ locals {
                                             password            = var.deployer_authentication_password
                                             path_to_public_key  = var.deployer_authentication_path_to_public_key
                                             path_to_private_key = var.deployer_authentication_path_to_private_key
+                                            use_spn             = var.use_spn
 
                                           }
   key_vault                            = {

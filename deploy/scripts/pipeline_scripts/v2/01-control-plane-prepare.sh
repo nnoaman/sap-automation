@@ -292,8 +292,8 @@ elif [ "$PLATFORM" == "github" ]; then
 	TF_VAR_REPOSITORY=${GITHUB_REPOSITORY}
 	export TF_VAR_REPOSITORY
 
-	TF_VAR_PLATFORM="github"
-	export TF_VAR_PLATFORM
+	TF_VAR_github_repository="github"
+	export TF_VAR_github_repository
 else
 	platform_flag=""
 fi

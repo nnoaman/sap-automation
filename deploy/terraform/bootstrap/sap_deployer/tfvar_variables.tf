@@ -599,25 +599,25 @@ variable "ansible_core_version"                       {
                                                         default     = "2.16"
                                                       }
 
-variable "PLATFORM"                                   {
+variable "devops_platform"                                   {
                                                         description = "Type of agent to be used"
                                                         type        = string
                                                         default      = ""
                                                       }
 
-variable "APP_TOKEN"                                 {
+variable "github_app_token"                                 {
                                                         description = "If provided, contains token to access GitHub"
                                                         default     = ""
                                                      }
-variable "SERVER_URL"                                {
+variable "github_server_url"                                {
                                                        description = "If provided, contains the Server Url of the GitHub instance"
                                                        default     = "https://github.com"
                                                      }
-variable "API_URL"                                   {
+variable "github_api_url"                                   {
                                                        description = "If provided, contains the API Url of the GitHub instance"
                                                        default     = "https://api.github.com"
                                                      }
-variable "REPOSITORY"                                {
+variable "github_repository"                                {
                                                        description = "If provided, contains the Reference to tue repositry (e.g. owner/repository)"
                                                        default     = ""
                                                      }
