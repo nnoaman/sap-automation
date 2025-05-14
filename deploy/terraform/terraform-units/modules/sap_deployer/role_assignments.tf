@@ -208,7 +208,7 @@ resource "azurerm_role_assignment" "subscription_contributor_msi" {
 
 locals {
   run_as_msi                           = length(var.deployer.user_assigned_identity_id) == 0 ? (
-                                           var.bootstrap || var.use_msi ? false : azurerm_user_assigned_identity.deployer[0].principal_id == data.azurerm_client_config.current.object_id ) : (
+                                           var.bootstrap || var.use_spn ? false : azurerm_user_assigned_identity.deployer[0].principal_id == data.azurerm_client_config.current.object_id ) : (
                                            data.azurerm_user_assigned_identity.deployer[0].principal_id == data.azurerm_client_config.current.object_id
                                          )
 }
