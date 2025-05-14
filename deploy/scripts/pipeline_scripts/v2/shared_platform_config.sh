@@ -58,16 +58,16 @@ configure_platform_variables() {
 	# Common variables that need remapping between platforms
 	if [ "${PLATFORM}" == "github" ]; then
 		# Map GitHub Actions variables to common names
-		[ -z "${SAP_AUTOMATION_REPO_PATH}" ] && export SAP_AUTOMATION_REPO_PATH="${GITHUB_WORKSPACE}/sap-automation"
-		[ -z "${CONFIG_REPO_PATH}" ] && export CONFIG_REPO_PATH="${GITHUB_WORKSPACE}/WORKSPACES"
+		[ ! -v SAP_AUTOMATION_REPO_PATH ] && export SAP_AUTOMATION_REPO_PATH="${GITHUB_WORKSPACE}/sap-automation"
+		[ ! -v CONFIG_REPO_PATH ] && export CONFIG_REPO_PATH="${GITHUB_WORKSPACE}/WORKSPACES"
 		#export APP_TOKEN="${GITHUB_TOKEN}"
 
 		# Setup output for GitHub Actions
 		export GITHUB_OUTPUT=${GITHUB_OUTPUT:-/dev/null}
 	elif [ "${PLATFORM}" == "devops" ]; then
 		# Map Azure DevOps variables to common names
-		[ -z "${SAP_AUTOMATION_REPO_PATH}" ] && export SAP_AUTOMATION_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}/sap-automation"
-		[ -z "${CONFIG_REPO_PATH}" ] && export CONFIG_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}/WORKSPACES}"
+		[ ! -v SAP_AUTOMATION_REPO_PATH ] && export SAP_AUTOMATION_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}/sap-automation"
+		[ ! -v CONFIG_REPO_PATH ] && export CONFIG_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}/WORKSPACES}"
 		export DEVOPS_PAT="${AZURE_DEVOPS_EXT_PAT:-${SYSTEM_ACCESSTOKEN}}"
 	fi
 
