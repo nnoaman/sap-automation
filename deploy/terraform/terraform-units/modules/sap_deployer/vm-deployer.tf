@@ -132,6 +132,8 @@ resource "azurerm_linux_virtual_machine" "deployer" {
                                          )
 
   network_interface_ids                = [azurerm_network_interface.deployer[count.index].id]
+
+  license_type                         = length(var.deployer.license_type) > 0 ? var.deployer.license_type : null
   size                                 = var.deployer.size
   admin_username                       = local.username
   admin_password                       = var.deployer.authentication.type != "password" ? null: local.password
@@ -203,6 +205,10 @@ resource "azurerm_linux_virtual_machine" "deployer" {
                                           }
 
   tags                                 = local.tags
+
+  lifecycle                                {
+                                             ignore_changes = [ identity ]
+                                           }
 }
 
 

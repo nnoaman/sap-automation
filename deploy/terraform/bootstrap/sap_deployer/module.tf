@@ -23,7 +23,8 @@ module "sap_deployer" {
   app_config_service                           = local.app_config_service
   app_service                                  = local.app_service
   arm_client_id                                = var.arm_client_id
-  assign_subscription_permissions              = var.deployer_assign_subscription_permissions
+  # Don't assign permissions to the subscription if a user-assigned identity is used
+  assign_subscription_permissions              = length(var.user_assigned_identity_id) > 0 ? false : var.deployer_assign_subscription_permissions
   authentication                               = local.authentication
   auto_configure_deployer                      = var.auto_configure_deployer
   bastion_deployment                           = var.bastion_deployment
