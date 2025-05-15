@@ -283,11 +283,11 @@ elif [ "$PLATFORM" == "github" ]; then
 	export USER=${GITHUB_ACTOR:-githubuser}
 	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
 	platform_flag="--github"
-	export TF_VAR_devops_platform="github"
-	export TF_VAR_github_app_token="${APP_TOKEN}"
-	export TF_VAR_github_repository="${GITHUB_REPOSITORY}"
-	export TF_VAR_github_server_url="${GITHUB_SERVER_URL}"
-	export TF_VAR_github_api_url="${GITHUB_API_URL}"
+	export TF_VAR_platform="github"
+	export TF_VAR_app_token="${APP_TOKEN}"
+	export TF_VAR_repository="${GITHUB_REPOSITORY}"
+	export TF_VAR_server_url="${GITHUB_SERVER_URL}"
+	export TF_VAR_api_url="${GITHUB_API_URL}"
 else
 	platform_flag=""
 fi
