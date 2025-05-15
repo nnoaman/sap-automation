@@ -78,19 +78,19 @@ stages:
               addSpnToEnvironment:     true
               visibleAzLogin:          true
             env:
-              APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
-              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
-              ARM_USE_MSI:                  true
-              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
-              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_NAME:           $(CONTROL_PLANE_NAME)
-              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-              TF_IN_AUTOMATION:             true
-              TF_LOG:                       $(TF_LOG)
-              TF_VAR_use_spn:               $(Use_MSI)
-              USE_MSI:                      $(Use_MSI)
-              WORKLOAD_ZONE_NAME:           ${{ parameters.workload_zone_name }}
+              APPLICATION_CONFIGURATION_NAME: $(APPLICATION_CONFIGURATION_NAME)
+              ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
+              ARM_USE_MSI:                    true
+              AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
+              CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:             $(CONTROL_PLANE_NAME)
+              SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+              TF_IN_AUTOMATION:               true
+              TF_LOG:                         $(TF_LOG)
+              TF_VAR_use_spn:                 $(Use_MSI)
+              USE_MSI:                        $(Use_MSI)
+              WORKLOAD_ZONE_NAME:             ${{ parameters.workload_zone_name }}
   - stage:                             Remove_SAP_workload_zone
     displayName:                       "Removing the SAP workload zone"
     condition:                         and(not(failed()), not(canceled()), eq(${{ parameters.cleanup_zone }}, true))
