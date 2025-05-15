@@ -85,6 +85,7 @@ function LogonToAzure() {
 	local subscriptionId=$ARM_SUBSCRIPTION_ID
 
 	if [ "$useMSI" != "true" ]; then
+
 		echo "Deployment credentials:              Service Principal"
 		echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
 		unset ARM_USE_MSI
