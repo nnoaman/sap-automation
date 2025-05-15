@@ -179,10 +179,14 @@ function getVariableFromApplicationConfiguration() {
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 function is_valid_guid() {
-	local guid=$1
-	# when valid GUID; 0=true, 1=false
-	if [[ $guid =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
-		return 0
+	if [ -v "$1" ]; then
+		local guid=$1
+		# when valid GUID; 0=true, 1=false
+		if [[ $guid =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+			return 0
+		else
+			return 1
+		fi
 	else
 		return 1
 	fi
@@ -207,7 +211,7 @@ function checkforEnvVar() {
 	if ! [[ -v $1 && $env_var =~ ^declare\ -x ]]; then
 		return 1
 	else
-#		getEnvVarValue "$1"
+		#		getEnvVarValue "$1"
 		return 0
 	fi
 }
