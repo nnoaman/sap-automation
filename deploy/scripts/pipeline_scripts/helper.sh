@@ -156,7 +156,7 @@ function saveVariableInVariableGroup() {
 
 function configureNonDeployer() {
 	green="\e[1;32m"
-	reset="\e[0m"
+	reset_formatting="\e[0m"
 
 	# Check if running in GitHub Actions
 	if [ -v GITHUB_ACTIONS ]; then
