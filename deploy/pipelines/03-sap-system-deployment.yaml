@@ -46,6 +46,10 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
+          - task:                      TerraformInstaller@1
+            displayName:               Install terraform
+            inputs:
+              terraformVersion:        latest
           - task:                      AzureCLI@2
             displayName:               Deploy_SAP_infrastructure
             inputs:
