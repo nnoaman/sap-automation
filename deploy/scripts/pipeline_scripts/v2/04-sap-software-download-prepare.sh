@@ -11,7 +11,7 @@ source "${SCRIPT_DIR}/set-colors.sh"
 SCRIPT_NAME="$(basename "$0")"
 
 green="\e[1;32m"
-reset="\e[0m"
+reset_formatting="\e[0m"
 bold_red="\e[1;31m"
 
 # External helper functions

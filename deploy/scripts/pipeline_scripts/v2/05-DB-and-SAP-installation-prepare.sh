@@ -12,7 +12,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 
 green="\e[1;32m"
-reset="\e[0m"
+reset_formatting="\e[0m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 

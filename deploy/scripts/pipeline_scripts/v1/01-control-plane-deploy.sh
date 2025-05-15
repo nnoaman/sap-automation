@@ -5,7 +5,7 @@
 echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 bold_red="\e[1;31m"
-reset="\e[0m"
+reset_formatting="\e[0m"
 
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"

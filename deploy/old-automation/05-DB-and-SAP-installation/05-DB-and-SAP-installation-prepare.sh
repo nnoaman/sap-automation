@@ -6,7 +6,7 @@
 . ${SAP_AUTOMATION_REPO_PATH}/deploy/automation/set-colors.sh
 
 green="\e[1;32m"
-reset="\e[0m"
+reset_formatting="\e[0m"
 bold_red="\e[1;31m"
 
 DEBUG=False

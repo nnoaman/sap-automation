@@ -3,7 +3,7 @@
 # Licensed under the MIT License.
 
 green="\e[1;32m"
-reset="\e[0m"
+reset_formatting="\e[0m"
 
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
