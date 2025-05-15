@@ -291,6 +291,8 @@ function get_region_from_code() {
 }
 
 function get_variable_group_id() {
+	local green="\e[1;32m"
+	local reset_formatting="\e[0m"
 	local variable_group_name="$1"
 	local variable_group_id
 	var_name="$2"
