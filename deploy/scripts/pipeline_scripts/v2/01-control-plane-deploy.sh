@@ -22,7 +22,6 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
-
 # Source helper scripts
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
@@ -218,7 +217,6 @@ else
 	pass="localpassword"
 fi
 
-
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 
@@ -235,7 +233,7 @@ if [ -f "${CONFIG_REPO_PATH}/private.pgp" ]; then
         echo "${pass}" | gpg --batch --passphrase-fd 0 --import "${CONFIG_REPO_PATH}/private.pgp"
     fi
 else
-    exit_error "Private PGP key not found." 3
+	exit_error "Private PGP key not found." 3
 fi
 
 git pull -q
@@ -306,7 +304,7 @@ cd "$CONFIG_REPO_PATH" || exit
 if
 	"${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" \
 		--control_plane_name "$CONTROL_PLANE_NAME" \
-	  --auto-approve ${msi_flag}
+		--auto-approve ${msi_flag}
 then
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then
@@ -327,136 +325,136 @@ cd "${CONFIG_REPO_PATH}" || exit
 
 # Pull latest changes from appropriate branch
 if [ "$PLATFORM" == "devops" ]; then
-    git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 elif [ "$PLATFORM" == "github" ]; then
-    git pull -q origin "$GITHUB_REF_NAME"
+	git pull -q origin "$GITHUB_REF_NAME"
 fi
 
 echo -e "$green--- Update repo ---$reset_formatting"
 if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
-    git add ".sap_deployment_automation/$CONTROL_PLANE_NAME"
-    added=1
+	git add ".sap_deployment_automation/$CONTROL_PLANE_NAME"
+	added=1
 fi
 
 if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
-    git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
-    added=1
+	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
+	added=1
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-    git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-    added=1
+	git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+	added=1
 fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-    git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
-    added=1
+	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+	added=1
 
-    # || true suppresses the exitcode of grep. To not trigger the strict exit on error
-    local_backend=$(grep "\"type\": \"local\"" "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
+	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
+	local_backend=$(grep "\"type\": \"local\"" "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
 
-    if [ -n "$local_backend" ]; then
-        echo "Deployer Terraform state:              local"
+	if [ -n "$local_backend" ]; then
+		echo "Deployer Terraform state:              local"
 
-        if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-            echo "Compressing the deployer state file"
-            if [ "$PLATFORM" == "devops" ]; then
-                sudo apt-get install zip -y
-                pass=${SYSTEM_COLLECTIONID//-/}
-                zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-                git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-            elif [ "$PLATFORM" == "github" ]; then
-                rm DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+			echo "Compressing the deployer state file"
+			if [ "$PLATFORM" == "devops" ]; then
+				sudo apt-get install zip -y
+				pass=${SYSTEM_COLLECTIONID//-/}
+				zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+				git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+			elif [ "$PLATFORM" == "github" ]; then
+				rm DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
 
-                echo "Encrypting state file"
-                gpg --batch \
-                    --output DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg \
-                    --encrypt \
-                    --disable-dirmngr --recipient sap-azure-deployer@example.com \
-                    --trust-model always \
-                    DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate
-                git add -f DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg
-            else
-                pass="localpassword"
-            fi
+				echo "Encrypting state file"
+				gpg --batch \
+					--output DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg \
+					--encrypt \
+					--disable-dirmngr --recipient sap-azure-deployer@example.com \
+					--trust-model always \
+					DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate
+				git add -f DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg
+			else
+				pass="localpassword"
+			fi
 
-            added=1
-        fi
-    else
-        echo "Deployer Terraform state:              remote"
-        if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-            git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-            echo "Removed the deployer state file"
-            added=1
-        fi
-        if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-            if [ 0 == $return_code ]; then
-                echo "Removing the deployer state zip file"
-                git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-                added=1
-            fi
-        fi
-        if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" ]; then
-            if [ 0 == $return_code ]; then
-                echo "Removing the deployer state gpg file"
-                git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
-                added=1
-            fi
-        fi
-    fi
+			added=1
+		fi
+	else
+		echo "Deployer Terraform state:              remote"
+		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+			git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+			echo "Removed the deployer state file"
+			added=1
+		fi
+		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+			if [ 0 == $return_code ]; then
+				echo "Removing the deployer state zip file"
+				git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+				added=1
+			fi
+		fi
+		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" ]; then
+			if [ 0 == $return_code ]; then
+				echo "Removing the deployer state gpg file"
+				git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
+				added=1
+			fi
+		fi
+	fi
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
-    git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-    added=1
+	git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+	added=1
 fi
 
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-    git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
-    added=1
-    # || true suppresses the exitcode of grep. To not trigger the strict exit on error
-    local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
-    if [ -n "$local_backend" ]; then
-        echo "Library Terraform state:               local"
-        if [ "$PLATFORM" == "devops" ]; then
-            sudo apt-get install zip -y
-            pass=${SYSTEM_COLLECTIONID//-/}
-            zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-            git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-        elif [ "$PLATFORM" == "github" ]; then
-            rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
-            echo "Encrypting state file"
-            gpg --batch \
-                --output LIBRARY/$LIBRARY_FOLDERNAME/state.gpg \
-                --encrypt \
-                --disable-dirmngr --recipient sap-azure-deployer@example.com \
-                --trust-model always \
-                LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate
-            git add -f LIBRARY/$LIBRARY_FOLDERNAME/state.gpg
-        else
-            pass="localpassword"
-        fi
-        added=1
-    else
-        echo "Library Terraform state:               remote"
-        if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-            if [ 0 == $return_code ]; then
-                echo "Removing the library state file"
-                git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-                added=1
-            fi
-        fi
-        if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-            echo "Removing the library state zip file"
-            git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-            added=1
-        fi
-        if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
-            echo "Removing the library state gpg file"
-            git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
-            added=1
-        fi
-    fi
+	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+	added=1
+	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
+	local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
+	if [ -n "$local_backend" ]; then
+		echo "Library Terraform state:               local"
+		if [ "$PLATFORM" == "devops" ]; then
+			sudo apt-get install zip -y
+			pass=${SYSTEM_COLLECTIONID//-/}
+			zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+			git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+		elif [ "$PLATFORM" == "github" ]; then
+			rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+			echo "Encrypting state file"
+			gpg --batch \
+				--output LIBRARY/$LIBRARY_FOLDERNAME/state.gpg \
+				--encrypt \
+				--disable-dirmngr --recipient sap-azure-deployer@example.com \
+				--trust-model always \
+				LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate
+			git add -f LIBRARY/$LIBRARY_FOLDERNAME/state.gpg
+		else
+			pass="localpassword"
+		fi
+		added=1
+	else
+		echo "Library Terraform state:               remote"
+		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+			if [ 0 == $return_code ]; then
+				echo "Removing the library state file"
+				git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+				added=1
+			fi
+		fi
+		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+			echo "Removing the library state zip file"
+			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+			added=1
+		fi
+		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
+			echo "Removing the library state gpg file"
+			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
+			added=1
+		fi
+	fi
 fi
 
 if [ -f .sap_deployment_automation/terraform.log ]; then
@@ -470,46 +468,46 @@ fi
 
 # Commit changes based on platform
 if [ 1 = $added ]; then
-    if [ "$PLATFORM" == "devops" ]; then
-        git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-        git config --global user.name "$BUILD_REQUESTEDFOR"
-        commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
-    elif [ "$PLATFORM" == "github" ]; then
-        git config --global user.email "github-actions@github.com"
-        git config --global user.name "GitHub Actions"
-        commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
-    else
-        git config --global user.email "local@example.com"
-        git config --global user.name "Local User"
-        commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
-    fi
+	if [ "$PLATFORM" == "devops" ]; then
+		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+		git config --global user.name "$BUILD_REQUESTEDFOR"
+		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
+	elif [ "$PLATFORM" == "github" ]; then
+		git config --global user.email "github-actions@github.com"
+		git config --global user.name "GitHub Actions"
+		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
+	else
+		git config --global user.email "local@example.com"
+		git config --global user.name "Local User"
+		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
+	fi
 
-    if [ $DEBUG = True ]; then
-        git status --verbose
-        if git commit -m "$commit_message" || true; then
-            if [ "$PLATFORM" == "devops" ]; then
-                if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-                    echo "Failed to push changes to the repository."
-                fi
-            elif [ "$PLATFORM" == "github" ]; then
-                if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-                    echo "Failed to push changes to the repository."
-                fi
-            fi
-        fi
-    else
-        if git commit -m "$commit_message" || true; then
-            if [ "$PLATFORM" == "devops" ]; then
-                if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-                    echo "Failed to push changes to the repository."
-                fi
-            elif [ "$PLATFORM" == "github" ]; then
-                if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-                    echo "Failed to push changes to the repository."
-                fi
-            fi
-        fi
-    fi
+	if [ $DEBUG = True ]; then
+		git status --verbose
+		if git commit -m "$commit_message" || true; then
+			if [ "$PLATFORM" == "devops" ]; then
+				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			elif [ "$PLATFORM" == "github" ]; then
+				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			fi
+		fi
+	else
+		if git commit -m "$commit_message" || true; then
+			if [ "$PLATFORM" == "devops" ]; then
+				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			elif [ "$PLATFORM" == "github" ]; then
+				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Failed to push changes to the repository."
+				fi
+			fi
+		fi
+	fi
 fi
 
 # Add variables to storage based on platform
