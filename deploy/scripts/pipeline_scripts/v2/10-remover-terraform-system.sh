@@ -79,54 +79,49 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.11.3}"
+	configureNonDeployer "${tf_version:-1.11.2}"
 
-	echo -e "$green--- az login ---$reset_formatting"
-	if [ "$PLATFORM" == "devops" ]; then
-		if ! LogonToAzure false; then
-			print_banner "$banner_title" "Login to Azure failed" "error"
-			if [ "$PLATFORM" == "devops" ]; then
-				echo "##vso[task.logissue type=error]az login failed."
-			fi
-			exit 2
-		fi
+	ARM_CLIENT_ID="$servicePrincipalId"
+	export ARM_CLIENT_ID
+	TF_VAR_spn_id=$ARM_CLIENT_ID
+	export TF_VAR_spn_id
+
+	if printenv servicePrincipalKey; then
+		unset ARM_OIDC_TOKEN
+		ARM_CLIENT_SECRET="$servicePrincipalKey"
+		export ARM_CLIENT_SECRET
+	else
+		ARM_OIDC_TOKEN="$idToken"
+		export ARM_OIDC_TOKEN
+		ARM_USE_OIDC=true
+		export ARM_USE_OIDC
+		unset ARM_CLIENT_SECRET
 	fi
+
+	ARM_TENANT_ID="$tenantId"
+	export ARM_TENANT_ID
 else
-	if [ "${USE_MSI:-false}" == "true" ]; then
+	if [ "$USE_MSI" == "true" ]; then
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
-		echo "Removal using:                       Managed Identity"
-		ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-		export ARM_CLIENT_ID
+		echo "Deployment using:                    Managed Identity"
 	else
 		TF_VAR_use_spn=true
 		export TF_VAR_use_spn
 		ARM_USE_MSI=false
 		export ARM_USE_MSI
-		echo "Removal using:                       Service Principal"
-
-		# Get SPN ID differently per platform
-		if [ "$PLATFORM" == "devops" ]; then
-			TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
-		elif [ "$PLATFORM" == "github" ]; then
-			# Use value from env or from GitHub environment
-			TF_VAR_spn_id=${OBJECT_ID:-$TF_VAR_spn_id}
-		fi
-
-		if [ -n "$TF_VAR_spn_id" ]; then
-			if is_valid_guid "$TF_VAR_spn_id"; then
-				export TF_VAR_spn_id
-				echo "Service Principal Object id:         $TF_VAR_spn_id"
-			fi
-		fi
+		echo "Deployment using:                    Service Principal"
 	fi
-
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
 fi
 
-APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-export APPLICATION_CONFIGURATION_ID
+if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export APPLICATION_CONFIGURATION_ID
+fi
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
