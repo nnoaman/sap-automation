@@ -66,25 +66,15 @@ stages:
             displayName:               Install terraform
             inputs:
               terraformVersion:        latest
-          - bash: |
-              #!/bin/bash
-              green="\e[1;32m" ; reset="\e[0m"
-
-              az login --identity --allow-no-subscriptions --client-id $MSI_ID
-
-            displayName:               az Login
-            env:
-              MSI_ID:                  $(MSI_ID)
-            failOnStderr:              false
-
-          - task:                      Bash@3
+          - task:                      AzureCLI@2
+            displayName:               "Remove the SAP system"
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-system.sh"
+              azureSubscription:       "${{ parameters.workload_zone_name }}_Service_Connection"
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-system.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
-
-            displayName:               "Remove SAP system"
             env:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
               ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
