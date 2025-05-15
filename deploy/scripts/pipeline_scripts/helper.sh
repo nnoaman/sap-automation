@@ -383,6 +383,8 @@ function print_header() {
 }
 
 function configure_devops() {
+	local green="\e[1;32m"
+	local reset_formatting="\e[0m"
 	echo ""
 	echo -e "$green--- Configure devops CLI extension ---$reset_formatting"
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
