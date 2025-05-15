@@ -66,6 +66,17 @@ stages:
             displayName:               Install terraform
             inputs:
               terraformVersion:        latest
+          - bash: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m"
+
+              az login --identity --allow-no-subscriptions --client-id $MSI_ID
+
+            displayName:               az Login
+            env:
+              MSI_ID:                  $(MSI_ID)
+            failOnStderr:              false
+
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
