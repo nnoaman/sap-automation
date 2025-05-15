@@ -265,7 +265,6 @@ else
 fi
 
 cd "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
-echo "Current directory:                $(pwd)"
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_tfvars_file_name}" \
 	--auto-approve --control_plane_name "$CONTROL_PLANE_NAME"; then
@@ -298,7 +297,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
-		if printenv APPLICATION_CONFIGURATION_NAME; then
+		if [ -v APPLICATION_CONFIGURATION_NAME ]; then
 			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
 		fi
 
