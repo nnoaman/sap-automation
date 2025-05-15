@@ -419,7 +419,10 @@ function sdaf_remover() {
 
 	print_banner "$banner_title" "Removal starter." "info" "Entering $SCRIPT_NAME"
 
-	retrieve_parameters
+	if ! retrieve_parameters	; then
+		print_banner "$banner_title" "Retrieving parameters failed" "error"
+		return $?
+	fi
 
 	parallelism=10
 

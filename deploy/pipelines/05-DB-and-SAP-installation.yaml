@@ -15,7 +15,7 @@ parameters:
     displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
     type:                              string
 
-  - name:                              workload_zone_name
+  - name:                              environment
     displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
 
@@ -130,7 +130,7 @@ stages:
     variables:
       - template:                      variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          workload_zone_name:          ${{ parameters.workload_zone_name }}
+          workload_zone_name:          ${{ parameters.environment }}
     displayName:                       OS Configuration and SAP Installation
     jobs:
       - job:                           Installation_step
@@ -155,7 +155,7 @@ stages:
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
               SYSTEM_TEAMPROJECT:      $(System.TeamProject)
-              ZONE:                    ${{ upper(parameters.workload_zone_name) }}
+              ZONE:                    ${{ upper(parameters.environment) }}
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'

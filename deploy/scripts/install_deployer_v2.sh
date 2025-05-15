@@ -318,7 +318,7 @@ function install_deployer() {
 					unset TF_DATA_DIR
 					return $return_value
 				fi
-				return 0
+
 			else
 				print_banner "$banner_title" "Running terraform init" "info"
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -backend-config "path=${param_dirname}/terraform.tfstate"; then
@@ -364,6 +364,11 @@ function install_deployer() {
 
 	if [ -f plan_output.log ]; then
 		rm plan_output.log
+	fi
+
+	if [ "${TEST_ONLY}" == "True" ]; then
+		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
+		exit 10
 	fi
 
 	#########################################################################################

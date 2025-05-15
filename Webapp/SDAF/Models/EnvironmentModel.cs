@@ -32,13 +32,15 @@ namespace SDAFWebApp.Models
 
         public Variable Use_MSI { get; set; }
 
-        public Variable APPLICATION_CONFIGURATION_ID { get; set; }
+        public Variable APPLICATION_CONFIGURATION_NAME { get; set; }
 
         public Variable CONTROL_PLANE_NAME { get; set; }
 
         public Variable APP_REGISTRATION_APP_ID { get; set; }
 
         public Variable APP_REGISTRATION_OBJECT_ID { get; set; }
+
+        public Variable APP_REGISTRATION_CLIENT_SECRET { get; set; }
 
         public Variable IsControlPlane { get; set; }
 

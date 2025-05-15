@@ -121,9 +121,11 @@ else
 		export ARM_USE_MSI
 		echo "Deployment using:                    Service Principal"
 		TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
-		if is_valid_guid $TF_VAR_spn_id; then
-			export TF_VAR_spn_id
-			echo "Service Principal Object id:         $TF_VAR_spn_id"
+		if [ -n "$TF_VAR_spn_id" ]; then
+			if is_valid_guid $TF_VAR_spn_id; then
+				export TF_VAR_spn_id
+				echo "Service Principal Object id:         $TF_VAR_spn_id"
+			fi
 		fi
 
 	fi
@@ -182,7 +184,7 @@ terraform_storage_account_subscription_id=$ARM_SUBSCRIPTION_ID
 
 echo "Terraform state subscription:        $terraform_storage_account_subscription_id"
 
-if printenv tfstate_resource_id ; then
+if printenv tfstate_resource_id; then
 	terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)

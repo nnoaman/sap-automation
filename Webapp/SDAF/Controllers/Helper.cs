@@ -127,7 +127,7 @@ namespace SDAFWebApp.Controllers
                 {
                     if (t.Key != null && t.Key.Length > 0)
                     {
-                        str.AppendLine($"  {t.Key} = \"{t.Value}\",");
+                        str.AppendLine($"  \"{t.Key}\" = \"{t.Value}\",");
                     }
                 }
                 str.Append('}');
@@ -179,7 +179,19 @@ namespace SDAFWebApp.Controllers
             else
             {
                 if (value == null) return "#" + property.Name + " = \"\"";
-                str.Append(property.Name + " = " + $"\"{value}\"");
+                if (property.Name == "network_address_space")
+                {
+                    str.Append(property.Name + " = [ " + $"\"{value}\" ]");
+                }
+                else if (property.Name == "subscription_id")
+                {
+                    String subscriptionId = (string)value;
+                    str.Append(property.Name + " = \"" + subscriptionId.Replace("/subscriptions/","") + "\"");
+                }
+                else
+                {
+                    str.Append(property.Name + " = " + $"\"{value}\"");
+                }
             }
 
             return str.ToString();
@@ -414,6 +426,33 @@ namespace SDAFWebApp.Controllers
                             }
                             value = value.Trim(',');
                             value += "],";
+                        }
+                        else if (key.ToLower() == "\"network_address_space\"")
+                        {
+                            value = currLine[(equalIndex + 1)..].Trim();
+                            if (!value.StartsWith('['))
+                            {
+                                value += ",";
+                            }
+                            else
+                            {
+                                string fixedValue = value.Replace('[', ' ').Replace(']', ' ');
+                                value = fixedValue.Trim() + ",";
+                            }
+
+                        }
+                        else if (key.ToLower() == "\"subscription_id\"")
+                        {
+                            value = currLine[(equalIndex + 1)..].Trim();
+                            if (!value.ToLower().StartsWith("/subscriptions/"))
+                            {
+                                value = "\"/subscriptions/" + value.Trim('\"') + "\",";
+                            }
+                            else
+                            {
+                                value += ",";
+                            }
+
                         }
                         else if (key.EndsWith("configuration_settings\""))
                         {
