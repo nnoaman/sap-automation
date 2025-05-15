@@ -143,7 +143,7 @@ function parse_arguments() {
 	done
 
 	# If it's a relative path in GitHub Actions
-	if [[ -n "${GITHUB_ACTIONS}" && ! -f "${parameter_file_name}" ]]; then
+	if [[ -v GITHUB_ACTIONS && ! -f "${parameter_file_name}" ]]; then
 		echo "Running in GitHub Actions, checking alternative file paths..."
 
 		# Try common path patterns for GitHub Actions
