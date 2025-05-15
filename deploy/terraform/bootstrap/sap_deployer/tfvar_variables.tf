@@ -309,12 +309,6 @@ variable "deployer_image"                       {
                                                                 }
                                                 }
 
-variable "license_type"                         {
-                                                  description = "The type of the image to be used for the deployer VM"
-                                                  default     = ""
-                                                }
-
-
 variable "deployer_private_ip_address"          {
                                                   description = "If provides, the value of the deployer Virtual machine IPs"
                                                   default = [""]

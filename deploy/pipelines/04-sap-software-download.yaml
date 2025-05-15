@@ -146,7 +146,6 @@ stages:
               CONTROL_PLANE_NAME:       ${{ parameters.control_plane_name }}
               SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              ansibleConfigPath:        ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
               ANSIBLE_COLLECTIONS_PATH: ~/.ansible/collections:/opt/ansible/collections
               USE_MSI:                  $(Use_MSI)
               EXTRA_PARAMETERS:         ${{ parameters.ExtraParams }}

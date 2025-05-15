@@ -154,7 +154,6 @@ locals {
                                                                                    tf_version           = var.tf_version
 
                                                                                  }
-                                           license_type                        = var.license_type
                                          }
 
   authentication                       = {

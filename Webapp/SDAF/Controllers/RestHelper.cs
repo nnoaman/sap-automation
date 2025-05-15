@@ -444,11 +444,10 @@ namespace SDAFWebApp.Controllers
             dynamicVariables.ARM_TENANT_ID = JToken.FromObject(environment.variables.ARM_TENANT_ID);
             dynamicVariables.ARM_SUBSCRIPTION_ID = JToken.FromObject(environment.variables.ARM_SUBSCRIPTION_ID);
             dynamicVariables.POOL = JToken.FromObject(environment.variables.POOL);
-            dynamicVariables.APPLICATION_CONFIGURATION_NAME = JToken.FromObject(environment.variables.APPLICATION_CONFIGURATION_NAME);
+            dynamicVariables.APPLICATION_CONFIGURATION_ID = JToken.FromObject(environment.variables.APPLICATION_CONFIGURATION_ID);
             dynamicVariables.CONTROL_PLANE_NAME = JToken.FromObject(environment.variables.CONTROL_PLANE_NAME);
             dynamicVariables.APP_REGISTRATION_APP_ID = JToken.FromObject(environment.variables.APP_REGISTRATION_APP_ID);
             dynamicVariables.APP_REGISTRATION_OBJECT_ID = JToken.FromObject(environment.variables.APP_REGISTRATION_OBJECT_ID);
-            dynamicVariables.Use_MSI = JToken.FromObject(environment.variables.Use_MSI);
 
             dynamicEnvironment.variables = dynamicVariables;
 

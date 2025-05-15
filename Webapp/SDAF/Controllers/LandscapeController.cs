@@ -192,7 +192,10 @@ namespace SDAFWebApp.Controllers
                     landscape.Id = Helper.GenerateId(landscape);
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
-                    landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
+                    if (!landscape.subscription_id.IsNullOrEmpty())
+                    {
+                        landscape.subscription_id = landscape.subscription_id.Replace("/subscriptions/", "");
+                    }
                     landscape.controlPlaneName = _configuration["CONTROL_PLANE_NAME"];
 
                     string locationCode = Helper.MapRegion(landscape.location.ToLower());
@@ -253,7 +256,11 @@ namespace SDAFWebApp.Controllers
                 LandscapeModel landscape = await GetById(id, partitionKey);
                
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
-               
+                if (!landscape.subscription_id.IsNullOrEmpty())
+                {
+                    landscape.subscription_id = landscape.subscription_id.Replace("/subscriptions/", "");
+                }
+
                 string content = Helper.ConvertToTerraform(landscape);
 
                 await restHelper.UpdateRepo(path, content);

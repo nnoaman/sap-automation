@@ -224,7 +224,6 @@ stages:
               SAP_AUTOMATION_REPO_PATH:         ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:               $(System.AccessToken)
               TENANT_ID:                        $(ParameterValidation.ARM_TENANT_ID)
-              TEST_ONLY:                        ${{ parameters.test }}
               TF_IN_AUTOMATION:                 true
               TF_LOG:                           DEBUG
               TF_VAR_agent_ado_url:             $(System.CollectionUri)

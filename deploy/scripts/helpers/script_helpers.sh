@@ -4,14 +4,15 @@
 # Licensed under the MIT License.
 
 #colors for terminal
+bold_red_underscore="\e[1;4;31m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
-# if [ -f /etc/profile.d/deploy_server.sh ]; then
-# 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-# 	export PATH=$PATH:$path
-# fi
+if [[ -f /etc/profile.d/deploy_server.sh ]]; then
+	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export PATH=$PATH:$path
+fi
 
 ########################################################################################
 #                                                                                      #
