@@ -200,7 +200,7 @@ if printenv tfstate_resource_id; then
 	export tfstate_resource_id
 
 else
-	echo "Terraform storage account:            undefined"
+	echo "Terraform storage account:           undefined"
 	storage_account_parameter=
 fi
 

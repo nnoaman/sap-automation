@@ -51,7 +51,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 	platform_flag="--github"
-	else
+else
 	platform_flag=""
 fi
 
@@ -81,15 +81,26 @@ fi
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.11.3}"
 
-	echo -e "$green--- az login ---$reset_formatting"
 	if [ "$PLATFORM" == "devops" ]; then
-		if ! LogonToAzure false; then
-			print_banner "$banner_title" "Login to Azure failed" "error"
-			if [ "$PLATFORM" == "devops" ]; then
-				echo "##vso[task.logissue type=error]az login failed."
-			fi
-			exit 2
+		ARM_CLIENT_ID="$servicePrincipalId"
+		export ARM_CLIENT_ID
+		TF_VAR_spn_id=$ARM_CLIENT_ID
+		export TF_VAR_spn_id
+
+		if printenv servicePrincipalKey; then
+			unset ARM_OIDC_TOKEN
+			ARM_CLIENT_SECRET="$servicePrincipalKey"
+			export ARM_CLIENT_SECRET
+		else
+			ARM_OIDC_TOKEN="$idToken"
+			export ARM_OIDC_TOKEN
+			ARM_USE_OIDC=true
+			export ARM_USE_OIDC
+			unset ARM_CLIENT_SECRET
 		fi
+
+		ARM_TENANT_ID="$tenantId"
+		export ARM_TENANT_ID
 	fi
 else
 	if [ "${USE_MSI:-false}" == "true" ]; then
@@ -283,9 +294,9 @@ else
 fi
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
-if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[task.logissue type=error]Return code from installer $return_code."
-fi
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Return code from installer $return_code."
+	fi
 fi
 
 set +o errexit
