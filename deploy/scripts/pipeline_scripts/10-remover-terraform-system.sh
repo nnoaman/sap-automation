@@ -22,13 +22,13 @@ if [ -v APPLICATION_CONFIGURATION_NAME ]; then
 		"${script_directory}/v2/$SCRIPT_NAME"
 	else
 		echo ""
-		echo "Running v1 script"
+		echo "No Application Configuration Name found - Running v1 script"
 		echo ""
 		"${script_directory}/v1/$SCRIPT_NAME"
 	fi
 else
 	echo ""
-	echo "Running v1 script"
+	echo "No Application Configuration Name defined Running v1 script"
 	echo ""
 	"${script_directory}/v1/$SCRIPT_NAME"
 fi
