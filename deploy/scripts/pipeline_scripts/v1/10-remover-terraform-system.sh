@@ -38,6 +38,7 @@ export DEBUG
 set -eu
 
 if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+  echo "Quering for application configuration '$APPLICATION_CONFIGURATION_NAME'"
 	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 fi
 
