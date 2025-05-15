@@ -63,7 +63,7 @@ function print_banner() {
 	local bold_red="\e[1;31m"
 	local cyan="\e[1;36m"
 	local green="\e[1;32m"
-	local reset="\e[0m"
+	local reset_formatting="\e[0m"
 	local yellow="\e[0;33m"
 
 	local color

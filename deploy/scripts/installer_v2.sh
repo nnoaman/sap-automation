@@ -514,7 +514,7 @@ function sdaf_installer() {
 	extra_vars=""
 	WORKLOAD_ZONE_NAME=""
 	local green="\e[0;32m"
-	local reset="\e[0m"
+	local reset_formatting="\e[0m"
 
 	# Define an array of helper scripts
 	helper_scripts=(

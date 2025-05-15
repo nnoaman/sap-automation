@@ -219,7 +219,7 @@ function parse_arguments() {
 function install_deployer() {
 	deployment_system=sap_deployer
 	local green="\033[0;32m"
-	local reset="\033[0m"
+	local reset_formatting="\033[0m"
 	approve=""
 
 	# Define an array of helper scripts

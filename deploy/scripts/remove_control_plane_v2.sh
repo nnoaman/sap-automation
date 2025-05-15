@@ -320,7 +320,7 @@ function remove_control_plane() {
 	step=0
 	ado_flag="none"
 	local green="\e[1;32m"
-	local reset="\e[0m"
+	local reset_formatting="\e[0m"
 
 	# Define an array of helper scripts
 	helper_scripts=(

@@ -259,7 +259,7 @@ function retrieve_parameters() {
 
 function install_library() {
 	local green="\033[0;32m"
-	local reset="\033[0m"
+	local reset_formatting="\033[0m"
 	deployment_system=sap_library
 	use_deployer=true
 	approve=""
