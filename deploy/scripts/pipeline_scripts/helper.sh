@@ -395,6 +395,7 @@ function configure_devops() {
 		az extension add --name azure-devops --output none --only-show-errors
 	fi
 
+
 	# Only configure Azure DevOps CLI if we have the necessary variables
 	if [ -n "${SYSTEM_COLLECTIONURI+x}" ] && [ -n "${SYSTEM_TEAMPROJECTID+x}" ]; then
 		az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
