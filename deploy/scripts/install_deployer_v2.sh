@@ -288,7 +288,7 @@ function install_deployer() {
 	fi
 
 	# Create a symlink to the parameter file in the current directory if needed
-	if [[ -n "${GITHUB_ACTIONS}" ]]; then
+	if [[ -v GITHUB_ACTIONS ]]; then
 		echo "Running in GitHub Actions environment"
 		parameter_file_basename=$(basename "${parameter_file_name}")
 		if [[ ! -f "${parameter_file_basename}" && -f "${var_file}" ]]; then
