@@ -46,13 +46,17 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - task:                      Bash@3
+          - task:                      AzureCLI@2
+            displayName:               Deploy_SAP_infrastructure
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/03-sap-system-deployment.sh"
+              azureSubscription:       "${{ parameters.workload_zone_name }}_Service_Connection"
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/03-sap-system-deployment.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Deploy_SAP_infrastructure
+              addSpnToEnvironment:     true
+              visibleAzLogin:          true
             env:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
               ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
