@@ -69,7 +69,13 @@ echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
+
+# Platform-specific git checkout
+if [ "$PLATFORM" == "devops" ]; then
+	git checkout -q "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	git checkout -q "$GITHUB_REF_NAME"
+fi
 
 if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
 	echo -e "$bold_red--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset_formatting"
@@ -85,12 +91,15 @@ if [ "$PLATFORM" == "devops" ]; then
 	# Configure DevOps
 	configure_devops
 
+	platform_flag="--ado"
+
 	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 		exit 2
 	fi
 	export VARIABLE_GROUP_ID
+
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
 		echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
 	else
@@ -108,6 +117,9 @@ elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	echo "Configuring for GitHub Actions - using environment variables"
 fi
+
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -157,12 +169,12 @@ else
 
 fi
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
+
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-dos2unix -q tfvarsFile
+# Process environment variables from tfvars file
+dos2unix -q "$tfvarsFile"
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
@@ -201,6 +213,7 @@ echo "Location in file:                    $LOCATION_IN_FILENAME"
 echo "Network:                             $NETWORK"
 echo "Network in file:                     $NETWORK_IN_FILENAME"
 
+# Validate folder name components match tfvars file settings
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
 	print_banner "$banner_title" "Environment mismatch" "error" "The environment setting in the tfvars file is not a part of the $WORKLOAD_ZONE_TFVARS_FILENAME file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	if [ "$PLATFORM" == "devops" ]; then
@@ -225,8 +238,9 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
-dos2unix -q "${workload_environment_file_name}"
+dos2unix -q "${workload_environment_file_name}" || true
 
+# Handle application configuration settings
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
 
@@ -250,6 +264,7 @@ else
 
 fi
 
+# Verify terraform state storage account
 if [ -z "$tfstate_resource_id" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
@@ -259,6 +274,7 @@ if [ -z "$tfstate_resource_id" ]; then
 	exit 2
 fi
 
+# Extract terraform state storage account details
 terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
@@ -268,6 +284,7 @@ export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
 export tfstate_resource_id
 
+# Get resource ID if not already available
 if [ -z "$tfstate_resource_id" ]; then
 	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 	export tfstate_resource_id
@@ -275,6 +292,9 @@ fi
 
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 print_banner "$banner_title" "Starting the deployment" "info"
+
+# Export log path for terraform
+export TF_LOG_PATH="$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log"
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
@@ -285,20 +305,26 @@ else
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME failed" "error"
 
-	echo "##vso[task.logissue type=error]Terraform apply failed."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Terraform apply failed."
+	else
+		echo "ERROR: Terraform apply failed."
+	fi
 fi
+
 echo "Return code from deployment:         ${return_code}"
 
 set +o errexit
 
 echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"
+
 # Pull changes if there are other deployment jobs
 if [ "$PLATFORM" == "devops" ]; then
 	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 	git checkout -q "$BUILD_SOURCEBRANCHNAME"
 elif [ "$PLATFORM" == "github" ]; then
 	git pull -q origin "$GITHUB_REF_NAME"
-fi
+	fi
 
 added=0
 
@@ -330,12 +356,12 @@ if [ 1 = $added ]; then
 	else
 		git config --global user.email "local@example.com"
 		git config --global user.name "Local User"
-		commit_message="Added updates from from Workload Zone Deployment for $WORKLOAD_ZONE_NAME [skip ci]"
+		commit_message="Added updates from Workload Zone Deployment for $WORKLOAD_ZONE_NAME [skip ci]"
 	fi
 
-	if [ "$DEBUG" = True ]; then
+	if [ "${DEBUG:-False}" = "True" ]; then
 		git status --verbose
-		if git commit --message --verbose "$commit_message"; then
+		if git commit -m "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then
 				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 					echo "Failed to push changes to the repository."
@@ -358,6 +384,15 @@ if [ 1 = $added ]; then
 				fi
 			fi
 		fi
+	fi
+fi
+
+# Add summary if available
+if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md"
+	elif [ "$PLATFORM" == "github" ]; then
+		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md" >> $GITHUB_STEP_SUMMARY
 	fi
 fi
 
