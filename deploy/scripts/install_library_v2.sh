@@ -554,6 +554,10 @@ function install_library() {
 	tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
 	export tfstate_resource_id
 	save_config_var "tfstate_resource_id" "${library_config_information}"
+	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$tfstate_resource_id
+	export TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME
+	save_config_var "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${library_config_information}"
+
 
 	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${library_random_id}" ]; then
