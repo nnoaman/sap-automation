@@ -192,7 +192,7 @@ if [ -v APPLICATION_CONFIGURATION_ID ]; then
 		print_banner "$banner_title" "APPLICATION_CONFIGURATION_NAME was not found" "info"
 		echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_NAME was not defined."
 		if [ -v TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME ]; then
-		tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+			tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 		else
 			echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not defined."
 			exit 2
@@ -201,16 +201,16 @@ if [ -v APPLICATION_CONFIGURATION_ID ]; then
 		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 	fi
 else
-		print_banner "$banner_title" "APPLICATION_CONFIGURATION_NAME was not found" "info"
-		echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_NAME was not defined."
-		if [ -v TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME ]; then
+	print_banner "$banner_title" "APPLICATION_CONFIGURATION_NAME was not found" "info"
+	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_NAME was not defined."
+	if [ -v TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME ]; then
 		tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-		else
-			echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not defined."
-			exit 2
-		fi
+	else
+		echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not defined."
+		exit 2
+	fi
 
-		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 fi
 
 if [ -z "$DEPLOYER_KEYVAULT" ]; then
