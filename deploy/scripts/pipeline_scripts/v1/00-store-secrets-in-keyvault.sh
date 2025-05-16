@@ -43,6 +43,12 @@ print_header
 # Configure DevOps
 configure_devops
 
+if [ -z "$DEPLOYER_KEYVAULT" ]; then
+	echo -e "$bold_red--- DEPLOYER_KEYVAULT is not defined ---$reset_formatting"
+	echo "##vso[task.logissue type=error]DEPLOYER_KEYVAULT is not defined."
+	exit 2
+fi
+
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."

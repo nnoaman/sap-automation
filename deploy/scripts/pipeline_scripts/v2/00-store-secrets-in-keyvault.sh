@@ -75,12 +75,17 @@ fi
 print_header
 
 echo ""
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
-APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-	echo "Application Configuration Name:      ${APPLICATION_CONFIGURATION_NAME}"
+if [ -z "$DEPLOYER_KEYVAULT" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		echo -e "$bold_red--- DEPLOYER_KEYVAULT is not defined ---$reset_formatting"
+		echo "##vso[task.logissue type=error]DEPLOYER_KEYVAULT is not defined."
+		exit 2
+	elif [ "$PLATFORM" == "github" ]; then
+		echo -e "$bold_red--- DEPLOYER_KEYVAULT is not defined ---$reset_formatting"
+	fi
 fi
+
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
 	# Configure DevOps
@@ -100,13 +105,7 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 echo -e "$green--- Read parameter values ---$reset_formatting"
-key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
-
-keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
-
-if [ -z "$DEPLOYER_KEYVAULT" ]; then
-	exit 2
-fi
+keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].subscriptionId --output tsv)
 
 if [ "$USE_MSI" != "true" ]; then
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "$DEPLOYER_KEYVAULT" --keyvault_subscription "$keyvault_subscription_id" \
