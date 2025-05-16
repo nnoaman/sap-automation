@@ -61,6 +61,7 @@ banner_title="Deploy Workload Zone"
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
+WORKLOAD_ZONE_TFVARS_FILENAME="${WORKLOAD_ZONE_FOLDERNAME}.tfvars"
 
 tfvarsFile="${CONFIG_REPO_PATH}/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
