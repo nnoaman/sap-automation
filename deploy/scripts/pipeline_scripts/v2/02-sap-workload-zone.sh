@@ -62,7 +62,7 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
 
-tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
+tfvarsFile="${CONFIG_REPO_PATH}/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
 echo -e "$cyan tfvarsFile: $tfvarsFile $reset_formatting"
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
