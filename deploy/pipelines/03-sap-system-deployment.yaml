@@ -60,7 +60,7 @@ stages:
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
               addSpnToEnvironment:     true
-              visibleAzLogin:          true
+              visibleAzLogin:          false
             env:
               APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
               ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
