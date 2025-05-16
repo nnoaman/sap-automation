@@ -122,23 +122,37 @@ export PARENT_VARIABLE_GROUP_ID
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 
-DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
+APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
+if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+	WZ_APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
+	if [ -z "$WZ_APPLICATION_CONFIGURATION_NAME" ]; then
+		az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
+	else
+		az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
+	fi
+fi
 
-if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
-	APPLICATION_CONFIGURATION_ID=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID")
-	APPLICATION_CONFIGURATION_NAME=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"; then
-		echo "Variable APPLICATION_CONFIGURATION_ID was added to the $VARIABLE_GROUP variable group."
+APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
+if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+	WZ_APPLICATION_CONFIGURATION_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
+	if [ -z "$WZ_APPLICATION_CONFIGURATION_ID" ]; then
+		az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
 	else
-		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
+		az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_ID" --value "$APPLICATION_CONFIGURATION_ID" --output none
 	fi
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"; then
-		echo "Variable APPLICATION_CONFIGURATION_NAME was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_NAME was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable APPLICATION_CONFIGURATION_NAME was not added to the $VARIABLE_GROUP variable group."
-	fi
+fi
+
+DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+WZ_DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+if [ -z "$WZ_DEPLOYER_KEYVAULT" ]; then
+	az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
+else
+	az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
+fi
+
+key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+if [ -z "$key_vault_id" ]; then
+	echo "##vso[task.logissue type=warning]Control Plane Key Vault was not defined."
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -208,7 +222,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 
 	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$tfstate_resource_id" ]; then
-		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_ID' )."
 	fi
 	TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 	export TF_VAR_tfstate_resource_id
@@ -216,7 +230,7 @@ else
 	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id" "subscription"
 
-	TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
+	TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 	export TF_VAR_spn_keyvault_id
 	TF_VAR_management_subscription_id=$(echo "$TF_VAR_spn_keyvault_id" | cut -d '/' -f 3)
 	export TF_VAR_management_subscription_id
@@ -227,7 +241,7 @@ else
 fi
 
 if [ -z "$tfstate_resource_id" ]; then
-	echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${deployer_environment_file_name})."
+	echo "##vso[task.logissue type=error]Terraform state storage account resource id was not found."
 	exit 2
 fi
 
@@ -239,11 +253,6 @@ export terraform_storage_account_name
 export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
 export tfstate_resource_id
-
-if [ -z "$tfstate_resource_id" ]; then
-	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-	export tfstate_resource_id
-fi
 
 print_banner "$banner_title" "Starting the deployment" "info"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit

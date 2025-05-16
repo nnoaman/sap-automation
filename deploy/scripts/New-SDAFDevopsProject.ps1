@@ -774,8 +774,10 @@ if ($true -eq $CreateConnection ) {
   $Service_Connection_Name = "Control_Plane_Service_Connection"
   $epExists = (az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].name | [0]" )
   if ($epExists.Length -eq 0) {
+    $Connection_Name=$Control_plane_code + "_Service_Connection"
 
-    Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name 'Control_Plane_Service_Connection'."
+
+    Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name '$Connection_Name'."
     $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
     Write-Host "URL: " $connections_url
 
@@ -790,7 +792,8 @@ if ($true -eq $CreateConnection ) {
 
 }
 else {
-  Write-Host "Please create an 'Azure Resource Manager' service connection to the control plane subscription with the name 'Control_Plane_Service_Connection' before running any pipeline."
+  $Connection_Name=$Control_plane_code + "_Service_Connection"
+  Write-Host "Please create an 'Azure Resource Manager' service connection to the control plane subscription with the name '$Connection_Name' before running any pipeline."
   Write-Host "Please create a 'GitHub' service connection before running any pipeline."
 }
 
