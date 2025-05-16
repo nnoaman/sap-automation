@@ -387,9 +387,10 @@ output ng_resource_id                           {
 ###############################################################################
 output application_configuration_id             {
                                                   description = "Application Configuration ID"
-                                                  value       = var.use_deployer ? coalesce(
+                                                  value       = var.use_deployer ? trimspace(coalesce(
                                                                              var.application_configuration_id,
-                                                                             try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
+                                                                             try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, " "),
+                                                                             " ")
                                                                            ) : var.application_configuration_id
                                                 }
 
