@@ -62,7 +62,7 @@ stages:
             name:                      ParameterValidation
             displayName:               Validate Parameters
             inputs:
-              azureSubscription:       "${{ parameters.workload_zone_name }}_Service_Connection"
+              azureSubscription:       "${{ parameters.control_plane_name }}_Service_Connection"
               scriptType:              bash
               scriptLocation:          'scriptPath'
               scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
@@ -81,7 +81,7 @@ stages:
             name:                      StoreCredentials
             displayName:               Store credentials in Key Vault
             inputs:
-              azureSubscription:       "${{ parameters.workload_zone_name }}_Service_Connection"
+              azureSubscription:       "${{ parameters.control_plane_name }}_Service_Connection"
               scriptType:              bash
               scriptLocation:          'scriptPath'
               targetType:              'filePath'
