@@ -142,6 +142,16 @@ if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
 	fi
 fi
 
+TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME.value" --output tsv)
+if [ -n "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" ]; then
+	WZ_TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME.value" --output tsv)
+	if [ -z "$WZ_TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" ]; then
+		az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --value "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --output none
+	else
+		az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --value "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --output none
+	fi
+fi
+
 DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
 WZ_DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
 if [ -z "$WZ_DEPLOYER_KEYVAULT" ]; then

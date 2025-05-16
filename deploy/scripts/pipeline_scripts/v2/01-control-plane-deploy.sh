@@ -410,6 +410,8 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAM
 fi
 
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(grep -m1 "storage_account_name" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+
 	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
 	added=1
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
@@ -455,6 +457,8 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			added=1
 		fi
 	fi
+	else
+	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=""
 fi
 
 if [ -f .sap_deployment_automation/terraform.log ]; then
@@ -521,11 +525,18 @@ if [ 0 = $return_code ]; then
 			echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 			echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 		fi
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"; then
+			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+		fi
 	elif [ "$PLATFORM" == "github" ]; then
 		# Set output variables for GitHub Actions
 		echo "Setting output variable for GitHub Actions"
 		set_output_variable "control_plane_name" "$CONTROL_PLANE_NAME"
 		set_output_variable "deployer_keyvault" "$DEPLOYER_KEYVAULT"
+		set_value_with_key "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" "env"
 	fi
 fi
 

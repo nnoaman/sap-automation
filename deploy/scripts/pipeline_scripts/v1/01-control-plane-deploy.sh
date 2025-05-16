@@ -274,6 +274,10 @@ echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
 
+
+TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(grep -m1 "^TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+echo "Terraform Remote Storage Account:    ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+
 # Pull changes
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
@@ -403,6 +407,13 @@ if [ 0 = $return_code ]; then
 	else
 		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 		echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+	fi
+
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"; then
+		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 
 fi
