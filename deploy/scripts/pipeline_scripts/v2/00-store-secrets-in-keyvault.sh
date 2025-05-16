@@ -105,7 +105,9 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 echo -e "$green--- Read parameter values ---$reset_formatting"
-keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].subscriptionId --output tsv)
+key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+
+keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
 if [ "$USE_MSI" != "true" ]; then
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "$DEPLOYER_KEYVAULT" --keyvault_subscription "$keyvault_subscription_id" \
