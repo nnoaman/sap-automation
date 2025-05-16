@@ -58,29 +58,38 @@ stages:
           - template:                  templates\download.yaml
             parameters:
               getLatestFromBranch: true
-
-          - task:                      Bash@3
+          - task:                      AzureCLI@2
             name:                      ParameterValidation
-            displayName:               Parameter Validation
+            displayName:               Validate Parameters
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
+              azureSubscription:       "${{ parameters.workload_zone_name }}_Service_Connection"
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-validate-credentials.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
+              addSpnToEnvironment:     true
+              visibleAzLogin:          false
             env:
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               SYSTEM_COLLECTIONURI:    $(System.CollectionUri)
               SYSTEM_TEAMPROJECT:      $(System.TeamProject)
+              SYSTEM_TEAMPROJECTID:    $(System.TeamProjectId)
               ZONE:                    ${{ upper(parameters.workload_zone_name) }}
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-          - task:                      Bash@3
+          - task:                      AzureCLI@2
+            name:                      StoreCredentials
+            displayName:               Store credentials in Key Vault
             inputs:
+              azureSubscription:       "${{ parameters.workload_zone_name }}_Service_Connection"
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
               targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
+              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            name:                      StoreSecrets
-            displayName:               Store deployment credentials in Key Vault
+              addSpnToEnvironment:     true
+              visibleAzLogin:          false
             env:
               APPLICATION_CONFIGURATION_NAME: $(APPLICATION_CONFIGURATION_NAME)
               CLIENT_ID:                    $(ParameterValidation.ARM_CLIENT_ID)
@@ -117,13 +126,21 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - task:                      Bash@3
+          - task:                      TerraformInstaller@1
+            displayName:               Install terraform
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/02-sap-workload-zone.sh"
+              terraformVersion:        latest
+          - task:                      AzureCLI@2
+            displayName:               Deploy SAP Workload Zone
+            inputs:
+              azureSubscription:       "${{ parameters.workload_zone_name }}_Service_Connection"
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/02-sap-workload-zone.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Deploy SAP Workload Zone
+              addSpnToEnvironment:     true
+              visibleAzLogin:          false
             env:
               APPLICATION_CONFIGURATION_NAME: $(APPLICATION_CONFIGURATION_NAME)
               ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
