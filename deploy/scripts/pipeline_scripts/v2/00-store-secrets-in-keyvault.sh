@@ -96,6 +96,20 @@ if [ -z "$DEPLOYER_KEYVAULT" ]; then
 	fi
 fi
 
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	# Configure DevOps
+	configure_devops
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	elif [ "$PLATFORM" == "github" ]; then
+		echo -e "$bold_red--- DEPLOYER_KEYVAULT is not defined ---$reset_formatting"
+	fi
+fi
+
 echo -e "$green--- Read parameter values ---$reset_formatting"
 keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].subscriptionId --output tsv)
 
