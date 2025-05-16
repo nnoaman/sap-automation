@@ -145,11 +145,7 @@ else
 
 fi
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
 echo ""
-
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
 environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 
@@ -160,9 +156,6 @@ if [ ! -f "$environment_file_name" ]; then
 fi
 
 echo -e "$green--- Read parameter values ---$reset_formatting"
-
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
-export deployer_tfstate_key
 
 if [ -z "$DEPLOYER_KEYVAULT" ]; then
 	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration or in configuration file ( ${environment_file_name} )."
