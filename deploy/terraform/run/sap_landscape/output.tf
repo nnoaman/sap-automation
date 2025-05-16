@@ -395,10 +395,11 @@ output application_configuration_id             {
 
 output application_configuration_used             {
                                                   description = "Application Configuration ID"
-                                                  value       = length(try(coalesce(
+                                                  value       = length(trimspace(coalesce(
                                                                              var.application_configuration_id,
-                                                                             try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
-                                                                           ), "")) > 0 ? true : false
+                                                                             try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, " "),
+                                                                             " "
+                                                                           ))) > 0 ? true : false
                                                 }
 
 output "control_plane_name"                     {
