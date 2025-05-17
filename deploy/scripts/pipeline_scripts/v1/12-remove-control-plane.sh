@@ -30,7 +30,6 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 
 fi
 
-
 export DEBUG
 set -eu
 # Ensure that the exit status of a pipeline command is non-zero if any
@@ -43,16 +42,28 @@ print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset_formatting"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
+	configureNonDeployer "${tf_version:-1.11.2}"
+
+	ARM_CLIENT_ID="$servicePrincipalId"
+	export ARM_CLIENT_ID
+	TF_VAR_spn_id=$ARM_CLIENT_ID
+	export TF_VAR_spn_id
+
+	if printenv servicePrincipalKey; then
+		unset ARM_OIDC_TOKEN
+		ARM_CLIENT_SECRET="$servicePrincipalKey"
+		export ARM_CLIENT_SECRET
+	else
+		ARM_OIDC_TOKEN="$idToken"
+		export ARM_OIDC_TOKEN
+		ARM_USE_OIDC=true
+		export ARM_USE_OIDC
+		unset ARM_CLIENT_SECRET
 	fi
+
+	ARM_TENANT_ID="$tenantId"
+	export ARM_TENANT_ID
 else
-	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export PATH=$PATH:$path
 	if [ "$USE_MSI" == "true" ]; then
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
@@ -70,12 +81,13 @@ else
 	export ARM_CLIENT_ID
 fi
 
-if printenv OBJECT_ID; then
+if [ -v OBJECT_ID ]; then
 	if is_valid_guid "$OBJECT_ID"; then
 		TF_VAR_spn_id="$OBJECT_ID"
 		export TF_VAR_spn_id
 	fi
 fi
+
 # Print the execution environment details
 print_header
 
@@ -91,16 +103,25 @@ libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVA
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
+if [ -v TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME ]; then
+	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' \
+	                      | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' \
+												| project id, name, subscription" --query data[0].id --output tsv)
+else
+	echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not defined."
+	exit 2
+fi
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 else
-  DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
 
-	TF_VAR_spn_keyvault_id=$(az keyvault show --name "$DEPLOYER_KEYVAULT" --subscription "$ARM_SUBSCRIPTION_ID" --query id -o tsv)
+	TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' \
+	                      | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' \
+												| project id, name, subscription" --query data[0].id --output tsv)
+
 	export TF_VAR_spn_keyvault_id
 fi
 export VARIABLE_GROUP_ID
@@ -144,14 +165,15 @@ echo -e "$green--- Running the remove remove_control_plane_v2 that destroys SAP 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
 	--deployer_parameter_file "$deployerTFvarsFile" \
 	--library_parameter_file "$libraryTFvarsFile" \
+	--storage_account "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" \
 	--ado --auto-approve --keep_agent; then
 	return_code=$?
-  print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed" "success"
+	print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed" "success"
 
 	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed."
 else
 	return_code=$?
-  print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 failed" "error"
+	print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 failed" "error"
 fi
 
 echo "Return code from remove_control_plane_v2: $return_code."
