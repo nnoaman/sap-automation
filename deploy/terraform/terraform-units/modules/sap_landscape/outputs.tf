@@ -55,7 +55,7 @@ output "vnet_sap_id"                            {
 
 output "random_id"                              {
                                                   description = "Random ID"
-                                                  value       = random_id.random_id.hex
+                                                  value       = coalesce(var.infrastructure.random_id, random_id.random_id.hex)
                                                 }
 
 output "route_table_id"                         {
