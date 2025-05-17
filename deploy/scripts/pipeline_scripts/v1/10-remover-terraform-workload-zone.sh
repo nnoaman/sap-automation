@@ -236,8 +236,8 @@ echo "System TFvars:                       $WORKLOAD_ZONE_TFVARS_FILENAME"
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $DEPLOYER_KEYVAULT"
-echo "Statefile subscription:              $terraform_storage_account_subscription_id"
-echo "Statefile storage account:           $terraform_storage_account_name"
+echo "State file subscription:             $terraform_storage_account_subscription_id"
+echo "State file storage account:          $terraform_storage_account_name"
 echo ""
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
@@ -256,6 +256,18 @@ if [ -v APPLICATION_CONFIGURATION_NAME ]; then
 			return_code=$?
 			print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
 		fi
+	else
+		if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
+			--control_plane_name "${CONTROL_PLANE_NAME}" --storage_accountname "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" \
+			--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
+			--ado --auto-approve; then
+			return_code=$?
+			print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
+		else
+			return_code=$?
+			print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
+		fi
+
 	fi
 else
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
