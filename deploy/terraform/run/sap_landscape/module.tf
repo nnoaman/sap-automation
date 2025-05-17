@@ -65,12 +65,16 @@ module "sap_landscape" {
 
 module "sap_namegenerator" {
   source                                       = "../../terraform-units/modules/sap_namegenerator"
+  app_server_count                             = 0
   codename                                     = lower(try(var.codename, ""))
+  db_server_count                              = 0
   environment                                  = var.environment
   iscsi_server_count                           = var.iscsi_count
   location                                     = lower(var.location)
   random_id                                    = coalesce(var.custom_random_id, module.sap_landscape.random_id)
   sap_vnet_name                                = var.network_logical_name
+  scs_server_count                             = 0
   utility_vm_count                             = var.utility_vm_count
+  web_server_count                             = 0
 }
 
