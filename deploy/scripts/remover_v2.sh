@@ -304,6 +304,10 @@ function retrieve_parameters() {
 	TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
 	export TF_VAR_control_plane_name
 
+	if [ -v TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME ]; then
+		terraform_storage_account_name="${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+	fi
+
 	if [ -v APPLICATION_CONFIGURATION_ID ]; then
 		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
 		app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
@@ -367,7 +371,10 @@ function retrieve_parameters() {
 		fi
 	else
 		if [ -z "$tfstate_resource_id" ]; then
-			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --out tsv)
+
+			tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' \
+			                      | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' \
+													  | project id, name, subscription" --query data[0].id --output tsv)
 			export tfstate_resource_id
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 			export TF_VAR_tfstate_resource_id
