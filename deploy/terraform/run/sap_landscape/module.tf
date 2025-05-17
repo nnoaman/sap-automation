@@ -71,7 +71,7 @@ module "sap_namegenerator" {
   environment                                  = var.environment
   iscsi_server_count                           = var.iscsi_count
   location                                     = lower(var.location)
-  random_id                                    = coalesce(var.custom_random_id, module.sap_landscape.random_id)
+  random_id                                    = var.custom_random_id # coalesce(var.custom_random_id, module.sap_landscape.random_id)
   sap_vnet_name                                = var.network_logical_name
   scs_server_count                             = 0
   utility_vm_count                             = var.utility_vm_count
