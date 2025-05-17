@@ -115,13 +115,17 @@ stages:
             displayName:               Install terraform
             inputs:
               terraformVersion:        latest
-          - task:                      Bash@3
+          - task:                      AzureCLI@2
+            displayName:               "Remove the SAP workload zone"
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-workload-zone.sh"
+              azureSubscription:       "${{ parameters.workload_zone_name }}_Service_Connection"
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-workload-zone.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Remove SAP workload_zone
+              addSpnToEnvironment:     true
+              visibleAzLogin:          true
             env:
               APPLICATION_CONFIGURATION_NAME:        $(APPLICATION_CONFIGURATION_NAME)
               ARM_SUBSCRIPTION_ID:                   $(ARM_SUBSCRIPTION_ID)
