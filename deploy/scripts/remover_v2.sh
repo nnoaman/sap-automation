@@ -370,7 +370,7 @@ function retrieve_parameters() {
 
 		fi
 	else
-		if [ -z "$tfstate_resource_id" ]; then
+		if [ ! -v tfstate_resource_id ]; then
 
 			tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' \
 			                      | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' \
