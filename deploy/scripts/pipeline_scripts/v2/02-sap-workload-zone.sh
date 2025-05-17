@@ -300,7 +300,7 @@ export TF_LOG_PATH="$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log"
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
-	$platform_flag --auto-approve; then
+	"${platform_flag}" --auto-approve; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
 else

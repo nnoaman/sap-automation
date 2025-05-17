@@ -98,7 +98,7 @@ function parse_arguments() {
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
-		show_help
+		workload_zone_showhelp
 		return 1
 	fi
 
