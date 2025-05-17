@@ -70,7 +70,6 @@ terraform_storage_account_name=""
 #   source_helper_scripts "script1.sh" "script2.sh"            														 #
 ############################################################################################
 
-
 function source_helper_scripts() {
 	local -a helper_scripts=("$@")
 	for script in "${helper_scripts[@]}"; do
@@ -292,12 +291,10 @@ function retrieve_parameters() {
 			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
 			export TF_VAR_spn_keyvault_id
 
-
 		fi
 	fi
 
 }
-
 
 #############################################################################################
 # Function to remove the control plane.                                                     #
@@ -327,7 +324,6 @@ function remove_control_plane() {
 	parse_arguments "$@"
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
-
 	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
 
 	# Check that Terraform and Azure CLI is installed
@@ -345,7 +341,7 @@ function remove_control_plane() {
 		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
 	fi
 
-  tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 	TF_VAR_tfstate_resource_id=$tfstate_resource_id
 	export TF_VAR_tfstate_resource_id
 	terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
@@ -368,15 +364,9 @@ function remove_control_plane() {
 	echo "Deployer State File:                 ${deployer_tfstate_key}"
 	echo "Library State File:                  ${library_tfstate_key}"
 	echo "Deployer Subscription:               $ARM_SUBSCRIPTION_ID"
-	echo "ADO flag:                            ${ado_flag}"
+	echo "DevOps flag:                         ${ado_flag}"
 
 	key=$(echo "${deployer_parameter_file}" | cut -d. -f1)
-
-	if [ -f .terraform/terraform.tfstate ]; then
-		terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-		terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-		terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-	fi
 
 	echo ""
 	echo -e "${green}Terraform details"
@@ -395,10 +385,12 @@ function remove_control_plane() {
 
 	load_config_vars "${deployer_config_information}" "step"
 	if [ 1 -eq $step ]; then
+		echo "Control Plane already removed (step=1)"
 		exit 0
 	fi
 
 	if [ 0 -eq $step ]; then
+		echo "Control Plane already removed (step=0)"
 		exit 0
 	fi
 
@@ -414,6 +406,15 @@ function remove_control_plane() {
 	# Deployer
 
 	cd "${deployer_dirname}" || exit
+
+	if [ -f .terraform/terraform.tfstate ]; then
+		remote_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+		if [ -n "${remote_backend}" ]; then
+			terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+			terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+			terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		fi
+	fi
 
 	param_dirname=$(pwd)
 
@@ -443,7 +444,7 @@ function remove_control_plane() {
 
 		else
 			echo "Terraform state:                     local"
-			if terraform -chdir="${terraform_module_directory}" init  -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
 			else
@@ -507,7 +508,7 @@ function remove_control_plane() {
 		azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 		if [ -n "$azure_backend" ]; then
 			echo "Terraform state:                     remote"
-			if terraform -chdir="${terraform_module_directory}" init  -upgrade -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
 			else
@@ -516,7 +517,7 @@ function remove_control_plane() {
 			fi
 		else
 			echo "Terraform state:                     local"
-			if terraform -chdir="${terraform_module_directory}" init  -upgrade -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
 			else
@@ -550,7 +551,7 @@ function remove_control_plane() {
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	use_spn="false"
-	if checkforEnvVar TF_VAR_use_spn ; then
+	if checkforEnvVar TF_VAR_use_spn; then
 		use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
 	fi
 
@@ -652,4 +653,3 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 		exit $?
 	fi
 fi
-
