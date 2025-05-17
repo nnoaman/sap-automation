@@ -110,20 +110,21 @@ function parse_arguments() {
 		-n | --application_configuration_name)
 			APPLICATION_CONFIGURATION_NAME="$2"
 			export APPLICATION_CONFIGURATION_NAME
-			if [ -v APPLICATION_CONFIGURATION_ID ]; then
+			if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 				APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 				if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
 					print_banner "$banner_title - $deployment_system" "Application Configuration not found: ${APPLICATION_CONFIGURATION_NAME}" "error"
 					return 1
+				else
+					TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
+					export TF_VAR_application_configuration_id
 				fi
 			else
-				print_banner "$banner_title - $deployment_system" "Application Configuration name is required" "error"
-				return 1
+				TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
+				export TF_VAR_application_configuration_id
 			fi
 			export APPLICATION_CONFIGURATION_ID
 
-			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
-			export TF_VAR_application_configuration_id
 			shift 2
 			;;
 		-l | --landscape_tfstate_key)
@@ -419,7 +420,10 @@ function sdaf_remover() {
 
 	print_banner "$banner_title" "Removal starter." "info" "Entering $SCRIPT_NAME"
 
-	retrieve_parameters
+	if ! retrieve_parameters; then
+		print_banner "$banner_title" "Retrieving parameters failed" "error"
+		return $?
+	fi
 
 	parallelism=10
 
