@@ -52,12 +52,16 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - task:                      Bash@3
+          - task:                      AzureCLI@2
+            continueOnError:           false
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/12-remove-control-plane.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+              azureSubscription:       "${{ parameters.control_plane_name }}_Service_Connection"
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/12-remove-control-plane.sh
+              addSpnToEnvironment:     true
+              visibleAzLogin:          false
+              failOnStandardError:     false
             displayName:               Remove control plane
             env:
               APPLICATION_CONFIGURATION_NAME:        $(APPLICATION_CONFIGURATION_NAME)
@@ -107,7 +111,7 @@ stages:
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
-              azureSubscription:       ${{parameters.connection_name}}
+              azureSubscription:       "${{ parameters.control_plane_name }}_Service_Connection"
               scriptType:              bash
               scriptLocation:          'scriptPath'
               scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/12-remove-control-plane-finalize.sh
