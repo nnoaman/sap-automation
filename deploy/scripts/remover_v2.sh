@@ -115,13 +115,7 @@ function parse_arguments() {
 				if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
 					print_banner "$banner_title - $deployment_system" "Application Configuration not found: ${APPLICATION_CONFIGURATION_NAME}" "error"
 					return 1
-				else
-					TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
-					export TF_VAR_application_configuration_id
 				fi
-			else
-				TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
-				export TF_VAR_application_configuration_id
 			fi
 			export APPLICATION_CONFIGURATION_ID
 
@@ -233,8 +227,10 @@ function parse_arguments() {
 	fi
 
 	if [ "${deployment_system}" != sap_deployer ]; then
-		TF_VAR_APPLICATION_CONFIGURATION_ID=$APPLICATION_CONFIGURATION_ID
-		export TF_VAR_APPLICATION_CONFIGURATION_ID
+		if [ -v APPLICATION_CONFIGURATION_ID ]; then
+			TF_VAR_APPLICATION_CONFIGURATION_ID=$APPLICATION_CONFIGURATION_ID
+			export TF_VAR_APPLICATION_CONFIGURATION_ID
+		fi
 		if [ -z "${deployer_tfstate_key}" ]; then
 			if [ 1 != $called_from_ado ]; then
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
