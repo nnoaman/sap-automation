@@ -983,55 +983,61 @@ function sdaf_installer() {
 				if [ -n "${approve}" ]; then
 
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
 					else
-						return_value=0
+						return_value=$?
+						print_banner "$banner_title" "First retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 
 					sleep 10
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=$?
 						else
-							return_value=0
+							return_value=$?
+							print_banner "$banner_title" "Second retry failed" "success" "ImportAndReRunApply return code: $return_value"
 						fi
 					fi
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=$?
 						else
-							return_value=0
+							return_value=$?
+							print_banner "$banner_title" "Third retry failed" "success" "ImportAndReRunApply return code: $return_value"
 						fi
 
 					fi
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=$?
 						else
-							return_value=0
+							return_value=$?
+							print_banner "$banner_title" "Fourth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 						fi
 					fi
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=$?
 						else
-							return_value=0
+							return_value=$?
+							print_banner "$banner_title" "Fifth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 						fi
 					fi
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=$?
 						else
-							return_value=0
+							return_value=$?
+							print_banner "$banner_title" "Sixth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 						fi
 					fi
 				else
@@ -1194,7 +1200,7 @@ function sdaf_installer() {
 	unset TF_DATA_DIR
 	print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
 
-	exit 0
+	exit $return_value
 }
 
 ###############################################################################
