@@ -260,8 +260,8 @@ else
 		echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
 	fi
 	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
-	load_config_vars "${deployer_environment_file_name}" "subscription"
-	TF_VAR_management_subscription_id="$subscription"
+	load_config_vars "${deployer_environment_file_name}" "ARM_SUBSCRIPTION_ID"
+	TF_VAR_management_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_management_subscription_id
 
 fi
