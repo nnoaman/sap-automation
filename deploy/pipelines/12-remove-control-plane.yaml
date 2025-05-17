@@ -60,21 +60,22 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Remove control plane
             env:
-              APPLICATION_CONFIGURATION_NAME:    $(APPLICATION_CONFIGURATION_NAME)
-              APP_REGISTRATION_APP_ID:         $(APP_REGISTRATION_APP_ID)
-              ARM_SUBSCRIPTION_ID:             $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:                   $(ParameterValidation.ARM_TENANT_ID)
-              ARM_USE_MSI:                     true
-              AZURE_DEVOPS_EXT_PAT:            $(System.AccessToken)
-              CLIENT_ID:                       $(ARM_CLIENT_ID)
-              CONFIG_REPO_PATH:                ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              OBJECT_ID:                       $(ARM_OBJECT_ID)
-              SAP_AUTOMATION_REPO_PATH:        ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:              $(System.AccessToken)
-              TF_IN_AUTOMATION:                true
-              TF_LOG:                          $(TF_LOG)
-              TF_VAR_app_registration_app_id:  $(APP_REGISTRATION_APP_ID)
-              USE_MSI:                         $(Use_MSI)
+              APPLICATION_CONFIGURATION_NAME:        $(APPLICATION_CONFIGURATION_NAME)
+              APP_REGISTRATION_APP_ID:               $(APP_REGISTRATION_APP_ID)
+              ARM_SUBSCRIPTION_ID:                   $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                         $(ParameterValidation.ARM_TENANT_ID)
+              ARM_USE_MSI:                           true
+              AZURE_DEVOPS_EXT_PAT:                  $(System.AccessToken)
+              CLIENT_ID:                             $(ARM_CLIENT_ID)
+              CONFIG_REPO_PATH:                      ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              OBJECT_ID:                             $(ARM_OBJECT_ID)
+              SAP_AUTOMATION_REPO_PATH:              ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:                    $(System.AccessToken)
+              TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME: $(TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
+              TF_IN_AUTOMATION:                      true
+              TF_LOG:                                $(TF_LOG)
+              TF_VAR_app_registration_app_id:        $(APP_REGISTRATION_APP_ID)
+              USE_MSI:                               $(Use_MSI)
   - stage:                              Remove_control_plane
     displayName:                        "Finalize control plane removal"
     variables:
