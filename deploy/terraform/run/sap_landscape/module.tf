@@ -46,6 +46,7 @@ module "sap_landscape" {
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
   public_network_access_enabled                = var.public_network_access_enabled
   soft_delete_retention_days                   = var.soft_delete_retention_days
+
   storage_account_replication_type             = var.storage_account_replication_type
   tags                                         = var.tags
   terraform_template_version                   = local.version_label
@@ -68,7 +69,7 @@ module "sap_namegenerator" {
   environment                                  = var.environment
   iscsi_server_count                           = var.iscsi_count
   location                                     = lower(var.location)
-  random_id                                    = coalesce(var.custom_random_id, module.sap_landscape.random_id)
+  random_id                                    = module.sap_landscape.random_id
   sap_vnet_name                                = var.network_logical_name
   utility_vm_count                             = var.utility_vm_count
 }

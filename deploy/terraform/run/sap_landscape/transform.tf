@@ -55,6 +55,7 @@ locals {
                                            shared_access_key_enabled_nfs = var.shared_access_key_enabled_nfs
                                            tags                          = var.resourcegroup_tags
                                            user_assigned_identity_id     = var.user_assigned_identity_id
+                                           random_id                     = var.random_id
                                          }
 
   authentication                       = {
