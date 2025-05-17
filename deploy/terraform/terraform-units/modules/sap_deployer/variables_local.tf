@@ -13,7 +13,6 @@ locals {
 
   storageaccount_names                 = var.naming.storageaccount_names.DEPLOYER
   virtualmachine_names                 = var.naming.virtualmachine_names.DEPLOYER
-  keyvault_names                       = var.naming.keyvault_names.DEPLOYER
 
   // Default option(s):
   enable_secure_transfer               = try(var.options.enable_secure_transfer, true)
@@ -190,8 +189,6 @@ locals {
                                            , "")
                                          )
 
-  // Extract information from the specified key vault arm ids
-  user_keyvault_name                   = var.key_vault.exists ? split("/", var.key_vault.id)[8] : local.keyvault_names.user_access
 
   // Tags
   tags                                 = merge(var.infrastructure.tags,try(var.deployer.tags, { "Role" = "Deployer" }))
@@ -201,5 +198,8 @@ locals {
   parsed_id                            = var.app_config_service.exists ? try(provider::azurerm::parse_resource_id(var.app_config_service.id), "") : null
   app_config_name                      = var.app_config_service.exists ? local.parsed_id["resource_name"] : var.app_config_service.name
   app_config_resource_group_name       = var.app_config_service.exists ? local.parsed_id["resource_group_name"] : ""
+  key_vault_parsed_id                  = var.key_vault.exists ? try(provider::azurerm::parse_resource_id(var.key_vault.id), "") : null
+  user_keyvault_name                   = var.key_vault.exists ? local.key_vault_parsed_id["resource_name"] : var.naming.keyvault_names.DEPLOYER.user_access
+
 
 }
