@@ -329,8 +329,7 @@ function sdaf_remove_deployer() {
 					if [[ -z ${string_to_report} ]]; then
 						string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
 					fi
-
-					echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
+					echo -e "#                          $bold_red  $string_to_report $reset_formatting"
 					echo "##vso[task.logissue type=error]${string_to_report}"
 
 				done
