@@ -161,6 +161,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 fi
 
 echo -e "$green--- Running the remove remove_control_plane_v2 that destroys SAP library ---$reset_formatting"
+cd "$CONFIG_REPO_PATH" || exit
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
 	--deployer_parameter_file "$deployerTFvarsFile" \
