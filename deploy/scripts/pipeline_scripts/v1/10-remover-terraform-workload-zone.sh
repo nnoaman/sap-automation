@@ -66,13 +66,27 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset_formatting"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
+	configureNonDeployer "${tf_version:-1.11.2}"
+
+	ARM_CLIENT_ID="$servicePrincipalId"
+	export ARM_CLIENT_ID
+	TF_VAR_spn_id=$ARM_CLIENT_ID
+	export TF_VAR_spn_id
+
+	if printenv servicePrincipalKey; then
+		unset ARM_OIDC_TOKEN
+		ARM_CLIENT_SECRET="$servicePrincipalKey"
+		export ARM_CLIENT_SECRET
+	else
+		ARM_OIDC_TOKEN="$idToken"
+		export ARM_OIDC_TOKEN
+		ARM_USE_OIDC=true
+		export ARM_USE_OIDC
+		unset ARM_CLIENT_SECRET
 	fi
+
+	ARM_TENANT_ID="$tenantId"
+	export ARM_TENANT_ID
 else
 	if [ "$USE_MSI" == "true" ]; then
 		TF_VAR_use_spn=false
@@ -91,7 +105,7 @@ else
 	export ARM_CLIENT_ID
 fi
 
-if printenv OBJECT_ID; then
+if [ -v OBJECT_ID ]; then
 	if is_valid_guid "$OBJECT_ID"; then
 		TF_VAR_spn_id="$OBJECT_ID"
 		export TF_VAR_spn_id
@@ -229,19 +243,32 @@ echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
-cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
-	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
-	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
-	--ado --auto-approve; then
-	return_code=$?
-	print_banner "$banner_title" "The removal of $WORKLOAD_ZONE_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
+if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
+		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
+		--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
+		--ado --auto-approve; then
+		return_code=$?
+		print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
+	else
+		return_code=$?
+		print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
+	fi
 else
-	return_code=$?
-	print_banner "$banner_title" "The removal of $WORKLOAD_ZONE_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
+		--control_plane_name "${CONTROL_PLANE_NAME}" --storage_accountname "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" \
+		--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
+		--ado --auto-approve; then
+		return_code=$?
+		print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
+	else
+		return_code=$?
+		print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
+	fi
+
 fi
 
-echo
 if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]Return code from remover $return_code."
 else
