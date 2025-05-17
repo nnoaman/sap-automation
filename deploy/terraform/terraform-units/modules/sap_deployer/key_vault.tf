@@ -17,7 +17,7 @@ resource "time_sleep" "wait_for_keyvault" {
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
   count                                = (var.key_vault.exists) ? 0 : 1
-  name                                 = local.keyvault_names.user_access
+  name                                 = local.user_keyvault_name
   resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
