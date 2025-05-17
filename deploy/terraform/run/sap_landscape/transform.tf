@@ -41,8 +41,10 @@ locals {
                                                                              var.application_configuration_id,
                                                                              try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
                                                                            ), "")
+
                                            codename                      = var.codename
                                            control_plane_name            = var.control_plane_name
+                                           custom_random_id              = var.custom_random_id
                                            deploy_defender_extension     = var.deploy_defender_extension
                                            deploy_monitoring_extension   = var.deploy_monitoring_extension
                                            encryption_at_host_enabled    = var.encryption_at_host_enabled
@@ -55,7 +57,6 @@ locals {
                                            shared_access_key_enabled_nfs = var.shared_access_key_enabled_nfs
                                            tags                          = var.resourcegroup_tags
                                            user_assigned_identity_id     = var.user_assigned_identity_id
-
                                          }
 
   authentication                       = {
