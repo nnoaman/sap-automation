@@ -113,8 +113,8 @@ resource "azurerm_windows_web_app" "webapp" {
     "AZURE_TENANT_ID"                          = data.azurerm_client_config.deployer.tenant_id
     "AUTHENTICATION_TYPE"                      = var.deployer.devops_authentication_type
     "PAT"                                      = var.use_private_endpoint ? (
-                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access)): (
-                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
+                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.user_keyvault_name)): (
+                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.user_keyvault_name)
                                                  )
   }
 
