@@ -60,21 +60,22 @@ banner_title="Deploy Workload Zone"
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
-WORKLOAD_ZONE_TFVARS_FILENAME="${WORKLOAD_ZONE_FOLDERNAME}.tfvars"
+WORKLOAD_ZONE_FOLDERNAME="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE"
+WORKLOAD_ZONE_TFVARS_FILENAME="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 
 tfvarsFile="${CONFIG_REPO_PATH}/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
 echo -e "$cyan tfvarsFile: $tfvarsFile $reset_formatting"
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 
 # Platform-specific git checkout
 if [ "$PLATFORM" == "devops" ]; then
+	echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
 	git checkout -q "$BUILD_SOURCEBRANCHNAME"
 elif [ "$PLATFORM" == "github" ]; then
+	echo -e "$green--- Checkout $GITHUB_REF_NAME ---$reset_formatting"
 	git checkout -q "$GITHUB_REF_NAME"
 fi
 
