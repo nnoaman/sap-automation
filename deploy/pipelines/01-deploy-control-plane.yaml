@@ -64,7 +64,7 @@ stages:
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
-              azureSubscription:       "${{ parameters.control_plane_name }}_Service_Connection"
+              azureSubscription:        "${{ parameters.control_plane_name }}_Service_Connection"
               scriptType:              bash
               scriptLocation:          'scriptPath'
               scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-prepare.sh
@@ -294,7 +294,7 @@ stages:
           - task:                      AzureWebApp@1
             displayName:               "Deploy the Configuration Web Application"
             inputs:
-              azureSubscription:       ${{parameters.connection_name}}
+              azureSubscription:        "${{ parameters.control_plane_name }}_Service_Connection"
               appType:                 "webApp"
               appName:                 $(APPSERVICE_NAME)
               package:                 "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
