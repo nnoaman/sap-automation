@@ -112,7 +112,6 @@ stages:
           control_plane_name:          ${{ parameters.control_plane_name }}
           sap_system:                  ${{ parameters.sap_system }}
           workload_zone_name:          ${{ parameters.workload_zone_name }}
-          connection_name:             ${{ parameters.workload_zone_connection }}
           SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
           CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
     jobs:
@@ -166,7 +165,6 @@ stages:
           control_plane_name:          ${{ parameters.control_plane_name }}
           sap_system:                  ${{ parameters.sap_system }}
           workload_zone_name:          ${{ parameters.workload_zone_name }}
-          connection_name:             ${{ parameters.control_plane_connection }}
     jobs:
       - job:                           Remove_control_plane_deployment
         displayName:                   Remove Control Plane deployment
