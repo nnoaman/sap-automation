@@ -94,12 +94,17 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - task:                      Bash@3
+          - task:                      AzureCLI@2
+            continueOnError:           false
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-system.sh"
+              azureSubscription:       "${{ parameters.workload_zone_name }}_Service_Connection"
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-system.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
+              addSpnToEnvironment:     true
+              visibleAzLogin:          false
             displayName:               Remove_SAP_infrastructure
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
@@ -142,12 +147,17 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - task:                      Bash@3
+          - task:                      AzureCLI@2
+            continueOnError:           false
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-workload-zone.sh"
+              azureSubscription:       "${{ parameters.workload_zone_name }}_Service_Connection"
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-workload-zone.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
+              addSpnToEnvironment:     true
+              visibleAzLogin:          false
             displayName:               Remove SAP Workload Zone deployment artifacts from WORKSPACES
             env:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
@@ -177,7 +187,7 @@ stages:
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
-              azureSubscription:       ${{ parameters.control_plane_connection }}
+              azureSubscription:       "${{ parameters.control_plane_name }}_Service_Connection"
               scriptType:              bash
               scriptLocation:          'scriptPath'
               scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-control-plane.sh"
