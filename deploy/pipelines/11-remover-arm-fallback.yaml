@@ -51,15 +51,6 @@ parameters:
     displayName:                       The local path on the agent where the config repo can be found
     type:                              string
 
-  - name:                              control_plane_connection
-    displayName:                       Service Connection Name for Control Plane
-    type:                              string
-    default:                           Control_Plane_Service_Connection
-
-  - name:                              workload_zone_connection
-    displayName:                       Service Connection Name for Workload Zone
-    type:                              string
-
 stages:
   - stage:                             Remove_SAP_systems
     displayName:                       Remove SAP System
@@ -81,7 +72,7 @@ stages:
             displayName:               Remove Resource Group $(sap_system_foldername)
             inputs:
               deploymentScope:                "Resource Group"
-              azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
+              azureResourceManagerConnection: "${{ parameters.workload_zone_name }}_Service_Connection"
               subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
               resourceGroupName:              ${{ parameters.sap_system }}
@@ -134,7 +125,7 @@ stages:
             displayName:               Remove Resource Group
             inputs:
               deploymentScope:                "Resource Group"
-              azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
+              azureResourceManagerConnection: "${{ parameters.workload_zone_name }}_Service_Connection"
               subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
               resourceGroupName:              "$(workload_zone_foldername)"
