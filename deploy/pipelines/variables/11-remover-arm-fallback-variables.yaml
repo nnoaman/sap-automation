@@ -7,7 +7,6 @@ parameters:
   workload_zone_name:                  ""
   cleanup_control_plane:               false
   control_plane_name:                  ""
-  connection_name:                     ""
 
 variables:
   - group:                             "SDAF-General"
