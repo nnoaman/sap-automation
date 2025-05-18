@@ -61,7 +61,6 @@ stages:
           control_plane_name:          ${{ parameters.control_plane_name }}
           sap_system:                  ${{ parameters.sap_system }}
           workload_zone_name:          ${{ parameters.workload_zone_name }}
-          connection_name:             ${{ parameters.workload_zone_connection }}
     jobs:
       - job:                           Remove_SAP_system_RG
         displayName:                   Remove SAP System ${{ parameters.sap_system }}
