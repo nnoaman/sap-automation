@@ -105,8 +105,6 @@ else
 	platform_flag=""
 fi
 
-
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.11.3}"
@@ -224,61 +222,59 @@ else
 	storage_account_parameter=
 fi
 
-if [ "$PLATFORM" == "devops" ]; then
-	pass=${SYSTEM_COLLECTIONID//-/}
-elif [ "$PLATFORM" == "github" ]; then
-	pass=${GITHUB_REPOSITORY//-/}
-else
-	pass="localpassword"
-fi
+start_group "Decrypting state files"
+# Handle state.zip differently per platform
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 
-start_group "Decrypting state files"
-# Import PGP key if it exists, otherwise generate it
-if [ -f "${CONFIG_REPO_PATH}/private.pgp" ]; then
-		echo "Importing PGP key"
-    set +e
-    gpg --list-keys sap-azure-deployer@example.com
-    return_code=$?
-    set -e
-
-    if [ ${return_code} != 0 ]; then
-        echo "${pass}" | gpg --batch --passphrase-fd 0 --import "${CONFIG_REPO_PATH}/private.pgp"
-    fi
-else
-	exit_error "Private PGP key not found." 3
-fi
-
 git pull -q
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg" ]; then
-	echo "Decrypting state file"
-	echo "${pass}" |
-		gpg --batch \
-			--passphrase-fd 0 \
-			--output "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate" \
-			--decrypt "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg"
-fi
+if [ "$PLATFORM" == "devops" ]; then
+	pass=${SYSTEM_COLLECTIONID//-/}
+	if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+		echo "Unzipping the deployer state file"
+		unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+	fi
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-	echo "Unzipping the deployer state file"
-	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
-fi
+	if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+		echo "Unzipping the library state file"
+		unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
+	fi
 
-# Handle state.zip differently per platform
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-	echo "Unzipping the library state file"
-	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
-fi
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
-	echo "Decrypting state file"
-	echo "${pass}" |
-		gpg --batch \
-			--passphrase-fd 0 \
-			--output "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" \
-			--decrypt "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
+elif [ "$PLATFORM" == "github" ]; then
+	pass=${GITHUB_REPOSITORY//-/}
+	# Import PGP key if it exists, otherwise generate it
+	if [ -f "${CONFIG_REPO_PATH}/private.pgp" ]; then
+		echo "Importing PGP key"
+		set +e
+		gpg --list-keys sap-azure-deployer@example.com
+		return_code=$?
+		set -e
+
+		if [ ${return_code} != 0 ]; then
+			echo "${pass}" | gpg --batch --passphrase-fd 0 --import "${CONFIG_REPO_PATH}/private.pgp"
+		fi
+		if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg" ]; then
+			echo "Decrypting state file"
+			echo "${pass}" |
+				gpg --batch \
+					--passphrase-fd 0 \
+					--output "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate" \
+					--decrypt "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg"
+		fi
+		if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
+			echo "Decrypting state file"
+			echo "${pass}" |
+				gpg --batch \
+					--passphrase-fd 0 \
+					--output "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" \
+					--decrypt "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
+		fi
+	else
+		exit_error "Private PGP key not found." 3
+	fi
+	pass="localpassword"
 fi
 
 end_group
@@ -307,19 +303,18 @@ echo -e "$green--- Control Plane deployment---$reset_formatting"
 
 # Platform-specific flags
 if [ "$PLATFORM" == "devops" ]; then
-	platform_flag="--ado"
+	platform_flag=" --ado"
 elif [ "$PLATFORM" == "github" ]; then
-	platform_flag="--github"
+	platform_flag=" --github"
 else
 	platform_flag=""
 fi
 
 cd "$CONFIG_REPO_PATH" || exit
 
-if
-	"${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" \
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" \
 		--control_plane_name "$CONTROL_PLANE_NAME" \
-		--auto-approve ${msi_flag}
+		--auto-approve ${msi_flag} $platform_flag
 then
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then
@@ -472,18 +467,17 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			added=1
 		fi
 	fi
-	else
+else
 	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=""
 fi
 
 if [ -f .sap_deployment_automation/terraform.log ]; then
-  rm .sap_deployment_automation/terraform.log
+	rm .sap_deployment_automation/terraform.log
 fi
 
 if [ -f LICENSE.txt ]; then
-  rm LICENSE.txt
+	rm LICENSE.txt
 fi
-
 
 # Commit changes based on platform
 if [ 1 = $added ]; then
