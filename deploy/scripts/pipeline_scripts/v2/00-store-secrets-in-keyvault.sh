@@ -30,7 +30,7 @@ source "${grand_parent_directory}/deploy_utils.sh"
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
-DEBUG=${DEBUG:-false}
+DEBUG=False
 # Enable debug mode if DEBUG is set to 'true'
 if [[ "${SYSTEM_DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
 	# Enable debugging
