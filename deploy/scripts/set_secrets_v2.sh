@@ -10,14 +10,18 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 SCRIPT_NAME="$(basename "$0")"
 
-if printenv DEBUG; then
-	if [ $DEBUG = True ]; then
-		set -x
-		DEBUG=True
-		echo "prefix variables:"
-		printenv | sort
-	fi
+DEBUG=False
+# Enable debug mode if DEBUG is set to 'true'
+if [[ "${SYSTEM_DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
+	# Enable debugging
+	set -x
+	# Exit on error
+	set -o errexit
+	echo "Environment variables:"
+	printenv | sort
+	DEBUG=True
 fi
+
 export DEBUG
 set -eu
 
@@ -268,30 +272,29 @@ function parse_arguments() {
 ############################################################################################
 
 function retrieve_parameters() {
-	if checkforEnvVar APPLICATION_CONFIGURATION_ID; then
-		if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-			app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
-			app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
-
-			if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-
-				print_banner "$banner_title" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
-
-				keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-				print_banner "$banner_title" "Key vault: $keyvault" "info" "${CONTROL_PLANE_NAME}_KeyVaultName ${prefix}"
-
-				keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-				STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
-
-				export keyvault
-			fi
-		fi
-		[[ -z "$keyvault" ]] && {
-			print_banner "$banner_title" "key_vault is required" "error"
-			return 10
-		}
+	if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+		APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+		export APPLICATION_CONFIGURATION_ID
+		export APPLICATION_CONFIGURATION_NAME
 	fi
 
+	if [ -v DEPLOYER_KEYVAULT ]; then
+		keyvault=$DEPLOYER_KEYVAULT
+		export keyvault
+	else
+		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+
+			print_banner "$banner_title" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
+
+			keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+			print_banner "$banner_title" "Key vault: $keyvault" "info" "${CONTROL_PLANE_NAME}_KeyVaultName ${prefix}"
+
+			keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+			STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
+
+			export keyvault
+		fi
+	fi
 	return 0
 
 }
