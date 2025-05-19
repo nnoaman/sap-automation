@@ -123,7 +123,10 @@ function parse_arguments() {
 			shift 2
 			;;
 		-g | --github)
-			shift 2
+			called_from_ado=1
+			approve="--auto-approve"
+			TF_IN_AUTOMATION=true
+			export TF_IN_AUTOMATION			shift 2
 			;;
 		-l | --landscape_tfstate_key)
 			landscape_tfstate_key="$2"
