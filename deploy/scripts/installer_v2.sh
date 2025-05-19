@@ -126,7 +126,8 @@ function parse_arguments() {
 			called_from_ado=1
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
-			export TF_IN_AUTOMATION			shift 2
+			export TF_IN_AUTOMATION
+			shift 2
 			;;
 		-l | --landscape_tfstate_key)
 			landscape_tfstate_key="$2"
@@ -1173,6 +1174,7 @@ function sdaf_installer() {
 				fi
 			fi
 		fi
+	fi
 
 	if [ "${deployment_system}" == sap_library ]; then
 		terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
