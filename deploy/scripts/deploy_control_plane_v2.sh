@@ -263,7 +263,7 @@ function bootstrap_deployer() {
 		cd "${deployer_dirname}" || exit
 
 		# In GitHub Actions, copy the parameter file to the current directory to ensure Terraform can find it
-		if [[ -n "${GITHUB_ACTIONS}" ]]; then
+		if [[ -v GITHUB_ACTIONS ]]; then
 			echo "Running in GitHub Actions environment"
 			# Create a local copy of the parameter file if it doesn't already exist
 			parameter_file_basename=$(basename "${deployer_parameter_file}")
