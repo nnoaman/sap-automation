@@ -126,7 +126,8 @@ function parse_arguments() {
 			called_from_ado=1
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
-			export TF_IN_AUTOMATION			shift 2
+			export TF_IN_AUTOMATION
+			shift
 			;;
 		-l | --landscape_tfstate_key)
 			landscape_tfstate_key="$2"
