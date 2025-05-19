@@ -86,14 +86,26 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 	export VARIABLE_GROUP_ID
 elif [ "$PLATFORM" == "github" ]; then
-	# No specific variable group setup for GitHub Actions
-	echo "Configuring for GitHub Actions - using environment variables"
+	# Set required environment variables for GitHub
+	export USER=${GITHUB_ACTOR:-githubuser}
+	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
+	platform_flag="--github"
+	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
+	export TF_VAR_github_server_url
+
+	TF_VAR_github_api_url=${GITHUB_API_URL}
+	export TF_VAR_github_api_url
+
+	TF_VAR_github_repository=${GITHUB_REPOSITORY}
+	export TF_VAR_github_repository
+
+	TF_VAR_devops_platform="github"
+	export TF_VAR_devops_platform
+else
+	platform_flag=""
 fi
 
-TF_VAR_tf_version="${tf_version:-1.11.3}"
-export TF_VAR_tf_version
-TF_VAR_devops_platform="github"
-export TF_VAR_devops_platform
+
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
