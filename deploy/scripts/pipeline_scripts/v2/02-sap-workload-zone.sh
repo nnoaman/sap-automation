@@ -253,17 +253,20 @@ if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConf
 	if [ -z "$tfstate_resource_id" ]; then
 		if [ "$PLATFORM" == "devops" ]; then
 			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+		elif [ "$PLATFORM" == "github" ]; then
+			echo "Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
 		fi
 	fi
 else
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "Variable APPLICATION_CONFIGURATION_ID was not defined."
 	fi
 	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
 	load_config_vars "${deployer_environment_file_name}" "ARM_SUBSCRIPTION_ID"
 	TF_VAR_management_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_management_subscription_id
-
 fi
 
 # Verify terraform state storage account
