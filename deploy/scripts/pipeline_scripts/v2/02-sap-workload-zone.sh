@@ -240,7 +240,7 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
-dos2unix -q "${workload_environment_file_name}" || true
+dos2unix -q "${deployer_environment_file_name}" || true
 
 # Handle application configuration settings
 if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
