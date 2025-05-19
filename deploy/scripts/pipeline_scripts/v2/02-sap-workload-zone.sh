@@ -241,6 +241,7 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 fi
 
 dos2unix -q "${deployer_environment_file_name}" || true
+load_config_vars "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID"
 
 # Handle application configuration settings
 if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
@@ -323,28 +324,30 @@ set +o errexit
 
 echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"
 
+added=0
+cd "${CONFIG_REPO_PATH}" || exit
+
 # Pull changes if there are other deployment jobs
 if [ "$PLATFORM" == "devops" ]; then
 	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 	git checkout -q "$BUILD_SOURCEBRANCHNAME"
 elif [ "$PLATFORM" == "github" ]; then
 	git pull -q origin "$GITHUB_REF_NAME"
-	fi
-
-added=0
-
-if [ -f .terraform/terraform.tfstate ]; then
-	git add -f .terraform/terraform.tfstate
-	added=1
 fi
 
+echo -e "$green--- Update repo ---$reset_formatting"
 if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
 	git add ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}"
 	added=1
 fi
 
-if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
-	git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
+if [ -f "LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+	git add -f "LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/.terraform/terraform.tfstate"
+	added=1
+fi
+
+if [ -f "LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
+	git add "LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 	added=1
 fi
 
