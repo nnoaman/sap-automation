@@ -312,7 +312,8 @@ fi
 
 cd "$CONFIG_REPO_PATH" || exit
 
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" \
+if
+	"${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" \
 		--control_plane_name "$CONTROL_PLANE_NAME" \
 		--auto-approve ${msi_flag} $platform_flag
 then
