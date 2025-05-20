@@ -185,7 +185,7 @@ terraform_storage_account_subscription_id=$ARM_SUBSCRIPTION_ID
 
 echo "Terraform state subscription:        $terraform_storage_account_subscription_id"
 
-if printenv tfstate_resource_id ; then
+if [ -v tfstate_resource_id ]; then
 	terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
