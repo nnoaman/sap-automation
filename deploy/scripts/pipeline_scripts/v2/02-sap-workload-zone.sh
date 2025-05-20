@@ -116,13 +116,15 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-
 	if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
 		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset_formatting"
 		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 		exit 2
 	fi
 	export PARENT_VARIABLE_GROUP_ID
+
+	deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
+	workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 
 	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME")
 
@@ -187,8 +189,6 @@ else
 	fi
 
 fi
-
-
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
