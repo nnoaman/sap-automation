@@ -164,6 +164,7 @@ if [ -n "$TF_VAR_spn_id" ]; then
 		export TF_VAR_spn_id
 		echo "Service Principal Object id:         $TF_VAR_spn_id"
 	fi
+
 fi
 
 # Reset the account if sourcing was done
@@ -218,11 +219,11 @@ if [ "$FORCE_RESET" == True ]; then
   TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
-		echo "Terraform Remote State Account:      ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+		echo "Terraform Remote State Account:       ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
-		echo "Terraform Remote State RG Name:      ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+		echo "Terraform Remote State RG Name:       ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
 	fi
 
 	if [ -n "${tfstate_resource_id}" ]; then
