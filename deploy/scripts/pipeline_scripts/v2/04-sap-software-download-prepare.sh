@@ -77,7 +77,6 @@ fi
 
 
 echo -e "$green--- Validations ---$reset_formatting"
-# File existence check
 if [ ! -f "${environment_file_name}" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]File '${environment_file_name}' was not found."
@@ -87,7 +86,6 @@ if [ ! -f "${environment_file_name}" ]; then
 	exit 2
 fi
 
-# Required variable: ARM_SUBSCRIPTION_ID
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Variable 'ARM_SUBSCRIPTION_ID' was not defined."
@@ -97,7 +95,6 @@ if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 	exit 2
 fi
 
-# Agent validation
 if [ "$PLATFORM" == "devops" ]; then
 	if [ "$THIS_AGENT" == "azure pipelines" ]; then
 		echo "##vso[task.logissue type=error]Please use a self-hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group."
@@ -105,22 +102,20 @@ if [ "$PLATFORM" == "devops" ]; then
 	exit 2
 fi
 
-# SUSERNAME validation
-if [ "$SUSERNAME" == "your S User" ]; then
+if [ -z "$SUSERNAME" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Please define the S-Username variable."
 	elif [ "$PLATFORM" == "github" ]; then
-		echo "::error title=Missing S-Username::Please define the S-Username variable."
+		echo "::error title=Missing S-Username::Variable 'SUSERNAME' is not defined or is empty."
 	fi
 	exit 2
 fi
 
-# SPASSWORD validation
-if [ "$SPASSWORD" == "your S user password" ]; then
+if [ -z "$SPASSWORD" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Please define the S-Password variable."
 	elif [ "$PLATFORM" == "github" ]; then
-		echo "::error title=Missing S-Password::Please define the S-Password variable."
+		echo "::error title=Missing S-Password::Variable 'SPASSWORD' is not defined or is empty."
 	fi
 	exit 2
 fi
