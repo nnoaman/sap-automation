@@ -2,6 +2,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+# Source the shared platform configuration
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+source "${SCRIPT_DIR}/shared_platform_config.sh"
+source "${SCRIPT_DIR}/shared_functions.sh"
+source "${SCRIPT_DIR}/set-colors.sh"
+
+SCRIPT_NAME="$(basename "$0")"
+
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
