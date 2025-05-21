@@ -146,7 +146,6 @@ echo ""
 echo -e "${green}Deployment details:"
 echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
-
 echo "Workload TFvars:                     ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
@@ -262,8 +261,12 @@ if [ 0 != $return_code ]; then
 else
 	if [ 0 == $return_code ]; then
 		# Pull changes
-		git checkout -q "$BUILD_SOURCEBRANCHNAME"
-		git pull origin "$BUILD_SOURCEBRANCHNAME"
+		# Pull latest changes from appropriate branch
+		if [ "$PLATFORM" == "devops" ]; then
+			git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+		elif [ "$PLATFORM" == "github" ]; then
+			git pull -q origin "$GITHUB_REF_NAME"
+		fi
 
 		git clean -d -f -X
 
@@ -287,21 +290,52 @@ else
 			changed=1
 		fi
 
+		# Commit changes based on platform
 		if [ 1 == $changed ]; then
-			git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-			git config --global user.name "$BUILD_REQUESTEDFOR"
+			if [ "$PLATFORM" == "devops" ]; then
+				git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+				git config --global user.name "$BUILD_REQUESTEDFOR"
+				commit_message="Added updates from Workload zone removal for $WORKLOAD_ZONE_NAME  [skip ci]"
+			elif [ "$PLATFORM" == "github" ]; then
+				git config --global user.email "github-actions@github.com"
+				git config --global user.name "GitHub Actions"
+				commit_message="Added updates from Workload zone removal for $WORKLOAD_ZONE_NAME [skip ci]"
+			else
+				git config --global user.email "local@example.com"
+				git config --global user.name "Local User"
+				commit_message="Added updates from Workload zone removal for $WORKLOAD_ZONE_NAME [skip ci]"
+			fi
 
-			if git commit -m "Infrastructure for ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars removed. [skip ci]"; then
-				if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-					echo "##vso[task.logissue type=warning]Removal of ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars updated in $BUILD_BUILDNUMBER"
-				else
-					echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
+			if [ "$DEBUG" = True ]; then
+				git status --verbose
+				if git commit --message --verbose "$commit_message"; then
+					if [ "$PLATFORM" == "devops" ]; then
+						if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+							echo "Failed to push changes to the repository."
+						fi
+					elif [ "$PLATFORM" == "github" ]; then
+						if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+							echo "Failed to push changes to the repository."
+						fi
+					fi
+				fi
+			else
+				if git commit -m "$commit_message"; then
+					if [ "$PLATFORM" == "devops" ]; then
+						if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+							echo "Failed to push changes to the repository."
+						fi
+					elif [ "$PLATFORM" == "github" ]; then
+						if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+							echo "Failed to push changes to the repository."
+						fi
+					fi
 				fi
 			fi
 		fi
 
 		echo -e "$green--- Deleting variables ---$reset_formatting"
-		if [ -n "$VARIABLE_GROUP_ID"  ]; then
+		if [ -n "$VARIABLE_GROUP_ID" ]; then
 			print_banner "Remove workload zone" "Deleting variables" "info"
 
 			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --out tsv)
