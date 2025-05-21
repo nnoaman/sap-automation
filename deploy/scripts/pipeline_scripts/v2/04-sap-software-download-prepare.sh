@@ -184,6 +184,19 @@ if [ "$PLATFORM" == "devops" ]; then
 elif [ "$PLATFORM" == "github" ]; then
 	start_group "Download SAP Bill of Materials"
 
+	echo -e "$green--- az login ---$reset_formatting"
+	# Check if running on deployer
+	if [ ! -f /etc/profile.d/deploy_server.sh ]; then
+		echo -e "$green--- az login ---$reset_formatting"
+		LogonToAzure false
+	fi
+	return_code=$?
+
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset_formatting"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 	az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
 	sample_path=${SAMPLE_REPO_PATH}/SAP
