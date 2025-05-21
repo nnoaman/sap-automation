@@ -184,6 +184,8 @@ if [ "$PLATFORM" == "devops" ]; then
 elif [ "$PLATFORM" == "github" ]; then
 	start_group "Download SAP Bill of Materials"
 
+	az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
+
 	sample_path=${SAMPLE_REPO_PATH}/SAP
 	command="ansible-playbook \
 		-e download_directory=${GITHUB_WORKSPACE} \
