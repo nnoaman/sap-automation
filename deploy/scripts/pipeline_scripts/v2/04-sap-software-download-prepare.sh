@@ -186,12 +186,12 @@ elif [ "$PLATFORM" == "github" ]; then
 
 	sample_path=${SAMPLE_REPO_PATH}/SAP
 	command="ansible-playbook \
-		-e download_directory='${GITHUB_WORKSPACE}' \
-		-e s_user='${SUSERNAME}' \
-		-e BOM_directory='${sample_path}' \
+		-e download_directory=${GITHUB_WORKSPACE} \
+		-e s_user=${SUSERNAME} \
+		-e BOM_directory=${sample_path} \
 		-e bom_base_name='${BOM}' \
-		-e deployer_kv_name='${key_vault}' \
-		-e check_storage_account='${re_download}' \
+		-e deployer_kv_name=${key_vault} \
+		-e check_storage_account=${re_download} \
 		${EXTRA_PARAMETERS} \
 		${SAP_AUTOMATION_REPO_PATH}/deploy/ansible/playbook_bom_downloader.yaml"
 	echo "Executing [$command]"
