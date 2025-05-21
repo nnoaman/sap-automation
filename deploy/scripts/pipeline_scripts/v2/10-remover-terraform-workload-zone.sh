@@ -28,6 +28,7 @@ source "${parent_directory}/helper.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
+banner_title="SAP Workload Zone"
 # Print the execution environment details
 print_header
 echo ""
@@ -54,6 +55,7 @@ elif [ "$PLATFORM" == "github" ]; then
 else
 	platform_flag=""
 fi
+
 print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
 WORKLOAD_ZONE_FOLDERNAME="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE"
 WORKLOAD_ZONE_TFVARS_FILENAME="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
