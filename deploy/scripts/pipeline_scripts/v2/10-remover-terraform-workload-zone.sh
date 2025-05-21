@@ -2,38 +2,61 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-reset_formatting="\e[0m"
+# Source the shared platform configuration
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+source "${SCRIPT_DIR}/shared_platform_config.sh"
+source "${SCRIPT_DIR}/shared_functions.sh"
+source "${SCRIPT_DIR}/set-colors.sh"
 
-#External helper functions
+SCRIPT_NAME="$(basename "$0")"
+
+# Set platform-specific output
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $CONTROL_PLANE_NAME "
+fi
+
+# External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${grand_parent_directory}/deploy_utils.sh"
+source "${parent_directory}/helper.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
-banner_title="Remove SAP Workload Zone"
+# Print the execution environment details
+print_header
+echo ""
 
-#call stack has full script name when using source
-source "${parent_directory}/helper.sh"
-source "${grand_parent_directory}/deploy_utils.sh"
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	# Configure DevOps
+	configure_devops
 
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	set -o errexit
-	DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
-
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+	platform_flag="--ado"
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
+	platform_flag="--github"
+else
+	platform_flag=""
 fi
-export DEBUG
-set -eu
-
-echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $WORKLOAD_ZONE_FOLDERNAME"
 print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
+WORKLOAD_ZONE_FOLDERNAME="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE"
+WORKLOAD_ZONE_TFVARS_FILENAME="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
@@ -49,29 +72,30 @@ if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_
 	exit 2
 fi
 
-# Print the execution environment details
-print_header
-
-# Configure DevOps
-configure_devops
-
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
-
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset_formatting"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
+	if [ "$PLATFORM" == "devops" ]; then
+		configureNonDeployer "${tf_version:-1.11.2}"
+
+		ARM_CLIENT_ID="$servicePrincipalId"
+		export ARM_CLIENT_ID
+		TF_VAR_spn_id=$ARM_CLIENT_ID
+		export TF_VAR_spn_id
+
+		if printenv servicePrincipalKey; then
+			unset ARM_OIDC_TOKEN
+			ARM_CLIENT_SECRET="$servicePrincipalKey"
+			export ARM_CLIENT_SECRET
+		else
+			ARM_OIDC_TOKEN="$idToken"
+			export ARM_OIDC_TOKEN
+			ARM_USE_OIDC=true
+			export ARM_USE_OIDC
+			unset ARM_CLIENT_SECRET
+		fi
+
+		ARM_TENANT_ID="$tenantId"
+		export ARM_TENANT_ID
 	fi
 else
 	if [ "$USE_MSI" == "true" ]; then
@@ -91,16 +115,10 @@ else
 	export ARM_CLIENT_ID
 fi
 
-if printenv OBJECT_ID; then
-	if is_valid_guid "$OBJECT_ID"; then
-		TF_VAR_spn_id="$OBJECT_ID"
-		export TF_VAR_spn_id
-	fi
+if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export APPLICATION_CONFIGURATION_ID
 fi
-
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
-dos2unix -q tfvarsFile
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
