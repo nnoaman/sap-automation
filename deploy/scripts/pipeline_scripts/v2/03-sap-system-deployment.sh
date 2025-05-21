@@ -136,6 +136,12 @@ else
 
 fi
 
+if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+		APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	fi
+fi
+
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
