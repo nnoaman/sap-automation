@@ -35,10 +35,15 @@ fi
 export DEBUG
 set -eu
 
-AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-export AZURE_DEVOPS_EXT_PAT
-
 cd "$CONFIG_REPO_PATH" || exit
+
+if [ "$PLATFORM" == "devops" ]; then
+	AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
+	export AZURE_DEVOPS_EXT_PAT
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Configuring for GitHub Actions"
+fi
+
 
 environment_file_name=".sap_deployment_automation/$CONTROL_PLANE_NAME"
 
@@ -58,29 +63,52 @@ export VARIABLE_GROUP_ID
 
 
 echo -e "$green--- Validations ---$reset_formatting"
+# File existence check
 if [ ! -f "${environment_file_name}" ]; then
-  echo -e "$bold_red--- ${environment_file_name} was not found ---$reset_formatting"
-  echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
-  exit 2
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]File '${environment_file_name}' was not found."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing File::File '${environment_file_name}' was not found."
+	fi
+	exit 2
 fi
+
+# Required variable: ARM_SUBSCRIPTION_ID
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-  exit 2
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Variable 'ARM_SUBSCRIPTION_ID' was not defined."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing Variable::Variable 'ARM_SUBSCRIPTION_ID' was not defined."
+	fi
+	exit 2
 fi
 
-if [ "azure pipelines" == $THIS_AGENT ]; then
-  echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
-  exit 2
+# Agent validation
+if [ "$PLATFORM" == "devops" ]; then
+	if [ "$THIS_AGENT" == "azure pipelines" ]; then
+		echo "##vso[task.logissue type=error]Please use a self-hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group."
+	fi
+	exit 2
 fi
 
-if [ "your S User" == "$SUSERNAME" ]; then
-  echo "##vso[task.logissue type=error]Please define the S-Username variable."
-  exit 2
+# SUSERNAME validation
+if [ "$SUSERNAME" == "your S User" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Please define the S-Username variable."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing S-Username::Please define the S-Username variable."
+	fi
+	exit 2
 fi
 
-if [ "your S user password" == "$SPASSWORD" ]; then
-  echo "##vso[task.logissue type=error]Please define the S-Password variable."
-  exit 2
+# SPASSWORD validation
+if [ "$SPASSWORD" == "your S user password" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Please define the S-Password variable."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing S-Password::Please define the S-Password variable."
+	fi
+	exit 2
 fi
 
 echo -e "$green--- az login ---$reset_formatting"
