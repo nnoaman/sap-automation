@@ -57,20 +57,23 @@ else
 fi
 
 print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
-WORKLOAD_ZONE_FOLDERNAME="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE"
-WORKLOAD_ZONE_TFVARS_FILENAME="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 
-tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
-
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
+tfvarsFile="LANDSCAPE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
+# Platform-specific git checkout
+if [ "$PLATFORM" == "devops" ]; then
+	echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
+	git checkout -q "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	echo -e "$green--- Checkout $GITHUB_REF_NAME ---$reset_formatting"
+	git checkout -q "$GITHUB_REF_NAME"
+fi
 
-if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
-	print_banner "$banner_title" "$WORKLOAD_ZONE_TFVARS_FILENAME was not found" "error"
-	echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_TFVARS_FILENAME was not found."
+if [ ! -f "$tfvarsFile" ]; then
+	print_banner "$banner_title" "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars was not found" "error"
+	echo "##vso[task.logissue type=error]File ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars was not found."
 	exit 2
 fi
 
@@ -126,13 +129,13 @@ ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | t
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
-ENVIRONMENT_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $1}')
-LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $2}')
+ENVIRONMENT_IN_FILENAME=$(echo ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE | awk -F'-' '{print $1}')
+LOCATION_CODE_IN_FILENAME=$(echo ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 
-NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
+NETWORK_IN_FILENAME=$(echo ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE | awk -F'-' '{print $3}')
 
-WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
+WORKLOAD_ZONE_NAME=$(echo "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
@@ -145,7 +148,7 @@ echo -e "${green}Deployment details:"
 echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 
-echo "Workload TFvars:                     $WORKLOAD_ZONE_TFVARS_FILENAME"
+echo "Workload TFvars:                     ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
@@ -161,19 +164,19 @@ echo ""
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
 	print_banner "$banner_title" "The 'environment' setting in $SAP_SYSTEM_TFVARS_FILENAME does not match the file name" "error" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	echo "##vso[task.logissue type=error]The environment setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$ENVIRONMENT' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	echo "##vso[task.logissue type=error]The environment setting in ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars '$ENVIRONMENT' does not match the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
 	print_banner "$banner_title" "The 'location' setting in $SAP_SYSTEM_TFVARS_FILENAME does not match the file name" "error" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	echo "##vso[task.logissue type=error]The location setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$LOCATION' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	echo "##vso[task.logissue type=error]The location setting in ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars '$LOCATION' does not match the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	exit 2
 fi
 
 if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	print_banner "$banner_title" "The 'network_logical_name' setting in $SAP_SYSTEM_TFVARS_FILENAME does not match the file name" "error" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	echo "##vso[task.logissue type=error]The network_logical_name setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$NETWORK' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	echo "##vso[task.logissue type=error]The network_logical_name setting in ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars '$NETWORK' does not match the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	exit 2
 fi
 
@@ -240,18 +243,18 @@ echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
-cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
+cd "$CONFIG_REPO_PATH/LANDSCAPE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE" || exit
 return_code=10
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars" --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
 	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
 	--ado --auto-approve; then
 	return_code=$?
-	print_banner "$banner_title" "The removal of $WORKLOAD_ZONE_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
+	print_banner "$banner_title" "The removal of ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars succeeded" "success" "Return code: ${return_code}"
 else
 	return_code=$?
-	print_banner "$banner_title" "The removal of $WORKLOAD_ZONE_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
+	print_banner "$banner_title" "The removal of ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars failed" "error" "Return code: ${return_code}"
 fi
 
 echo "Return code from deployment:         ${return_code}"
@@ -275,8 +278,8 @@ else
 			changed=1
 		fi
 
-		if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
-			git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
+		if [ -f "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars" ]; then
+			git add "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 			changed=1
 		fi
 
@@ -289,9 +292,9 @@ else
 			git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 			git config --global user.name "$BUILD_REQUESTEDFOR"
 
-			if git commit -m "Infrastructure for $WORKLOAD_ZONE_TFVARS_FILENAME removed. [skip ci]"; then
+			if git commit -m "Infrastructure for ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars removed. [skip ci]"; then
 				if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-					echo "##vso[task.logissue type=warning]Removal of $WORKLOAD_ZONE_TFVARS_FILENAME updated in $BUILD_BUILDNUMBER"
+					echo "##vso[task.logissue type=warning]Removal of ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars updated in $BUILD_BUILDNUMBER"
 				else
 					echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
 				fi
