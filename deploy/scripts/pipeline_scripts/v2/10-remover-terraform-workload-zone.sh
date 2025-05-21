@@ -337,15 +337,17 @@ else
 		echo -e "$green--- Deleting variables ---$reset_formatting"
 		if [ -n "$VARIABLE_GROUP_ID" ]; then
 			print_banner "Remove workload zone" "Deleting variables" "info"
+			if [ "$PLATFORM" == "devops" ]; then
 
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --yes --only-show-errors
-			fi
+				variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --out tsv)
+				if [ ${#variable_value} != 0 ]; then
+					az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name CONTROL_PLANE_NAME --yes --only-show-errors
+				fi
 
-			variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --out tsv)
-			if [ ${#variable_value} != 0 ]; then
-				az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --yes --only-show-errors
+				variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --out tsv)
+				if [ ${#variable_value} != 0 ]; then
+					az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --yes --only-show-errors
+				fi
 			fi
 		fi
 
