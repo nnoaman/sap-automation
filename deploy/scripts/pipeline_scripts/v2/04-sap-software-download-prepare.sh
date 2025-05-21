@@ -33,19 +33,19 @@ source "${parent_directory}/helper.sh"
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
-  set -x
-  DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
 
-fi
-export DEBUG
 set -eu
 
 cd "$CONFIG_REPO_PATH" || exit
 
 if [ "$PLATFORM" == "devops" ]; then
+	if [ "$SYSTEM_DEBUG" = True ]; then
+		set -x
+		DEBUG=True
+		echo "Environment variables:"
+		printenv | sort
+	fi
+	export DEBUG
 	AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
 	export AZURE_DEVOPS_EXT_PAT
 elif [ "$PLATFORM" == "github" ]; then
