@@ -86,6 +86,22 @@ if [ ! -f "${environment_file_name}" ]; then
 	exit 2
 fi
 
+if [ "$PLATFORM" == "devops" ]; then
+	key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
+elif [ "$PLATFORM" == "github" ]; then
+	load_config_vars "${environment_file_name}" "DEPLOYER_KEYVAULT"
+	key_vault="$DEPLOYER_KEYVAULT"
+fi
+
+if [ -z "$key_vault" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+	  echo " ##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing Key Vault::Key Vault was not defined in the variable group."
+	fi
+	exit 2
+fi
+
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Variable 'ARM_SUBSCRIPTION_ID' was not defined."
@@ -123,7 +139,7 @@ fi
 echo -e "$green--- az login ---$reset_formatting"
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)"
+  configureNonDeployer "${tf_version}"
     echo -e "$green--- az login ---$reset_formatting"
   LogonToAzure false
 fi
@@ -136,10 +152,7 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
-
 echo "Keyvault: $key_vault"
-echo " ##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
 
 echo -e "$green--- BoM $BOM ---$reset_formatting"
 echo "##vso[build.updatebuildnumber]Downloading BoM defined in $BOM"
@@ -163,9 +176,27 @@ else
 
 fi
 
-echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUSERNAME"
-echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$SPASSWORD"
-echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$BOM"
+
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUSERNAME"
+	echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$SPASSWORD"
+	echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$BOM"
+elif [ "$PLATFORM" == "github" ]; then
+	start_group "Download SAP Bill of Materials"
+
+	sample_path=${SAMPLE_REPO_PATH}/SAP
+	command="ansible-playbook -e download_directory=${GITHUB_WORKSPACE} \
+	-e s_user=$SUSERNAME -e BOM_directory=${sample_path} \
+	-e bom_base_name=${BOM} \
+	-e deployer_kv_name=$KV_NAME \
+	-e check_storage_account=${re_download} \
+	$EXTRA_PARAMETERS ${SAP_AUTOMATION_REPO_PATH}/deploy/ansible/playbook_bom_downloader.yaml"
+	echo "Executing [$command]"
+	eval $command
+
+	end_group
+	exit $return_code
+fi
 
 echo -e "$green--- Done ---$reset_formatting"
 exit 0
