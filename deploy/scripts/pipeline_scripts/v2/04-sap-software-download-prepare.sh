@@ -155,7 +155,7 @@ az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 echo "Keyvault: $key_vault"
 
 echo -e "$green--- BoM $BOM ---$reset_formatting"
-echo "##vso[build.updatebuildnumber]Downloading BoM defined in $BOM"
+echo "Downloading BoM defined in $BOM"
 
 echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset_formatting"
 
@@ -188,7 +188,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	command="ansible-playbook -e download_directory=${GITHUB_WORKSPACE} \
 	-e s_user=$SUSERNAME -e BOM_directory=${sample_path} \
 	-e bom_base_name=${BOM} \
-	-e deployer_kv_name=$KV_NAME \
+	-e deployer_kv_name=$key_vault \
 	-e check_storage_account=${re_download} \
 	$EXTRA_PARAMETERS ${SAP_AUTOMATION_REPO_PATH}/deploy/ansible/playbook_bom_downloader.yaml"
 	echo "Executing [$command]"
