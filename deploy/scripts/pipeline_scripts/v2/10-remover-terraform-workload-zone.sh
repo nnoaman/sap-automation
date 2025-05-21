@@ -49,7 +49,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
-	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 	platform_flag="--github"
 else
@@ -135,7 +135,6 @@ LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true
 
 NETWORK_IN_FILENAME=$(echo ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE | awk -F'-' '{print $3}')
 
-WORKLOAD_ZONE_NAME=$(echo "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
