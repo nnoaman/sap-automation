@@ -90,13 +90,11 @@ echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
-
-	ARM_CLIENT_ID="${servicePrincipalId:-$ARM_CLIENT_ID}"
-	export ARM_CLIENT_ID
-	TF_VAR_spn_id=$ARM_CLIENT_ID
-	export TF_VAR_spn_id
-
 	if [ "$PLATFORM" == "devops" ]; then
+		ARM_CLIENT_ID="${servicePrincipalId:-$ARM_CLIENT_ID}"
+		export ARM_CLIENT_ID
+		TF_VAR_spn_id=$ARM_CLIENT_ID
+		export TF_VAR_spn_id
 		# Azure DevOps specific authentication logic
 		if printenv servicePrincipalKey; then
 			unset ARM_OIDC_TOKEN
