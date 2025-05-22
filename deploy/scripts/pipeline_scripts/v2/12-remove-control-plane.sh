@@ -37,8 +37,11 @@ print_header
 echo ""
 
 if [ -z "$CONTROL_PLANE_NAME" ]; then
-	CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
-	export "CONTROL_PLANE_NAME"
+	if [ -v DEPLOYER_FOLDERNAME ]; then
+
+		CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
+		export "CONTROL_PLANE_NAME"
+	fi
 fi
 
 if [ -v APPLICATION_CONFIGURATION_NAME ]; then
@@ -121,10 +124,12 @@ fi
 
 prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
 
+DEPLOYER_FOLDERNAME="$CONTROL_PLANE_NAME-INFRASTRUCTURE"
+DEPLOYER_TFVARS_FILENAME="$CONTROL_PLANE_NAME-INFRASTRUCTURE.tfvars"
 LIBRARY_FOLDERNAME="$prefix-SAP_LIBRARY"
 LIBRARY_TFVARS_FILENAME="$prefix-SAP_LIBRARY.tfvars"
 
-deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/${CONTROL_PLANE_NAME}-INFRASTRUCTURE/${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
+deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
@@ -216,18 +221,17 @@ else
 	platform_flag=""
 fi
 
-
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
 	--deployer_parameter_file "$deployerTFvarsFile" \
 	--library_parameter_file "$libraryTFvarsFile" \
 	"$platform_flag" --auto-approve --keep_agent; then
 	return_code=$?
-	print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed" "success"
+	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 1 completed" "success"
 
-	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed."
+	echo "##vso[task.logissue type=warning]Control Plane ${CONTROL_PLANE_NAME} removal step 1 completed."
 else
 	return_code=$?
-	print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 failed" "error"
+	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 1 failed" "error"
 fi
 
 echo "Return code from remove_control_plane_v2: $return_code."
@@ -311,7 +315,6 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	fi
 fi
 
-
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
 	added=1
@@ -359,15 +362,15 @@ if [ 1 == $changed ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 		git config --global user.name "$BUILD_REQUESTEDFOR"
-		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
+		commit_message="Added updates from Control Plane Deployment for ${CONTROL_PLANE_NAME} $BUILD_BUILDNUMBER [skip ci]"
 	elif [ "$PLATFORM" == "github" ]; then
 		git config --global user.email "github-actions@github.com"
 		git config --global user.name "GitHub Actions"
-		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
+		commit_message="Added updates from Control Plane Deployment for ${CONTROL_PLANE_NAME} [skip ci]"
 	else
 		git config --global user.email "local@example.com"
 		git config --global user.name "Local User"
-		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
+		commit_message="Added updates from Control Plane Deployment for ${CONTROL_PLANE_NAME} [skip ci]"
 	fi
 
 	if [ $DEBUG = True ]; then
