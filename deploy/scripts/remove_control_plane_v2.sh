@@ -220,7 +220,7 @@ function parse_arguments() {
 	else
 		if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
 			sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
-			sudo chown -R "$USER" /opt/terraform
+			sudo chown -R "${USER:-azureadm}" /opt/terraform
 		fi
 		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 	fi
