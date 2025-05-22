@@ -119,8 +119,12 @@ else
 	export ARM_CLIENT_ID
 fi
 
+prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
 
-deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+LIBRARY_FOLDERNAME="$prefix-SAP_LIBRARY"
+LIBRARY_TFVARS_FILENAME="$prefix-SAP_LIBRARY.tfvars"
+
+deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/${CONTROL_PLANE_NAME}-INFRASTRUCTURE/${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
 libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
@@ -130,7 +134,7 @@ export TF_VAR_deployer_tfstate_key
 
 if [ ! -f "$deployerTFvarsFile" ]; then
 	print_banner "$banner_title" "$deployerTFvarsFile was not found" "error"
-	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+	echo "##vso[task.logissue type=error]File $deployerTFvarsFile was not found."
 	exit 2
 fi
 
