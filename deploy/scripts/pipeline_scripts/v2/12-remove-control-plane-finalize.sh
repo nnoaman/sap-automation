@@ -262,7 +262,10 @@ fi
 
 end_group
 
+
+
 start_group "Finalize the control plane removal"
+cd "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 # Remove the control plane
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh" --auto-approve \
