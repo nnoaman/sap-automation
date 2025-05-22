@@ -31,8 +31,14 @@ jobs:
       packages: write
 
     steps:
-    - name: Checkout
+    - name: Checkout main respository
       uses: actions/checkout@v4
+
+    - name: Checkout SAP-automation-samples
+      uses: actions/checkout@v4
+      with:
+        repository: Azure/SAP-automation-samples
+        path: SAP-automation-samples
 
     - name: Determine package versions
       id: versions
