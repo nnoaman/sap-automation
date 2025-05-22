@@ -65,30 +65,13 @@ echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 
-# Handle force reset across platforms
-if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=warning]Forcing a re-install"
-	fi
-	echo -e "$bold_red--- Resetting the environment file ---$reset_formatting"
-	step=0
+if [ -f "${deployer_environment_file_name}" ]; then
+	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
 else
-	if [ -f "${deployer_environment_file_name}" ]; then
-		step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-	else
-		step=0
-	fi
+	step=0
 fi
 
 echo "Step:                                $step"
-
-if [ 0 -ne ${step:-0} ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=warning]Already prepared"
-	else
-		echo "WARNING: Already prepared"
-	fi
-fi
 
 # Git checkout for the correct branch
 if [ "$PLATFORM" == "devops" ]; then
@@ -155,7 +138,6 @@ fi
 
 # Get SPN ID differently per platform
 if [ "$PLATFORM" == "devops" ]; then
-	echo "0"
 	TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
 elif [ "$PLATFORM" == "github" ]; then
 	# Use value from env or from GitHub environment
@@ -168,7 +150,7 @@ if is_valid_guid "$TF_VAR_spn_id"; then
 fi
 
 # Reset the account if sourcing was done
-if printenv ARM_SUBSCRIPTION_ID; then
+if [ -v  ARM_SUBSCRIPTION_ID ]; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 fi
