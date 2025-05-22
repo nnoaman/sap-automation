@@ -60,6 +60,9 @@ LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
 DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
+prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
+
+LIBRARY_FOLDERNAME="$prefix-SAP_LIBRARY"
 
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
