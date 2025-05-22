@@ -34,7 +34,7 @@ parameters:
 
 stages:
   - stage:                             Remove_control_plane_remote
-    displayName:                       "Control plane removal (on agent)"
+    displayName:                       "Control plane removal (on self hosted agent)"
     variables:
       - template:                      variables/12-remove-control-plane-variables.yaml
         parameters:

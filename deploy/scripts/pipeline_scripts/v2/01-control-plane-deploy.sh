@@ -54,13 +54,11 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
 DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
-deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 
 prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
 
 LIBRARY_FOLDERNAME="$prefix-SAP_LIBRARY"
 LIBRARY_TFVARS_FILENAME="$prefix-SAP_LIBRARY.tfvars"
-library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 if [ -f "${deployer_environment_file_name}" ]; then
@@ -311,6 +309,7 @@ else
 fi
 
 cd "$CONFIG_REPO_PATH" || exit
+start_group "Deploying control plane"
 
 if
 	"${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" \
@@ -329,6 +328,10 @@ else
 	fi
 	echo "Return code from deploy_control_plane_v2 $return_code."
 fi
+
+end_group
+
+start_group "Update the repository"
 
 echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"
 added=0
@@ -523,7 +526,8 @@ if [ 1 = $added ]; then
 		fi
 	fi
 fi
-
+end_group
+start_group "Adding variables"
 # Add variables to storage based on platform
 echo -e "$green--- Adding variables to storage ---$reset_formatting"
 if [ 0 = $return_code ]; then
@@ -549,7 +553,7 @@ if [ 0 = $return_code ]; then
 		set_value_with_key "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" "env"
 	fi
 fi
-
+end_group
 # Platform-specific summary handling
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
