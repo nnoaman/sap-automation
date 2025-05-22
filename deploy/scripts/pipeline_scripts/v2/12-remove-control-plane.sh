@@ -69,7 +69,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
-	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 	platform_flag="--github"
 else
@@ -151,9 +151,6 @@ start_group "Decrypting state files"
 # Handle state.zip differently per platform
 
 cd "${CONFIG_REPO_PATH}" || exit
-mkdir -p .sap_deployment_automation
-
-git pull -q
 
 if [ "$PLATFORM" == "devops" ]; then
 	pass=${SYSTEM_COLLECTIONID//-/}
@@ -206,10 +203,20 @@ end_group
 
 echo -e "$green--- Running the remove remove_control_plane_v2 that destroys SAP library ---$reset_formatting"
 
+# Platform-specific flags
+if [ "$PLATFORM" == "devops" ]; then
+	platform_flag=" --ado"
+elif [ "$PLATFORM" == "github" ]; then
+	platform_flag=" --github"
+else
+	platform_flag=""
+fi
+
+
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
 	--deployer_parameter_file "$deployerTFvarsFile" \
 	--library_parameter_file "$libraryTFvarsFile" \
-	--ado --auto-approve --keep_agent; then
+	"$platform_flag" --auto-approve --keep_agent; then
 	return_code=$?
 	print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed" "success"
 
@@ -223,7 +230,12 @@ echo "Return code from remove_control_plane_v2: $return_code."
 
 echo -e "$green--- Remove Control Plane Part 1 ---$reset_formatting"
 cd "$CONFIG_REPO_PATH" || exit
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
+# Pull latest changes from appropriate branch
+if [ "$PLATFORM" == "devops" ]; then
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	git pull -q origin "$GITHUB_REF_NAME"
+fi
 
 changed=0
 if [ -f "$deployer_environment_file_name" ]; then
