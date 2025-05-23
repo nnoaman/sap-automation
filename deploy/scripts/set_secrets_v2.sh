@@ -229,7 +229,7 @@ function parse_arguments() {
 			return 10
 		else
 			if ! is_valid_guid "${client_id}"; then
-				print_banner "$banner_title" "client_id is required" "error"
+				print_banner "$banner_title" "Valid client_id is required" "error"
 				return 10
 			fi
 		fi
@@ -240,11 +240,11 @@ function parse_arguments() {
 		}
 
 		if [ -z "$tenant_id" ]; then
-			print_banner "$banner_title" "correct tenant_id is required" "error"
+			print_banner "$banner_title" "tenant_id is required" "error"
 			return 10
 		else
 			if ! is_valid_guid "${tenant_id}"; then
-				print_banner "$banner_title" "correct tenant_id is required" "error"
+				print_banner "$banner_title" "Valid tenant_id is required" "error"
 				return 10
 			fi
 		fi
