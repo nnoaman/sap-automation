@@ -81,7 +81,7 @@ function source_helper_scripts() {
 function parse_arguments() {
 	local input_opts
 	approve=""
-	input_opts=$(getopt -n remover_v2 -o p:t:o:d:l:s:n:c:w:ahifg --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help,github -- "$@")
+	input_opts=$(getopt -n remover_v2 -o p:t:o:d:l:s:n:c:w:ahifg --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,devops,auto-approve,force,help,github -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -92,8 +92,8 @@ function parse_arguments() {
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
-		-a | --ado)
-			called_from_ado=1
+		-a | --devops)
+			called_from_devops=1
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
 			export TF_IN_AUTOMATION
@@ -104,7 +104,7 @@ function parse_arguments() {
 			shift 2
 			;;
 		-g | --github)
-			called_from_ado=1
+			called_from_devops=1
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
 			export TF_IN_AUTOMATION
@@ -218,7 +218,7 @@ function parse_arguments() {
 
 	if [ "${deployment_system}" == sap_system ]; then
 		if [ -z "${landscape_tfstate_key}" ]; then
-			if [ 1 != $called_from_ado ]; then
+			if [ 1 != $called_from_devops ]; then
 				read -r -p "Workload terraform statefile name: " landscape_tfstate_key
 				save_config_var "landscape_tfstate_key" "${system_config_information}"
 			else
@@ -239,7 +239,7 @@ function parse_arguments() {
 			export TF_VAR_APPLICATION_CONFIGURATION_ID
 		fi
 		if [ -z "${deployer_tfstate_key}" ]; then
-			if [ 1 != $called_from_ado ]; then
+			if [ 1 != $called_from_devops ]; then
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
 				save_config_var "deployer_tfstate_key" "${system_config_information}"
 			else
@@ -409,7 +409,7 @@ function retrieve_parameters() {
 ############################################################################################
 function sdaf_remover() {
 	landscape_tfstate_key=""
-	called_from_ado=0
+	called_from_devops=0
 	extra_vars=""
 	WORKLOAD_ZONE_NAME=""
 
@@ -463,7 +463,7 @@ function sdaf_remover() {
 		set -o errexit
 	fi
 
-	if [ 1 == $called_from_ado ]; then
+	if [ 1 == $called_from_devops ]; then
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 		export TF_VAR_Agent_IP=$this_ip
 		echo "Agent IP:                            $this_ip"

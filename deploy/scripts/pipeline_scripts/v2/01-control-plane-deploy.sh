@@ -301,9 +301,9 @@ echo -e "$green--- Control Plane deployment---$reset_formatting"
 
 # Platform-specific flags
 if [ "$PLATFORM" == "devops" ]; then
-	platform_flag=" --ado"
+	platform_flag=" --devops"
 elif [ "$PLATFORM" == "github" ]; then
-	platform_flag=" --github"
+	platform_flag=" --devops"
 else
 	platform_flag=""
 fi

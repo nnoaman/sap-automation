@@ -214,9 +214,9 @@ echo -e "$green--- Running the remove remove_control_plane_v2 that destroys SAP 
 
 # Platform-specific flags
 if [ "$PLATFORM" == "devops" ]; then
-	platform_flag=" --ado"
+	platform_flag=" --devops"
 elif [ "$PLATFORM" == "github" ]; then
-	platform_flag=" --github"
+	platform_flag=" --devops"
 else
 	platform_flag=""
 fi

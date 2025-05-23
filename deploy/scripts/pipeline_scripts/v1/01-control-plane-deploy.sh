@@ -257,7 +257,7 @@ echo -e "$green--- Control Plane deployment---$reset_formatting"
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_configuration_file}" \
 	--library_parameter_file "${library_configuration_file}" \
 	--subscription "$terraform_storage_account_subscription_id" \
-	--auto-approve --ado "$msi_flag" \
+	--auto-approve --devops "$msi_flag" \
 	"${storage_account_parameter}" "${keyvault_parameter}"; then
 	return_code=$?
 	echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
