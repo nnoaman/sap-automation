@@ -95,7 +95,7 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n remove_control_plane_v2 -o c:d:l:s:b:r:ihag --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
+	input_opts=$(getopt -n remove_control_plane_v2 -o c:d:l:s:b:r:ihag --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,devops,help,keep_agent -- "$@")
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -134,8 +134,10 @@ function parse_arguments() {
 			terraform_storage_account_resource_group_name="$2"
 			shift 2
 			;;
-		-a | --ado)
+		-a | --devops)
 			approve_parameter="--auto-approve;ado=1"
+			TF_IN_AUTOMATION=true
+			export TF_IN_AUTOMATION
 			shift
 			;;
 		-g | --keep_agent)

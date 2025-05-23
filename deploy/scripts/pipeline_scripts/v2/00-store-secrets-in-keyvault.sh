@@ -109,7 +109,7 @@ keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (R
 
 if [ "$USE_MSI" != "true" ]; then
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "$DEPLOYER_KEYVAULT" --keyvault_subscription "$keyvault_subscription_id" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --client_tenant_id "$TENANT_ID" --ado; then
+		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --client_tenant_id "$TENANT_ID" --devops; then
 		return_code=$?
 	else
 		return_code=$?
@@ -118,7 +118,7 @@ if [ "$USE_MSI" != "true" ]; then
 	fi
 else
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "$DEPLOYER_KEYVAULT" --keyvault_subscription "$keyvault_subscription_id" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --msi --ado; then
+		--subscription "$ARM_SUBSCRIPTION_ID" --msi --devops; then
 		return_code=$?
 	else
 		return_code=$?
