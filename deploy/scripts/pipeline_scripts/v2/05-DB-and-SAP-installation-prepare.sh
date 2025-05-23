@@ -148,11 +148,16 @@ mkdir -p artifacts
 
 echo "Workload Key Vault:                  ${key_vault}"
 
-if [ $EXTRA_PARAMETERS = '$(EXTRA_PARAMETERS)' ]; then
-	new_parameters=$PIPELINE_EXTRA_PARAMETERS
+: "${EXTRA_PARAMETERS:=}"
+: "${PIPELINE_EXTRA_PARAMETERS:=}"
+
+if [[ -n "${EXTRA_PARAMETERS}" && "${EXTRA_PARAMETERS}" != '$(EXTRA_PARAMETERS)' ]]; then
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=warning]Extra parameters were provided - '${EXTRA_PARAMETERS}'"
+    fi
+    new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
 else
-	echo "Warning - Extra parameters were provided - '$EXTRA_PARAMETERS'"
-	new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
+    new_parameters=$PIPELINE_EXTRA_PARAMETERS
 fi
 
 az account set --subscription "$tfstate_subscription_id" --output none --only-show-errors
