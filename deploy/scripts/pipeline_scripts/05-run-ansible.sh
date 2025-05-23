@@ -41,6 +41,12 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 #Stage could be executed on a different machine by default, need to login again for ansible
 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 
+if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+		APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	fi
+fi
+
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
 	control_plane_subscription=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")

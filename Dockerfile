@@ -63,7 +63,8 @@ RUN pip3 install --upgrade \
     wheel \
     chmod
 
-RUN git clone https://github.com/Azure/SAP-automation-samples.git /source/SAP-automation-samples
+#RUN git clone https://github.com/Azure/SAP-automation-samples.git /source/SAP-automation-samples
+COPY SAP-automation-samples /source/SAP-automation-samples
 
 RUN tdnf install -y acl
 COPY . /source

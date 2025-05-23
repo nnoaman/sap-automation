@@ -2,7 +2,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+# Source the shared platform configuration
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+source "${SCRIPT_DIR}/shared_platform_config.sh"
+source "${SCRIPT_DIR}/shared_functions.sh"
+source "${SCRIPT_DIR}/set-colors.sh"
+
+SCRIPT_NAME="$(basename "$0")"
+
+
 green="\e[1;32m"
 reset_formatting="\e[0m"
 bold_red="\e[1;31m"
@@ -15,8 +23,6 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
-SCRIPT_NAME="$(basename "$0")"
-
 banner_title="SAP Configuration and Installation"
 
 #call stack has full script name when using source
@@ -28,34 +34,52 @@ source "${parent_directory}/helper.sh"
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
+cd "$CONFIG_REPO_PATH" || exit
 
+if [ "$PLATFORM" == "devops" ]; then
+	if [ "$SYSTEM_DEBUG" = True ]; then
+		set -x
+		DEBUG=True
+		echo "Environment variables:"
+		printenv | sort
+	fi
+	export DEBUG
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Configuring for GitHub Actions"
 fi
-export DEBUG
+
 set -eu
 
 # Print the execution environment details
 print_header
 
-# Configure DevOps
-configure_devops
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	# Configure DevOps
+	configure_devops
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
-export VARIABLE_GROUP_ID
 
 WORKLOAD_ZONE_NAME=$(basename "${SAP_SYSTEM_CONFIGURATION_NAME}" | cut -d'-' -f1-3)
 SID=$(basename "${SAP_SYSTEM_CONFIGURATION_NAME}" | cut -d'-' -f4)
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+
+if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+		APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	fi
+fi
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
@@ -67,32 +91,40 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	tfstate_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 fi
 
-cd "$CONFIG_REPO_PATH" || exit
-
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none --only-show-errors
+if [ "$PLATFORM" == "devops" ]; then
+	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none --only-show-errors
+fi
 
 echo -e "$green--- Validations ---$reset_formatting"
 
 if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing Variable::Variable AZURE_SUBSCRIPTION_ID was not defined."
+	fi
 	exit 2
 fi
 
 if [ "azure pipelines" == "$THIS_AGENT" ]; then
-	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT variable group"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT variable group"
+	fi
 	exit 2
 fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
+	configureNonDeployer "${tf_version:-1.11.3}"
 	echo -e "$green--- az login ---$reset_formatting"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
+	if [ "$PLATFORM" == "devops" ]; then
+		if ! LogonToAzure false; then
+			print_banner "$banner_title" "Login to Azure failed" "error"
+			echo "##vso[task.logissue type=error]az login failed."
+			exit 2
+		fi
 	fi
 fi
 
@@ -116,26 +148,47 @@ mkdir -p artifacts
 
 echo "Workload Key Vault:                  ${key_vault}"
 
-if [ $EXTRA_PARAMETERS = '$(EXTRA_PARAMETERS)' ]; then
-	new_parameters=$PIPELINE_EXTRA_PARAMETERS
+: "${EXTRA_PARAMETERS:=}"
+: "${PIPELINE_EXTRA_PARAMETERS:=}"
+
+if [[ -n "${EXTRA_PARAMETERS}" && "${EXTRA_PARAMETERS}" != '$(EXTRA_PARAMETERS)' ]]; then
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=warning]Extra parameters were provided - '${EXTRA_PARAMETERS}'"
+    fi
+    new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
 else
-	echo "##vso[task.logissue type=warning]Extra parameters were provided - '$EXTRA_PARAMETERS'"
-	new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
+    new_parameters=$PIPELINE_EXTRA_PARAMETERS
 fi
 
 az account set --subscription "$tfstate_subscription_id" --output none --only-show-errors
 
-echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${tfstate_subscription_id}"
-echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
-echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
-echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
-echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
-echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-password"
-echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
-echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
-echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-sshkey"
-echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-username"
-echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$key_vault"
+if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${tfstate_subscription_id}"
+		echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
+		echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
+		echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
+		echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
+		echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-password"
+		echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
+		echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
+		echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-sshkey"
+		echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-username"
+		echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$key_vault"
+elif [ "$PLATFORM" == "github" ]; then
+		{
+			echo "CP_SUBSCRIPTION=${tfstate_subscription_id}"
+			echo "FOLDER=$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
+			echo "HOSTS=${SID}_hosts.yaml"
+			echo "KV_NAME=$key_vault"
+			echo "NEW_PARAMETERS=${new_parameters}"
+			echo "PASSWORD_KEY_NAME=${WORKLOAD_ZONE_NAME}-sid-password"
+			echo "SAP_PARAMETERS=sap-parameters.yaml"
+			echo "SID=${SID}"
+			echo "SSH_KEY_NAME=${WORKLOAD_ZONE_NAME}-sid-sshkey"
+			echo "USERNAME_KEY_NAME=${WORKLOAD_ZONE_NAME}-sid-username"
+			echo "VAULT_NAME=$key_vault"
+		} >> "$GITHUB_OUTPUT"
+fi
 
 az keyvault secret show --name "${WORKLOAD_ZONE_NAME}-sid-sshkey" --vault-name "$key_vault" --subscription "$key_vault_subscription_id" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.

@@ -2,6 +2,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+# Source the shared platform configuration
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+source "${SCRIPT_DIR}/shared_platform_config.sh"
+source "${SCRIPT_DIR}/shared_functions.sh"
+source "${SCRIPT_DIR}/set-colors.sh"
+
+SCRIPT_NAME="$(basename "$0")"
+
 green="\e[1;32m"
 reset_formatting="\e[0m"
 bold_red="\e[1;31m"
@@ -11,8 +19,6 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
-
-SCRIPT_NAME="$(basename "$0")"
 
 banner_title="Prepare for software download"
 #call stack has full script name when using source
@@ -25,68 +31,113 @@ source "${parent_directory}/helper.sh"
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
-  set -x
-  DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
 
-fi
-export DEBUG
 set -eu
 
-AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-export AZURE_DEVOPS_EXT_PAT
-
 cd "$CONFIG_REPO_PATH" || exit
+
+if [ "$PLATFORM" == "devops" ]; then
+	if [ "$SYSTEM_DEBUG" = True ]; then
+		set -x
+		DEBUG=True
+		echo "Environment variables:"
+		printenv | sort
+	fi
+	export DEBUG
+	AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
+	export AZURE_DEVOPS_EXT_PAT
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Configuring for GitHub Actions"
+fi
+
 
 environment_file_name=".sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 # Print the execution environment details
 print_header
 
-# Configure DevOps
-configure_devops
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	# Configure DevOps
+	configure_devops
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
-export VARIABLE_GROUP_ID
 
 
 echo -e "$green--- Validations ---$reset_formatting"
 if [ ! -f "${environment_file_name}" ]; then
-  echo -e "$bold_red--- ${environment_file_name} was not found ---$reset_formatting"
-  echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
-  exit 2
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]File '${environment_file_name}' was not found."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing File::File '${environment_file_name}' was not found."
+	fi
+	exit 2
 fi
+
+if [ "$PLATFORM" == "devops" ]; then
+	key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
+elif [ "$PLATFORM" == "github" ]; then
+	load_config_vars "${environment_file_name}" "DEPLOYER_KEYVAULT"
+	key_vault="$DEPLOYER_KEYVAULT"
+fi
+
+if [ -z "$key_vault" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+	  echo " ##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing Key Vault::Key Vault was not defined in the variable group."
+	fi
+	exit 2
+fi
+
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-  exit 2
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Variable 'ARM_SUBSCRIPTION_ID' was not defined."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing Variable::Variable 'ARM_SUBSCRIPTION_ID' was not defined."
+	fi
+	exit 2
 fi
 
-if [ "azure pipelines" == $THIS_AGENT ]; then
-  echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
-  exit 2
+if [ "$PLATFORM" == "devops" ]; then
+	if [ "$THIS_AGENT" == "azure pipelines" ]; then
+		echo "##vso[task.logissue type=error]Please use a self-hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group."
+	fi
+	exit 2
 fi
 
-if [ "your S User" == "$SUSERNAME" ]; then
-  echo "##vso[task.logissue type=error]Please define the S-Username variable."
-  exit 2
+if [ -z "$SUSERNAME" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Please define the S-Username variable."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing S-Username::Variable 'SUSERNAME' is not defined or is empty."
+	fi
+	exit 2
 fi
 
-if [ "your S user password" == "$SPASSWORD" ]; then
-  echo "##vso[task.logissue type=error]Please define the S-Password variable."
-  exit 2
+if [ -z "$SPASSWORD" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Please define the S-Password variable."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "::error title=Missing S-Password::Variable 'SPASSWORD' is not defined or is empty."
+	fi
+	exit 2
 fi
 
 echo -e "$green--- az login ---$reset_formatting"
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)"
+  configureNonDeployer "${tf_version}"
     echo -e "$green--- az login ---$reset_formatting"
   LogonToAzure false
 fi
@@ -99,13 +150,10 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
-
 echo "Keyvault: $key_vault"
-echo " ##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
 
 echo -e "$green--- BoM $BOM ---$reset_formatting"
-echo "##vso[build.updatebuildnumber]Downloading BoM defined in $BOM"
+echo "Downloading BoM defined in $BOM"
 
 echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset_formatting"
 
@@ -126,9 +174,33 @@ else
 
 fi
 
-echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUSERNAME"
-echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$SPASSWORD"
-echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$BOM"
+
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUSERNAME"
+	echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$SPASSWORD"
+	echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$BOM"
+elif [ "$PLATFORM" == "github" ]; then
+	start_group "Download SAP Bill of Materials"
+
+	az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
+
+	sample_path=${SAMPLE_REPO_PATH}/SAP
+	command="ansible-playbook \
+		-e download_directory=${GITHUB_WORKSPACE} \
+		-e s_user=${SUSERNAME} \
+		-e BOM_directory=${sample_path} \
+		-e bom_base_name='${BOM}' \
+		-e deployer_kv_name=${key_vault} \
+		-e check_storage_account=${re_download} \
+		-e orchestration_ansible_user=root \
+		${EXTRA_PARAMETERS} \
+		${SAP_AUTOMATION_REPO_PATH}/deploy/ansible/playbook_bom_downloader.yaml"
+	echo "Executing [$command]"
+	eval $command
+
+	end_group
+	exit $return_code
+fi
 
 echo -e "$green--- Done ---$reset_formatting"
 exit 0
