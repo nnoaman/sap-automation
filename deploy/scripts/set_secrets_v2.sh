@@ -144,7 +144,7 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:hwm --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,workload,help,msi -- "$@")
+	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:hm --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,help,msi -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -193,10 +193,6 @@ function parse_arguments() {
 		-k | --keyvault_subscription)
 			STATE_SUBSCRIPTION="$2"
 			shift 2
-			;;
-		-w | --workload)
-			workload=1
-			shift
 			;;
 		-m | --msi)
 			deploy_using_msi_only=1
@@ -254,7 +250,7 @@ function parse_arguments() {
 		fi
 
 	fi
-
+	return 0
 }
 
 ############################################################################################
@@ -316,8 +312,9 @@ function set_all_secrets() {
 	if parse_arguments "$@"; then
 		return_code=0
 	else
+		return_code=$?
 		print_banner "$banner_title " "Validating parameters failed" "error"
-		return $?
+		return $return_code
 	fi
 
 	retrieve_parameters
