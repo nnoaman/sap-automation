@@ -822,6 +822,10 @@ function sdaf_installer() {
 			if [ -n "$DEPLOYER_KEYVAULT" ]; then
 				save_config_var "DEPLOYER_KEYVAULT" "${system_config_information}"
 			fi
+			DEPLOYER_MSI_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_msi_client_id | tr -d \")
+			if [ -n "$DEPLOYER_MSI_CLIENT_ID" ]; then
+				save_config_var "DEPLOYER_MSI_CLIENT_ID" "${system_config_information}"
+			fi
 		fi
 
 	fi
