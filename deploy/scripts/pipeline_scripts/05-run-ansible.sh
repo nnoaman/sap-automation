@@ -2,7 +2,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
@@ -62,7 +61,7 @@ az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 set -eu
 
 if [ ! -f "$PARAMETERS_FOLDER"/sshkey ]; then
-	echo "##[section]Retrieving sshkey..."
+	echo "##Retrieving sshkey..."
 	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$vault_name" --subscription "$control_plane_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
 	sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
 fi
@@ -107,7 +106,7 @@ if [ -f "${filename}" ]; then
 	echo "##[section]Executing [$redacted_command]..."
 
 	command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey    \
-						-e 'kv_name=$vault_name' -e @$SAP_PARAMS                                 \
+						-e 'kv_name=$vault_name' -e @$SAP_PARAMS -e ansible_user=azureadm    	   \
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                             \
 						-e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS               \
             -e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAM_FILE ${filename}"
@@ -122,7 +121,7 @@ fi
 command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey       \
 					-e 'kv_name=$vault_name' -e @$SAP_PARAMS                                    \
 					-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
-					-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
+					-e '_workspace_directory=$PARAMETERS_FOLDER' -e ansible_user=azureadm       \
 					-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAMS $EXTRA_PARAM_FILE   \
           $ANSIBLE_FILE_PATH"
 
@@ -156,8 +155,8 @@ if [ -f "${filename}" ]; then
 						-e 'kv_name=$vault_name' -e @$SAP_PARAMS                                    \
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
 						-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
-						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' '${filename}' $EXTRA_PARAMS       \
-						$EXTRA_PARAM_FILE"
+						-e ansible_user=azureadm -e ansible_ssh_pass='${ANSIBLE_PASSWORD}' 					\
+						'${filename}' $EXTRA_PARAMS $EXTRA_PARAM_FILE"
 
 	eval "${command}"
 	return_code=$?
