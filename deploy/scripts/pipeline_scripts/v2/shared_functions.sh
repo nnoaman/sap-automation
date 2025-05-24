@@ -84,9 +84,9 @@ function set_value_with_key() {
 	if [[ "$var_type" == "app_config" && -v APPLICATION_CONFIGURATION_NAME ]]; then
 		__appconfig_set_value_with_key $key $value
 	elif [[ "$var_type" == "env" ]]; then
-		__set_value_with_key $key $value
+		__set_value_with_key "$key" "$value"
 	else
-		exit_error "Unknown var_type: $var_type" 2
+		exit_error "Unknown var_type: $var_type ($value)" 2
 	fi
 }
 
