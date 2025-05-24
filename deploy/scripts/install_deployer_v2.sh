@@ -519,7 +519,7 @@ function install_deployer() {
 
 	DEPLOYER_MSI_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_msi_client_id | tr -d \")
 	if [ -n "$DEPLOYER_MSI_CLIENT_ID" ]; then
-		save_config_var "DEPLOYER_MSI_CLIENT_ID" "${system_config_information}"
+		save_config_var "DEPLOYER_MSI_CLIENT_ID" "${deployer_config_information}"
 		export DEPLOYER_MSI_CLIENT_ID
 	fi
 
