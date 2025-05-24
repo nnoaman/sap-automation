@@ -74,7 +74,7 @@ function setup_github_runner() {
   # Remove runner if it already exists
   ./config.sh remove --token $${runner_token} || true
 
-  sudo runuser -l "$${local_user}" -c "$${agent_home}/config.sh --unattended --url $${server_url}/$${repository} --token $${runner_token} --name $(hostname) --labels sap-deployer"
+  sudo runuser -l "$${local_user}" -c "$${agent_home}/config.sh --unattended --url $${server_url}/$${repository} --token $${runner_token} --name $(hostname) --labels sap-deployer --replace"
   sudo ./svc.sh install $${local_user}
   sudo ./svc.sh start
   sudo ./svc.sh status
