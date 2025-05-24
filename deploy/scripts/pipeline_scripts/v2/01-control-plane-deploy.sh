@@ -63,7 +63,7 @@ LIBRARY_TFVARS_FILENAME="$prefix-SAP_LIBRARY.tfvars"
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 if [ -f "${deployer_environment_file_name}" ]; then
 	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-	echo "Step:                                $step"
+	echo "Step:                                ${step:-0}"
 fi
 
 terraform_storage_account_name=""
