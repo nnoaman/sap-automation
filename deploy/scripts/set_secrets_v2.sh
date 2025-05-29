@@ -233,7 +233,7 @@ function parse_arguments() {
 			return 10
 		else
 			if ! is_valid_guid "${client_id}"; then
-				print_banner "$banner_title" "Valid client_id is required" "error"
+				print_banner "$banner_title" "Valid client_id is required, got '${client_id}'" "error"
 				return 10
 			fi
 		fi
