@@ -2,48 +2,53 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-reset_formatting="\e[0m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-
 # Source the shared platform configuration
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 source "${SCRIPT_DIR}/shared_platform_config.sh"
-. ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/shared_functions.sh
+source "${SCRIPT_DIR}/shared_functions.sh"
+source "${SCRIPT_DIR}/set-colors.sh"
 
-# External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+SCRIPT_NAME="$(basename "$0")"
+
+# Set platform-specific output
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $CONTROL_PLANE_NAME "
+fi
+
+#External helper functions
+
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
-SCRIPT_NAME="$(basename "$0")"
-
-banner_title="Store credentials in Key Vault"
-
-#call stack has full script name when using source
-# shellcheck disable=SC1091
+# Source helper scripts
+source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
-#call stack has full script name when using source
-source "${parent_directory}/helper.sh"
+# Print the execution environment details
+print_header
+echo ""
 
-DEBUG=False
-# Enable debug mode if DEBUG is set to 'true'
-if [[ "${SYSTEM_DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
-	# Enable debugging
-	set -x
-	# Exit on error
-	set -o errexit
-	echo "Environment variables:"
-	printenv | sort
-	DEBUG=True
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	# Configure DevOps
+	configure_devops
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="$ZONE"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
 
-export DEBUG
-set -eu
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
