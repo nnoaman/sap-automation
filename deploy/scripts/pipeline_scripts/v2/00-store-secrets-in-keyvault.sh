@@ -49,7 +49,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
 
-
+banner_title="Set Secrets"
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 return_code=0
