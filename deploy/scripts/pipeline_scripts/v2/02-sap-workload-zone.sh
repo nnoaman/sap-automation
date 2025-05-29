@@ -146,8 +146,8 @@ workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WO
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.11.3}"
 
-	echo -e "$green--- az login ---$reset_formatting"
 	if [ "$PLATFORM" == "devops" ]; then
+		echo -e "$green--- az login ---$reset_formatting"
 		if ! LogonToAzure false; then
 			print_banner "$banner_title" "Login to Azure failed" "error"
 			if [ "$PLATFORM" == "devops" ]; then
