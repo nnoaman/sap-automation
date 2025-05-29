@@ -28,6 +28,9 @@ set -eu
 deploy_using_msi_only=0
 keyvault=""
 
+banner_title="Set Secrets"
+
+
 ###############################################################################
 # Function to set a secret in Azure Key Vault                                 #
 # Arguments:                                                                  #
@@ -213,8 +216,6 @@ function parse_arguments() {
 			;;
 		esac
 	done
-
-	banner_title="Set Secrets"
 
 	[[ -z "$prefix" ]] && {
 		print_banner "$banner_title" "prefix is required" "error"
