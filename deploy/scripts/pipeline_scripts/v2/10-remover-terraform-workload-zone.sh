@@ -66,6 +66,7 @@ mkdir -p .sap_deployment_automation
 if [ "$PLATFORM" == "devops" ]; then
 	echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
 	git checkout -q "$BUILD_SOURCEBRANCHNAME"
+
 elif [ "$PLATFORM" == "github" ]; then
 	echo -e "$green--- Checkout $GITHUB_REF_NAME ---$reset_formatting"
 	git checkout -q "$GITHUB_REF_NAME"
@@ -247,7 +248,7 @@ return_code=10
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars" --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
 	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
-	--ado --auto-approve; then
+	"$platform_flag" --auto-approve; then
 	return_code=$?
 	print_banner "$banner_title" "The removal of ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars succeeded" "success" "Return code: ${return_code}"
 else
