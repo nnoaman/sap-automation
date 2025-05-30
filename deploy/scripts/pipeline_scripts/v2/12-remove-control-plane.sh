@@ -50,7 +50,11 @@ if [ -v APPLICATION_CONFIGURATION_NAME ]; then
 fi
 
 if [ -z "$CONTROL_PLANE_NAME" ]; then
-	echo "##vso[task.logissue type=error]CONFIG_REPO_PATH is not set."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]CONFIG_REPO_PATH is not set."
+	else
+		echo "CONTROL_PLANE_NAME is not set."
+	fi
 	exit 2
 fi
 
@@ -139,18 +143,28 @@ export TF_VAR_deployer_tfstate_key
 
 if [ ! -f "$deployerTFvarsFile" ]; then
 	print_banner "$banner_title" "$deployerTFvarsFile was not found" "error"
-	echo "##vso[task.logissue type=error]File $deployerTFvarsFile was not found."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]File $deployerTFvarsFile was not found."
+	fi
 	exit 2
 fi
 
 if [ ! -f "${libraryTFvarsFile}" ]; then
 	print_banner "$banner_title" "$libraryTFvarsFile was not found" "error"
-	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	fi
 	exit 2
 fi
 
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+	print_banner "$banner_title" "ARM_SUBSCRIPTION_ID was not defined" "error"
+	if [ "$PLATFORM" == "devops" ]; then
+		# Log an error in DevOps
+		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+	else
+		echo "ARM_SUBSCRIPTION_ID was not defined."
+	fi
 	exit 2
 fi
 
@@ -259,7 +273,7 @@ fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
-	added=1
+	changed=1
 
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
 	local_backend=$(grep "\"type\": \"local\"" "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
@@ -289,27 +303,27 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 				pass="localpassword"
 			fi
 
-			added=1
+			changed=1
 		fi
 	else
 		echo "Deployer Terraform state:              remote"
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 			git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
 			echo "Removed the deployer state file"
-			added=1
+			changed=1
 		fi
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 			if [ 0 == $return_code ]; then
 				echo "Removing the deployer state zip file"
 				git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-				added=1
+				changed=1
 			fi
 		fi
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" ]; then
 			if [ 0 == $return_code ]; then
 				echo "Removing the deployer state gpg file"
 				git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
-				added=1
+				changed=1
 			fi
 		fi
 	fi
@@ -317,7 +331,7 @@ fi
 
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
-	added=1
+	changed=1
 
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
 	local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
@@ -347,7 +361,7 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 				pass="localpassword"
 			fi
 
-			added=1
+			changed=1
 		fi
 	fi
 fi
