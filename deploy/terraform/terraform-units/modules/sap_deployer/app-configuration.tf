@@ -21,7 +21,7 @@ resource "azurerm_app_configuration" "app_config" {
                                             azurerm_resource_group.deployer[0].location
                                           )
   local_auth_enabled                   = var.bootstrap ? true : false
-  data_plane_proxy_authentication_mode = "Pass-through"
+  data_plane_proxy_authentication_mode = var.bootstrap ? "Local" : "Pass-through"
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
 
   sku                                  = "standard"
