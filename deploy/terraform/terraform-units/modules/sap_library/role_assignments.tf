@@ -26,7 +26,10 @@ resource "azurerm_role_assignment" "blob_msi" {
                                            length(try(var.deployer_tfstate.deployer_msi_id, "")) > 0 ? 1 : 0) : (
                                            0
                                            )
-  scope                                = azurerm_storage_account.storage_tfstate[0].id
+  scope                                = var.infrastructure.resource_group.exists ? (
+                                                 data.azurerm_resource_group.library[0].id) : (
+                                                 azurerm_resource_group.library[0].id
+                                               )
   role_definition_name                 = "Storage Blob Data Owner"
   principal_id                         = var.deployer_tfstate.deployer_msi_id
 }
