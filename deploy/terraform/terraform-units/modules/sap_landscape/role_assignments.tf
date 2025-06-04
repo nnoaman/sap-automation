@@ -5,7 +5,7 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin" {
                                                                    data.azurerm_resource_group.resource_group[0].id) : (
                                                                    try(azurerm_resource_group.resource_group[0].id, "")
                                                                  )
-  role_definition_name                 = "Role Based Access Control Administrator""
+  role_definition_name                 = "Role Based Access Control Administrator"
   principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
   condition_version                    = "2.0"
   condition                            = <<-EOT
