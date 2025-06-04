@@ -48,7 +48,7 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   provider                             = azurerm.main
   count                                = var.assign_subscription_permissions ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
-  role_definition_name                 = "Role Based Access Control Administrator""
+  role_definition_name                 = "Role Based Access Control Administrator"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? (
                                            azurerm_user_assigned_identity.deployer[0].principal_id) : (
                                            data.azurerm_user_assigned_identity.deployer[0].principal_id
@@ -82,7 +82,7 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   provider                             = azurerm.main
   count                                = var.assign_subscription_permissions && !local.run_as_msi ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
-  role_definition_name                 = "Role Based Access Control Administrator""
+  role_definition_name                 = "Role Based Access Control Administrator"
   principal_type                       = "ServicePrincipal"
   principal_id                         = data.azurerm_client_config.current.object_id
   condition_version                    = "2.0"
