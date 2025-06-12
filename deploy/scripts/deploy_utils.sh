@@ -179,7 +179,7 @@ function getVariableFromApplicationConfiguration() {
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 function is_valid_guid() {
-	if [ -v "$1" ]; then
+	if [ -n "$1" ]; then
 		local guid=$1
 		# when valid GUID; 0=true, 1=false
 		if [[ $guid =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
