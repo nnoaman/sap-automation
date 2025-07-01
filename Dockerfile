@@ -13,7 +13,6 @@ RUN tdnf install -y \
   gawk \
   glibc-i18n \
   jq \
-  moreutils \
   openssl-devel \
   openssl-libs \
   sudo \
@@ -78,14 +77,7 @@ RUN pip3 install --upgrade \
     setuptools \
     wheel \
     chmod \
-    azure-cli \
-    azure-mgmt-automation \
-    azure-mgmt-compute \
-    azure-mgmt-storage \
-    azure-mgmt-resource \
-    azure-identity \
-    azure-keyvault-secrets \
-    azure-storage-blob
+    azure-cli
 
 # Install Ansible Galaxy collections
 RUN ansible-galaxy collection install \
