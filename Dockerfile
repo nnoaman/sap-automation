@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/azurelinux/base:3.0
+FROM mcr.microsoft.com/azurelinux/base/core:3.0
 
 ARG TF_VERSION=1.11.4
 ARG YQ_VERSION=v4.42.1
