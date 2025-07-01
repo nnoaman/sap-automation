@@ -76,9 +76,7 @@ RUN pip3 install --upgrade \
     pywinrm \
     setuptools \
     wheel \
-    chmod \
-    azure-cli
-
+    chmod
 # Install Ansible Galaxy collections
 RUN ansible-galaxy collection install \
     ansible.windows \
