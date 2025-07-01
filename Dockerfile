@@ -72,11 +72,11 @@ RUN pip3 install --upgrade \
     argcomplete \
     jmespath \
     netaddr \
-    pip \
     pywinrm \
     setuptools \
     wheel \
     chmod
+
 # Install Ansible Galaxy collections
 RUN ansible-galaxy collection install \
     ansible.windows \
