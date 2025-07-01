@@ -5,6 +5,10 @@ ARG YQ_VERSION=v4.42.1
 ARG NODE_VERSION=18.19.1
 ARG ANSIBLE_VERSION=2.16.2
 
+# Set proper locale for Ansible
+ENV LC_ALL=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+
 # Install core utilities and system tools
 RUN tdnf install -y \
   ca-certificates \
@@ -29,6 +33,9 @@ RUN tdnf install -y \
   python3-devel \
   gcc \
   make
+
+# Setup locales properly
+RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 # Install development tools and languages
 RUN tdnf install -y \
@@ -62,12 +69,14 @@ RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/y
   install -Dm755 yq_linux_amd64 /usr/bin/yq && \
   rm -rf yq_linux_amd64.tar.gz yq_linux_amd64 install-man-page.sh yq.1
 
-RUN locale-gen.sh
-RUN echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
+# Set locales
+RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
+    echo "LANG=en_US.UTF-8" >> /etc/environment && \
+    echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
     echo "export LANG=en_US.UTF-8" >> /root/.bashrc
 
 # Install Python dependencies and Ansible with required collections
-RUN pip3 install --upgrade \
+RUN pip3 install \
     ansible-core==${ANSIBLE_VERSION} \
     argcomplete \
     jmespath \
@@ -78,7 +87,9 @@ RUN pip3 install --upgrade \
     chmod
 
 # Install Ansible Galaxy collections
-RUN ansible-galaxy collection install \
+RUN bash -c 'export LC_ALL=en_US.UTF-8 && \
+    export LANG=en_US.UTF-8 && \
+    ansible-galaxy collection install \
     ansible.windows \
     ansible.posix \
     ansible.utils \
@@ -86,21 +97,22 @@ RUN ansible-galaxy collection install \
     community.windows \
     community.general \
     microsoft.ad \
-    azure.azcollection
+    azure.azcollection'
 
 COPY SAP-automation-samples /source/SAP-automation-samples
 
 COPY . /source
 
-ENV LC_ALL=en_US.UTF-8
-ENV LANG=en_US.UTF-8
-
 ENV SAP_AUTOMATION_REPO_PATH=/source
-
 ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
 RUN useradd -m -s /bin/bash azureadm
 RUN echo "azureadm:password" | chpasswd
 RUN usermod -aG sudo azureadm
+
+# Configure SSH for Ansible
+RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
+RUN echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /root/.ssh/config && \
+    chmod 600 /root/.ssh/config
 
 WORKDIR /source
