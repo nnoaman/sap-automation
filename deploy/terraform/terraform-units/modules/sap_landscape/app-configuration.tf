@@ -28,6 +28,30 @@ data "azurerm_app_configuration_key" "deployer_subnet_id" {
   label                                = var.infrastructure.control_plane_name
 }
 
+resource "azurerm_app_configuration_key" "KeyVaultName" {
+  provider                             = azurerm.deployer
+  count                                = local.application_configuration_deployed ? 1 : 0
+  configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
+  key                                  = format("%s_KeyVaultName", var.naming.prefix.WORKLOAD_ZONE)
+  label                                = var.naming.prefix.WORKLOAD_ZONE
+  value                                = var.key_vault.user.exists ? (
+                                              try(data.azurerm_key_vault.kv_user[0].name, "")) : (
+                                              try(azurerm_key_vault.kv_user[0].name, "")
+                                            )
+  content_type                         = "text/plain"
+  type                                 = "kv"
+  tags                                 = {
+                                           "source" = "WorkloadZone"
+                                         }
+  lifecycle {
+              ignore_changes = [
+                configuration_store_id,
+                etag,
+                id
+              ]
+            }
+}
+
 resource "azurerm_app_configuration_key" "KeyVaultResourceId" {
   provider                             = azurerm.deployer
   count                                = local.application_configuration_deployed ? 1 : 0
