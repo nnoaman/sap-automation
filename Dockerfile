@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/azurelinux/base/core:3.0
 ARG TF_VERSION=1.11.4
 ARG YQ_VERSION=v4.42.1
 ARG NODE_VERSION=18.19.1
-ARG ANSIBLE_VERSION=2.16.2
+ARG ANSIBLE_VERSION=2.16.5
 
 # Set proper locale for Ansible
 ENV LC_ALL=en_US.UTF-8
