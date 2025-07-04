@@ -137,15 +137,49 @@ fi
 echo -e "$green--- az login ---$reset_formatting"
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "${tf_version}"
-    echo -e "$green--- az login ---$reset_formatting"
-  LogonToAzure false
-fi
-return_code=$?
-if [ 0 != $return_code ]; then
-  echo -e "$bold_red--- Login failed ---$reset_formatting"
-  echo "##vso[task.logissue type=error]az login failed."
-  exit $return_code
+	configureNonDeployer "${tf_version:-1.11.3}"
+
+	echo -e "$green--- az login ---$reset_formatting"
+	if [ "$PLATFORM" == "devops" ]; then
+		if ! LogonToAzure false; then
+			print_banner "$banner_title" "Login to Azure failed" "error"
+			if [ "$PLATFORM" == "devops" ]; then
+				echo "##vso[task.logissue type=error]az login failed."
+			fi
+			exit 2
+		fi
+	fi
+else
+	if [ "${USE_MSI:-false}" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+		ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+		export ARM_CLIENT_ID
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+
+		# Get SPN ID differently per platform
+		if [ "$PLATFORM" == "devops" ]; then
+			TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
+		elif [ "$PLATFORM" == "github" ]; then
+			# Use value from env or from GitHub environment
+			TF_VAR_spn_id=${OBJECT_ID:-$TF_VAR_spn_id}
+		fi
+
+		if [ -n "$TF_VAR_spn_id" ]; then
+			if is_valid_guid "$TF_VAR_spn_id"; then
+				export TF_VAR_spn_id
+				echo "Service Principal Object id:         $TF_VAR_spn_id"
+			fi
+		fi
+	fi
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
