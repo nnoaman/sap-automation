@@ -27,28 +27,28 @@ locals {
                                            keyvault_id_for_deployment_credentials = coalesce(try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,""), var.spn_keyvault_id, local.spn_key_vault_arm_id)
                                          }
   storage_account_sapbits              = {
-                                            id                       = var.library_sapmedia_arm_id
-                                            exists                   = length(var.library_sapmedia_arm_id) > 0
-                                            name                     = var.library_sapmedia_name
-                                            account_tier             = var.library_sapmedia_account_tier
-                                            account_replication_type = var.library_sapmedia_account_replication_type
-                                            account_kind             = var.library_sapmedia_account_kind
-                                            file_share = {
-                                              enable_deployment      = var.library_sapmedia_file_share_enable_deployment
-                                              is_existing            = var.library_sapmedia_file_share_is_existing
-                                              name                   = coalesce(var.library_sapmedia_file_share_name,module.sap_namegenerator.naming.resource_suffixes.sapbits)
-                                            }
-                                            sapbits_blob_container = {
-                                              enable_deployment      = var.library_sapmedia_blob_container_enable_deployment
-                                              is_existing            = var.library_sapmedia_blob_container_is_existing
-                                              name                   = coalesce(var.library_sapmedia_blob_container_name, module.sap_namegenerator.naming.resource_suffixes.sapbits)
-                                            }
+                                           arm_id                    = var.library_sapmedia_arm_id
+                                           exists                   = length(var.library_sapmedia_arm_id) > 0
+                                           name                     = var.library_sapmedia_name
+                                           account_tier             = var.library_sapmedia_account_tier
+                                           account_replication_type = var.library_sapmedia_account_replication_type
+                                           account_kind             = var.library_sapmedia_account_kind
+                                           file_share = {
+                                             enable_deployment      = var.library_sapmedia_file_share_enable_deployment
+                                             is_existing            = var.library_sapmedia_file_share_is_existing
+                                             name                   = coalesce(var.library_sapmedia_file_share_name,module.sap_namegenerator.naming.resource_suffixes.sapbits)
+                                           }
+                                           sapbits_blob_container = {
+                                             enable_deployment      = var.library_sapmedia_blob_container_enable_deployment
+                                             is_existing            = var.library_sapmedia_blob_container_is_existing
+                                             name                   = coalesce(var.library_sapmedia_blob_container_name, module.sap_namegenerator.naming.resource_suffixes.sapbits)
+                                           }
                                            shared_access_key_enabled                 = var.shared_access_key_enabled
                                            public_network_access_enabled             = var.public_network_access_enabled
                                            enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
                                          }
 
-   storage_account_tfstate              = {
+   storage_account_tfstate             = {
                                            id                                        = var.library_terraform_state_arm_id
                                            exists                                    = length(var.library_terraform_state_arm_id) > 0
                                            name                                      = var.library_terraform_state_name
