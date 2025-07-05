@@ -12,6 +12,7 @@ ENV LANG=en_US.UTF-8
 # Install core utilities and system tools
 RUN tdnf install -y \
   ansible \
+  sshpass \
   ca-certificates \
   curl \
   dos2unix \
