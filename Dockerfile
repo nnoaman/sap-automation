@@ -11,6 +11,7 @@ ENV LANG=en_US.UTF-8
 
 # Install core utilities and system tools
 RUN tdnf install -y \
+  ansible \
   ca-certificates \
   curl \
   dos2unix \
@@ -85,7 +86,7 @@ RUN pip3 install \
     setuptools \
     wheel \
     chmod \
-    PyYAML
+    pyyaml
 
 # Install Ansible Galaxy collections
 RUN bash -c 'export LC_ALL=en_US.UTF-8 && \
