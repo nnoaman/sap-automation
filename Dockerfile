@@ -84,7 +84,8 @@ RUN pip3 install \
     pywinrm \
     setuptools \
     wheel \
-    chmod
+    chmod \
+    PyYAML
 
 # Install Ansible Galaxy collections
 RUN bash -c 'export LC_ALL=en_US.UTF-8 && \
