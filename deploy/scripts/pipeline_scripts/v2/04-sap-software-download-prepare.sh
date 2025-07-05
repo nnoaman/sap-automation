@@ -208,7 +208,6 @@ else
 
 fi
 
-
 if [ "$PLATFORM" == "devops" ]; then
 	echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUSERNAME"
 	echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$SPASSWORD"
@@ -217,6 +216,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	start_group "Download SAP Bill of Materials"
 
 	az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
+	return_code=0
 
 	sample_path=${SAMPLE_REPO_PATH}/SAP
 	command="ansible-playbook \
@@ -231,6 +231,7 @@ elif [ "$PLATFORM" == "github" ]; then
 		${SAP_AUTOMATION_REPO_PATH}/deploy/ansible/playbook_bom_downloader.yaml"
 	echo "Executing [$command]"
 	eval $command
+	return_code=$?
 
 	end_group
 	exit $return_code
