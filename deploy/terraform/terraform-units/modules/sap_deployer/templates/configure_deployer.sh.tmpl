@@ -265,6 +265,30 @@ get_distro_name_version() {
 #
 # Package Management Functions
 #
+
+wait_for_apt_locks() {
+  echo "Checking for apt locks..."
+  local max_wait=30
+  local wait_time=0
+
+  while sudo lsof /var/lib/dpkg/lock >/dev/null 2>&1 || sudo lsof /var/lib/apt/lists/lock >/dev/null 2>&1 || sudo lsof /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+    echo "Waiting for apt locks to be released... ($wait_time/$max_wait seconds)"
+    sleep 5
+    wait_time=$((wait_time + 5))
+
+    if [ $wait_time -ge $max_wait ]; then
+      echo "Lock wait timeout exceeded. Checking blocking processes:"
+      ps aux | grep -i apt
+      echo "Continuing anyway, which may cause failures..."
+      break
+    fi
+  done
+
+  if [ $wait_time -gt 0 ] && [ $wait_time -lt $max_wait ]; then
+    echo "Apt locks are released, proceeding with installation"
+  fi
+}
+
 pkg_mgr_init() {
   typeset -g pkg_mgr
 
@@ -301,6 +325,7 @@ pkg_mgr_refresh() {
 
   case "$${pkg_mgr}" in
   apt-get)
+    wait_for_apt_locks
     sudo "$${pkg_mgr}" update --quiet
     ;;
   zypper)
@@ -329,6 +354,7 @@ pkg_mgr_upgrade() {
 
   case "$${pkg_mgr}" in
   apt-get)
+    wait_for_apt_locks
     sudo "$${pkg_mgr}" upgrade --quiet -y
     ;;
   zypper)
@@ -351,6 +377,7 @@ pkg_mgr_install() {
 
   case "$${pkg_mgr}" in
   apt-get)
+    wait_for_apt_locks
     sudo env DEBIAN_FRONTEND=noninteractive "$${pkg_mgr}" --quiet --yes install "$${@}"
     ;;
   zypper)
