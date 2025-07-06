@@ -56,7 +56,7 @@ RUN curl -fsSo terraform.zip \
   install -Dm755 terraform /usr/bin/terraform && \
   rm -f terraform terraform.zip
 
-# Install Azure CLI (critical for Azure SAP automation)
+# Install Azure CLI
 RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
     echo -e "[azure-cli]\nname=Azure CLI\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/azure-cli.repo && \
     tdnf install -y azure-cli
@@ -101,6 +101,9 @@ RUN bash -c 'export LC_ALL=en_US.UTF-8 && \
     community.general \
     microsoft.ad \
     azure.azcollection'
+
+# Set the Ansible collections path globally
+ENV ANSIBLE_COLLECTIONS_PATH=/root/.ansible/collections:/usr/share/ansible/collections
 
 COPY SAP-automation-samples /source/SAP-automation-samples
 
