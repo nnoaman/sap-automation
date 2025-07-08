@@ -89,22 +89,6 @@ RUN pip3 install \
     chmod \
     pyyaml
 
-# Install Ansible Galaxy collections
-RUN bash -c 'export LC_ALL=en_US.UTF-8 && \
-    export LANG=en_US.UTF-8 && \
-    ansible-galaxy collection install \
-    ansible.windows \
-    ansible.posix \
-    ansible.utils \
-    ansible.netcommon:5.1.2 \
-    community.windows \
-    community.general \
-    microsoft.ad \
-    azure.azcollection'
-
-# Set the Ansible collections path globally
-ENV ANSIBLE_COLLECTIONS_PATH=/root/.ansible/collections:/usr/share/ansible/collections
-
 COPY SAP-automation-samples /source/SAP-automation-samples
 
 COPY . /source
