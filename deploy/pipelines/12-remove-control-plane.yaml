@@ -76,6 +76,7 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Remove control plane
             env:
+<<<<<<< HEAD
               ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
@@ -98,6 +99,21 @@ stages:
               TF_VAR_tf_version:            $(tf_version)
               USE_MSI:                      $(Use_MSI)
               key_vault:                    $(DEPLOYER_KEYVAULT)
+=======
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              ARM_USE_MSI:              $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              TF_IN_AUTOMATION:         true
+              TF_LOG:                   $(TF_LOG)
+              USE_MSI:                  $(Use_MSI)
+              key_vault:                $(DEPLOYER_KEYVAULT)
+>>>>>>> 0ee42f2a4 (Feature/july 2025/managed devops pool (#789))
   - stage:                              Remove_control_plane
     displayName:                        "Finalize control plane removal"
     variables:
@@ -141,6 +157,7 @@ stages:
 
             displayName:               Remove control plane
             env:
+<<<<<<< HEAD
               APP_REGISTRATION_APP_ID:   $(APP_REGISTRATION_APP_ID)
               ARM_CLIENT_ID:             $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:         $(ARM_CLIENT_SECRET)
@@ -158,3 +175,17 @@ stages:
               TF_VAR_control_plane_name: $(control_plane_name)
               USE_MSI:                   $(Use_MSI)
               key_vault:                 $(DEPLOYER_KEYVAULT)
+=======
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              TF_IN_AUTOMATION:         true
+              TF_LOG:                   $(TF_LOG)
+              USE_MSI:                  $(Use_MSI)
+              key_vault:                $(DEPLOYER_KEYVAULT)
+>>>>>>> 0ee42f2a4 (Feature/july 2025/managed devops pool (#789))

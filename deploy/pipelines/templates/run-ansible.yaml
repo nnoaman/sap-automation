@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 parameters:
+<<<<<<< HEAD
   azureClientId: ''
   azureClientSecret: ''
   azureTenantId: ''
@@ -19,6 +20,24 @@ parameters:
   passwordSecretName: ''
   userNameSecretName: ''
   terraformStateStorageAccount: ''
+=======
+    azureClientId: ''
+    azureClientSecret: ''
+    azureTenantId: ''
+    azureSubscriptionId: ''
+    USE_MSI: ''
+    displayName: ''
+    ansibleFilePath: ''
+    ansibleConfigPath: ''
+    sidHosts:  ''
+    secretName: ''
+    vaultName: ''
+    parametersFolder: ''
+    extraParams: ''
+    sapParams: ''
+    passwordSecretName: ''
+    userNameSecretName: ''
+>>>>>>> 0ee42f2a4 (Feature/july 2025/managed devops pool (#789))
 
 steps:
 - task:                             Bash@3

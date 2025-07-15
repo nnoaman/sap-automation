@@ -149,6 +149,7 @@ stages:
               targetType:              'inline'
               failOnStderr:            false
               script:
+<<<<<<< HEAD
                                        if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
                                         ansible_core_installed_version=$(ansible --version | grep "core " | cut -d ' ' -f3 | cut -d ']' -f1)
                                         if [ -z "$ansible_core_installed_version" ]; then
@@ -164,6 +165,16 @@ stages:
 
                                       ansible --version
 
+=======
+                                      sudo pipx uninstall ansible-core
+
+                                      pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
+
+                                      ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
+
+                                      ansible --version
+
+>>>>>>> 0ee42f2a4 (Feature/july 2025/managed devops pool (#789))
             env:
               ansible_core_version:    $(ansible_core_version)
             name:                      AnsibleInstallation

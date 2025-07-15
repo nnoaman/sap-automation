@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 resource "time_sleep" "wait_for_role_assignments" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
   create_duration                               = "60s"
@@ -11,6 +12,11 @@ resource "time_sleep" "wait_for_role_assignments" {
 resource "azurerm_dev_center" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
   depends_on                                    = [ time_sleep.wait_for_role_assignments ]
+=======
+
+resource "azurerm_dev_center" "deployer" {
+  count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
+>>>>>>> 0ee42f2a4 (Feature/july 2025/managed devops pool (#789))
   name                                          = lower(format("%s%s%s%s",
                                                     var.naming.resource_prefixes.dev_center,
                                                     var.infrastructure.environment,
@@ -77,7 +83,10 @@ resource "azurerm_dev_center_dev_box_definition" "deployer" {
 
 resource "azapi_resource" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0ee42f2a4 (Feature/july 2025/managed devops pool (#789))
   name                                          = var.infrastructure.devops.agent_pool
   location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   type                                          = "microsoft.devopsinfrastructure/pools@2025-01-21"
@@ -196,10 +205,17 @@ data "azurerm_subnet" "subnet_agent" {
 
 
 locals {
+<<<<<<< HEAD
   subnetId = var.infrastructure.dev_center_deployment ? var.infrastructure.virtual_network.management.subnet_agent.exists ? (
                                                     data.azurerm_subnet.subnet_agent[0].id) : (
                                                     azurerm_subnet.subnet_agent[0].id
                                                   ) : ""
+=======
+  subnetId = var.infrastructure.virtual_network.management.subnet_agent.exists ? (
+                                                    data.azurerm_subnet.subnet_agent[0].id) : (
+                                                    azurerm_subnet.subnet_agent[0].id
+                                                  )
+>>>>>>> 0ee42f2a4 (Feature/july 2025/managed devops pool (#789))
 }
 
 
