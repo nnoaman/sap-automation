@@ -193,3 +193,22 @@ resource "azurerm_role_assignment" "dev_center_network_contributor" {
   role_definition_name                          = "Network Contributor"
   principal_id                                  = var.infrastructure.devops.DevOpsInfrastructure_object_id
 }
+
+#########################################################################################
+#                                                                                       #
+#  Application configuration variables                                                  #
+#                                                                                       #
+#########################################################################################
+
+resource "azurerm_role_assignment" "appconfig_data_owner_msi" {
+  provider                             = azurerm.main
+  count                                = var.assign_subscription_permissions && var.app_config_service.deploy ? 1 : 0
+  scope                                = var.app_config_service.deploy ? (
+                                          length(var.app_config_service.id) == 0 ? (
+                                            azurerm_app_configuration.app_config[0].id) : (
+                                            data.azurerm_app_configuration.app_config[0].id)) : (
+                                          0
+                                          )
+  role_definition_name                 = "App Configuration Data Owner"
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+}
