@@ -156,7 +156,7 @@ stages:
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            name:                      StoreSecrets
+            name:                      StoreSecrets_v2
             displayName:               Store deployment credentials in Key Vault (v2)
             env:
               ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
