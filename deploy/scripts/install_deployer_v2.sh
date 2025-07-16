@@ -467,6 +467,14 @@ function install_deployer() {
 		export APP_SERVICE_NAME
 	fi
 
+	APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+	if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_config_information}"
+		export APPLICATION_CONFIGURATION_DEPLOYMENT
+		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
+	fi
+
+
 	HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
 	if [ -n "${HAS_WEBAPP}" ]; then
 		save_config_var "HAS_WEBAPP" "${deployer_config_information}"

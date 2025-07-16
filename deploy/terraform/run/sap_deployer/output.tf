@@ -252,3 +252,29 @@ output "Agent_IP"                                {
                                                     description = "The IP address of the agent"
                                                     value       = var.Agent_IP
                                                  }
+
+###############################################################################
+#                                                                             #
+#                                App Config                                   #
+#                                                                             #
+###############################################################################
+
+
+output "deployer_app_config_name"                {
+                                                    description = "Application Configuration Name"
+                                                    value       = module.sap_deployer.deployer_app_config_name
+                                                 }
+output "deployer_app_config_id"                  {
+                                                    description = "Application Configuration Azure Resource Id"
+                                                    value       = module.sap_deployer.deployer_app_config_id
+                                                 }
+
+output "control_plane_name"                      {
+                                                    description = "Control plane name"
+                                                    value       = module.sap_namegenerator.naming.prefix.DEPLOYER
+                                                 }
+
+output "app_config_deployment"                 {
+                                                   description = "Is the App Configuration deployed"
+                                                   value       = var.application_configuration_deployment
+                                                 }

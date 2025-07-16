@@ -335,8 +335,31 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	if [ -n "$DEPLOYER_KEYVAULT" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 	fi
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
 
-fi
+
+	APPLICATION_CONFIGURATION_ID=$(grep -m1 "^APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
+		APPLICATION_CONFIGURATION_ID=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID")
+	export APPLICATION_CONFIGURATION_ID
+
+	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	export APPLICATION_CONFIGURATION_NAME
+	echo "APPLICATION_CONFIGURATION_NAME:      ${DEPLOYER_KEYVAULT}"
+		if printenv APPLICATION_CONFIGURATION_NAME; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+		fi
+	fi
+
+	APPLICATION_CONFIGURATION_DEPLOYMENT=$(grep -m1 "^APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	export APPLICATION_CONFIGURATION_DEPLOYMENT
+	echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  ${APPLICATION_CONFIGURATION_DEPLOYMENT}"
+		if printenv APPLICATION_CONFIGURATION_DEPLOYMENT; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "$APPLICATION_CONFIGURATION_DEPLOYMENT"
+		fi
+	fi
+
+
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
 cd "$CONFIG_REPO_PATH" || exit
