@@ -18,7 +18,17 @@ locals {
 
                                          }
   deployer                             = {
-                                           use                       = var.use_deployer
+                                           use                          = var.use_deployer
+                                           application_configuration_id = trimspace(coalesce(var.application_configuration_id,
+                                                                                             contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_app_config_id") ? (
+                                                                                               data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id) : (
+                                                                                               " "),
+                                                                                             " "))
+                                           control_plane_name           = trimspace(coalesce(var.control_plane_name,
+                                                                                             contains(keys(data.terraform_remote_state.deployer[0].outputs), "control_plane_name") ? (
+                                                                                               data.terraform_remote_state.deployer[0].outputs.control_plane_name) : (
+                                                                                               " "),
+                                                                                             " "))
                                          }
   key_vault                            = {
                                            id                        = coalesce(try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,""), var.spn_keyvault_id, local.spn_key_vault_arm_id)
