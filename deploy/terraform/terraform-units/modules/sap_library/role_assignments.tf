@@ -1,3 +1,14 @@
+resource "azurerm_role_assignment" "storage_tfstate" {
+  provider                             = azurerm.main
+  count                                = var.storage_account_sapbits.exists ? 0 : var.infrastructure.assign_permissions ? 1 : 0
+  # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
+  scope                                = azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name                 = "Storage Blob Data Contributor"
+  principal_id                         = data.azuread_client_config.current.object_id
+
+}
+
+
 resource "azurerm_role_assignment" "webapp_blob" {
   provider                             = azurerm.main
   count                                = var.infrastructure.assign_permissions && var.deployer.use ? (
