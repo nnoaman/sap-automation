@@ -189,5 +189,6 @@ locals {
                                                     data.azurerm_subnet.subnet_agent[0].id) : (
                                                     azurerm_subnet.subnet_agent[0].id
                                                   ) : ""
+}
 
 
