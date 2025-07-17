@@ -16,6 +16,10 @@ Description:
                         ~> 0.8.4 is equivalent to >= 0.8.4, < 0.9
 */
 
+data "azurerm_client_config" "current" {
+                                         provider                   = azurerm.deployer
+                                       }
+
 
 provider "azurerm"                     {
                                          features {
