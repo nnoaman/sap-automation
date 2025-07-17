@@ -185,10 +185,9 @@ data "azurerm_subnet" "subnet_agent" {
 
 
 locals {
-  subnetId = var.infrastructure.virtual_network.management.subnet_agent.exists ? (
+  subnetId = var.infrastructure.dev_center_deployment ? var.infrastructure.virtual_network.management.subnet_agent.exists ? (
                                                     data.azurerm_subnet.subnet_agent[0].id) : (
                                                     azurerm_subnet.subnet_agent[0].id
-                                                  )
-}
+                                                  ) : ""
 
 
