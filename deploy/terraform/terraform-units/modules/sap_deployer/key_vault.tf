@@ -234,6 +234,9 @@ resource "azurerm_key_vault_secret" "subscription" {
                                            null
                                          )
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
 }
 resource "azurerm_key_vault_secret" "ppk" {
   count                                = (local.enable_key && length(var.key_vault.private_key_secret_name) == 0 && !var.key_vault.exists ) ? 1 : 0
@@ -261,6 +264,9 @@ resource "azurerm_key_vault_secret" "ppk" {
                                          )
   content_type                         = "secret"
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
 }
 
 resource "azurerm_key_vault_secret" "pk" {
@@ -289,6 +295,10 @@ resource "azurerm_key_vault_secret" "pk" {
                                          )
   content_type                         = "secret"
   tags                                 = var.infrastructure.tags
+
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
 }
 resource "azurerm_key_vault_secret" "username" {
   count                                = local.enable_key && (length(var.key_vault.username_secret_name) == 0 ) && !var.key_vault.exists ? 1 : 0
@@ -317,6 +327,9 @@ resource "azurerm_key_vault_secret" "username" {
                                          )
   content_type                         = "configuration"
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
 }
 
 resource "azurerm_key_vault_secret" "pat" {
@@ -346,6 +359,9 @@ resource "azurerm_key_vault_secret" "pat" {
                                          )
   content_type                         = "secret"
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
 }
 
 # resource "azurerm_key_vault_secret" "web_pwd" {
@@ -402,6 +418,9 @@ resource "azurerm_key_vault_secret" "pwd" {
                                          )
   content_type                         = "secret"
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
 }
 
 
