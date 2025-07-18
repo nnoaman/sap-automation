@@ -214,7 +214,8 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
 #Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
 resource "time_sleep" "wait_for_VM" {
-  create_duration                      = "60s"
+
+  create_duration                      = var.deployer_vm_count > 0 ? "60s" : "5s"
 
   depends_on                           = [
                                            azurerm_linux_virtual_machine.deployer
