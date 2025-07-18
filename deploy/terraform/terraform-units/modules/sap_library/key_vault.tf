@@ -35,6 +35,11 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
                                           null
                                         )
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [
+      expiration_date
+    ]
+  }
 
 }
 
@@ -61,6 +66,11 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
                                            null
                                          )
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [
+      expiration_date
+    ]
+  }
 }
 
 resource "azurerm_key_vault_secret" "sa_connection_string" {
@@ -84,6 +94,11 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
                                            null
                                          )
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [
+      expiration_date
+    ]
+  }
 }
 
 resource "azurerm_key_vault_secret" "tfstate" {
@@ -104,4 +119,9 @@ resource "azurerm_key_vault_secret" "tfstate" {
                                            null
                                          )
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [
+      expiration_date
+    ]
+  }
 }
