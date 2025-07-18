@@ -16,7 +16,7 @@ resource "azurerm_role_assignment" "deployer" {
 
 resource "azurerm_role_assignment" "deployer_msi" {
   provider                             = azurerm.main
-  count                                = var.options.assign_resource_permissions
+  count                                = var.options.assign_resource_permissions ? 1 : 0
   scope                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
   role_definition_name                 = "Storage Blob Data Contributor"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? (
@@ -35,7 +35,7 @@ resource "azurerm_role_assignment" "resource_group_contributor" {
 
 resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" {
   provider                             = azurerm.main
-  count                                = var.options.assign_resource_permissions
+  count                                = var.options.assign_resource_permissions ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Contributor"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
@@ -43,7 +43,7 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   provider                             = azurerm.main
-  count                                = var.options.assign_resource_permissions
+  count                                = var.options.assign_resource_permissions ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Role Based Access Control Administrator"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? (
