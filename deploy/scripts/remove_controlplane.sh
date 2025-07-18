@@ -283,17 +283,17 @@ if [ -z "${storage_account}" ]; then
 fi
 
 key=$(echo "${deployer_tfvars_filename}" | cut -d. -f1)
+if [ -n $REMOTE_STATE_SA ]; then
+	useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
-useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
-
-if [ "$useSAS" = "true" ]; then
-	echo "Storage Account Authentication:        Key"
-	export ARM_USE_AZUREAD=false
-else
-	echo "Storage Account Authentication:        Entra ID"
-	export ARM_USE_AZUREAD=true
+	if [ "$useSAS" = "true" ]; then
+		echo "Storage Account Authentication:        Key"
+		export ARM_USE_AZUREAD=false
+	else
+		echo "Storage Account Authentication:        Entra ID"
+		export ARM_USE_AZUREAD=true
+	fi
 fi
-
 TF_VAR_subscription_id="${STATE_SUBSCRIPTION}"
 export TF_VAR_subscription_id
 
