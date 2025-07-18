@@ -283,7 +283,7 @@ if [ -z "${storage_account}" ]; then
 fi
 
 key=$(echo "${deployer_tfvars_filename}" | cut -d. -f1)
-if [ -n $REMOTE_STATE_SA ]; then
+if [ -n "$REMOTE_STATE_SA" ]; then
 	useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 	if [ "$useSAS" = "true" ]; then
@@ -317,6 +317,8 @@ fi
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 
+deployer_state_location="remote"
+
 if [ -f .terraform/terraform.tfstate ]; then
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "$azure_backend" ]; then
@@ -331,6 +333,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 
 	else
 		echo "Terraform state:                     local"
+		deployer_state_location="local"
 		if terraform -chdir="${terraform_module_directory}" init -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
 			return_value=$?
 			print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
@@ -357,11 +360,13 @@ if [ 0 != $return_value ]; then
 	exit 10
 fi
 
-if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
-	return_value=$?
-	print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
-else
-	print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
+if [ "$deployer_state_location" = "remote" ]; then
+	if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+		return_value=$?
+		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
+	else
+		print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
+	fi
 fi
 
 print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
@@ -464,7 +469,7 @@ save_config_vars "${deployer_config_information}" \
 	STATE_SUBSCRIPTION
 
 cd "${current_directory}" || exit
-step=1
+step=2
 save_config_var "step" "${deployer_config_information}"
 
 if [ 1 -eq $keep_agent ]; then
@@ -506,6 +511,8 @@ else
 		return_value=$?
 		echo ""
 		echo -e "${cyan}Terraform destroy:                      succeeded$reset_formatting"
+		step=0
+		save_config_var "step" "${deployer_config_information}"
 		echo ""
 		if [ -f "${param_dirname}/terraform.tfstate" ]; then
 			rm "${param_dirname}/terraform.tfstate"
@@ -523,8 +530,6 @@ else
 		echo ""
 	fi
 
-	step=0
-	save_config_var "step" "${deployer_config_information}"
 	if [ 0 != $return_value ]; then
 		keyvault=''
 		deployer_tfstate_key=''
