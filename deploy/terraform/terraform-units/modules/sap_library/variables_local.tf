@@ -62,7 +62,8 @@ locals {
                                                   [
                                                     try(var.deployer_tfstate.subnet_mgmt_id, ""),
                                                     try(var.deployer_tfstate.subnet_webapp_id, ""),
-                                                    try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, [])
+                                                    try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, []),
+                                                    try(var.dns_settings.additional_network_id,"")
                                                   ]
                                                 )
                                               )
