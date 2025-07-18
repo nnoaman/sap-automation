@@ -56,6 +56,7 @@ function showhelp {
 	echo "#########################################################################################"
 }
 
+approve=""
 #process inputs - may need to check the option i for auto approve as it is not used
 INPUT_ARGUMENTS=$(getopt -n install_deployer -o p:ih --longoptions parameterfile:,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
