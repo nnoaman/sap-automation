@@ -43,7 +43,7 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   provider                             = azurerm.main
-  count                                = local.isUserAccessAdminForSubscription ? 1 : 0
+  count                                = local.isUserAccessAdminForResourceGroup ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Role Based Access Control Administrator"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? (
@@ -77,7 +77,7 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   provider                             = azurerm.main
-  count                                = local.isUserAccessAdminForSubscription && !local.isRBACUserAccessAdminForResourceGroup && !local.run_as_msi ? 1 : 0
+  count                                = local.isRBACUserAccessAdminForResourceGroup && !local.run_as_msi ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Role Based Access Control Administrator"
   principal_type                       = "ServicePrincipal"
@@ -170,7 +170,7 @@ resource "azurerm_role_assignment" "subscription_contributor_system_identity" {
 }
 
 resource "azurerm_role_assignment" "subscription_contributor_msi" {
-  count                                = local.isUserAccessAdminForSubscription ? 1 : 0
+  count                                = var.assign_subscription_permissions ? 1 : 0
   provider                             = azurerm.main
   scope                                = data.azurerm_subscription.primary.id
   role_definition_name                 = "Contributor"
@@ -225,4 +225,12 @@ resource "azurerm_role_assignment" "appconfig_data_owner_spn" {
   principal_type                       = "ServicePrincipal"
   principal_id                         = data.azurerm_client_config.current.object_id
 
+}
+
+
+locals {
+  run_as_msi                           = length(var.deployer.user_assigned_identity_id) == 0 ? (
+                                           var.bootstrap || var.options.use_spn ? false : azurerm_user_assigned_identity.deployer[0].principal_id == data.azurerm_client_config.current.object_id ) : (
+                                           data.azurerm_user_assigned_identity.deployer[0].principal_id == data.azurerm_client_config.current.object_id
+                                         )
 }

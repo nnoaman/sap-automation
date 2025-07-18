@@ -195,8 +195,6 @@ locals {
   options                              = {
                                             enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
                                             use_spn                   = var.use_spn
-                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
-                                            use_spn                   = var.use_spn
                                          }
 
   firewall                             = {
