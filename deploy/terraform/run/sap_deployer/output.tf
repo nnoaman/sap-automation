@@ -138,7 +138,7 @@ output "subnet_webapp_id"                        {
 
 output "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                 description = "List of subnets to add to the firewall for keyvaults and storage"
-                                                                value       = trim(concat(var.subnets_to_add_to_firewall_for_keyvaults_and_storage,length(var.additional_network_id) > 0 ? provider::azurerm::normalise_resource_id(var.additional_network_id): ""))
+                                                                value       = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
                                                               }
 
 output "additional_network_id"                     {
