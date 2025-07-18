@@ -455,6 +455,14 @@ variable "deployer_assign_subscription_permissions"   {
                                                         type        = bool
                                                       }
 
+
+variable "deployer_assign_resource_permissions"   {
+                                                        description = "Boolean flag indicating if the resource permissions should be assigned"
+                                                        default     = true
+                                                        type        = bool
+                                                      }
+
+
 variable "use_private_endpoint"                       {
                                                         description = "Boolean value indicating if private endpoint should be used for the deployment"
                                                         default     = false
