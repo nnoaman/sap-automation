@@ -195,9 +195,6 @@ resource "azurerm_key_vault_access_policy" "webapp" {
 
 }
 
-
-
-
 resource "azurerm_management_lock" "keyvault" {
   provider                             = azurerm.main
   count                                = (var.key_vault.exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
@@ -219,7 +216,9 @@ resource "azurerm_key_vault_secret" "subscription" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
+                                           azurerm_role_assignment.role_assignment_system_identity
                                          ]
 
   name                                 = format("%s-subscription-id", upper(var.naming.prefix.DEPLOYER))
@@ -243,7 +242,9 @@ resource "azurerm_key_vault_secret" "ppk" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
+                                           azurerm_role_assignment.role_assignment_system_identity
                                          ]
   name                                 = local.private_key_secret_name
   value                                = local.private_key
@@ -268,7 +269,9 @@ resource "azurerm_key_vault_secret" "pk" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
+                                           azurerm_role_assignment.role_assignment_system_identity
                                          ]
   name                                 = local.public_key_secret_name
   value                                = local.public_key
@@ -292,7 +295,9 @@ resource "azurerm_key_vault_secret" "username" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
+                                           azurerm_role_assignment.role_assignment_system_identity
                                          ]
 
   name                                 = local.username_secret_name
@@ -319,7 +324,9 @@ resource "azurerm_key_vault_secret" "pat" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
+                                           azurerm_role_assignment.role_assignment_system_identity
                                          ]
   name                                 = "PAT"
   value                                = var.infrastructure.devops.agent_pat
@@ -372,7 +379,9 @@ resource "azurerm_key_vault_secret" "pwd" {
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi_officer,
+                                           azurerm_role_assignment.role_assignment_system_identity
                                          ]
   name                                 = local.pwd_secret_name
   value                                = local.password
