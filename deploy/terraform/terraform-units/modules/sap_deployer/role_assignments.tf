@@ -8,7 +8,6 @@
 
 resource "azurerm_role_assignment" "deployer" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_resource_group.deployer ]
   count                                = var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
   scope                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
   role_definition_name                 = "Storage Blob Data Contributor"
@@ -17,8 +16,6 @@ resource "azurerm_role_assignment" "deployer" {
 
 resource "azurerm_role_assignment" "deployer_msi" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_resource_group.deployer ]
-  count                                = local.isUserAccessAdminForResourceGroup ? 1 : 0
   scope                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
   role_definition_name                 = "Storage Blob Data Contributor"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? (
@@ -29,7 +26,6 @@ resource "azurerm_role_assignment" "deployer_msi" {
 
 resource "azurerm_role_assignment" "resource_group_contributor" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_resource_group.deployer ]
   count                                = var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
   scope                                = var.infrastructure.resource_group.exists  ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Contributor"
@@ -38,8 +34,6 @@ resource "azurerm_role_assignment" "resource_group_contributor" {
 
 resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_resource_group.deployer ]
-  count                                = local.isUserAccessAdminForResourceGroup ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Contributor"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
@@ -47,8 +41,6 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_resource_group.deployer ]
-  count                                = local.isUserAccessAdminForResourceGroup ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Role Based Access Control Administrator"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? (
@@ -82,8 +74,7 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
 
 resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_resource_group.deployer ]
-  count                                = local.isRBACUserAccessAdminForResourceGroup && !local.run_as_msi ? 1 : 0
+  count                                = local.run_as_msi ? 0 : 1
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Role Based Access Control Administrator"
   principal_type                       = "ServicePrincipal"
@@ -114,7 +105,6 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
 
 resource "azurerm_role_assignment" "role_assignment_msi" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_resource_group.deployer ]
   count                                = var.key_vault.enable_rbac_authorization ? 1 : 0
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Administrator"
@@ -123,7 +113,6 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_resource_group.deployer ]
   count                                = var.key_vault.enable_rbac_authorization  && !local.run_as_msi ?  1 : 0
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Administrator"
