@@ -95,24 +95,19 @@ data "azurerm_key_vault_secret" "cp_tenant_id" {
 data "azurerm_app_configuration_key" "deployer_state_file" {
   count                                = var.infrastructure.use_application_configuration ? 1 : 0
   configuration_store_id               = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
-  key                                  = format("%s_StateFileName", local.control_plane_name)
-  label                                = local.control_plane_name
+  key                                  = format("%s_StateFileName", var.control_plane_name)
+  label                                = var.control_plane_name
 }
 data "azurerm_app_configuration_key" "deployer_subscription_id" {
   count                                = var.infrastructure.use_application_configuration ? 1 : 0
   configuration_store_id               = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
-  key                                  = format("%s_SubscriptionId", local.control_plane_name)
-  label                                = local.control_plane_name
+  key                                  = format("%s_SubscriptionId", var.control_plane_name)
+  label                                = var.control_plane_name
 }
 
 data "azurerm_app_configuration_key" "deployer_key_vault_id" {
   count                                = var.infrastructure.use_application_configuration ? 1 : 0
   configuration_store_id               = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
-  key                                  = format("%s_deployer_keyvault_id", local.control_plane_name)
-  label                                = local.control_plane_name
-}
-
-locals {
-
-  control_plane_name = coalesce(var.control_plane_name, try(data.terraform_remote_state.deployer[0].outputs.control_plane_name, ""))
+  key                                  = format("%s_deployer_keyvault_id", var.control_plane_name)
+  label                                = var.control_plane_name
 }
