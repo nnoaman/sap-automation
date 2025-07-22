@@ -123,7 +123,26 @@ stages:
           - template:                  templates\download.yaml
             parameters:
               getLatestFromBranch: true
-
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            name:                      StoreSecrets_v2
+            displayName:               Store deployment credentials in Key Vault (v2)
+            env:
+              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                $(ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
+              USE_MSI:                      $(Use_MSI)
+              ZONE:                         $(workload_zone_name)
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'

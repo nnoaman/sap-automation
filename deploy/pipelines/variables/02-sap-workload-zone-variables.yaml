@@ -123,3 +123,6 @@ variables:
 
   - name:                              test
     value:                             ${{ parameters.test }}
+
+  - name:                              workload_zone_name
+    value:                             $[upper(format('{0}-{1}-{2}', split('${{ parameters.workload_zone }}', '-')[0], split('${{ parameters.workload_zone }}', '-')[1], split('${{ parameters.workload_zone }}', '-')[2]))]
