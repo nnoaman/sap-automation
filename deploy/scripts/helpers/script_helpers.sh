@@ -1113,14 +1113,17 @@ function ImportAndReRunApply {
 					echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
 					echo ""
 					# shellcheck disable=SC2086
-					if ! terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+					if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+						import_return_value=$?
+					else
+					  import_return_value=$?
 						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-							if ! terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+							if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+								import_return_value=$?
+							else
 								import_return_value=$?
 							fi
 						fi
-					else
-						import_return_value=$?
 					fi
 				done
 
@@ -1161,9 +1164,9 @@ function ImportAndReRunApply {
 				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
 
 				if [[ -n $current_errors ]]; then
-					import_return_value=5
-					echo "Errors occurred during the apply phase"
-					echo "-------------------------------------------------------------------------------------"
+					import_return_value=0
+					echo -e "$boldred Errors occurred during the apply phase:$reset"
+					echo -e "$boldred ------------------------------------------------------------------------------------- $reset"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
 					for item in "${errors[@]}"; do
@@ -1183,8 +1186,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 
-					echo "Errors occurred during the apply phase"
-					echo "-------------------------------------------------------------------------------------"
+					echo -e "$boldred Errors occurred during the apply phase:$reset"
+					echo -e "$boldred ------------------------------------------------------------------------------------- $reset"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 					error_count=${#errors[@]}
 
