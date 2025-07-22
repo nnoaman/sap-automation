@@ -1182,10 +1182,11 @@ function ImportAndReRunApply {
 				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
 
 				if [[ -n $current_errors ]]; then
-					import_return_value=5
+
 					echo "Errors occurred during the apply phase"
 					echo "-------------------------------------------------------------------------------------"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
+					error_count=${#errors[@]}
 
 					for item in "${errors[@]}"; do
 						errorMessage=$(jq -c -r '.summary ' <<<"$item")
