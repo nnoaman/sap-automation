@@ -8,16 +8,18 @@
 
 
 data "azurerm_client_config" "current" {}
-
 data "azurerm_client_config" "current_main" {
   provider                            = azurerm.workload
-
 }
-
 data "terraform_remote_state" "deployer" {
   backend                              = "azurerm"
 
-  count                                = var.use_deployer && length(try(var.deployer_tfstate_key, "")) > 0 ? 1 : 0
+  count                                = var.use_deployer && length(coalesce(
+                                                                              var.infrastructure.use_application_configuration ? (
+                                                                                data.azurerm_app_configuration_key.deployer_state_file[0].value): (
+                                                                                ""),
+                                                                              try(var.deployer_tfstate_key, ""))
+                                                                              ) > 0 ? 1 : 0
   config                               = {
                                            resource_group_name  = local.SAPLibrary_resource_group_name
                                            storage_account_name = local.tfstate_storage_account_name
@@ -90,3 +92,27 @@ data "azurerm_key_vault_secret" "cp_tenant_id" {
   key_vault_id                         = local.key_vault.spn.id
 }
 
+data "azurerm_app_configuration_key" "deployer_state_file" {
+  count                                = var.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id               = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
+  key                                  = format("%s_StateFileName", local.control_plane_name)
+  label                                = local.control_plane_name
+}
+data "azurerm_app_configuration_key" "deployer_subscription_id" {
+  count                                = var.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id               = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
+  key                                  = format("%s_SubscriptionId", local.control_plane_name)
+  label                                = local.control_plane_name
+}
+
+data "azurerm_app_configuration_key" "deployer_key_vault_id" {
+  count                                = var.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id               = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
+  key                                  = format("%s_deployer_keyvault_id", local.control_plane_name)
+  label                                = local.control_plane_name
+}
+
+locals {
+
+  control_plane_name = coalesce(var.control_plane_name, try(data.terraform_remote_state.deployer[0].outputs.control_plane_name, ""))
+}
