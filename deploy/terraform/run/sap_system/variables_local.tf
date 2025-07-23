@@ -7,11 +7,6 @@ locals {
   version_label                        = trimspace(file("${path.module}/../../../configs/version.txt"))
   // The environment of sap landscape and sap system
   environment                          = upper(local.infrastructure.environment)
-  vnet_sap_arm_id                      = try(data.terraform_remote_state.landscape.outputs.vnet_sap_arm_id, "")
-
-  vnet_logical_name                    = local.infrastructure.virtual_networks.sap.logical_name
-  vnet_sap_exists                      = length(local.vnet_sap_arm_id) > 0 ? true : false
-
 
   db_sid                              = upper(try(local.database.instance.sid, "HDB"))
   sap_sid                             = upper(try(local.application_tier.sid, local.db_sid))

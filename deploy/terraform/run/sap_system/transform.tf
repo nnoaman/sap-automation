@@ -362,10 +362,6 @@ locals {
   web_nic_ips                          = concat(var.webdispatcher_server_app_nic_ips)
   web_admin_nic_ips                    = concat(var.webdispatcher_server_admin_nic_ips)
   webdispatcher_loadbalancer_ips       = concat(var.webdispatcher_server_loadbalancer_ips)
-
-  subnet_admin_arm_id                  = try(coalesce(var.admin_subnet_arm_id, data.terraform_remote_state.landscape.outputs.admin_subnet_id), "")
-  subnet_admin_nsg_arm_id              = try(coalesce(var.admin_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.admin_nsg_id), "")
-
   subnet_admin                         = {
                                             name                   = var.admin_subnet_name
                                             id                     = var.admin_subnet_arm_id
