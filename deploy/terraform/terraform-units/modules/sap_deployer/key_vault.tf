@@ -217,7 +217,11 @@ resource "azurerm_key_vault_secret" "subscription" {
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
+                                           null_resource.subscription_contributor_msi_fallback,
+                                           null_resource.deployer_msi_fallback,
+                                           null_resource.deployer_keyvault_msi_fallback,
+                                           null_resource.resource_group_contributor_msi_fallback,
+                                           null_resource.keyvault_secrets_user_msi_fallback,
                                            azurerm_virtual_network_peering.peering_management_agent,
                                            azurerm_private_endpoint.kv_user
                                          ]
@@ -241,7 +245,11 @@ resource "azurerm_key_vault_secret" "ppk" {
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
+                                           null_resource.subscription_contributor_msi_fallback,
+                                           null_resource.deployer_msi_fallback,
+                                           null_resource.deployer_keyvault_msi_fallback,
+                                           null_resource.resource_group_contributor_msi_fallback,
+                                           null_resource.keyvault_secrets_user_msi_fallback,
                                            azurerm_virtual_network_peering.peering_management_agent,
                                            azurerm_private_endpoint.kv_user
                                          ]
@@ -266,7 +274,11 @@ resource "azurerm_key_vault_secret" "pk" {
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
+                                           null_resource.subscription_contributor_msi_fallback,
+                                           null_resource.deployer_msi_fallback,
+                                           null_resource.deployer_keyvault_msi_fallback,
+                                           null_resource.resource_group_contributor_msi_fallback,
+                                           null_resource.keyvault_secrets_user_msi_fallback,
                                            azurerm_virtual_network_peering.peering_management_agent,
                                            azurerm_private_endpoint.kv_user
                                          ]
@@ -290,7 +302,11 @@ resource "azurerm_key_vault_secret" "username" {
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
+                                           null_resource.subscription_contributor_msi_fallback,
+                                           null_resource.deployer_msi_fallback,
+                                           null_resource.deployer_keyvault_msi_fallback,
+                                           null_resource.resource_group_contributor_msi_fallback,
+                                           null_resource.keyvault_secrets_user_msi_fallback,
                                            azurerm_virtual_network_peering.peering_management_agent,
                                            azurerm_private_endpoint.kv_user
                                          ]
@@ -317,7 +333,11 @@ resource "azurerm_key_vault_secret" "pat" {
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
+                                           null_resource.subscription_contributor_msi_fallback,
+                                           null_resource.deployer_msi_fallback,
+                                           null_resource.deployer_keyvault_msi_fallback,
+                                           null_resource.resource_group_contributor_msi_fallback,
+                                           null_resource.keyvault_secrets_user_msi_fallback,
                                            azurerm_virtual_network_peering.peering_management_agent,
                                            azurerm_private_endpoint.kv_user
                                          ]
@@ -370,7 +390,11 @@ resource "azurerm_key_vault_secret" "pwd" {
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
+                                           null_resource.subscription_contributor_msi_fallback,
+                                           null_resource.deployer_msi_fallback,
+                                           null_resource.deployer_keyvault_msi_fallback,
+                                           null_resource.resource_group_contributor_msi_fallback,
+                                           null_resource.keyvault_secrets_user_msi_fallback,
                                            azurerm_virtual_network_peering.peering_management_agent,
                                            azurerm_private_endpoint.kv_user
                                          ]

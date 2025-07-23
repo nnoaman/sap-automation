@@ -1,4 +1,3 @@
-
 #######################################4#######################################8
 #                                                                              #
 #                                Role Assignments                              #
@@ -28,9 +27,13 @@ resource "null_resource" "subscription_contributor_msi_fallback" {
         echo "ERROR: Permission denied (403) - check service principal permissions"
         echo "$output"
         exit 1
+      elif [ $status -ne 0 ]; then
+        echo "ERROR: Failed with status $status."
+        echo "$output"
+        exit $status
       else
         echo "$output"
-        exit 1
+        exit 0
       fi
     EOT
     interpreter = ["bash", "-c"]
@@ -76,9 +79,13 @@ resource "null_resource" "deployer_msi_fallback" {
         echo "ERROR: Permission denied (403) - check service principal permissions"
         echo "$output"
         exit 1
+      elif [ $status -ne 0 ]; then
+        echo "ERROR: Failed with status $status."
+        echo "$output"
+        exit $status
       else
         echo "$output"
-        exit 1
+        exit 0
       fi
     EOT
     interpreter = ["bash", "-c"]
@@ -118,9 +125,13 @@ resource "null_resource" "deployer_keyvault_msi_fallback" {
         echo "ERROR: Permission denied (403) - check service principal permissions"
         echo "$output"
         exit 1
+      elif [ $status -ne 0 ]; then
+        echo "ERROR: Failed with status $status."
+        echo "$output"
+        exit $status
       else
         echo "$output"
-        exit 1
+        exit 0
       fi
     EOT
     interpreter = ["bash", "-c"]
@@ -148,10 +159,18 @@ resource "null_resource" "resource_group_contributor_msi_fallback" {
         PRINCIPAL_ID="${data.azurerm_user_assigned_identity.deployer[0].principal_id}"
       fi
 
+      # Determine the correct resource group scope
+      RG_EXISTS="${var.infrastructure.resource_group.exists}"
+      if [ "$RG_EXISTS" = "true" ]; then
+        SCOPE="${data.azurerm_resource_group.deployer[0].id}"
+      else
+        SCOPE="${azurerm_resource_group.deployer[0].id}"
+      fi
+
       output=$(az role assignment create \
         --assignee "$PRINCIPAL_ID" \
         --role "Contributor" \
-        --scope "${azurerm_resource_group.deployer.id}" 2>&1) || status=$?
+        --scope "$SCOPE" 2>&1) || status=$?
 
       if echo "$output" | grep -qiE "RoleAssignmentExists|already exists|The role assignment already exists"; then
         echo "Role assignment already exists. Skipping."
@@ -160,9 +179,13 @@ resource "null_resource" "resource_group_contributor_msi_fallback" {
         echo "ERROR: Permission denied (403) - check service principal permissions"
         echo "$output"
         exit 1
+      elif [ $status -ne 0 ]; then
+        echo "ERROR: Failed with status $status."
+        echo "$output"
+        exit $status
       else
         echo "$output"
-        exit 1
+        exit 0
       fi
     EOT
     interpreter = ["bash", "-c"]
@@ -173,8 +196,7 @@ resource "null_resource" "resource_group_contributor_msi_fallback" {
   }
 
   depends_on = [
-    azurerm_user_assigned_identity.deployer,
-    azurerm_resource_group.deployer
+    azurerm_user_assigned_identity.deployer
   ]
 }
 
@@ -202,9 +224,13 @@ resource "null_resource" "keyvault_secrets_user_msi_fallback" {
         echo "ERROR: Permission denied (403) - check service principal permissions"
         echo "$output"
         exit 1
+      elif [ $status -ne 0 ]; then
+        echo "ERROR: Failed with status $status."
+        echo "$output"
+        exit $status
       else
         echo "$output"
-        exit 1
+        exit 0
       fi
     EOT
     interpreter = ["bash", "-c"]
