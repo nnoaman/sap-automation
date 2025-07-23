@@ -4,15 +4,15 @@
 #                                                                              #
 #######################################4#######################################8
 resource "null_resource" "subscription_contributor_msi_fallback" {
-  count = var.assign_subscription_permissions ? 1 : 0
+  count = var.assign_subscription_permissions && (length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 1) ? 1 : 0
 
   provisioner "local-exec" {
     command = <<EOT
       # Determine the correct principal ID
       if [ -z "${var.deployer.user_assigned_identity_id}" ]; then
-        PRINCIPAL_ID="${azurerm_user_assigned_identity.deployer[0].principal_id}"
+        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
       else
-        PRINCIPAL_ID="${data.azurerm_user_assigned_identity.deployer[0].principal_id}"
+        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
       fi
 
       output=$(az role assignment create \
@@ -49,15 +49,15 @@ resource "null_resource" "subscription_contributor_msi_fallback" {
 }
 
 resource "null_resource" "deployer_msi_fallback" {
-  count = var.assign_subscription_permissions ? 1 : 0
+  count = var.assign_subscription_permissions && (length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 1) ? 1 : 0
 
   provisioner "local-exec" {
     command = <<EOT
       # Determine the correct principal ID
       if [ -z "${var.deployer.user_assigned_identity_id}" ]; then
-        PRINCIPAL_ID="${azurerm_user_assigned_identity.deployer[0].principal_id}"
+        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
       else
-        PRINCIPAL_ID="${data.azurerm_user_assigned_identity.deployer[0].principal_id}"
+        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
       fi
 
       # Determine the correct scope
@@ -102,15 +102,15 @@ resource "null_resource" "deployer_msi_fallback" {
 }
 
 resource "null_resource" "deployer_keyvault_msi_fallback" {
-  count = var.assign_subscription_permissions && !var.key_vault.exists ? 1 : 0
+  count = var.assign_subscription_permissions && !var.key_vault.exists && (length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 1) ? 1 : 0
 
   provisioner "local-exec" {
     command = <<EOT
       # Determine the correct principal ID
       if [ -z "${var.deployer.user_assigned_identity_id}" ]; then
-        PRINCIPAL_ID="${azurerm_user_assigned_identity.deployer[0].principal_id}"
+        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
       else
-        PRINCIPAL_ID="${data.azurerm_user_assigned_identity.deployer[0].principal_id}"
+        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
       fi
 
       output=$(az role assignment create \
@@ -148,23 +148,23 @@ resource "null_resource" "deployer_keyvault_msi_fallback" {
 }
 
 resource "null_resource" "resource_group_contributor_msi_fallback" {
-  count = var.assign_subscription_permissions ? 1 : 0
+  count = var.assign_subscription_permissions && (length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 1) ? 1 : 0
 
   provisioner "local-exec" {
     command = <<EOT
       # Determine the correct principal ID
       if [ -z "${var.deployer.user_assigned_identity_id}" ]; then
-        PRINCIPAL_ID="${azurerm_user_assigned_identity.deployer[0].principal_id}"
+        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
       else
-        PRINCIPAL_ID="${data.azurerm_user_assigned_identity.deployer[0].principal_id}"
+        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
       fi
 
       # Determine the correct resource group scope
       RG_EXISTS="${var.infrastructure.resource_group.exists}"
       if [ "$RG_EXISTS" = "true" ]; then
-        SCOPE="${data.azurerm_resource_group.deployer[0].id}"
+        SCOPE="${var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : ""}"
       else
-        SCOPE="${azurerm_resource_group.deployer[0].id}"
+        SCOPE="${!var.infrastructure.resource_group.exists ? azurerm_resource_group.deployer[0].id : ""}"
       fi
 
       output=$(az role assignment create \
@@ -201,15 +201,15 @@ resource "null_resource" "resource_group_contributor_msi_fallback" {
 }
 
 resource "null_resource" "keyvault_secrets_user_msi_fallback" {
-  count = var.assign_subscription_permissions && !var.key_vault.exists ? 1 : 0
+  count = var.assign_subscription_permissions && !var.key_vault.exists && (length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 1) ? 1 : 0
 
   provisioner "local-exec" {
     command = <<EOT
       # Determine the correct principal ID
       if [ -z "${var.deployer.user_assigned_identity_id}" ]; then
-        PRINCIPAL_ID="${azurerm_user_assigned_identity.deployer[0].principal_id}"
+        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
       else
-        PRINCIPAL_ID="${data.azurerm_user_assigned_identity.deployer[0].principal_id}"
+        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
       fi
 
       output=$(az role assignment create \
