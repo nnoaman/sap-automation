@@ -7,10 +7,10 @@ locals {
   enable_app_tier_deployment           = var.enable_app_tier_deployment && try(var.application_tier.enable_deployment, true)
 
   temp_infrastructure                  = {
-                                            environment                        = coalesce(var.environment, try(var.infrastructure.environment, ""))
-                                            region                             = lower(coalesce(var.location, try(var.infrastructure.region, "")))
-                                            codename                           = try(var.codename, try(var.infrastructure.codename, ""))
-                                            tags                               = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
+                                            environment                        = var.environment
+                                            region                             = var.location
+                                            codename                           = var.codename
+                                            tags                               = var.resourcegroup_tags
                                             use_app_proximityplacementgroups   = var.use_app_proximityplacementgroups
                                             deploy_monitoring_extension        = var.deploy_monitoring_extension
                                             deploy_defender_extension          = var.deploy_defender_extension
@@ -23,18 +23,9 @@ locals {
                                             disk_controller_type_database_tier = var.disk_controller_type_database_tier
                                             encryption_at_host_enabled         = var.encryption_at_host_enabled
                                             storage_account_replication_type   = var.storage_account_replication_type
-                                            application_configuration_id       = try(coalesce(
-                                                                                   var.application_configuration_id,
-                                                                                   try(data.terraform_remote_state.landscape.outputs.application_configuration_id, ""),
-                                                                                   try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
-                                                                                 ), "")
-
-                                            use_application_configuration      = length(try(coalesce(
-                                                                                   var.application_configuration_id,
-                                                                                   try(data.terraform_remote_state.landscape.outputs.application_configuration_id, ""),
-                                                                                   try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
-                                                                                 ), "")) > 0 ? true : false
-                                            workload_zone_name            = local.workload_zone_name
+                                            application_configuration_id       = var.application_configuration_id
+                                            use_application_configuration      = length(var.application_configuration_id) > 0 ? true : false
+                                            workload_zone_name                 = local.workload_zone_name
                                          }
 
 
