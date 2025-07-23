@@ -76,14 +76,6 @@ data "azurerm_key_vault_secret" "cp_subscription_id" {
                                           read = "1m"
                                        }
 }
-data "azurerm_key_vault_secret" "cp_subscription_id_v2" {
-  count                                = 1
-  name                                 = format("%s-subscription-id", var.control_plane_name)
-  key_vault_id                         = local.key_vault.spn.id
-  timeouts                             {
-                                          read = "1m"
-                                       }
-}
 data "azurerm_key_vault_secret" "cp_client_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", data.terraform_remote_state.deployer[0].outputs.environment)
@@ -154,6 +146,16 @@ data "azurerm_key_vault_secret" "cp_tenant_id_v2" {
   name                                 = format("%s-tenant-id", var.control_plane_name)
   key_vault_id                         = local.key_vault.spn.id
 }
+
+data "azurerm_key_vault_secret" "cp_subscription_id_v2" {
+  count                                = 1
+  name                                 = format("%s-subscription-id", var.control_plane_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+
 
 data "azurerm_app_configuration_key" "media_path"    {
   count                                = local.infrastructure.use_application_configuration ? 1 : 0
