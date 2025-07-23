@@ -357,6 +357,9 @@ else
 fi
 
 export TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d"-" -f1-3)
+TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+export TF_VAR_control_plane_name
 
 if [ "${deployment_system}" != sap_deployer ]; then
 	if [ -z "${deployer_tfstate_key}" ]; then
@@ -563,7 +566,7 @@ az account set --subscription "${terraform_storage_account_subscription_id}"
 if [ ! -f .terraform/terraform.tfstate ]; then
 	print_banner "$banner_title" "New deployment" "info"
 
-	if ! terraform -chdir="${terraform_module_directory}" init -upgrade  -input=false \
+	if ! terraform -chdir="${terraform_module_directory}" init -upgrade -input=false \
 		--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 		--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 		--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -585,7 +588,7 @@ else
 
 			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-			if terraform -chdir="${terraform_module_directory}" init -migrate-state  -upgrade  --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "$banner_title" "Terraform local init succeeded" "success"
 			else
@@ -597,7 +600,7 @@ else
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 
-		if terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade  -migrate-state \
+		if terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -616,7 +619,7 @@ else
 		echo "Terraform state:                     remote"
 		print_banner "$banner_title" "The system has already been deployed and the state file is in Azure" "info"
 
-		if terraform -chdir="${terraform_module_directory}" init  -upgrade -force-copy -migrate-state \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -1139,7 +1142,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
 		export APPLICATION_CONFIGURATION_DEPLOYMENT
 		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
 	fi
-
 
 fi
 

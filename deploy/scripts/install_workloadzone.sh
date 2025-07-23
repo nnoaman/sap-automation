@@ -66,6 +66,9 @@ while :; do
 		;;
 	-d | --deployer_tfstate_key)
 		deployer_tfstate_key="$2"
+		CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d"-" -f1-3)
+		TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+		export TF_VAR_control_plane_name
 		shift 2
 		;;
 	-e | --deployer_environment)

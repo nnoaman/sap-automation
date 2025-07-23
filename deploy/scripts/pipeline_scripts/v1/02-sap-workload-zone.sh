@@ -153,6 +153,9 @@ if [ -z "$deployer_tfstate_key" ]; then
 fi
 export deployer_tfstate_key
 
+CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d"-" -f1-3)
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+
 
 DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "deployer_keyvault")
 export DEPLOYER_KEYVAULT
