@@ -88,20 +88,20 @@ data "azurerm_key_vault_secret" "cp_tenant_id" {
 }
 
 data "azurerm_app_configuration_key" "deployer_state_file" {
-  count                                = var.infrastructure.use_application_configuration ? 1 : 0
+  count                                = local.infrastructure.use_application_configuration ? 1 : 0
   configuration_store_id               = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
   key                                  = format("%s_StateFileName", var.control_plane_name)
   label                                = var.control_plane_name
 }
 data "azurerm_app_configuration_key" "deployer_subscription_id" {
-  count                                = var.infrastructure.use_application_configuration ? 1 : 0
+  count                                = local.infrastructure.use_application_configuration ? 1 : 0
   configuration_store_id               = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
   key                                  = format("%s_SubscriptionId", var.control_plane_name)
   label                                = var.control_plane_name
 }
 
 data "azurerm_app_configuration_key" "deployer_key_vault_id" {
-  count                                = var.infrastructure.use_application_configuration ? 1 : 0
+  count                                = local.infrastructure.use_application_configuration ? 1 : 0
   configuration_store_id               = data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id
   key                                  = format("%s_deployer_keyvault_id", var.control_plane_name)
   label                                = var.control_plane_name
