@@ -14,12 +14,7 @@ data "azurerm_client_config" "current_main" {
 data "terraform_remote_state" "deployer" {
   backend                              = "azurerm"
 
-  count                                = var.use_deployer && length(coalesce(
-                                                                              var.infrastructure.use_application_configuration ? (
-                                                                                data.azurerm_app_configuration_key.deployer_state_file[0].value): (
-                                                                                ""),
-                                                                              try(var.deployer_tfstate_key, ""))
-                                                                              ) > 0 ? 1 : 0
+  count                                = length(var.deployer_tfstate_key) > 0 ? 1 : 0
   config                               = {
                                            resource_group_name  = local.SAPLibrary_resource_group_name
                                            storage_account_name = local.tfstate_storage_account_name
