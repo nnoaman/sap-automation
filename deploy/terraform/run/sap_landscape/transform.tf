@@ -99,13 +99,13 @@ locals {
                                            spn                                    = {
 
                                                                                       id     = trimspace(coalesce(
-                                                                                                         var.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.deployer_state_file[0].value : "",
+                                                                                                         local.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.deployer_state_file[0].value : "",
                                                                                                          contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",
                                                                                                          var.spn_keyvault_id,
                                                                                                          " ")
                                                                                                          )
                                                                                       exists = length(trimspace(coalesce(
-                                                                                                         var.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.deployer_state_file[0].value : "",
+                                                                                                         local.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.deployer_state_file[0].value : "",
                                                                                                          contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",
                                                                                                          var.spn_keyvault_id,
                                                                                                          " ")
