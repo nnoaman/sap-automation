@@ -23,6 +23,18 @@ locals {
                                             disk_controller_type_database_tier = var.disk_controller_type_database_tier
                                             encryption_at_host_enabled         = var.encryption_at_host_enabled
                                             storage_account_replication_type   = var.storage_account_replication_type
+                                            application_configuration_id       = try(coalesce(
+                                                                                   var.application_configuration_id,
+                                                                                   try(data.terraform_remote_state.landscape.outputs.application_configuration_id, ""),
+                                                                                   try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
+                                                                                 ), "")
+
+                                            use_application_configuration      = length(try(coalesce(
+                                                                                   var.application_configuration_id,
+                                                                                   try(data.terraform_remote_state.landscape.outputs.application_configuration_id, ""),
+                                                                                   try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
+                                                                                 ), "")) > 0 ? true : false
+                                            workload_zone_name            = local.workload_zone_name
                                          }
 
 

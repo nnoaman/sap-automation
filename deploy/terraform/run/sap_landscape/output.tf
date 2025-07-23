@@ -378,3 +378,35 @@ output ng_resource_id                           {
                                                   description = "NAT Gateway resource ID"
                                                   value       = module.sap_landscape.ng_resource_id
                                                 }
+
+
+
+###############################################################################
+#                                                                             #
+#                           Application Configuration                         #
+#                                                                             #
+###############################################################################
+
+
+output "deployer_app_config_name"                {
+                                                    description = "Application Configuration Name"
+                                                    value       = length(local.infrastructure.application_configuration_id) > 0 ? (
+                                                                    local.infrastructure.application_configuration_id) : (
+                                                                    ""
+                                                                  )
+                                                 }
+
+output "application_configuration_id"            {
+                                                    description = "Application Configuration Azure Resource Id"
+                                                    value       = local.infrastructure.application_configuration_id
+                                                 }
+
+output "control_plane_name"                      {
+                                                    description = "Control plane name"
+                                                    value       = var.control_plane_name
+                                                 }
+
+output "workload_zone_name"                      {
+                                                    description = "Workload Zone name"
+                                                    value       = local.workload_zone_name
+                                                 }

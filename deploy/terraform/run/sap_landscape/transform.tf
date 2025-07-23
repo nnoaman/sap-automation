@@ -50,7 +50,6 @@ locals {
                                            shared_access_key_enabled_nfs = var.shared_access_key_enabled_nfs
                                            tags                          = var.resourcegroup_tags
                                            user_assigned_identity_id     = var.user_assigned_identity_id
-
                                            application_configuration_id  = try(coalesce(
                                                                              var.application_configuration_id,
                                                                              try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
