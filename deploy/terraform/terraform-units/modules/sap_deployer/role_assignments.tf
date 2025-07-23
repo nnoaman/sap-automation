@@ -42,12 +42,8 @@ resource "null_resource" "subscription_contributor_msi_fallback" {
       if echo "$output" | grep -qiE "RoleAssignmentExists|already exists|The role assignment already exists"; then
         echo "Role assignment already exists. Skipping."
         exit 0
-      elif echo "$output" | grep -qiE "403|Forbidden"; then
-        echo "ERROR: Permission denied (403) - check service principal permissions"
-        echo "$output"
-        exit 1
       elif [ $${status:-0} -ne 0 ]; then
-        echo "ERROR: Failed with status $${status:-0}."
+        echo "ERROR: Failed to create role assignment:"
         echo "$output"
         exit $${status:-1}
       else
@@ -70,7 +66,7 @@ resource "null_resource" "deployer_msi_fallback" {
 
   provisioner "local-exec" {
     command = <<EOT
-            if [ -n "${var.deployer.user_assigned_identity_id}" ]; then
+      if [ -n "${var.deployer.user_assigned_identity_id}" ]; then
         PRINCIPAL_ID=$(az identity show --ids "${var.deployer.user_assigned_identity_id}" --query principalId -o tsv)
         if [ -z "$PRINCIPAL_ID" ]; then
           echo "ERROR: Could not retrieve principal ID for identity ${var.deployer.user_assigned_identity_id}"
@@ -104,12 +100,8 @@ resource "null_resource" "deployer_msi_fallback" {
       if echo "$output" | grep -qiE "RoleAssignmentExists|already exists|The role assignment already exists"; then
         echo "Role assignment already exists. Skipping."
         exit 0
-      elif echo "$output" | grep -qiE "403|Forbidden"; then
-        echo "ERROR: Permission denied (403) - check service principal permissions"
-        echo "$output"
-        exit 1
       elif [ $${status:-0} -ne 0 ]; then
-        echo "ERROR: Failed with status $${status:-0}."
+        echo "ERROR: Failed to create role assignment:"
         echo "$output"
         exit $${status:-1}
       else
@@ -165,12 +157,8 @@ resource "null_resource" "deployer_keyvault_msi_fallback" {
       if echo "$output" | grep -qiE "RoleAssignmentExists|already exists|The role assignment already exists"; then
         echo "Role assignment already exists. Skipping."
         exit 0
-      elif echo "$output" | grep -qiE "403|Forbidden"; then
-        echo "ERROR: Permission denied (403) - check service principal permissions"
-        echo "$output"
-        exit 1
       elif [ $${status:-0} -ne 0 ]; then
-        echo "ERROR: Failed with status $${status:-0}."
+        echo "ERROR: Failed to create role assignment:"
         echo "$output"
         exit $${status:-1}
       else
@@ -227,12 +215,8 @@ resource "null_resource" "resource_group_contributor_msi_fallback" {
       if echo "$output" | grep -qiE "RoleAssignmentExists|already exists|The role assignment already exists"; then
         echo "Role assignment already exists. Skipping."
         exit 0
-      elif echo "$output" | grep -qiE "403|Forbidden"; then
-        echo "ERROR: Permission denied (403) - check service principal permissions"
-        echo "$output"
-        exit 1
       elif [ $${status:-0} -ne 0 ]; then
-        echo "ERROR: Failed with status $${status:-0}."
+        echo "ERROR: Failed to create role assignment:"
         echo "$output"
         exit $${status:-1}
       else
@@ -288,12 +272,8 @@ resource "null_resource" "keyvault_secrets_user_msi_fallback" {
       if echo "$output" | grep -qiE "RoleAssignmentExists|already exists|The role assignment already exists"; then
         echo "Role assignment already exists. Skipping."
         exit 0
-      elif echo "$output" | grep -qiE "403|Forbidden"; then
-        echo "ERROR: Permission denied (403) - check service principal permissions"
-        echo "$output"
-        exit 1
       elif [ $${status:-0} -ne 0 ]; then
-        echo "ERROR: Failed with status $${status:-0}."
+        echo "ERROR: Failed to create role assignment:"
         echo "$output"
         exit $${status:-1}
       else
