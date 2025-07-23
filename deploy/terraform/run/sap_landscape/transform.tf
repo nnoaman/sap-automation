@@ -60,6 +60,7 @@ locals {
                                                                              var.application_configuration_id,
                                                                              try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
                                                                            ), "")) > 0 ? true : false
+                                           workload_zone_name            = local.workload_zone_name
                                          }
 
   authentication                       = {
