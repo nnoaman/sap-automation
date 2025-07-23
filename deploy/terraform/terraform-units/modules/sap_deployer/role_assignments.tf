@@ -4,15 +4,14 @@
 #                                                                              #
 #######################################4#######################################8
 resource "null_resource" "subscription_contributor_msi_fallback" {
-  count = var.assign_subscription_permissions && (length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 1) ? 1 : 0
+  count = var.assign_subscription_permissions ? 1 : 0
 
   provisioner "local-exec" {
     command = <<EOT
-      # Determine the correct principal ID
-      if [ -z "${var.deployer.user_assigned_identity_id}" ]; then
-        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
+      if [ -n "${var.deployer.user_assigned_identity_id}" ]; then
+        PRINCIPAL_ID=$(az identity show --ids "${var.deployer.user_assigned_identity_id}" --query principalId -o tsv)
       else
-        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
+        PRINCIPAL_ID="${azurerm_user_assigned_identity.deployer[0].principal_id}"
       fi
 
       output=$(az role assignment create \
@@ -27,10 +26,10 @@ resource "null_resource" "subscription_contributor_msi_fallback" {
         echo "ERROR: Permission denied (403) - check service principal permissions"
         echo "$output"
         exit 1
-      elif [ $status -ne 0 ]; then
-        echo "ERROR: Failed with status $status."
+      elif [ $${status:-0} -ne 0 ]; then
+        echo "ERROR: Failed with status $${status:-0}."
         echo "$output"
-        exit $status
+        exit $${status:-1}
       else
         echo "$output"
         exit 0
@@ -40,27 +39,23 @@ resource "null_resource" "subscription_contributor_msi_fallback" {
   }
 
   triggers = {
-    always_run = timestamp()
+    subscription_id = data.azurerm_subscription.primary.id
+    principal_id = var.deployer.user_assigned_identity_id != "" ? var.deployer.user_assigned_identity_id : (length(azurerm_user_assigned_identity.deployer) > 0 ? azurerm_user_assigned_identity.deployer[0].id : "")
   }
-
-  depends_on = [
-    azurerm_user_assigned_identity.deployer
-  ]
 }
 
 resource "null_resource" "deployer_msi_fallback" {
-  count = var.assign_subscription_permissions && (length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 1) ? 1 : 0
+  count = var.assign_subscription_permissions ? 1 : 0
 
   provisioner "local-exec" {
     command = <<EOT
-      # Determine the correct principal ID
-      if [ -z "${var.deployer.user_assigned_identity_id}" ]; then
-        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
+
+      if [ -n "${var.deployer.user_assigned_identity_id}" ]; then
+        PRINCIPAL_ID=$(az identity show --ids "${var.deployer.user_assigned_identity_id}" --query principalId -o tsv)
       else
-        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
+        PRINCIPAL_ID="${azurerm_user_assigned_identity.deployer[0].principal_id}"
       fi
 
-      # Determine the correct scope
       if [ -n "${var.deployer.deployer_diagnostics_account_arm_id}" ]; then
         SCOPE="${var.deployer.deployer_diagnostics_account_arm_id}"
       else
@@ -79,10 +74,10 @@ resource "null_resource" "deployer_msi_fallback" {
         echo "ERROR: Permission denied (403) - check service principal permissions"
         echo "$output"
         exit 1
-      elif [ $status -ne 0 ]; then
-        echo "ERROR: Failed with status $status."
+      elif [ $${status:-0} -ne 0 ]; then
+        echo "ERROR: Failed with status $${status:-0}."
         echo "$output"
-        exit $status
+        exit $${status:-1}
       else
         echo "$output"
         exit 0
@@ -92,25 +87,25 @@ resource "null_resource" "deployer_msi_fallback" {
   }
 
   triggers = {
-    always_run = timestamp()
+    storage_account_id = var.deployer.deployer_diagnostics_account_arm_id != "" ? var.deployer.deployer_diagnostics_account_arm_id : (length(azurerm_storage_account.deployer) > 0 ? azurerm_storage_account.deployer[0].id : "")
+    principal_id = var.deployer.user_assigned_identity_id != "" ? var.deployer.user_assigned_identity_id : (length(azurerm_user_assigned_identity.deployer) > 0 ? azurerm_user_assigned_identity.deployer[0].id : "")
   }
 
   depends_on = [
-    azurerm_user_assigned_identity.deployer,
     azurerm_storage_account.deployer
   ]
 }
 
 resource "null_resource" "deployer_keyvault_msi_fallback" {
-  count = var.assign_subscription_permissions && !var.key_vault.exists && (length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 1) ? 1 : 0
+  count = var.assign_subscription_permissions && !var.key_vault.exists ? 1 : 0
 
   provisioner "local-exec" {
     command = <<EOT
-      # Determine the correct principal ID
-      if [ -z "${var.deployer.user_assigned_identity_id}" ]; then
-        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
+
+      if [ -n "${var.deployer.user_assigned_identity_id}" ]; then
+        PRINCIPAL_ID=$(az identity show --ids "${var.deployer.user_assigned_identity_id}" --query principalId -o tsv)
       else
-        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
+        PRINCIPAL_ID="${azurerm_user_assigned_identity.deployer[0].principal_id}"
       fi
 
       output=$(az role assignment create \
@@ -125,10 +120,10 @@ resource "null_resource" "deployer_keyvault_msi_fallback" {
         echo "ERROR: Permission denied (403) - check service principal permissions"
         echo "$output"
         exit 1
-      elif [ $status -ne 0 ]; then
-        echo "ERROR: Failed with status $status."
+      elif [ $${status:-0} -ne 0 ]; then
+        echo "ERROR: Failed with status $${status:-0}."
         echo "$output"
-        exit $status
+        exit $${status:-1}
       else
         echo "$output"
         exit 0
@@ -138,33 +133,31 @@ resource "null_resource" "deployer_keyvault_msi_fallback" {
   }
 
   triggers = {
-    always_run = timestamp()
+    key_vault_id = length(azurerm_key_vault.kv_user) > 0 ? azurerm_key_vault.kv_user[0].id : ""
+    principal_id = var.deployer.user_assigned_identity_id != "" ? var.deployer.user_assigned_identity_id : (length(azurerm_user_assigned_identity.deployer) > 0 ? azurerm_user_assigned_identity.deployer[0].id : "")
   }
 
   depends_on = [
-    azurerm_user_assigned_identity.deployer,
     azurerm_key_vault.kv_user
   ]
 }
 
 resource "null_resource" "resource_group_contributor_msi_fallback" {
-  count = var.assign_subscription_permissions && (length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 1) ? 1 : 0
+  count = var.assign_subscription_permissions ? 1 : 0
 
   provisioner "local-exec" {
     command = <<EOT
-      # Determine the correct principal ID
-      if [ -z "${var.deployer.user_assigned_identity_id}" ]; then
-        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
+
+      if [ -n "${var.deployer.user_assigned_identity_id}" ]; then
+        PRINCIPAL_ID=$(az identity show --ids "${var.deployer.user_assigned_identity_id}" --query principalId -o tsv)
       else
-        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
+        PRINCIPAL_ID="${azurerm_user_assigned_identity.deployer[0].principal_id}"
       fi
 
-      # Determine the correct resource group scope
-      RG_EXISTS="${var.infrastructure.resource_group.exists}"
-      if [ "$RG_EXISTS" = "true" ]; then
-        SCOPE="${var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : ""}"
+      if [ "${var.infrastructure.resource_group.exists}" = "true" ]; then
+        SCOPE="${var.infrastructure.resource_group.id}"
       else
-        SCOPE="${!var.infrastructure.resource_group.exists ? azurerm_resource_group.deployer[0].id : ""}"
+        SCOPE="${azurerm_resource_group.deployer[0].id}"
       fi
 
       output=$(az role assignment create \
@@ -179,10 +172,10 @@ resource "null_resource" "resource_group_contributor_msi_fallback" {
         echo "ERROR: Permission denied (403) - check service principal permissions"
         echo "$output"
         exit 1
-      elif [ $status -ne 0 ]; then
-        echo "ERROR: Failed with status $status."
+      elif [ $${status:-0} -ne 0 ]; then
+        echo "ERROR: Failed with status $${status:-0}."
         echo "$output"
-        exit $status
+        exit $${status:-1}
       else
         echo "$output"
         exit 0
@@ -192,24 +185,21 @@ resource "null_resource" "resource_group_contributor_msi_fallback" {
   }
 
   triggers = {
-    always_run = timestamp()
+    resource_group_id = var.infrastructure.resource_group.exists ? var.infrastructure.resource_group.id : (length(azurerm_resource_group.deployer) > 0 ? azurerm_resource_group.deployer[0].id : "")
+    principal_id = var.deployer.user_assigned_identity_id != "" ? var.deployer.user_assigned_identity_id : (length(azurerm_user_assigned_identity.deployer) > 0 ? azurerm_user_assigned_identity.deployer[0].id : "")
   }
-
-  depends_on = [
-    azurerm_user_assigned_identity.deployer
-  ]
 }
 
 resource "null_resource" "keyvault_secrets_user_msi_fallback" {
-  count = var.assign_subscription_permissions && !var.key_vault.exists && (length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 1) ? 1 : 0
+  count = var.assign_subscription_permissions && !var.key_vault.exists ? 1 : 0
 
   provisioner "local-exec" {
     command = <<EOT
-      # Determine the correct principal ID
-      if [ -z "${var.deployer.user_assigned_identity_id}" ]; then
-        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
+
+      if [ -n "${var.deployer.user_assigned_identity_id}" ]; then
+        PRINCIPAL_ID=$(az identity show --ids "${var.deployer.user_assigned_identity_id}" --query principalId -o tsv)
       else
-        PRINCIPAL_ID="${length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : ""}"
+        PRINCIPAL_ID="${azurerm_user_assigned_identity.deployer[0].principal_id}"
       fi
 
       output=$(az role assignment create \
@@ -224,10 +214,10 @@ resource "null_resource" "keyvault_secrets_user_msi_fallback" {
         echo "ERROR: Permission denied (403) - check service principal permissions"
         echo "$output"
         exit 1
-      elif [ $status -ne 0 ]; then
-        echo "ERROR: Failed with status $status."
+      elif [ $${status:-0} -ne 0 ]; then
+        echo "ERROR: Failed with status $${status:-0}."
         echo "$output"
-        exit $status
+        exit $${status:-1}
       else
         echo "$output"
         exit 0
@@ -237,11 +227,11 @@ resource "null_resource" "keyvault_secrets_user_msi_fallback" {
   }
 
   triggers = {
-    always_run = timestamp()
+    key_vault_id = length(azurerm_key_vault.kv_user) > 0 ? azurerm_key_vault.kv_user[0].id : ""
+    principal_id = var.deployer.user_assigned_identity_id != "" ? var.deployer.user_assigned_identity_id : (length(azurerm_user_assigned_identity.deployer) > 0 ? azurerm_user_assigned_identity.deployer[0].id : "")
   }
 
   depends_on = [
-    azurerm_user_assigned_identity.deployer,
     azurerm_key_vault.kv_user
   ]
 }
