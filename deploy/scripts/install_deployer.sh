@@ -505,14 +505,14 @@ fi
 
 APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_name | tr -d \")
 if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-	save_config_var "APPLICATION_CONFIGURATION_NAME" "${system_config_information}"
+	save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_config_information}"
 	export APPLICATION_CONFIGURATION_NAME
 	echo "APPLICATION_CONFIGURATION_NAME:         $APPLICATION_CONFIGURATION_NAME"
 fi
 
 APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
 if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
-	save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${system_config_information}"
+	save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_config_information}"
 	export APPLICATION_CONFIGURATION_DEPLOYMENT
 	echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
 fi
@@ -520,14 +520,13 @@ fi
 deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 if [ -n "${deployer_random_id}" ]; then
 	custom_random_id="${deployer_random_id:0:3}"
-	sed -i -e /"custom_random_id"/d "${var_file}"
+	sed -i -e /"custom_random_id"/d "${parameterfile}"
 	printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-
 fi
 
 ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
 if [ -n "${ARM_CLIENT_ID}" ]; then
-	save_config_var "ARM_CLIENT_ID" "${system_config_information}"
+	save_config_var "ARM_CLIENT_ID" "${deployer_config_information}"
 	export ARM_CLIENT_ID
 fi
 

@@ -289,10 +289,11 @@ else
 	TF_VAR_use_spn=true
 	export TF_VAR_use_spn
 	echo "Deployer using:                      Service Principal"
+
 fi
 
 cd "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
-echo "Current directory:                $(pwd)"
+echo "Current directory:                   $(pwd)"
 
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" --parameterfile "${DEPLOYER_FOLDERNAME}.tfvars" --auto-approve; then
 	return_code=$?
