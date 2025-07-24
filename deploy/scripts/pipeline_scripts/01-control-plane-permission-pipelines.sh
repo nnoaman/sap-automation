@@ -8,7 +8,7 @@ parent_directory="$(dirname "$script_directory")"
 SCRIPT_NAME="$(basename "$0")"
 
 #call stack has full script name when using source
-source "${parent_directory}/helper.sh"
+source "${script_directory}/helper.sh"
 source "${parent_directory}/deploy_utils.sh"
 set -e
 
