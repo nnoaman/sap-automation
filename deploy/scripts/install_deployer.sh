@@ -525,6 +525,12 @@ if [ -n "${deployer_random_id}" ]; then
 
 fi
 
+ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+if [ -n "${ARM_CLIENT_ID}" ]; then
+	save_config_var "ARM_CLIENT_ID" "${system_config_information}"
+	export ARM_CLIENT_ID
+fi
+
 unset TF_DATA_DIR
 echo "Exiting: ${SCRIPT_NAME} ($install_deployer_return_value)"
 

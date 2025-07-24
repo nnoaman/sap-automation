@@ -154,6 +154,20 @@ stages:
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-permission-pipelines.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            name:                      PermissionPipelines
+            displayName:               Permission the pipelines
+            env:
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              AGENT_POOL:               $(POOL)
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
               filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"

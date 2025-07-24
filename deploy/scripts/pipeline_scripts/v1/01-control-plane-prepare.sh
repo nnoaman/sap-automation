@@ -337,6 +337,10 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	fi
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
 
+	ARM_CLIENT_ID=$(grep -m1 "^ARM_CLIENT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${ARM_CLIENT_ID}" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
+	fi
 
 	APPLICATION_CONFIGURATION_ID=$(grep -m1 "^APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
