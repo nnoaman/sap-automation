@@ -33,7 +33,32 @@ print_header
 # Configure DevOps
 configure_devops
 
+queueId=$(az pipelines queue list --query "[?name=='$AGENT_POOL'].id | [0]" -o tsv)
 
-az pipelines list --query "[].{id:id, name:name}" -o table
+pipeLines=$(az pipelines list --query [].id --output tsv)
 
-exit 10
+for pipeLine in $pipeLines; do
+
+	json_string=$(printf '{
+    "pipelines": [
+       { "id": "%s",
+          "authorized": true
+       }
+    ]
+}' $pipeLine)
+
+	if [ -f ./pipeline.json ]; then
+		rm ./pipeline.json
+	fi
+
+	echo $json_string | jq >./pipeline.json
+
+	az devops invoke --api-version "7.1-preview" --area "pipelinePermissions" --resource "pipelinePermissions" --http-method PATCH \
+		--in-file ./pipeline.json --route-parameters project=$SYSTEM_TEAMPROJECTID resource="pipelinePermissions" resourceType="queue" \
+		resourceId=$queueId
+	if [ -f ./pipeline.json ]; then
+		rm ./pipeline.json
+	fi
+
+done
+exit 0
