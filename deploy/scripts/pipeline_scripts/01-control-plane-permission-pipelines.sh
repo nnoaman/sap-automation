@@ -7,6 +7,9 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 SCRIPT_NAME="$(basename "$0")"
 
+green="\e[1;32m"
+reset="\e[0m"
+
 #call stack has full script name when using source
 source "${script_directory}/helper.sh"
 source "${parent_directory}/deploy_utils.sh"
