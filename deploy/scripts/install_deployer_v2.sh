@@ -474,10 +474,16 @@ function install_deployer() {
 		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
 	fi
 
-	ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+	ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_client_id | tr -d \")
 	if [ -n "${ARM_CLIENT_ID}" ]; then
 		save_config_var "ARM_CLIENT_ID" "${deployer_config_information}"
 		export ARM_CLIENT_ID
+	fi
+
+	ARM_OBJECT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+	if [ -n "${ARM_OBJECT_ID}" ]; then
+		save_config_var "ARM_OBJECT_ID" "${deployer_config_information}"
+		export ARM_OBJECT_ID
 	fi
 
 	HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")

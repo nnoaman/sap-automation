@@ -524,10 +524,16 @@ if [ -n "${deployer_random_id}" ]; then
 	printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 fi
 
-ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_client_id | tr -d \")
 if [ -n "${ARM_CLIENT_ID}" ]; then
 	save_config_var "ARM_CLIENT_ID" "${deployer_config_information}"
 	export ARM_CLIENT_ID
+fi
+
+ARM_OBJECT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+if [ -n "${ARM_OBJECT_ID}" ]; then
+	save_config_var "ARM_OBJECT_ID" "${deployer_config_information}"
+	export ARM_OBJECT_ID
 fi
 
 unset TF_DATA_DIR

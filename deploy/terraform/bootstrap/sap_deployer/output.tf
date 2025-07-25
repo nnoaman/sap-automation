@@ -74,8 +74,13 @@ output "deployer_msi_id"                         {
                                                  }
 
 output "deployer_user_assigned_identity"         {
-                                                   description = "The Object ID of the deployer MSI"
+                                                   description = "The object id of the deployer MSI"
                                                    value = module.sap_deployer.deployer_user_assigned_identity
+                                                 }
+
+output "deployer_client_id"                      {
+                                                   description = "The client id of the deployer User Assigned Identity"
+                                                   value = module.sap_deployer.deployer_client_id
                                                  }
 
 output "deployer_public_ip_address"              {
@@ -93,6 +98,7 @@ output "deployer_uai"                            {
                                                    value = {
                                                              principal_id = module.sap_deployer.deployer_uai.principal_id
                                                              tenant_id    = module.sap_deployer.deployer_uai.tenant_id
+                                                             client_id    = module.sap_deployer.deployer_uai.client_id
                                                            }
                                                  }
 
