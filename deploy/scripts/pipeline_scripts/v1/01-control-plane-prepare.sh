@@ -135,14 +135,16 @@ elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
 	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}${NETWORK}"
 fi
 
-TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv)
-if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
-	echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
-	export TF_VAR_DevOpsInfrastructure_object_id
-else
-	echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found."
+TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
+if [ -z "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+	TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv)
+	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+		export TF_VAR_DevOpsInfrastructure_object_id
+	else
+		echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
+	fi
 fi
-
 
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
@@ -370,6 +372,13 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		if printenv APPLICATION_CONFIGURATION_NAME; then
 			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
 		fi
+	fi
+
+	DevOpsInfrastructureObjectId=$(grep -m1 "^DevOpsInfrastructureObjectId" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	export DevOpsInfrastructureObjectId
+	echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
+	if printenv DevOpsInfrastructureObjectId; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
 	fi
 
 	APPLICATION_CONFIGURATION_DEPLOYMENT=$(grep -m1 "^APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
