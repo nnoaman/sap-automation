@@ -284,3 +284,15 @@ output "app_config_deployment"                 {
                                                    description = "Is the App Configuration deployed"
                                                    value       = var.application_configuration_deployment
                                                  }
+
+
+###############################################################################
+#                                                                             #
+#                                Dev Center                                   #
+#                                                                             #
+###############################################################################
+
+output "DevOpsInfrastructureObjectId"            {
+                                                   description = "DevOps Infrastructure Object ID"
+                                                   value       = var.DevOpsInfrastructure_object_id
+                                                 }

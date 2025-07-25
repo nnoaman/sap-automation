@@ -123,6 +123,12 @@ else
 fi
 cd "$CONFIG_REPO_PATH" || exit
 
+TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
+if [ -n "${TF_VAR_DevOpsInfrastructure_object_id}" ]; then
+	echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+	export TF_VAR_DevOpsInfrastructure_object_id
+fi
+
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id
 if [ -z "${TF_VAR_ansible_core_version}" ]; then

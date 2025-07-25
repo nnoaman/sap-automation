@@ -258,15 +258,11 @@ output "Agent_IP"                                {
                                                     value       = var.Agent_IP
                                                   }
 
-
-
 ###############################################################################
 #                                                                             #
 #                                App Config                                   #
 #                                                                             #
 ###############################################################################
-
-
 output "deployer_app_config_name"                {
                                                     description = "Application Configuration Name"
                                                     value       = module.sap_deployer.deployer_app_config_name
@@ -281,7 +277,18 @@ output "control_plane_name"                      {
                                                     value       = module.sap_namegenerator.naming.prefix.DEPLOYER
                                                  }
 
-output "app_config_deployment"                 {
+output "app_config_deployment"                   {
                                                    description = "Is the App Configuration deployed"
                                                    value       = var.application_configuration_deployment
+                                                 }
+
+###############################################################################
+#                                                                             #
+#                                Dev Center                                   #
+#                                                                             #
+###############################################################################
+
+output "DevOpsInfrastructureObjectId"            {
+                                                   description = "DevOps Infrastructure Object ID"
+                                                   value       = var.dev_center_deployment ? data.azuread_service_principal.ado[0].object_id : ""
                                                  }

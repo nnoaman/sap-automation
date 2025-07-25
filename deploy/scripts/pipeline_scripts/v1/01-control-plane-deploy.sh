@@ -184,6 +184,12 @@ else
 
 fi
 
+TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
+if [ -n "${TF_VAR_DevOpsInfrastructure_object_id}" ]; then
+	echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+	export TF_VAR_DevOpsInfrastructure_object_id
+fi
+
 STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 
 echo "Terraform state subscription:         $STATE_SUBSCRIPTION"

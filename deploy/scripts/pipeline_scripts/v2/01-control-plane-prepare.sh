@@ -266,6 +266,25 @@ set -eu
 
 if [ -f "${deployer_environment_file_name}" ]; then
 
+	ARM_CLIENT_ID=$(grep -m1 "^ARM_CLIENT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${ARM_CLIENT_ID}" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
+	fi
+	export ARM_CLIENT_ID
+
+	ARM_OBJECT_ID=$(grep -m1 "^ARM_OBJECT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${ARM_OBJECT_ID}" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
+	fi
+	export ARM_OBJECT_ID
+
+	DevOpsInfrastructureObjectId=$(grep -m1 "^DevOpsInfrastructureObjectId" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	export DevOpsInfrastructureObjectId
+	echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
+	if printenv DevOpsInfrastructureObjectId; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
+	fi
+
 	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -z "$file_deployer_tfstate_key" ]; then
 		deployer_tfstate_key=$file_deployer_tfstate_key

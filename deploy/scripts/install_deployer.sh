@@ -536,6 +536,12 @@ if [ -n "${ARM_OBJECT_ID}" ]; then
 	export ARM_OBJECT_ID
 fi
 
+DevOpsInfrastructureObjectId=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw DevOpsInfrastructureObjectId | tr -d \")
+if [ -n "${DevOpsInfrastructureObjectId}" ]; then
+	save_config_var "DevOpsInfrastructureObjectId" "${deployer_config_information}"
+	export DevOpsInfrastructureObjectId
+fi
+
 unset TF_DATA_DIR
 echo "Exiting: ${SCRIPT_NAME} ($install_deployer_return_value)"
 

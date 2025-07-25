@@ -486,6 +486,12 @@ function install_deployer() {
 		export ARM_OBJECT_ID
 	fi
 
+	DevOpsInfrastructureObjectId=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw DevOpsInfrastructureObjectId | tr -d \")
+	if [ -n "${DevOpsInfrastructureObjectId}" ]; then
+		save_config_var "DevOpsInfrastructureObjectId" "${deployer_config_information}"
+		export DevOpsInfrastructureObjectId
+	fi
+
 	HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
 	if [ -n "${HAS_WEBAPP}" ]; then
 		save_config_var "HAS_WEBAPP" "${deployer_config_information}"
