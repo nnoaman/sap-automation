@@ -89,6 +89,15 @@ print_header
 # Configure DevOps
 configure_devops
 
+TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv)
+if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+	echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+	export TF_VAR_DevOpsInfrastructure_object_id
+else
+	echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found."
+fi
+
+
 CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
 export "CONTROL_PLANE_NAME"
 VARIABLE_GROUP="SDAF-${CONTROL_PLANE_NAME}"

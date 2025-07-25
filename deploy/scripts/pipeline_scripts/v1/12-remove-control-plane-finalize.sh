@@ -89,6 +89,14 @@ print_header
 # Configure DevOps
 configure_devops
 
+TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv)
+if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+	echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+	export TF_VAR_DevOpsInfrastructure_object_id
+else
+	echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found."
+fi
+
 ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $1}')
 LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $2}')
 
