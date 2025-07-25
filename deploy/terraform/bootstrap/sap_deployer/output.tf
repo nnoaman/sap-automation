@@ -290,5 +290,5 @@ output "app_config_deployment"                   {
 
 output "DevOpsInfrastructureObjectId"            {
                                                    description = "DevOps Infrastructure Object ID"
-                                                   value       = var.dev_center_deployment ? data.azuread_service_principal.ado[0].object_id : ""
+                                                   value       = var.DevOpsInfrastructure_object_id
                                                  }

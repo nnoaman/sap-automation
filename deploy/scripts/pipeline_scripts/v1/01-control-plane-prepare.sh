@@ -136,7 +136,10 @@ elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
 fi
 
 TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
-if [ -z "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+	echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+	export TF_VAR_DevOpsInfrastructure_object_id
+else
 	TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv)
 	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
 		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
@@ -145,6 +148,7 @@ if [ -z "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
 		echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
 	fi
 fi
+
 
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
