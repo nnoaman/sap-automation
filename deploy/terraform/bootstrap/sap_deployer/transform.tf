@@ -1,6 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+data "azuread_service_principal" "ado"             {
+                                                    count        = var.dev_center_deployment ? 1 : 0
+                                                    display_name = "DevOpsInfrastructure"
+                                                  }
 
 locals {
 
@@ -108,11 +112,9 @@ locals {
                                            agent_pool                     = var.agent_pool
                                            ansible_core_version           = var.ansible_core_version
                                            tf_version                     = var.tf_version
-                                           DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
+                                           DevOpsInfrastructure_object_id = var.dev_center_deployment ? data.azuread_service_principal.ado[0].object_id : ""
                                          }
-
   }
-
   deployer                             = {
                                            size = try(
                                              coalesce(
