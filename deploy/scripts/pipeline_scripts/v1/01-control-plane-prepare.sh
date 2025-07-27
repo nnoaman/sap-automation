@@ -377,9 +377,9 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	fi
 
 	DevOpsInfrastructureObjectId=$(grep -m1 "^DevOpsInfrastructureObjectId" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	export DevOpsInfrastructureObjectId
-	echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
-	if printenv DevOpsInfrastructureObjectId; then
+	if [ -n "$DevOpsInfrastructureObjectId" ]; then
+		export DevOpsInfrastructureObjectId
+		echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
 	fi
 
