@@ -71,8 +71,7 @@ else
 	print_banner "Removal using ARM" "Resource group: $LIBRARY_FOLDERNAME was not found" "warning"
 fi
 
-
-if [  0 == $library_return_code ]; then
+if [ 0 == $library_return_code ]; then
 
 	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		echo "Deleting variables"
@@ -139,7 +138,7 @@ echo -e "$green--- Removing deployment automation configuration from devops repo
 echo "##vso[task.setprogress value=90;]Progress Indicator"
 echo -e "$green--- Deleting variables ---$reset"
 
-if [  0 == $deployer_return_code ]; then
+if [ 0 -eq $deployer_return_code ]; then
 
 	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		echo "Deleting variables"
