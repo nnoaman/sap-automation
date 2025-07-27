@@ -87,7 +87,7 @@ output "deployer_user_assigned_identity"   {
 
 output "deployer_client_id"                {
                                               description  = "Deployer User Assigned Identity (Client Id)"
-                                              value        = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : azurerm_user_assigned_identity.deployer[0].principal_id
+                                              value        = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
                                            }
 
 output "diagnostics_account_id"            {
