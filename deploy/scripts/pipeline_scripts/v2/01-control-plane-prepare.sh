@@ -157,7 +157,7 @@ if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
 	echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
 	export TF_VAR_DevOpsInfrastructure_object_id
 else
-	TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv)
+	TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv && :)
 	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
 		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
 		export TF_VAR_DevOpsInfrastructure_object_id
@@ -296,7 +296,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	DevOpsInfrastructureObjectId=$(grep -m1 "^DevOpsInfrastructureObjectId" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	export DevOpsInfrastructureObjectId
 	echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
-	if printenv DevOpsInfrastructureObjectId; then
+	if [ -n "${DevOpsInfrastructureObjectId}" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
 	fi
 
