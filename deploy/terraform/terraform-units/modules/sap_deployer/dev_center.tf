@@ -1,6 +1,16 @@
+resource "time_sleep" "wait_for_role_assignments" {
+  count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
+  create_duration                               = "60s"
+
+  depends_on                                   = [
+                                               azurerm_role_assignment.resource_group_user_access_admin_msi,
+                                               azurerm_role_assignment.resource_group_user_access_admin_spn
+                                                 ]
+}
 
 resource "azurerm_dev_center" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
+  depends_on                                    = [ time_sleep.wait_for_role_assignments ]
   name                                          = lower(format("%s%s%s%s",
                                                     var.naming.resource_prefixes.dev_center,
                                                     var.infrastructure.environment,
@@ -67,6 +77,7 @@ resource "azurerm_dev_center_dev_box_definition" "deployer" {
 
 resource "azapi_resource" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
+
   name                                          = var.infrastructure.devops.agent_pool
   location                                      = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   type                                          = "microsoft.devopsinfrastructure/pools@2025-01-21"
