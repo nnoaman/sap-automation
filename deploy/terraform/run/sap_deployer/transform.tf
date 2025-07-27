@@ -1,12 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-data "azuread_service_principal" "ado"             {
-                                                    count        = var.dev_center_deployment ? 1 : 0
-                                                    display_name = "DevOpsInfrastructure"
-                                                  }
-
-
 locals {
   infrastructure = {
     environment                        = coalesce(
