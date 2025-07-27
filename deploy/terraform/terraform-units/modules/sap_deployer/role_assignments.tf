@@ -6,14 +6,27 @@
 #                                                                              #
 #######################################4#######################################8
 
+resource "azurerm_role_assignment" "subscription_contributor_msi" {
+  count                                = var.options.assign_subscription_permissions && length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
+  provider                             = azurerm.main
+  scope                                = data.azurerm_subscription.primary.id
+  role_definition_name                 = "Contributor"
+  principal_id                         = azurerm_user_assigned_identity.deployer[0].principal_id
+}
+
+resource "azurerm_role_assignment" "subscription_useraccessadmin_msi" {
+  count                                = var.options.assign_subscription_permissions && length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
+  provider                             = azurerm.main
+  scope                                = data.azurerm_subscription.primary.id
+  role_definition_name                 = "User Access Administrator"
+  principal_id                         = azurerm_user_assigned_identity.deployer[0].principal_id
+}
 
 ###############################################################################
 #                                                                             #
 #                            System Assigned Identity                         #
 #                                                                             #
 ###############################################################################
-
-
 resource "azurerm_role_assignment" "deployer" {
   provider                             = azurerm.main
   count                                = var.options.assign_resource_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
@@ -57,7 +70,7 @@ resource "azurerm_role_assignment" "deployer_msi" {
   count                                = var.options.assign_resource_permissions && length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
   scope                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
   role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         =  azurerm_user_assigned_identity.deployer[0].principal_id
+  principal_id                         = azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
 resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" {
@@ -116,14 +129,6 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_msi" {
   #                                            )
   #                                           )
   #                                           EOT
-}
-
-resource "azurerm_role_assignment" "subscription_contributor_msi" {
-  count                                = var.options.assign_subscription_permissions && length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
-  provider                             = azurerm.main
-  scope                                = data.azurerm_subscription.primary.id
-  role_definition_name                 = "Contributor"
-  principal_id                         =  azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
 ###############################################################################
@@ -241,7 +246,6 @@ resource "azurerm_role_assignment" "appconfig_data_owner_spn" {
   principal_id                         = data.azurerm_client_config.current.object_id
 
 }
-
 
 locals {
   run_as_msi                           = length(var.deployer.user_assigned_identity_id) == 0 ? (
