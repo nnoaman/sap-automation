@@ -395,7 +395,7 @@ if [ -n "${deployer_statefile_foldername}" ]; then
 
 else
 	terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
-		-var-file="${var_file}" -input=false | tee -a plan_output.log
+		-var-file="${var_file}" -input=false | tee plan_output.log
 	install_library_return_value=${PIPESTATUS[0]}
 	if [ $install_library_return_value -eq 1 ]; then
 
@@ -409,6 +409,7 @@ else
 		unset TF_DATA_DIR
 		exit $install_library_return_value
 	fi
+
 	allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 	allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 fi
@@ -464,41 +465,41 @@ if [ -f apply_output.json ]; then
 		if [ -n "${approve}" ]; then
 
 			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-				install_library_return_value=$?
-			else
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 				install_library_return_value=0
+			else
+				install_library_return_value=$?
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					install_library_return_value=$?
-				else
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					install_library_return_value=0
+				else
+					install_library_return_value=$?
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					install_library_return_value=$?
-				else
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					install_library_return_value=0
+				else
+					install_library_return_value=$?
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					install_library_return_value=$?
-				else
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					install_library_return_value=0
+				else
+					install_library_return_value=$?
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					install_library_return_value=$?
-				else
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					install_library_return_value=0
+				else
+					install_library_return_value=$?
 				fi
 			fi
 		else
@@ -514,7 +515,7 @@ fi
 if [ 1 == $install_library_return_value ]; then
 	print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
 	unset TF_DATA_DIR
-	exit $install_library_return_value
+	exit "$install_library_return_value"
 fi
 
 if [ "$DEBUG" = True ]; then
@@ -547,4 +548,4 @@ fi
 
 echo "Exiting: ${SCRIPT_NAME}"
 
-exit $install_library_return_value
+exit "$install_library_return_value"
