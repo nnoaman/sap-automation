@@ -116,7 +116,7 @@ resource "azurerm_app_configuration_key" "SAPMediaPath" {
             }
 }
 locals {
-  application_configuration_deployed   = var.deployer.use ? length(try(var.deployer_tfstate.deployer_app_config_id, var.deployer.application_configuration_id )) > 0 : length(var.deployer.application_configuration_id ) > 0
+  application_configuration_deployed   = length(var.deployer.application_configuration_id ) > 0
   parsed_id                            = local.application_configuration_deployed ? provider::azurerm::parse_resource_id(coalesce(var.deployer.application_configuration_id, try(var.deployer_tfstate.deployer_app_config_id, ""))) : null
   app_config_name                      = local.application_configuration_deployed ? local.parsed_id["resource_name"] : ""
   app_config_resource_group_name       = local.application_configuration_deployed ? local.parsed_id["resource_group_name"] : ""
