@@ -142,8 +142,7 @@ output "subnet_webapp_id"                        {
 
 output "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                 description = "List of subnets to add to the firewall for keyvaults and storage"
-                                                                value       = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
-
+                                                                value       = compact(concat(var.subnets_to_add_to_firewall_for_keyvaults_and_storage, module.sap_deployer.agent_subnet_id))
                                                               }
 
 output "additional_network_id"                     {
