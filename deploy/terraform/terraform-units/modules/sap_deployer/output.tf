@@ -121,6 +121,11 @@ output "subnet_mgmt_address_prefixes" {
                                               value       = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
                                            }
 
+output "agent_subnet_id" {
+                                        description       = "Agent Subnet ID"
+                                              value       = var.infrastructure.dev_center_deployment ? (var.infrastructure.virtual_network.management.subnet_agent.exists ? data.azurerm_subnet.subnet_agent[0].id : azurerm_subnet.subnet_agent[0].id) : ""
+                                           }
+
 // Details of webapp subnet that is deployed/imported
 output "subnet_webapp_id" {
                                         description       = "Webapp Subnet ID"
@@ -138,7 +143,7 @@ output "random_id" {
                                               value       = random_id.deployer.hex
                                            }
 
-output "user_vault_name" {
+output "user_vault_name"                  {
                                         description       = "Key Vault Name"
                                               value       = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
                                            }
