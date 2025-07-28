@@ -330,7 +330,7 @@ resource "azurerm_key_vault_secret" "username" {
 }
 
 resource "azurerm_key_vault_secret" "pat" {
-  count                                = local.enable_key && (length(var.infrastructure.devops.agent_pat)> 0 ) && !var.key_vault.exists  ? 1 : 0
+  count                                = local.enable_key && (length(var.infrastructure.devops.agent_pat)> 0 ) && !var.key_vault.exists  ? 0 : 0
 
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],

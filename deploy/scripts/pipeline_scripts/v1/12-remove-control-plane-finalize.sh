@@ -260,11 +260,11 @@ if [ 0 == $return_code ]; then
 	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		echo "Deleting variables"
 
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
 		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "APPSERVICE_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "CONTROL_PLANE_ENVIRONMENT"
 		remove_variable "$VARIABLE_GROUP_ID" "CONTROL_PLANE_LOCATION"
-		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
 		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
