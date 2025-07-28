@@ -47,3 +47,6 @@ variables:
 
   - name:                              connection_name
     value:                             ${{ parameters.connection_name }}
+
+  - name:                              control_plane_name
+    value:                             $[upper(format('{0}-{1}-{2}', split('${{ parameters.deployer }}', '-')[0], split('${{ parameters.deployer }}', '-')[1], split('${{ parameters.deployer }}', '-')[2]))]
