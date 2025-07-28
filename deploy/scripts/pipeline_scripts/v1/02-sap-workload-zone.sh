@@ -67,18 +67,29 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 export VARIABLE_GROUP_ID
 
+if [ -v SYSTEM_ACCESSTOKEN ]; then
+	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
+fi
+
+if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
+	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
+	exit 2
+fi
+export PARENT_VARIABLE_GROUP_ID
+
 # Set logon variables
 if [ "$USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
+	ARM_CLIENT_ID=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "${workload_environment_file_name}" "ARM_CLIENT_ID")
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
+	ARM_OBJECT_ID=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${workload_environment_file_name}" "ARM_OBJECT_ID")
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
 else
 	ARM_USE_MSI=false
 	export ARM_USE_MSI
-fi
-
-if [ -v SYSTEM_ACCESSTOKEN ]; then
-	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
 fi
 
 # Check if running on deployer
@@ -97,13 +108,6 @@ fi
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id
-
-if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
-	exit 2
-fi
-export PARENT_VARIABLE_GROUP_ID
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
@@ -148,14 +152,13 @@ if [ -z "$deployer_tfstate_key" ]; then
 		# Delete the old variable
 
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" ""
-	  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
 	fi
 fi
 export deployer_tfstate_key
 
 CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d"-" -f1-3)
 saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-
 
 DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "deployer_keyvault")
 export DEPLOYER_KEYVAULT

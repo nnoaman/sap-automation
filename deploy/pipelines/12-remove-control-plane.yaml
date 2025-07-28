@@ -76,19 +76,27 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Remove control plane
             env:
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
-              ARM_USE_MSI:              $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              TF_IN_AUTOMATION:         true
-              TF_LOG:                   $(TF_LOG)
-              USE_MSI:                  $(Use_MSI)
-              key_vault:                $(DEPLOYER_KEYVAULT)
+              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                $(ARM_TENANT_ID)
+              ARM_USE_MSI:                  $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
+              TF_IN_AUTOMATION:             true
+              TF_LOG:                       $(TF_LOG)
+              TF_VAR_agent_ado_url:         $(System.CollectionUri)
+              TF_VAR_agent_pat:             $(System.AccessToken)
+              TF_VAR_agent_pool:            $(POOL)
+              TF_VAR_ansible_core_version:  $(ansible_core_version)
+              TF_VAR_agent_ado_project:     $(System.TeamProject)
+              TF_VAR_control_plane_name:    $(control_plane_name)
+              TF_VAR_spn_id:                $(ARM_OBJECT_ID)
+              TF_VAR_tf_version:            $(tf_version)
+              USE_MSI:                      $(Use_MSI)
+              key_vault:                    $(DEPLOYER_KEYVAULT)
   - stage:                              Remove_control_plane
     displayName:                        "Finalize control plane removal"
     variables:
