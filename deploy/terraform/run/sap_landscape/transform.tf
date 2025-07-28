@@ -52,12 +52,12 @@ locals {
                                            user_assigned_identity_id     = var.user_assigned_identity_id
                                            application_configuration_id  = try(coalesce(
                                                                              var.application_configuration_id,
-                                                                             try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
+                                                                             try(data.terraform_remote_state.deployer[0].outputs.application_configuration_id, "")
                                                                            ), "")
 
                                            use_application_configuration = length(try(coalesce(
                                                                              var.application_configuration_id,
-                                                                             try(data.terraform_remote_state.deployer[0].outputs.deployer_app_config_id, "")
+                                                                             try(data.terraform_remote_state.deployer[0].outputs.application_configuration_id, "")
                                                                            ), "")) > 0 ? true : false
                                            workload_zone_name            = local.workload_zone_name
                                          }

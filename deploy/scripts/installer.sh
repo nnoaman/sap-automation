@@ -1124,7 +1124,7 @@ if [ "${deployment_system}" == sap_deployer ]; then
 		fi
 	fi
 
-	APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_name | tr -d \")
+	APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
 	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
 		save_config_var "APPLICATION_CONFIGURATION_NAME" "${system_config_information}"
 		export APPLICATION_CONFIGURATION_NAME

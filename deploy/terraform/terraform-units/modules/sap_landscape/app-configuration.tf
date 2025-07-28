@@ -125,7 +125,7 @@ resource "azurerm_app_configuration_key" "witness_name" {
 
 locals {
 
-  parsed_id                           = var.infrastructure.use_application_configuration ? provider::azurerm::parse_resource_id(coalesce(var.infrastructure.application_configuration_id, try(var.deployer_tfstate.deployer_app_config_id, ""))) : null
+  parsed_id                           = var.infrastructure.use_application_configuration ? provider::azurerm::parse_resource_id(coalesce(var.infrastructure.application_configuration_id, try(var.deployer_tfstate.application_configuration_id, ""))) : null
   app_config_name                     = var.infrastructure.use_application_configuration ? local.parsed_id["resource_name"] : ""
   app_config_resource_group_name      = var.infrastructure.use_application_configuration ? local.parsed_id["resource_group_name"] : ""
   }

@@ -263,13 +263,13 @@ output "Agent_IP"                                {
 #                                App Config                                   #
 #                                                                             #
 ###############################################################################
-output "deployer_app_config_name"                {
+output "application_configuration_name"                {
                                                     description = "Application Configuration Name"
-                                                    value       = module.sap_deployer.deployer_app_config_name
+                                                    value       = module.sap_deployer.application_configuration_name
                                                  }
-output "deployer_app_config_id"                  {
+output "application_configuration_id"                  {
                                                     description = "Application Configuration Azure Resource Id"
-                                                    value       = module.sap_deployer.deployer_app_config_id
+                                                    value       = module.sap_deployer.application_configuration_id
                                                  }
 
 output "control_plane_name"                      {

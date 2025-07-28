@@ -447,7 +447,7 @@ function install_deployer() {
 		export DEPLOYER_KEYVAULT
 	fi
 
-	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_id | tr -d \")
 	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
 		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
 		export APPLICATION_CONFIGURATION_ID

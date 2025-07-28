@@ -388,7 +388,7 @@ output ng_resource_id                           {
 ###############################################################################
 
 
-output "deployer_app_config_name"                {
+output "application_configuration_name"                {
                                                     description = "Application Configuration Name"
                                                     value       = length(local.infrastructure.application_configuration_id) > 0 ? (
                                                                     local.infrastructure.application_configuration_id) : (

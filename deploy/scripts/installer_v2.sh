@@ -1068,7 +1068,7 @@ function sdaf_installer() {
 				export DEPLOYER_KEYVAULT
 			fi
 
-			APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+			APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_id | tr -d \")
 			if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
 				save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
 				export APPLICATION_CONFIGURATION_ID
@@ -1090,7 +1090,7 @@ function sdaf_installer() {
 
 		DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color deployer_kv_user_name | tr -d \")
 
-		app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color deployer_app_config_id | tr -d \")
+		app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color application_configuration_id | tr -d \")
 
 		app_service_name=$(terraform -chdir="${terraform_module_directory}" output -no-color webapp_url_base | tr -d \")
 
