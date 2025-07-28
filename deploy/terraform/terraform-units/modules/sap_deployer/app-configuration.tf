@@ -366,7 +366,7 @@ resource "azurerm_app_configuration_key" "deployer_subnet_id" {
 
 resource "azurerm_private_endpoint" "app_config" {
   provider                             = azurerm.main
-  count                                = !var.bootstrap && var.use_private_endpoint && var.app_config_service.deploy ? 1 : 0
+  count                                = var.bootstrap ? 0 : (var.use_private_endpoint && var.app_config_service.deploy ? 1 : 0)
   name                                 = format("%s%s%s",
                                           var.naming.resource_prefixes.appconfig_private_link,
                                           local.prefix,
