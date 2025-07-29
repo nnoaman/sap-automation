@@ -15,17 +15,16 @@ script_directory="$(dirname "${full_script_path}")"
 set -euo pipefail
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-false}" == 'true' ]]; then
+if [[ "${DEBUG:-False}" = True ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error
-	DEBUG=true
 	set -o errexit
 	echo "Environment variables:"
 	printenv | sort
 else
 	# Disable debugging
-	DEBUG=false
+	DEBUG=False
 fi
 
 # Constants

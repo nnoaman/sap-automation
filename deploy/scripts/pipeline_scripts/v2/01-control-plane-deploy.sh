@@ -300,7 +300,7 @@ export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
 print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
-if [ "$DEBUG" == True ]; then
+if [ "$DEBUG" = True ]; then
 	echo "ARM Environment variables:"
 	printenv | grep ARM_
 fi
