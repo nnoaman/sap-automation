@@ -22,7 +22,7 @@ source "${script_directory}/set-colors.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=false
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" = True ]; then
 	set -x
 	DEBUG=true
 	echo "Environment variables:"

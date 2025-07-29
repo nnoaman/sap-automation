@@ -41,12 +41,43 @@ if [ "$PLATFORM" == "devops" ]; then
 		exit 2
 	fi
 	export VARIABLE_GROUP_ID
+	TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
+	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+		export TF_VAR_DevOpsInfrastructure_object_id
+	else
+		TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv && :)
+		if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+			echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+			export TF_VAR_DevOpsInfrastructure_object_id
+		else
+			echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
+		fi
+	fi
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
+
+	# Set required environment variables for GitHub
+	export USER=${GITHUB_ACTOR:-githubuser}
+	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
+	platform_flag="--github"
+	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
+	export TF_VAR_github_server_url
+
+	TF_VAR_github_api_url=${GITHUB_API_URL}
+	export TF_VAR_github_api_url
+
+	TF_VAR_github_repository=${GITHUB_REPOSITORY}
+	export TF_VAR_github_repository
+
+	TF_VAR_devops_platform="github"
+	export TF_VAR_devops_platform
+else
+	platform_flag=""
 fi
 
 banner_title="Deploy Control Plane"
@@ -69,59 +100,22 @@ fi
 terraform_storage_account_name=""
 terraform_storage_account_resource_group_name=$LIBRARY_FOLDERNAME
 
-# Print the execution environment details
-print_header
-
-# Platform-specific configuration
-if [ "$PLATFORM" == "devops" ]; then
-	# Configure DevOps
-	configure_devops
-
-	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
-		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-		exit 2
-	fi
-	export VARIABLE_GROUP_ID
-elif [ "$PLATFORM" == "github" ]; then
-	# Set required environment variables for GitHub
-	export USER=${GITHUB_ACTOR:-githubuser}
-	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
-	platform_flag="--github"
-	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
-	export TF_VAR_github_server_url
-
-	TF_VAR_github_api_url=${GITHUB_API_URL}
-	export TF_VAR_github_api_url
-
-	TF_VAR_github_repository=${GITHUB_REPOSITORY}
-	export TF_VAR_github_repository
-
-	TF_VAR_devops_platform="github"
-	export TF_VAR_devops_platform
-else
-	platform_flag=""
-fi
+msi_flag=""
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.11.3}"
-
-	echo -e "$green--- az login ---$reset_formatting"
+	configureNonDeployer "${tf_version:-1.12.2}"
 else
-	if [ "${USE_MSI:-false}" == "true" ]; then
+	if [ "${ARM_USE_MSI:-false}" == "true" ]; then
+  	msi_flag=" --msi "
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
 		echo "Deployment using:                    Managed Identity"
 		ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 		export ARM_CLIENT_ID
 	else
 		TF_VAR_use_spn=true
 		export TF_VAR_use_spn
-		ARM_USE_MSI=false
-		export ARM_USE_MSI
 		echo "Deployment using:                    Service Principal"
 
 		# Get SPN ID differently per platform
@@ -129,7 +123,7 @@ else
 			TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
 		elif [ "$PLATFORM" == "github" ]; then
 			# Use value from env or from GitHub environment
-			TF_VAR_spn_id=${OBJECT_ID:-$TF_VAR_spn_id}
+			TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
 		fi
 
 		if [ -n "$TF_VAR_spn_id" ]; then
@@ -163,7 +157,6 @@ fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 if [ -v DEPLOYER_KEYVAULT ]; then
 	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 fi
@@ -175,11 +168,10 @@ if [ -z "$key_vault_id" ]; then
 		echo "ERROR: Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration."
 	fi
 fi
-
-tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-
 TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
 export TF_VAR_deployer_kv_user_arm_id
+
+tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId")
 
 echo ""
 echo -e "${green}Terraform parameter information:"
@@ -218,16 +210,18 @@ if [ -n "$tfstate_resource_id" ]; then
 
 else
 	echo "Terraform storage account:            undefined"
-	storage_account_parameter=
+	storage_account_parameter=""
 fi
-
-start_group "Decrypting state files"
-# Handle state.zip differently per platform
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
 
-git pull -q
+# Pull latest changes from appropriate branch
+if [ "$PLATFORM" == "devops" ]; then
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	git pull -q origin "$GITHUB_REF_NAME"
+fi
 
 if [ "$PLATFORM" == "devops" ]; then
 	pass=${SYSTEM_COLLECTIONID//-/}
@@ -282,18 +276,6 @@ export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
 print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
-msi_flag=""
-if [ "${USE_MSI:-false}" == "true" ]; then
-	msi_flag=" --msi "
-	TF_VAR_use_spn=false
-	export TF_VAR_use_spn
-	echo "Deployer using:                      Managed Identity"
-else
-	TF_VAR_use_spn=true
-	export TF_VAR_use_spn
-	echo "Deployer using:                      Service Principal"
-fi
-
 if [ "$DEBUG" == True ]; then
 	echo "ARM Environment variables:"
 	printenv | grep ARM_
@@ -337,13 +319,6 @@ start_group "Update the repository"
 echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
-
-# Pull latest changes from appropriate branch
-if [ "$PLATFORM" == "devops" ]; then
-	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
-elif [ "$PLATFORM" == "github" ]; then
-	git pull -q origin "$GITHUB_REF_NAME"
-fi
 
 echo -e "$green--- Update repo ---$reset_formatting"
 if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
