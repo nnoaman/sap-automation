@@ -39,6 +39,8 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 	export VARIABLE_GROUP_ID
 
+	PARENT_VARIABLE_GROUP_ID=0
+
 	if get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
 		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
