@@ -40,7 +40,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	export VARIABLE_GROUP_ID
 
 	if [ -v DEPLOYER_KEYVAULT ]; then
-		echo -e "$bold_red--- DEPLOYER_KEYVAULT already set ---$reset_formatting"
+		echo -e "$green--- DEPLOYER_KEYVAULT already set ---$reset_formatting"
 	else
 		if [ -n "$PARENT_VARIABLE_GROUP" ]; then
 			PARENT_VARIABLE_GROUP_ID=0
