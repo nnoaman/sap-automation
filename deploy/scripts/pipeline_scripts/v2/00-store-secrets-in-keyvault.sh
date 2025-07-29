@@ -147,7 +147,7 @@ key_vault_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_KeyVaultResourceId")
 if [ -z "$key_vault_id" ]; then
 	echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
 else
-	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].Id --output tsv)
+	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].id --output tsv)
 fi
 
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
