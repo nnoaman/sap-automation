@@ -33,9 +33,9 @@ function get_platform() {
 function __appconfig_get_value_with_key() {
 	key=$1
 
-	var=$(az appconfig kv show -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${VARIABLE_GROUP_ID} --query value --output tsv --auth-mode login --only-show-errors)
+	var=$(az appconfig kv show -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${ZONE} --query value --output tsv --auth-mode login --only-show-errors)
 
-	echo $var
+	echo "$var"
 }
 
 function __appconfig_set_value_with_key() {
@@ -43,17 +43,17 @@ function __appconfig_set_value_with_key() {
 	value=$2
 
 	echo "Saving value for key in ${APPLICATION_CONFIGURATION_NAME}: ${key}"
-	var=$(az appconfig kv set -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${VARIABLE_GROUP_ID} --value ${value} --content-type text/plain --yes --auth-mode login --only-show-errors)
+	var=$(az appconfig kv set -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${ZONE} --value ${value} --content-type text/plain --yes --auth-mode login --only-show-errors)
 
-	echo $var
+	echo "$var"
 }
 
 function __appconfig_get_secret_with_key() {
 	key=$1
 
-	var=$(az appconfig kv show -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${VARIABLE_GROUP_ID} --query value --secret --output tsv --auth-mode login --only-show-errors)
+	var=$(az appconfig kv show -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${ZONE} --query value --secret --output tsv --auth-mode login --only-show-errors)
 
-	echo $var
+	echo "$var"
 }
 
 function get_value_with_key() {
@@ -64,12 +64,12 @@ function get_value_with_key() {
 	fi
 
 	if [[ -n ${APPLICATION_CONFIGURATION_NAME+x} ]]; then
-		value=$(__appconfig_get_value_with_key $key)
+		value=$(__appconfig_get_value_with_key "$key")
 	else
-		value=$(__get_value_with_key $key)
+		value=$(__get_value_with_key "$key")
 	fi
 
-	echo $value
+	echo "$value"
 }
 
 function set_value_with_key() {
@@ -82,7 +82,7 @@ function set_value_with_key() {
 	fi
 
 	if [[ "$var_type" == "app_config" && -v APPLICATION_CONFIGURATION_NAME ]]; then
-		__appconfig_set_value_with_key $key $value
+		__appconfig_set_value_with_key "$key" "$value"
 	elif [[ "$var_type" == "env" ]]; then
 		__set_value_with_key "$key" "$value"
 	else
@@ -103,7 +103,7 @@ function get_secret_with_key() {
 		value=$(__set_secret_with_key $key)
 	fi
 
-	echo $value
+	echo "$value"
 }
 
 function set_secret_with_key() {
