@@ -148,6 +148,8 @@ function parse_arguments() {
 			deploy_using_msi_only=1
 			USE_MSI=true
 			export USE_MSI
+			ARM_USE_MSI=true
+			export ARM_USE_MSI
 			shift
 			;;
 		-v | --devops)
