@@ -2,11 +2,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -16,8 +11,7 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-
-banner_title="Deploy Workload Zone"
+banner_title="Set Secrets in Key Vault"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
@@ -25,6 +19,10 @@ source "${grand_parent_directory}/deploy_utils.sh"
 
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
+
+source "${script_directory}/shared_platform_config.sh"
+source "${script_directory}/shared_functions.sh"
+source "${script_directory}/set-colors.sh"
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
