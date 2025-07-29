@@ -89,6 +89,15 @@ then
 fi
 export VARIABLE_GROUP_ID
 
+echo -e "$green--- az login ---$reset"
+LogonToAzure "$USE_MSI"
+return_code=$?
+if [ 0 != $return_code ]; then
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
+fi
+
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read parameter values ---$reset"
