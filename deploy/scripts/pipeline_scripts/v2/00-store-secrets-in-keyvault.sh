@@ -14,15 +14,18 @@ SCRIPT_NAME="$(basename "$0")"
 banner_title="Set Secrets in Key Vault"
 
 #call stack has full script name when using source
+
+# shellcheck disable=SC1091
+source "${script_directory}/shared_platform_config.sh"
+# shellcheck disable=SC1091
+source "${script_directory}/shared_functions.sh"
+# shellcheck disable=SC1091
+source "${script_directory}/set-colors.sh"
+
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
-
-#call stack has full script name when using source
+# shellcheck disable=SC1091
 source "${parent_directory}/helper.sh"
-
-source "${script_directory}/shared_platform_config.sh"
-source "${script_directory}/shared_functions.sh"
-source "${script_directory}/set-colors.sh"
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
@@ -35,6 +38,18 @@ if [ "$PLATFORM" == "devops" ]; then
 		exit 2
 	fi
 	export VARIABLE_GROUP_ID
+
+	if get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
+		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+
+		export PARENT_VARIABLE_GROUP_ID
+	else
+		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
+		exit 2
+	fi
+
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
@@ -59,7 +74,7 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $CONTROL_PLANE_NAME "
+	echo "##vso[build.updatebuildnumber]Setting the secrets for $CONTROL_PLANE_NAME "
 fi
 
 return_code=0
@@ -125,10 +140,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
 	fi
 else
-	load_config_vars "${workload_environment_file_name}" "keyvault"
-	key_vault="$keyvault"
-	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
-
+	keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].subscriptionId --output tsv)
 fi
 
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
