@@ -39,17 +39,23 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 	export VARIABLE_GROUP_ID
 
-	PARENT_VARIABLE_GROUP_ID=0
-
-	if get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
-		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
-
-		export PARENT_VARIABLE_GROUP_ID
+	if [ -v DEPLOYER_KEYVAULT ]; then
+		echo -e "$bold_red--- DEPLOYER_KEYVAULT already set ---$reset_formatting"
 	else
-		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
-		exit 2
+		if [ -n "$PARENT_VARIABLE_GROUP" ]; then
+			PARENT_VARIABLE_GROUP_ID=0
+
+			if get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
+				DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+				saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+
+				export PARENT_VARIABLE_GROUP_ID
+			else
+				echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+				echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
+				exit 2
+			fi
+		fi
 	fi
 
 	echo -e "$green--- az login ---$reset"
