@@ -187,7 +187,7 @@ function configureNonDeployer() {
 }
 
 function LogonToAzure() {
-	local useMSI=$1
+	local useMSI=${1:-true}
 	local subscriptionId=$ARM_SUBSCRIPTION_ID
 
 	if [ "$useMSI" != "true" ]; then
