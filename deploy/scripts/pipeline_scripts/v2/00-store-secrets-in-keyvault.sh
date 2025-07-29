@@ -136,22 +136,25 @@ export APPLICATION_CONFIGURATION_ID
 APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
 export APPLICATION_CONFIGURATION_SUBSCRIPTION_ID
 
-
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read parameter values ---$reset"
 
 deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
-key_vault_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_KeyVaultResourceId")
-if [ -z "$key_vault_id" ]; then
-	echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
+if [ -z "$DEPLOYER_KEYVAULT" ]; then
+	key_vault_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_KeyVaultResourceId")
+	if [ -z "$key_vault_id" ]; then
+		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
+	else
+		keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
+		key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
+	fi
 else
 	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].id --output tsv)
+	keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
+	key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 fi
-
-keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
-key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
 if [ -z "$key_vault" ]; then
 	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME')."
