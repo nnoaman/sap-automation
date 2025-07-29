@@ -88,7 +88,7 @@ function parse_arguments() {
 	library_parameter_file=""
 
 	local input_opts
-	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
+	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,devops,msi,github -- "$@")
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -150,8 +150,16 @@ function parse_arguments() {
 			export USE_MSI
 			shift
 			;;
-		-v | --ado)
-			ado_flag="--ado"
+		-v | --devops)
+			ado_flag="--devops"
+			shift
+			;;
+		--ado)
+			ado_flag="--devops"
+			shift
+			;;
+		--github)
+			ado_flag="--devops"
 			shift
 			;;
 		-r | --recover)
@@ -185,7 +193,7 @@ function parse_arguments() {
 		exit 2 #No such file or directory
 	fi
 
-	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+	if [ "$ado_flag" == "--devops" ] || [ "$approve" == "--auto-approve" ]; then
 		echo "Approve:                             Automatically"
 		autoApproveParameter="--auto-approve"
 	else
@@ -283,7 +291,7 @@ function bootstrap_deployer() {
 		export APPLICATION_CONFIGURATION_NAME
 	fi
 
-	if [ $ado_flag == "--ado" ]; then
+	if [ $ado_flag == "--devops" ]; then
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	fi
 	cd "$root_dirname" || exit
@@ -337,7 +345,7 @@ function validate_keyvault_access {
 					save_config_var "keyvault" "${deployer_config_information}"
 				fi
 			else
-				if [ $ado_flag != "--ado" ]; then
+				if [ $ado_flag != "--devops" ]; then
 					read -r -p "Deployer keyvault name: " DEPLOYER_KEYVAULT
 					save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
 				else
@@ -437,7 +445,7 @@ function bootstrap_library {
 		terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 		terraform_storage_account_subscription_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
 
-		if [ "${ado_flag}" != "--ado" ]; then
+		if [ "${ado_flag}" != "--devops" ]; then
 			this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 			az storage account network-rule add --account-name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --ip-address "${this_ip}" --output none
 		fi
@@ -452,19 +460,19 @@ function bootstrap_library {
 
 		cd "${current_directory}" || exit
 		save_config_var "step" "${deployer_config_information}"
-		if [ $ado_flag == "--ado" ]; then
+		if [ $ado_flag == "--devops" ]; then
 			echo "##vso[task.setprogress value=60;]Progress Indicator"
 		fi
 	else
 		print_banner "$banner_title" "Library is already bootstrapped." "info"
-		if [ $ado_flag == "--ado" ]; then
+		if [ $ado_flag == "--devops" ]; then
 			echo "##vso[task.setprogress value=60;]Progress Indicator"
 		fi
 	fi
 
 	unset TF_DATA_DIR
 	cd "$root_dirname" || exit
-	if [ $ado_flag == "--ado" ]; then
+	if [ $ado_flag == "--devops" ]; then
 		echo "##vso[task.setprogress value=80;]Progress Indicator"
 	fi
 }
@@ -637,7 +645,7 @@ function migrate_library_state() {
 	if [ -z "${terraform_storage_account_name}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_config_information}"
-		if [ $ado_flag == "--ado" ]; then
+		if [ $ado_flag == "--devops" ]; then
 			echo "##vso[task.setprogress value=40;]Progress Indicator"
 		fi
 		print_banner "$banner_title" "Could not find the SAP Library, please re-run!" "error"
@@ -677,7 +685,7 @@ function migrate_library_state() {
 ############################################################################################
 
 function copy_files_to_public_deployer() {
-	if [ "${ado_flag}" != "--ado" ]; then
+	if [ "${ado_flag}" != "--devops	" ]; then
 		cd "${current_directory}" || exit
 
 		load_config_vars "${deployer_config_information}" "sshsecret"
@@ -740,7 +748,7 @@ function retrieve_parameters() {
 		application_configuration_name=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f9)
 		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 		if [ -z "$key_vault_id" ]; then
-			if [ $ado_flag == "--ado" ]; then
+			if [ $ado_flag == "--devops" ]; then
 				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 			fi
 		fi
@@ -870,7 +878,7 @@ function execute_deployment_steps() {
 		fi
 	fi
 	if [ 5 -eq "${step}" ]; then
-		if [ "${ado_flag}" != "--ado" ]; then
+		if [ "${ado_flag}" != "--devops" ]; then
 			if ! copy_files_to_public_deployer; then
 				return_value=$?
 				print_banner "Copy" "Copying files failed" "error"
@@ -1084,7 +1092,7 @@ EOF
 
 	step=3
 	save_config_var "step" "${deployer_config_information}"
-	if [ $ado_flag == "--ado" ]; then
+	if [ $ado_flag == "--devops" ]; then
 		echo "##vso[task.setprogress value=100;]Progress Indicator"
 	fi
 	unset TF_DATA_DIR
