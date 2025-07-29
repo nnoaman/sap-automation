@@ -131,8 +131,10 @@ fi
 # Print the execution environment details
 print_header
 
-APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-export APPLICATION_CONFIGURATION_ID
+if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export APPLICATION_CONFIGURATION_ID
+fi
 APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
 export APPLICATION_CONFIGURATION_SUBSCRIPTION_ID
 
@@ -151,7 +153,10 @@ if [ -z "$DEPLOYER_KEYVAULT" ]; then
 		key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 	fi
 else
-	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].id --output tsv)
+	if [ ! -v key_vault_id ]; then
+		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].id --output tsv)
+		export key_vault_id
+	fi
 	keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 	key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 fi
