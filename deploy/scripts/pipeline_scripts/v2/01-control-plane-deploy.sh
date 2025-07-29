@@ -30,6 +30,26 @@ source "${grand_parent_directory}/deploy_utils.sh"
 print_header
 echo ""
 
+ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
+
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+
+if [ ! -f "$deployer_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
+if [ ! -f "$library_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
+	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
 	# Configure DevOps
@@ -83,20 +103,6 @@ fi
 banner_title="Deploy Control Plane"
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
-DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
-
-prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
-
-LIBRARY_FOLDERNAME="$prefix-SAP_LIBRARY"
-LIBRARY_TFVARS_FILENAME="$prefix-SAP_LIBRARY.tfvars"
-
-deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
-if [ -f "${deployer_environment_file_name}" ]; then
-	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-	echo "Step:                                ${step:-0}"
-fi
-
 terraform_storage_account_name=""
 terraform_storage_account_resource_group_name=$LIBRARY_FOLDERNAME
 
@@ -133,7 +139,6 @@ else
 			fi
 		fi
 	fi
-
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
