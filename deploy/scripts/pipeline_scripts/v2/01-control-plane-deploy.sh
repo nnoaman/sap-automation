@@ -61,8 +61,6 @@ if [ -z "$CONTROL_PLANE_NAME" ]; then
 	export CONTROL_PLANE_NAME
 fi
 
-application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
-
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
@@ -80,6 +78,61 @@ print_header
 # Configure DevOps
 configure_devops
 
+# Check if running on deployer
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "${tf_version:-1.12.2}"
+fi
+
+echo -e "$green--- Validations ---$reset"
+if [ "$USE_MSI" != "true" ]; then
+
+	if ! printenv ARM_SUBSCRIPTION_ID; then
+		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+
+	if ! printenv ARM_CLIENT_SECRET; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+
+	if ! printenv ARM_CLIENT_ID; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+
+	if ! printenv ARM_TENANT_ID; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+fi
+
+echo -e "$green--- az login ---$reset"
+# Set logon variables
+if [ "$USE_MSI" != "true" ]; then
+
+	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+	export ARM_TENANT_ID
+	ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+	export ARM_SUBSCRIPTION_ID
+else
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+fi
+
+LogonToAzure $USE_MSI
+return_code=$?
+if [ 0 != $return_code ]; then
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
+fi
+
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
@@ -87,40 +140,18 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 export VARIABLE_GROUP_ID
 
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
-	fi
-else
-	if [ "$USE_MSI" == "true" ]; then
-		TF_VAR_use_spn=false
-		export TF_VAR_use_spn
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
-		echo "Deployment using:                    Managed Identity"
-	else
-		TF_VAR_use_spn=true
-		export TF_VAR_use_spn
-		ARM_USE_MSI=false
-		export ARM_USE_MSI
-		echo "Deployment using:                    Service Principal"
-		TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
-		if [ -n "$TF_VAR_spn_id" ]; then
-			if is_valid_guid $TF_VAR_spn_id; then
-				export TF_VAR_spn_id
-				echo "Service Principal Object id:         $TF_VAR_spn_id"
-			fi
-		fi
-
-	fi
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
+if [ -v SYSTEM_ACCESSTOKEN ]; then
+	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
 fi
+
+TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+export TF_VAR_subscription_id
+
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
+
+APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+export APPLICATION_CONFIGURATION_ID
+
 cd "$CONFIG_REPO_PATH" || exit
 
 TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
@@ -142,7 +173,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$key_vault_id" ]; then
-		echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+		echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
 	fi
 	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 else
