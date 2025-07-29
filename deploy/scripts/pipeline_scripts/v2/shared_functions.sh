@@ -33,9 +33,9 @@ function get_platform() {
 function __appconfig_get_value_with_key() {
 	key=$1
 
-	var=$(az appconfig kv show -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${ZONE} --query value --output tsv --auth-mode login --only-show-errors)
+	variable_value=$(az appconfig kv list -n "$APPLICATION_CONFIGURATION_NAME" --subscription "$APPLICATION_CONFIGURATION_SUBSCRIPTION_ID" --query "[?key=='${key}'].value | [0]" --label "${ZONE}" --auth-mode login --output tsv)
 
-	echo "$var"
+	echo "$variable_value"
 }
 
 function __appconfig_set_value_with_key() {
