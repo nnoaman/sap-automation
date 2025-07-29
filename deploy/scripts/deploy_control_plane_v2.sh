@@ -522,7 +522,7 @@ function migrate_deployer_state() {
 
 	if [ -z "$terraform_storage_account_name" ]; then
 		print_banner "$banner_title" "Sourcing parameters from: " "info" "$(basename ${deployer_config_information})"
-		load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+		load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
 		export TF_VAR_tfstate_resource_id
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
