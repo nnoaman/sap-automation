@@ -119,6 +119,7 @@ else
 		echo "Deployment using:                    Managed Identity"
 		ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 		export ARM_CLIENT_ID
+		unset ARM_CLIENT_SECRET
 	else
 		TF_VAR_use_spn=true
 		export TF_VAR_use_spn
