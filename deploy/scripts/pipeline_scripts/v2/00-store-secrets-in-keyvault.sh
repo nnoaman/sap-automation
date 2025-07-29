@@ -50,6 +50,15 @@ if [ "$PLATFORM" == "devops" ]; then
 		exit 2
 	fi
 
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure "$USE_MSI"
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
@@ -113,15 +122,6 @@ fi
 
 # Print the execution environment details
 print_header
-
-echo -e "$green--- az login ---$reset"
-LogonToAzure "$USE_MSI"
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
-fi
 
 APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 export APPLICATION_CONFIGURATION_ID
