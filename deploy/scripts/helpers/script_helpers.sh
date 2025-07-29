@@ -1386,6 +1386,7 @@ function LogonToAzure() {
 			export ARM_SUBSCRIPTION_ID
 		fi
 	fi
+}
 
 ################################################################################
 # Function to get the Terraform output value for a given output name           #
