@@ -182,6 +182,16 @@ TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
 export TF_VAR_deployer_kv_user_arm_id
 
 tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId")
+if [ -z "$tfstate_resource_id" ]; then
+	if [ -n "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" ]; then
+		tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	else
+		echo -e "$bold_red--- Terraform remote state storage account not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Terraform remote state storage account not found."
+		exit 2
+	fi
+
+fi
 
 echo ""
 echo -e "${green}Terraform parameter information:"
