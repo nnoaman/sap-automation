@@ -345,6 +345,10 @@ function install_library() {
 	fi
 	echo "Parallelism count:                   $parallelism"
 
+	if [ "{$ARM_USE_MSI:-False}" = True ]; then
+		unset ARM_CLIENT_SECRET
+	fi
+
 	extra_vars=""
 	if [ -f terraform.tfvars ]; then
 		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
