@@ -2,12 +2,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-
 #External helper functions
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
@@ -15,7 +9,16 @@ parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
 #call stack has full script name when using source
+# shellcheck disable=SC1091
 source "${parent_directory}/helper.sh"
+# shellcheck disable=SC1091
+source "${script_directory}/shared_platform_config.sh"
+# shellcheck disable=SC1091
+source "${script_directory}/shared_functions.sh"
+# shellcheck disable=SC1091
+source "${script_directory}/set-colors.sh"
+
+# shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=false
@@ -33,15 +36,51 @@ set -eu
 print_header
 echo ""
 
-# Configure DevOps
-configure_devops
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+
+	# Configure DevOps
+	configure_devops
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+
+	TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
+	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+		export TF_VAR_DevOpsInfrastructure_object_id
+	else
+		TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv && :)
+		if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+			echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+			export TF_VAR_DevOpsInfrastructure_object_id
+		else
+			echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
+		fi
+	fi
+
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure "$USE_MSI"
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="$ZONE"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
-export VARIABLE_GROUP_ID
 
 file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
@@ -97,7 +136,12 @@ if [ 0 != "${step}" ]; then
 	exit 0
 fi
 
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
+# Git checkout for the correct branch
+if [ "$PLATFORM" == "devops" ]; then
+	git checkout -q "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	git checkout -q "$GITHUB_REF_NAME"
+fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
@@ -106,24 +150,30 @@ echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
 
-	ARM_CLIENT_ID="$servicePrincipalId"
+	ARM_CLIENT_ID="${servicePrincipalId:-$ARM_CLIENT_ID}"
 	export ARM_CLIENT_ID
 	TF_VAR_spn_id=$ARM_CLIENT_ID
 	export TF_VAR_spn_id
 
-	if printenv servicePrincipalKey; then
-		unset ARM_OIDC_TOKEN
-		ARM_CLIENT_SECRET="$servicePrincipalKey"
-		export ARM_CLIENT_SECRET
-	else
-		ARM_OIDC_TOKEN="$idToken"
-		export ARM_OIDC_TOKEN
-		ARM_USE_OIDC=true
-		export ARM_USE_OIDC
-		unset ARM_CLIENT_SECRET
+	if [ "$PLATFORM" == "devops" ]; then
+		# Azure DevOps specific authentication logic
+		if printenv servicePrincipalKey; then
+			unset ARM_OIDC_TOKEN
+			ARM_CLIENT_SECRET="$servicePrincipalKey"
+			export ARM_CLIENT_SECRET
+		else
+			ARM_OIDC_TOKEN="$idToken"
+			export ARM_OIDC_TOKEN
+			ARM_USE_OIDC=true
+			export ARM_USE_OIDC
+			unset ARM_CLIENT_SECRET
+		fi
+	elif [ "$PLATFORM" == "github" ]; then
+		# GitHub Actions uses standard ARM_CLIENT_SECRET
+		echo "Using standard Azure authentication for GitHub Actions"
 	fi
 
-	ARM_TENANT_ID="$tenantId"
+	ARM_TENANT_ID="$tenantId:-$ARM_TENANT_ID"
 	export ARM_TENANT_ID
 
 	ARM_USE_AZUREAD=true
@@ -147,34 +197,27 @@ else
 	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export ARM_CLIENT_ID
 	if [ -n "${ARM_CLIENT_ID}" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
+		if [ "$PLATFORM" == "github" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
+		fi
 	fi
 
 fi
 
-TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
-if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
-	echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
-	export TF_VAR_DevOpsInfrastructure_object_id
-else
-	TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv && :)
-	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
-		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
-		export TF_VAR_DevOpsInfrastructure_object_id
-	else
-		echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
-	fi
+# Get SPN ID differently per platform
+if [ "$PLATFORM" == "devops" ]; then
+	TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
+elif [ "$PLATFORM" == "github" ]; then
+	# Use value from env or from GitHub environment
+	TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
 fi
-
-
-TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
 if [ -n "$TF_VAR_spn_id" ]; then
-
 	if is_valid_guid $TF_VAR_spn_id; then
 		export TF_VAR_spn_id
 		echo "Service Principal Object id:         $TF_VAR_spn_id"
 	fi
 fi
+
 # Reset the account if sourcing was done
 if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -199,9 +242,14 @@ if [ "$FORCE_RESET" == True ]; then
 	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
 	sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
 
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId")
+
 	if [ -z "$tfstate_resource_id" ]; then
-		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+		if [ "$PLATFORM" == "devops" ]; then
+			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+		else
+			echo "WARNING: Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration."
+		fi
 	fi
 
 	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
@@ -229,15 +277,76 @@ if [ "$FORCE_RESET" == True ]; then
 
 fi
 
-echo -e "$green--- Variables ---$reset"
+# Platform-specific flags
+if [ "$PLATFORM" == "devops" ]; then
+	platform_flag="--ado"
+elif [ "$PLATFORM" == "github" ]; then
+	# Set required environment variables for GitHub
+	export USER=${GITHUB_ACTOR:-githubuser}
+	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
+	platform_flag="--github"
+
+	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
+	export TF_VAR_github_server_url
+
+	TF_VAR_github_api_url=${GITHUB_API_URL}
+	export TF_VAR_github_api_url
+
+	TF_VAR_github_repository=${GITHUB_REPOSITORY}
+	export TF_VAR_github_repository
+
+	TF_VAR_devops_platform="github"
+	export TF_VAR_devops_platform
+else
+	platform_flag=""
+fi
+
+git pull -q
+
+# Handle state.zip differently per platform
+
+if [ "$PLATFORM" == "devops" ]; then
+	pass=${SYSTEM_COLLECTIONID//-/}
+elif [ "$PLATFORM" == "github" ]; then
+	pass=${GITHUB_REPOSITORY//-/}
+	# Import PGP key if it exists, otherwise generate it
+	if [ -f ${CONFIG_REPO_PATH}/private.pgp ]; then
+		echo "Importing PGP key"
+		set +e
+		gpg --list-keys sap-azure-deployer@example.com
+		return_code=$?
+		set -e
+
+		if [ ${return_code} != 0 ]; then
+			echo ${pass} | gpg --batch --passphrase-fd 0 --import ${CONFIG_REPO_PATH}/private.pgp
+		fi
+	else
+		echo "Generating PGP key"
+		echo ${pass} | ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh
+		gpg --output ${CONFIG_REPO_PATH}/private.pgp --armor --export-secret-key sap-azure-deployer@example.com
+		git add ${CONFIG_REPO_PATH}/private.pgp
+		commit_changes "Adding PGP key for encryption of state file" true
+	fi
+else
+	pass="localpassword"
+fi
+start_group "Decrypting state files"
+
+if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg ]; then
+	echo "Decrypting state file"
+	echo ${pass} |
+		gpg --batch \
+			--passphrase-fd 0 \
+			--output ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate \
+			--decrypt ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
+fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-	# shellcheck disable=SC2001
-	# shellcheck disable=SC2005
-	pass=${SYSTEM_COLLECTIONID//-/}
-	echo "Unzipping state.zip"
-	unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+	echo "Unzipping the deployer state file"
+	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
+
+end_group
 
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
 set +eu
@@ -264,7 +373,7 @@ echo -e "$green--- Control Plane deployment---$reset"
 if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_tfvars_file_name}" \
 	--library_parameter_file "${library_tfvars_file_name}" \
 	--subscription "$ARM_SUBSCRIPTION_ID" \
-	--auto-approve --ado "$msi_flag" --only_deployer; then
+	--auto-approve ${platform_flag} "$msi_flag" --only_deployer; then
 	return_code=$?
 	echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
 	echo "Return code from deploy_control_plane_v2 $return_code."
@@ -282,22 +391,15 @@ set -eu
 if [ -f "${deployer_environment_file_name}" ]; then
 
 	ARM_CLIENT_ID=$(grep -m1 "^ARM_CLIENT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${ARM_CLIENT_ID}" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
-	fi
 	export ARM_CLIENT_ID
 
 	ARM_OBJECT_ID=$(grep -m1 "^ARM_OBJECT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${ARM_OBJECT_ID}" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
-	fi
 	export ARM_OBJECT_ID
 
 	DevOpsInfrastructureObjectId=$(grep -m1 "^DevOpsInfrastructureObjectId" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "$DevOpsInfrastructureObjectId" ]; then
 		export DevOpsInfrastructureObjectId
 		echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
 	fi
 
 	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
@@ -324,8 +426,13 @@ echo -e "$green--- Adding deployment automation configuration to devops reposito
 added=0
 cd "$CONFIG_REPO_PATH" || exit
 
-# Pull changes
-git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+
+# Pull latest changes
+if [ "$PLATFORM" == "devops" ]; then
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	git pull -q origin "$GITHUB_REF_NAME"
+fi
 
 echo -e "$green--- Update repo ---$reset"
 
@@ -345,29 +452,67 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-	sudo apt-get install zip -y
-	pass=${SYSTEM_COLLECTIONID//-/}
-	zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+	if [ "$PLATFORM" == "devops" ]; then
+		sudo apt-get install zip -y
+		pass=${SYSTEM_COLLECTIONID//-/}
+		zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+	elif [ "$PLATFORM" == "github" ]; then
+		rm DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg >/dev/null 2>&1 || true
+		echo "Encrypting state file"
+		gpg --batch \
+			--output DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg \
+			--encrypt \
+			--disable-dirmngr --recipient sap-azure-deployer@example.com \
+			--trust-model always \
+			DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate
+		git add -f DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
+	else
+		pass="localpassword"
+	fi
 	added=1
 fi
 
 if [ 1 = $added ]; then
-	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-	git config --global user.name "$BUILD_REQUESTEDFOR"
-	git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
-	if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-		echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+	if [ "$PLATFORM" == "devops" ]; then
+		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+		git config --global user.name "$BUILD_REQUESTEDFOR"
+		git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
+		if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+			echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+		fi
+	elif [ "$PLATFORM" == "github" ]; then
+		set +e
+		git diff --cached --quiet
+		git_diff_return_code=$?
+		set -e
+		if [ 1 == $git_diff_return_code ]; then
+			commit_changes "Added updates for deployment."
+		fi
+
+		if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME.md" ]; then
+			upload_summary ".sap_deployment_automation/$CONTROL_PLANE_NAME.md"
+		fi
 	fi
+
 fi
 
-if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
-	echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
-fi
-echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-if [ 0 -eq "$return_code" ]; then
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+if [ "$PLATFORM" == "devops" ]; then
+	if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
+		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+	fi
+	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+	if [ 0 -eq "$return_code" ]; then
+		if [ -n "${ARM_CLIENT_ID}" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
+		fi
+		if [ -n "${ARM_OBJECT_ID}" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
+		fi
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+	fi
 fi
 exit $return_code
