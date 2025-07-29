@@ -279,16 +279,18 @@ function bootstrap_deployer() {
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error" "Return code: ${local_return_code}"
 		fi
 	fi
-
-	load_config_vars "${deployer_config_information}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_ID" "APPLICATION_CONFIGURATION_NAME"
 	echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
-	export DEPLOYER_KEYVAULT
-	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-		export APPLICATION_CONFIGURATION_ID
+
+  if [ -v APPLICATION_CONFIGURATION_ID ]; then
+		echo "Application configuration ID:        ${APPLICATION_CONFIGURATION_ID}"
+	else
+		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
 	fi
-	if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+
+  if [ -v APPLICATION_CONFIGURATION_NAME ]; then
 		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
-		export APPLICATION_CONFIGURATION_NAME
+	else
+		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_NAME"
 	fi
 
 	if [ $ado_flag == "--devops" ]; then
