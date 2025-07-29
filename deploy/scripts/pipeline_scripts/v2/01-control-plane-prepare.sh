@@ -36,6 +36,26 @@ set -eu
 print_header
 echo ""
 
+ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
+
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+
+if [ ! -f "$deployer_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
+if [ ! -f "$library_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
+	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	exit 2
+fi
+
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
 
@@ -92,26 +112,6 @@ fi
 
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
-
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
-
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
-deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-
-if [ ! -f "$deployer_tfvars_file_name" ]; then
-	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
-	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
-	exit 2
-fi
-
-if [ ! -f "$library_tfvars_file_name" ]; then
-	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
-	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
-	exit 2
-fi
 
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
