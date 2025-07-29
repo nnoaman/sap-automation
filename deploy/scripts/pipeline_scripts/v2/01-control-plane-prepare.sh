@@ -85,15 +85,6 @@ if [ "$PLATFORM" == "devops" ]; then
 		fi
 	fi
 
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure "$USE_MSI"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
-
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
