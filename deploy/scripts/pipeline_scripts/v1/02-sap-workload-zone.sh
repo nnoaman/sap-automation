@@ -84,9 +84,21 @@ if [ "$USE_MSI" == "true" ]; then
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 	ARM_CLIENT_ID=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "${workload_environment_file_name}" "ARM_CLIENT_ID")
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
+	if [ -n "$ARM_CLIENT_ID" ]; then
+		export ARM_CLIENT_ID
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
+	fi
 	ARM_OBJECT_ID=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${workload_environment_file_name}" "ARM_OBJECT_ID")
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
+	if [ -n "$ARM_OBJECT_ID" ]; then
+		export ARM_OBJECT_ID
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
+	fi
+	APPLICATION_CONFIGURATION_NAME=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "${workload_environment_file_name}" "APPLICATION_CONFIGURATION_NAME")
+	if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+		export APPLICATION_CONFIGURATION_NAME
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+	fi
+
 else
 	ARM_USE_MSI=false
 	export ARM_USE_MSI
