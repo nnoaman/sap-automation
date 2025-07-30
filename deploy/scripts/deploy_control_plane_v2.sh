@@ -34,8 +34,6 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-
-
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$path
@@ -239,8 +237,7 @@ function parse_arguments() {
 	get_region_code "$region"
 	return_code=$?
 	return $return_code
-	
-	
+
 }
 
 ############################################################################################
@@ -291,13 +288,13 @@ function bootstrap_deployer() {
 	fi
 	echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
 
-  if [ -v APPLICATION_CONFIGURATION_ID ]; then
+	if [ -v APPLICATION_CONFIGURATION_ID ]; then
 		echo "Application configuration ID:        ${APPLICATION_CONFIGURATION_ID}"
 	else
 		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
 	fi
 
-  if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+	if [ -v APPLICATION_CONFIGURATION_NAME ]; then
 		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
 	else
 		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_NAME"
@@ -636,6 +633,11 @@ function migrate_library_state() {
 			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+			export ARM_SUBSCRIPTION_ID
+
+			TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+			export TF_VAR_subscription_id
+
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 			export TF_VAR_tfstate_resource_id
 			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
@@ -658,6 +660,11 @@ function migrate_library_state() {
 					export terraform_storage_account_resource_group_name
 					export terraform_storage_account_subscription_id
 					save_config_vars "${deployer_config_information}" "tfstate_resource_id"
+					ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+					export ARM_SUBSCRIPTION_ID
+
+					TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+					export TF_VAR_subscription_id
 
 				fi
 			else
@@ -672,6 +679,12 @@ function migrate_library_state() {
 				export terraform_storage_account_name
 				export terraform_storage_account_resource_group_name
 				export terraform_storage_account_subscription_id
+				ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+				export ARM_SUBSCRIPTION_ID
+
+				TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+				export TF_VAR_subscription_id
+
 			fi
 		fi
 	fi
