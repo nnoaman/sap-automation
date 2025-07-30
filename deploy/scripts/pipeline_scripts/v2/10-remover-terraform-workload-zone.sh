@@ -19,12 +19,12 @@ banner_title="Remove SAP Workload Zone"
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
-DEBUG=False
+DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$SYSTEM_DEBUG" = true ]; then
 	set -x
 	set -o errexit
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 

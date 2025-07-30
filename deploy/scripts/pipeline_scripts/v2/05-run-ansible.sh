@@ -28,11 +28,11 @@ SCRIPT_NAME="$(basename "$0")"
 
 banner_title="SAP Configuration and Installation - Ansible"
 
-DEBUG=False
+DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$SYSTEM_DEBUG" = true ]; then
 	set -x
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 

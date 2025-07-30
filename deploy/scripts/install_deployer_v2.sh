@@ -331,7 +331,7 @@ function install_deployer() {
 		rm plan_output.log
 	fi
 
-	if [ "${TEST_ONLY}" == "True" ]; then
+	if [ "${TEST_ONLY}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 		exit 10
 	fi

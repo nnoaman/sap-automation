@@ -26,11 +26,11 @@ source "${parent_directory}/helper.sh"
 echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the SAP Workload zone defined in $ZONE"
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-DEBUG=False
+DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$SYSTEM_DEBUG" = true ]; then
 	set -x
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 
@@ -178,7 +178,7 @@ echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 
-if [ "$FORCE_RESET" == "True" ]; then
+if [ "$FORCE_RESET" == "true" ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
 	echo -e "$bold_red--- Resetting the environment file ---$reset"
 	step=0
@@ -246,7 +246,7 @@ else
 	echo "Deployer Key Vault:                  undefined"
 fi
 
-if [ "$FORCE_RESET" == True ]; then
+if [ "$FORCE_RESET" == true ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
 	echo "Running on:            $THIS_AGENT"
 	sed -i 's/step=1/step=0/' "$deployer_environment_file_name"

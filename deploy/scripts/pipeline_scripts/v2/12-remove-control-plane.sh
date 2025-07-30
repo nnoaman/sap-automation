@@ -19,12 +19,12 @@ SCRIPT_NAME="$(basename "$0")"
 
 banner_title="Remove Control Plane"
 
-DEBUG=False
+DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$SYSTEM_DEBUG" = true ]; then
 	set -x
 	set -o errexit
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 

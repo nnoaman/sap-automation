@@ -75,11 +75,11 @@ elif [ "$PLATFORM" == "github" ]; then
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
 
-DEBUG=False
+DEBUG=false
 
-if [ "${SYSTEM_DEBUG:-False}" = True ]; then
+if [ "${SYSTEM_DEBUG:-false}" = true ]; then
 	set -x
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 

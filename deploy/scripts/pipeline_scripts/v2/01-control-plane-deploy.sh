@@ -278,7 +278,7 @@ export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
 print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	echo "ARM Environment variables:"
 	printenv | grep ARM_
 fi
@@ -477,7 +477,7 @@ if [ 1 = $added ]; then
 		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
 	fi
 
-	if [ $DEBUG = True ]; then
+	if [ $DEBUG = true ]; then
 		git status --verbose
 		if git commit -m "$commit_message" || true; then
 			if [ "$PLATFORM" == "devops" ]; then

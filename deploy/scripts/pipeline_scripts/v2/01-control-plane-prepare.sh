@@ -22,7 +22,7 @@ source "${script_directory}/set-colors.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=false
-if [ "${SYSTEM_DEBUG:-False}" = True ]; then
+if [ "${SYSTEM_DEBUG:-false}" = true ]; then
 	set -x
 	DEBUG=true
 	echo "Environment variables:"
@@ -108,7 +108,7 @@ echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 
-if [ "$FORCE_RESET" == "True" ]; then
+if [ "$FORCE_RESET" == "true" ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
 	echo -e "$bold_red--- Resetting the environment file ---$reset"
 	step=0
@@ -226,7 +226,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 
 fi
 
-if [ "$FORCE_RESET" == True ]; then
+if [ "$FORCE_RESET" == true ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
 	echo "Running on:            $THIS_AGENT"
 	sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
@@ -355,7 +355,7 @@ else
 	echo "Deployer using:                      Service Principal"
 fi
 
-if [ "$DEBUG" == True ]; then
+if [ "$DEBUG" == true ]; then
 	echo "ARM Environment variables:"
 	printenv | grep ARM_
 fi

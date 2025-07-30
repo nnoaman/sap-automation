@@ -18,11 +18,11 @@ set -e
 return_code=0
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-DEBUG=False
+DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$SYSTEM_DEBUG" = true ]; then
 	set -x
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 

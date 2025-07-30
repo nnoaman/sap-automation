@@ -24,7 +24,7 @@ source "${script_directory}/helpers/script_helpers.sh"
 
 keep_agent=0
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
 	set -o errexit

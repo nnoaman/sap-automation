@@ -19,12 +19,12 @@ grand_parent_directory="$(dirname "$parent_directory")"
 source "${parent_directory}/helper.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
-DEBUG=False
+DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$SYSTEM_DEBUG" = true ]; then
 	set -x
 	set -eu
-	DEBUG=True
+	DEBUG=true
 fi
 
 export DEBUG

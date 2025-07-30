@@ -15,7 +15,7 @@ script_directory="$(dirname "${full_script_path}")"
 set -euo pipefail
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-False}" = True ]]; then
+if [[ "${DEBUG:-false}" = true ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error
@@ -24,7 +24,7 @@ if [[ "${DEBUG:-False}" = True ]]; then
 	printenv | sort
 else
 	# Disable debugging
-	DEBUG=False
+	DEBUG=false
 fi
 
 # Constants
@@ -345,7 +345,7 @@ function install_library() {
 	fi
 	echo "Parallelism count:                   $parallelism"
 
-	if [ "{$ARM_USE_MSI:-False}" = True ]; then
+	if [ "{$ARM_USE_MSI:-false}" = true ]; then
 		unset ARM_CLIENT_SECRET
 	fi
 
@@ -471,7 +471,7 @@ function install_library() {
 
 	return_value=0
 
-	if [ "${TEST_ONLY}" == "True" ]; then
+	if [ "${TEST_ONLY}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 		exit 10
 	fi
@@ -554,7 +554,7 @@ function install_library() {
 		return $return_value
 	fi
 
-	if [ "$DEBUG" = True ]; then
+	if [ "$DEBUG" = true ]; then
 		terraform -chdir="${terraform_module_directory}" output
 	fi
 

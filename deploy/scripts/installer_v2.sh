@@ -564,7 +564,7 @@ function sdaf_installer() {
 	echo "Deployment region code:              $region_code"
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
-	if [ "$DEBUG" = True ]; then
+	if [ "$DEBUG" = true ]; then
 		print_banner "Installer - $deployment_system" "Enabling debug mode" "info"
 		echo "Azure login info:"
 		az account show --query user --output table
@@ -891,7 +891,7 @@ function sdaf_installer() {
 
 	# apply_needed=1 - This is already set above line: 736 - 740
 
-	if [ "${TEST_ONLY}" == "True" ]; then
+	if [ "${TEST_ONLY}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 
 		if [ $fatal_errors == 1 ]; then
@@ -1039,7 +1039,7 @@ function sdaf_installer() {
 
 	persist_files
 
-	if [ ${DEBUG:-False} == True ]; then
+	if [ ${DEBUG:-false} == true ]; then
 		echo "Terraform state file:"
 		terraform -chdir="${terraform_module_directory}" output -json
 	fi

@@ -12,11 +12,11 @@ source "${script_directory}/helper.sh"
 source "${parent_directory}/deploy_utils.sh"
 
 set -eu
-DEBUG=False
+DEBUG=false
 
-if [ "${SYSTEM_DEBUG:-False}" = True ]; then
+if [ "${SYSTEM_DEBUG:-false}" = true ]; then
 	set -eux
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 

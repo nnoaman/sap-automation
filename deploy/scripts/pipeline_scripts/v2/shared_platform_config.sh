@@ -11,9 +11,9 @@ if [[ "${SYSTEM_DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
 	set -o errexit
 	echo "Environment variables:"
 	printenv | sort
-	DEBUG=True
+	DEBUG=true
 else
-	DEBUG=False
+	DEBUG=false
 fi
 
 export DEBUG

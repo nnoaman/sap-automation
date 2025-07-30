@@ -25,11 +25,11 @@ source "${parent_directory}/helper.sh"
 
 echo "##vso[build.updatebuildnumber]Removing workload zone defined in  defined in $WORKLOAD_ZONE_FOLDERNAME"
 
-DEBUG=False
+DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$SYSTEM_DEBUG" = true ]; then
 	set -x
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 

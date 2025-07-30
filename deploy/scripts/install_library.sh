@@ -101,7 +101,7 @@ done
 deployment_system=sap_library
 use_deployer=true
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	set -x
 	set -o errexit
 fi
@@ -518,7 +518,7 @@ if [ 1 == $install_library_return_value ]; then
 	exit "$install_library_return_value"
 fi
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	terraform -chdir="${terraform_module_directory}" output
 fi
 
