@@ -111,35 +111,13 @@ msi_flag=""
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.12.2}"
-else
-	if [ "${USE_MSI:-true}" == "true" ]; then
-		msi_flag=" --msi "
-		TF_VAR_use_spn=false
-		export TF_VAR_use_spn
-		echo "Deployment using:                    Managed Identity"
-		ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-		export ARM_CLIENT_ID
-		unset ARM_CLIENT_SECRET
-	else
-		TF_VAR_use_spn=true
-		export TF_VAR_use_spn
-		echo "Deployment using:                    Service Principal"
-
-		# Get SPN ID differently per platform
-		if [ "$PLATFORM" == "devops" ]; then
-			TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
-		elif [ "$PLATFORM" == "github" ]; then
-			# Use value from env or from GitHub environment
-			TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
-		fi
-
-		if [ -n "$TF_VAR_spn_id" ]; then
-			if is_valid_guid "$TF_VAR_spn_id"; then
-				export TF_VAR_spn_id
-				echo "Service Principal Object id:         $TF_VAR_spn_id"
-			fi
-		fi
-	fi
+fi
+echo -e "$green--- az login ---$reset"
+# Set logon variables
+if [ "$USE_MSI" == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
