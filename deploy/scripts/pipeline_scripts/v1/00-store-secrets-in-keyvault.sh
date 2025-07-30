@@ -77,15 +77,6 @@ if [ "$USE_MSI" != "true" ]; then
 	fi
 fi
 
-echo -e "$green--- az login ---$reset"
-LogonToAzure "$USE_MSI"
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
-fi
-
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
@@ -113,12 +104,39 @@ if [ -v PARENT_VARIABLE_GROUP ]; then
 			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
 		fi
 
+		if [ "$USE_MSI" = "true" ]; then
+			ARM_CLIENT_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "ARM_CLIENT_ID.value" --output tsv)
+			WZ_ARM_CLIENT_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_CLIENT_ID.value" --output tsv)
+			if [ -z "$WZ_ARM_CLIENT_ID" ]; then
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "ARM_CLIENT_ID" --value "$ARM_CLIENT_ID" --output none
+			else
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "ARM_CLIENT_ID" --value "$ARM_CLIENT_ID" --output none
+			fi
+			ARM_OBJECT_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv)
+			WZ_ARM_OBJECT_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv)
+			if [ -z "$WZ_ARM_OBJECT_ID" ]; then
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "ARM_OBJECT_ID" --value "$ARM_OBJECT_ID" --output none
+			else
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "ARM_OBJECT_ID" --value "$ARM_OBJECT_ID" --output none
+			fi
+		fi
+
 		export PARENT_VARIABLE_GROUP_ID
 	else
 		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
 		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 		exit 2
 	fi
+
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure "$USE_MSI"
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+
 fi
 
 cd "${CONFIG_REPO_PATH}" || exit
