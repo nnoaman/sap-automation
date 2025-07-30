@@ -77,19 +77,7 @@ if [ "$USE_MSI" != "true" ]; then
 	fi
 fi
 
-echo -e "$green--- az login ---$reset"
-# Set logon variables
-if [ "$USE_MSI" != "true" ]; then
-
-	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-	export ARM_TENANT_ID
-	ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-	export ARM_SUBSCRIPTION_ID
-else
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
+ 
 
 LogonToAzure $USE_MSI
 return_code=$?

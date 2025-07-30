@@ -94,7 +94,7 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
+	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help,devops,github -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -106,7 +106,21 @@ function parse_arguments() {
 	while true; do
 		case "$1" in
 		-a | --ado)
-			called_from_ado=1
+			called_from_devops=1
+			approve="--auto-approve"
+			TF_IN_AUTOMATION=true
+			export TF_IN_AUTOMATION
+			shift
+			;;
+		--devops)
+			called_from_devops=1
+			approve="--auto-approve"
+			TF_IN_AUTOMATION=true
+			export TF_IN_AUTOMATION
+			shift
+			;;
+		--github)
+			called_from_devops=1
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
 			export TF_IN_AUTOMATION
@@ -219,7 +233,7 @@ function parse_arguments() {
 
 	if [ "${deployment_system}" == sap_system ]; then
 		if [ -z "${landscape_tfstate_key}" ]; then
-			if [ 1 != $called_from_ado ]; then
+			if [ 1 != $called_from_devops ]; then
 				read -r -p "Workload terraform statefile name: " landscape_tfstate_key
 				save_config_var "landscape_tfstate_key" "${system_config_information}"
 			else
@@ -238,7 +252,7 @@ function parse_arguments() {
 		TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
 		export TF_VAR_application_configuration_id
 		if [ -z "${deployer_tfstate_key}" ]; then
-			if [ 1 != $called_from_ado ]; then
+			if [ 1 != $called_from_devops ]; then
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
 				save_config_var "deployer_tfstate_key" "${system_config_information}"
 			else
@@ -510,7 +524,7 @@ function test_for_removal() {
 function sdaf_installer() {
 	landscape_tfstate_key=""
 	landscape_tfstate_key_exists="false"
-	called_from_ado=0
+	called_from_devops=0
 	extra_vars=""
 	WORKLOAD_ZONE_NAME=""
 	local green="\e[0;32m"
@@ -574,7 +588,7 @@ function sdaf_installer() {
 		printenv | grep ARM_
 	fi
 
-	if [ 1 == $called_from_ado ]; then
+	if [ 1 == $called_from_devops ]; then
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 		export TF_VAR_Agent_IP=$this_ip
 		echo "Agent IP:                            $this_ip"
@@ -759,7 +773,7 @@ function sdaf_installer() {
 		if [ -z "${deployed_using_version}" ]; then
 			print_banner "$banner_title" "The environment was deployed using an older version of the Terraform templates" "error" "Please inspect the output of Terraform plan carefully!"
 
-			if [ 1 == $called_from_ado ]; then
+			if [ 1 == $called_from_devops ]; then
 				unset TF_DATA_DIR
 				exit 1
 			fi
@@ -904,7 +918,7 @@ function sdaf_installer() {
 	if [ $fatal_errors == 1 ]; then
 		apply_needed=0
 		print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
-		if [ 1 == "$called_from_ado" ]; then
+		if [ 1 == "$called_from_devops" ]; then
 			unset TF_DATA_DIR
 			echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
 			exit 1
@@ -1097,7 +1111,7 @@ function sdaf_installer() {
 		app_service_deployment=$(terraform -chdir="${terraform_module_directory}" output -no-color app_service_deployment | tr -d \")
 
 		echo ""
-		if [ 1 == $called_from_ado ]; then
+		if [ 1 == $called_from_devops ]; then
 			if [ -n "${app_config_id}" ]; then
 				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value")
 				if [ -z "${az_var}" ]; then
