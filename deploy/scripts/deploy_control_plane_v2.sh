@@ -89,6 +89,11 @@ function parse_arguments() {
 
 	local input_opts
 	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,devops,msi,github -- "$@")
+	return_code=$?
+	if [ $return_code -ne 0 ]; then
+		echo "Error parsing arguments. Use --help for usage information."
+		exit 1
+	fi
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -226,13 +231,16 @@ function parse_arguments() {
 	validate_exports
 	return_code=$?
 	if [ 0 != $return_code ]; then
-		exit $return_code
+		return $return_code
 	fi
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	# Convert the region to the correct code
 	get_region_code "$region"
-
+	return_code=$?
+	return $return_code
+	
+	
 }
 
 ############################################################################################
