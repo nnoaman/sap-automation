@@ -23,7 +23,8 @@ locals {
                                            control_plane_name           = var.control_plane_name
                                          }
   key_vault                            = {
-                                           id                        = coalesce(var.spn_keyvault_id, local.spn_key_vault_arm_id)
+                                           id                                        = coalesce(var.spn_keyvault_id, local.spn_key_vault_arm_id)
+                                           keyvault_id_for_deployment_credentials    = coalesce(var.spn_keyvault_id, local.spn_key_vault_arm_id)
                                          }
   storage_account_sapbits              = {
                                             id                       = var.library_sapmedia_arm_id
