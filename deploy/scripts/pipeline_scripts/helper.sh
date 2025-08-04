@@ -329,7 +329,7 @@ function print_header() {
 	if printenv TF_VAR_agent_pat; then
 		echo "Deployer Agent PAT:                  IsDefined"
 	fi
-	if printenv POOL; then
+	if [ -v POOL ]; then
 		echo "Deployer Agent Pool:                 $POOL"
 	fi
 	echo ""
