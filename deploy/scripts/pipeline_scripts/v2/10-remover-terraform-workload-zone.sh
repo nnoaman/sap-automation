@@ -12,7 +12,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $CONTROL_PLANE_NAME "
+	echo "##vso[build.updatebuildnumber]Removing the workload zone defined in $WORKLOAD_ZONE_NAME "
 fi
 
 # External helper functions
@@ -66,7 +66,6 @@ mkdir -p .sap_deployment_automation
 if [ "$PLATFORM" == "devops" ]; then
 	echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
 	git checkout -q "$BUILD_SOURCEBRANCHNAME"
-
 elif [ "$PLATFORM" == "github" ]; then
 	echo -e "$green--- Checkout $GITHUB_REF_NAME ---$reset_formatting"
 	git checkout -q "$GITHUB_REF_NAME"
@@ -324,13 +323,11 @@ else
 		if [ -n "$VARIABLE_GROUP_ID" ]; then
 			print_banner "Remove workload zone" "Deleting variables" "info"
 			if [ "$PLATFORM" == "devops" ]; then
-
 				remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
 				remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_STATE_STORAGE_ACCOUNT"
 				remove_variable "$VARIABLE_GROUP_ID" "KEYVAULT"
 			fi
 		fi
-
 	fi
 fi
 

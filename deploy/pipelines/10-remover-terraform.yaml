@@ -94,6 +94,7 @@ stages:
               ARM_USE_MSI:              $(Use_MSI)
               AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:       $(CONTROL_PLANE_NAME)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               USE_MSI:                  $(Use_MSI)
@@ -138,8 +139,9 @@ stages:
               ARM_USE_MSI:              $(Use_MSI)
               AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:       $(CONTROL_PLANE_NAME)
               DEPLOYER_ENVIRONMENT:     ${{ parameters.deployer_environment }}
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               USE_MSI:                  $(Use_MSI)
-              ZONE:                     $(workload_zone_name)
+              WORKLOAD_ZONE_NAME:       $(workload_zone_name)
