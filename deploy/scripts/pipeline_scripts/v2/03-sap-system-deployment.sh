@@ -65,19 +65,8 @@ elif [ "$PLATFORM" == "github" ]; then
 else
 	platform_flag=""
 fi
+
 banner_title="Deploy SAP System"
-
-DEBUG=false
-
-if [ "$SYSTEM_DEBUG" = true ]; then
-	set -x
-	DEBUG=true
-	echo "Environment variables:"
-	printenv | sort
-
-fi
-export DEBUG
-set -eu
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
