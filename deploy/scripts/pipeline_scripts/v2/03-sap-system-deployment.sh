@@ -55,13 +55,6 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-	if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
-		exit 2
-	fi
-	export PARENT_VARIABLE_GROUP_ID
-
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
