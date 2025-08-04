@@ -164,6 +164,11 @@ output "spn_kv_id"                               {
                                                    value       = local.key_vault.spn.id
                                                  }
 
+output "spn_credential_vault_id"                 {
+                                                   description = "Name of key vault secret containing deployment credentials"
+                                                   value       = local.key_vault.spn.id
+                                                 }
+
 output "workloadzone_kv_name"                    {
                                                    description = "Workload zone keyvault name"
                                                    value       = length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], "")
