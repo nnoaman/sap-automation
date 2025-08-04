@@ -124,7 +124,6 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 fi
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 	export APPLICATION_CONFIGURATION_ID
@@ -132,6 +131,8 @@ fi
 
 APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
 export APPLICATION_CONFIGURATION_SUBSCRIPTION_ID
+
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
 dos2unix -q tfvarsFile
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
@@ -143,7 +144,7 @@ LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
+deployer_tfstate_key="${CONTROL_PLANE_NAME}.terraform.tfstate"
 export deployer_tfstate_key
 
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
@@ -160,7 +161,6 @@ echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
 if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
 	echo "APPLICATION_CONFIGURATION_NAME:      $APPLICATION_CONFIGURATION_NAME"
 fi
-echo ""
 
 echo ""
 
@@ -243,6 +243,7 @@ fi
 
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 print_banner "$banner_title" "Starting the deployment" "info"
+
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
