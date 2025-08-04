@@ -378,11 +378,15 @@ if [ 1 == $changed ]; then
 	else
 		if git commit -m "$commit_message" || true; then
 			if [ "$PLATFORM" == "devops" ]; then
-				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+				if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+					echo "Changes pushed to the repository."
+				else
 					echo "Failed to push changes to the repository."
 				fi
 			elif [ "$PLATFORM" == "github" ]; then
-				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+				if git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+					echo "Changes pushed to the repository."
+				else
 					echo "Failed to push changes to the repository."
 				fi
 			fi
