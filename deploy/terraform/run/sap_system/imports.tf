@@ -170,3 +170,10 @@ data "azurerm_app_configuration_key" "credentials_vault"    {
   key                                  = format("%s_KeyVaultResourceId", coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, "")))
   label                                = coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, ""))
 }
+
+data "azurerm_app_configuration_key" "workload_credentials_vault"    {
+  count                                = local.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id               = local.infrastructure.application_configuration_id
+  key                                  = format("%s_KeyVaultResourceId", coalesce(var.workload_zone_name, try(data.terraform_remote_state.landscape.outputs.workload_zone_name, "")))
+  label                                = coalesce(var.workload_zone_name, try(data.terraform_remote_state.landscape.outputs.workload_zone_name, ""))
+}
