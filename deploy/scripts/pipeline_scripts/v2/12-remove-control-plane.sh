@@ -52,8 +52,6 @@ if [ -z "$CONTROL_PLANE_NAME" ]; then
 	exit 2
 fi
 
-VARIABLE_GROUP="SDAF-${CONTROL_PLANE_NAME}"
-
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
 	# Configure DevOps
