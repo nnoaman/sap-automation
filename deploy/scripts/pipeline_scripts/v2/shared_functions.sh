@@ -32,8 +32,9 @@ function get_platform() {
 
 function __appconfig_get_value_with_key() {
 	key=$1
+	label=${2:-$ZONE}
 
-	variable_value=$(az appconfig kv list -n "$APPLICATION_CONFIGURATION_NAME" --subscription "$APPLICATION_CONFIGURATION_SUBSCRIPTION_ID" --query "[?key=='${key}'].value | [0]" --label "${ZONE}" --auth-mode login --output tsv)
+	variable_value=$(az appconfig kv list -n "$APPLICATION_CONFIGURATION_NAME" --subscription "$APPLICATION_CONFIGURATION_SUBSCRIPTION_ID" --query "[?key=='${key}'].value | [0]" --label "${label}" --auth-mode login --output tsv)
 
 	echo "$variable_value"
 }
@@ -50,21 +51,23 @@ function __appconfig_set_value_with_key() {
 
 function __appconfig_get_secret_with_key() {
 	key=$1
+	label=${2:-$ZONE}
 
-	var=$(az appconfig kv show -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${ZONE} --query value --secret --output tsv --auth-mode login --only-show-errors)
+	var=$(az appconfig kv show -n ${APPLICATION_CONFIGURATION_NAME} --key ${key} --label ${label} --query value --secret --output tsv --auth-mode login --only-show-errors)
 
 	echo "$var"
 }
 
 function get_value_with_key() {
 	key=$1
+	label=${2:-$ZONE}
 
 	if [[ $key == "" ]]; then
 		exit_error "Cannot get value with an empty key" 1
 	fi
 
 	if [[ -n ${APPLICATION_CONFIGURATION_NAME+x} ]]; then
-		value=$(__appconfig_get_value_with_key "$key")
+		value=$(__appconfig_get_value_with_key "$key" "$label")
 	else
 		value=$(__get_value_with_key "$key")
 	fi

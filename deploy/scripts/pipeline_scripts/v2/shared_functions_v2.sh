@@ -86,13 +86,14 @@ function load_platform_functions() {
 
 function get_value_with_key() {
 	key=$1
+	label=${2:-$ZONE}
 
 	if [[ $key == "" ]]; then
 		exit_error "Cannot get value with an empty key" 1
 	fi
 
 	if [[ -v APPLICATION_CONFIGURATION_NAME ]]; then
-		value=$(__appconfig_get_value_with_key $key)
+		value=$(__appconfig_get_value_with_key $key $label)
 	else
 		value=$(__get_value_with_key $key)
 	fi

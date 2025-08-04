@@ -198,9 +198,11 @@ if [ "$SID" != "$SID_IN_FILENAME" ]; then
 fi
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+  ZONE="${CONTROL_PLANE_NAME}"
+	export ZONE
 	tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId")
 	key_vault_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_KeyVaultResourceId")
-	key_vault=$(get_value_with_key "${CONTROL_PLANE_NAME}_KeyVaultName")
+	key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
 	workload_key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultName" "${WORKLOAD_ZONE_NAME}")
 
