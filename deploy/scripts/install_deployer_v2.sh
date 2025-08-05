@@ -20,7 +20,7 @@ set -euo pipefail
 # Enable debug mode if DEBUG is set to 'true'
 if [[ "${DEBUG:-false}" == 'true' ]]; then
 	# Enable debugging
-	set -x
+  set -euox pipefail
 	# Exit on error
 	set -o errexit
 	echo "Environment variables:"

@@ -162,7 +162,14 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		echo "Using standard Azure authentication for GitHub Actions"
 	fi
 
-	ARM_TENANT_ID="$tenantId:-$ARM_TENANT_ID"
+	if [ -v tenantId ]; then
+		# If tenantId is set, use it
+		ARM_TENANT_ID="${tenantId}"
+	else
+		# Otherwise, use the default ARM_TENANT_ID
+		ARM_TENANT_ID=$(az account show --query tenantId -o tsv)
+	fi
+
 	export ARM_TENANT_ID
 
 	ARM_USE_AZUREAD=true
