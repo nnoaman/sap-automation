@@ -1186,8 +1186,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 
-					echo -e "$boldred Errors occurred during the apply phase:$reset"
-					echo -e "$boldred ------------------------------------------------------------------------------------- $reset"
+					echo -e "$bold_red Errors occurred during the apply phase:$reset"
+					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 					error_count=${#errors[@]}
 
