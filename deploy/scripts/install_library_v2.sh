@@ -200,7 +200,6 @@ function parse_arguments() {
 	fi
 
 	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-
 		APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 		export APPLICATION_CONFIGURATION_ID
 	fi
@@ -475,9 +474,9 @@ function install_library() {
 
 	return_value=0
 
-	if [ "${TEST_ONLY}" == "true" ]; then
+	if [ "${TEST_ONLY:-false}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
-		exit 10
+		exit 100
 	fi
 	print_banner "$banner_title" "Running Terraform apply" "info"
 
