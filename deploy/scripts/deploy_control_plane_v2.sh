@@ -86,7 +86,7 @@ function parse_arguments() {
 	library_parameter_file=""
 
 	local input_opts
-	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,devops,msi,github -- "$@")
+	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,devops,msi,github,ado -- "$@")
 	return_code=$?
 	if [ $return_code -ne 0 ]; then
 		echo "Error parsing arguments. Use --help for usage information."
@@ -569,7 +569,7 @@ function migrate_deployer_state() {
 	fi
 
 	echo ""
-	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name "${CONTROL_PLANE_NAME}" \ 
+	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name "${CONTROL_PLANE_NAME}" \
 	--application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-} --storage_accountname ${terraform_storage_account_name} "
 	echo ""
 
