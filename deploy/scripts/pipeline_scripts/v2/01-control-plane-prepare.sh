@@ -106,7 +106,7 @@ echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 
-if [ "$FORCE_RESET" == "true" ]; then
+if [ "${FORCE_RESET:-false}" == "true" ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
 	echo -e "$bold_red--- Resetting the environment file ---$reset"
 	step=0
