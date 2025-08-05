@@ -99,7 +99,7 @@ stages:
               # Exit immediately if a command exits with a non-zero status.
               set -e
 
-              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              green="\e[1;32m" ; reset="\e[0m" ; bold_red="\e[1;31m"
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
                 echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
@@ -131,13 +131,13 @@ stages:
                 fi
 
                 if [ ! -f $environment_file_name ]; then
-                  echo -e "$boldred--- $environment_file_name was not found ---$reset"
+                  echo -e "$bold_red--- $environment_file_name was not found ---$reset"
                   echo "##vso[task.logissue type=error]Workload zone configuration file $environment_file_name was not found."
                   exit 2
                 fi
 
                 if [ ! -f $params_file ]; then
-                  echo -e "$boldred--- $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml was not found ---$reset"
+                  echo -e "$bold_red--- $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml was not found."
                   exit 2
                 else
@@ -150,7 +150,7 @@ stages:
                 fi
 
                 if [ ! -f $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}_hosts.yaml ]; then
-                  echo -e "$boldred--- $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}_hosts.yaml was not found ---$reset"
+                  echo -e "$bold_red--- $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}_hosts.yaml was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}_hosts.yaml was not found."
                   exit 2
                 fi
@@ -249,7 +249,7 @@ stages:
                   az login --service-principal --client-id $AZURE_CLIENT_ID --password=${AZURE_CLIENT_SECRET} --tenant $AZURE_TENANT_ID --output none
                   return_code=$?
                   if [ 0 != $return_code ]; then
-                    echo -e "$boldred--- Login failed ---$reset"
+                    echo -e "$bold_red--- Login failed ---$reset"
                     echo "##vso[task.logissue type=error]az login failed."
                     exit $return_code
                   fi
@@ -258,7 +258,7 @@ stages:
 
                 return_code=$?
                 if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
+                  echo -e "$bold_red--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi

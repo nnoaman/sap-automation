@@ -11,7 +11,7 @@ set -eu
 # Setup variables                                                              |
 #                                                                              |
 #--------------------------------------+---------------------------------------8
-green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+green="\e[1;32m" ; reset="\e[0m" ; bold_red="\e[1;31m"
 __basedir="${ROOT_FOLDER}"
 acss_environment=${ACSS_ENVIRONMENT}
 acss_sap_product=${ACSS_SAP_PRODUCT}

@@ -59,7 +59,7 @@ function print_banner() {
 		secondary_message="$secondary_message"
 	fi
 
-	local boldred="\e[1;31m"
+	local bold_red="\e[1;31m"
 	local cyan="\e[1;36m"
 	local green="\e[1;32m"
 	local reset="\e[0m"
@@ -68,7 +68,7 @@ function print_banner() {
 	local color
 	case "$type" in
 	error)
-		color="$boldred"
+		color="$bold_red"
 		;;
 	success)
 		color="$green"
@@ -1165,8 +1165,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 					import_return_value=0
-					echo -e "$boldred Errors occurred during the apply phase:$reset"
-					echo -e "$boldred ------------------------------------------------------------------------------------- $reset"
+					echo -e "$bold_red Errors occurred during the apply phase:$reset"
+					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
 					for item in "${errors[@]}"; do
