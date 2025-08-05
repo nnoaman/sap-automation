@@ -98,8 +98,11 @@ echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 
 if [ "${FORCE_RESET:-false}" == "true" ]; then
-	echo "##vso[task.logissue type=warning]Forcing a re-install"
-	echo -e "$bold_red--- Resetting the environment file ---$reset"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=warning]Forcing a re-install"
+	else
+		echo -e "$bold_red--- Resetting the environment file ---$reset"
+	fi
 	step=0
 else
 	if [ -f "${deployer_environment_file_name}" ]; then
@@ -343,7 +346,6 @@ if [ "${USE_MSI:-false}" == "true" ]; then
 	TF_VAR_use_spn=false
 	export TF_VAR_use_spn
 	echo "Deployer using:                      Managed Identity"
-
 else
 	TF_VAR_use_spn=true
 	export TF_VAR_use_spn
