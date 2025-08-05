@@ -21,15 +21,6 @@ source "${script_directory}/set-colors.sh"
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
 
-set -eu
-
-if [ "${DEBUG:-false}" = true ]; then
-	set -eux
-	DEBUG=true
-	echo "Environment variables:"
-	printenv | sort
-fi
-
 # Print the execution environment details
 print_header
 echo ""
@@ -345,7 +336,6 @@ fi
 end_group
 
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
-set +eu
 
 msi_flag=""
 if [ "${USE_MSI:-false}" == "true" ]; then
@@ -381,8 +371,6 @@ fi
 echo ""
 echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset}"
 echo ""
-
-set -eu
 
 if [ -f "${deployer_environment_file_name}" ]; then
 

@@ -15,7 +15,7 @@ set -eu
 DEBUG=false
 
 if [ "${SYSTEM_DEBUG:-false}" = true ]; then
-	set -eux
+	set -x
 	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
