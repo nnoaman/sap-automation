@@ -295,11 +295,12 @@ echo -e "$green--- Remove Control Plane Part 2 ---$reset"
 
 cd "$CONFIG_REPO_PATH" || exit
 
-# Git checkout for the correct branch
+# Pull changes if there are other deployment jobs
 if [ "$PLATFORM" == "devops" ]; then
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 	git checkout -q "$BUILD_SOURCEBRANCHNAME"
 elif [ "$PLATFORM" == "github" ]; then
-	git checkout -q "$GITHUB_REF_NAME"
+	git pull -q origin "$GITHUB_REF_NAME"
 fi
 
 changed=0

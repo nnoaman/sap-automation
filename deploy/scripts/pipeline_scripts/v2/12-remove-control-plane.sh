@@ -227,9 +227,10 @@ echo "Return code from remove_control_plane_v2: $return_code."
 
 echo -e "$green--- Remove Control Plane Part 1 ---$reset_formatting"
 cd "$CONFIG_REPO_PATH" || exit
-# Pull latest changes from appropriate branch
+# Pull changes if there are other deployment jobs
 if [ "$PLATFORM" == "devops" ]; then
 	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+	git checkout -q "$BUILD_SOURCEBRANCHNAME"
 elif [ "$PLATFORM" == "github" ]; then
 	git pull -q origin "$GITHUB_REF_NAME"
 fi
