@@ -97,7 +97,7 @@ echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 
-if [ "${FORCE_RESET:-false}" == "true" ]; then
+if [ "${FORCE_RESET:-false}" = true ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Forcing a re-install"
 	else
@@ -106,7 +106,7 @@ if [ "${FORCE_RESET:-false}" == "true" ]; then
 	step=0
 else
 	if [ -f "${deployer_environment_file_name}" ]; then
-		step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+		step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	else
 		step=0
 	fi
