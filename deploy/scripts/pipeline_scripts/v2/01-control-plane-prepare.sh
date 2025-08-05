@@ -107,6 +107,9 @@ if [ "${FORCE_RESET:-false}" = true ]; then
 else
 	if [ -f "${deployer_environment_file_name}" ]; then
 		step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+		if [ -z "$step" ]; then
+			step=0
+		fi
 	else
 		step=0
 	fi
@@ -115,7 +118,11 @@ fi
 echo "Step:                                $step"
 
 if [ 0 != "${step}" ]; then
-	echo "##vso[task.logissue type=warning]Already prepared"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=warning]Control Plane already prepared"
+	else
+		echo "Control Plane already prepared"
+	fi
 	exit 0
 fi
 
@@ -125,9 +132,6 @@ if [ "$PLATFORM" == "devops" ]; then
 elif [ "$PLATFORM" == "github" ]; then
 	git checkout -q "$GITHUB_REF_NAME"
 fi
-
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -293,6 +297,8 @@ fi
 
 git pull -q
 
+start_group "Decrypting state files"
+
 # Handle state.zip differently per platform
 
 if [ "$PLATFORM" == "devops" ]; then
@@ -320,7 +326,6 @@ elif [ "$PLATFORM" == "github" ]; then
 else
 	pass="localpassword"
 fi
-start_group "Decrypting state files"
 
 if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg ]; then
 	echo "Decrypting state file"
