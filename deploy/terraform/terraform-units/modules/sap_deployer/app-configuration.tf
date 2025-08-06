@@ -39,11 +39,10 @@ data "azurerm_app_configuration" "app_config" {
 resource "time_sleep" "wait_for_appconfig_data_owner_assignment" {
   create_duration                      = "60s"
   count                                = var.app_config_service.deploy ? 1 : 0
+  triggers                             = {
+                                           role_assignment = azurerm_role_assignment.appconfig_data_owner_msi.id
+                                         }
 
-  depends_on                           = [
-                                           azurerm_role_assignment.appconfig_data_owner_msi,
-                                           azurerm_role_assignment.appconfig_data_owner_spn
-                                         ]
 }
 
 resource "time_sleep" "wait_for_appconfig_private_endpoint" {
