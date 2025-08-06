@@ -812,11 +812,11 @@ function sdaf_installer() {
 	allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
 	apply_needed=0
 
-	if terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
-		return_value=${PIPESTATUS[0]}
+	terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log || true
+	return_value=${PIPESTATUS[0]}
+	if [ 0 -eq $return_value ]; then
 		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 	else
-		return_value=${PIPESTATUS[0]}
 		if [ 1 -eq $return_value ]; then
 			print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
 			return $return_value
@@ -832,11 +832,9 @@ function sdaf_installer() {
 	if [ "${deployment_system}" == sap_deployer ]; then
 		state_path="DEPLOYER"
 
-		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-			DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-			if [ -n "$DEPLOYER_KEYVAULT" ]; then
-				save_config_var "DEPLOYER_KEYVAULT" "${system_config_information}"
-			fi
+		DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+		if [ -n "$DEPLOYER_KEYVAULT" ]; then
+			save_config_var "DEPLOYER_KEYVAULT" "${system_config_information}"
 		fi
 
 	fi
@@ -851,11 +849,9 @@ function sdaf_installer() {
 
 	if [ "${deployment_system}" == sap_library ]; then
 		state_path="LIBRARY"
-		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-			tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
-			save_config_vars "${system_config_information}" \
-				tfstate_resource_id
-		fi
+		tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
+		save_config_vars "${system_config_information}" \
+			tfstate_resource_id
 
 		# Define an array resources
 		resources=(
