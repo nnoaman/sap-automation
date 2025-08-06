@@ -29,6 +29,9 @@ source "${parent_directory}/helper.sh"
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
+
+	platform_flag="--ado"
+
 	# Configure DevOps
 	configure_devops
 
@@ -73,6 +76,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="$ZONE"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
+	platform_flag="--github"
 fi
 
 DEBUG=false
@@ -168,7 +172,7 @@ fi
 
 if [ "$USE_MSI" != "true" ]; then
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$ARM_CLIENT_ID" --client_secret "$ARM_CLIENT_SECRET" --client_tenant_id "$ARM_TENANT_ID" --ado; then
+		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$ARM_CLIENT_ID" --client_secret "$ARM_CLIENT_SECRET" --client_tenant_id "$ARM_TENANT_ID" "$platform_flag"; then
 		return_code=$?
 	else
 		return_code=$?
@@ -177,7 +181,7 @@ if [ "$USE_MSI" != "true" ]; then
 	fi
 else
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --msi --ado; then
+		--subscription "$ARM_SUBSCRIPTION_ID" --msi "$platform_flag"; then
 		return_code=$?
 	else
 		return_code=$?
