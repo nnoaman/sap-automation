@@ -380,8 +380,10 @@ function parse_arguments() {
 			;;
 		-n | --application_configuration_name)
 			APPLICATION_CONFIGURATION_NAME="$2"
-			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-			export APPLICATION_CONFIGURATION_ID
+			if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+				APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+				export APPLICATION_CONFIGURATION_ID
+			fi
 			export APPLICATION_CONFIGURATION_NAME
 			shift 2
 			;;
@@ -492,11 +494,16 @@ function retrieve_parameters() {
 
 				print_banner "$banner_title" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
 
-				keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-				print_banner "$banner_title" "Key vault: $keyvault" "info" "${CONTROL_PLANE_NAME}_KeyVaultName ${prefix}"
+				if [ -v DEPLOYER_KEYVAULT ]; then
+					keyvault="$DEPLOYER_KEYVAULT"
+					keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
+				else
+					keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+					print_banner "$banner_title" "Key vault: $keyvault" "info" "${CONTROL_PLANE_NAME}_KeyVaultName ${prefix}"
 
-				keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-				STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
+					keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+					STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
+				fi
 
 				export keyvault
 			fi
