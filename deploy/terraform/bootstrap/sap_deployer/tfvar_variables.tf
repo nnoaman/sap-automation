@@ -28,11 +28,10 @@ variable "location"                              {
 variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string
-
-                                                  validation {
-                                                    condition     = length(var.agent_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.agent_subnet_arm_id))
-                                                    error_message = "If specified the 'agent_subnet_arm_id' variable must be a correct Azure resource identifier."
-                                                  }
+                                                   validation {
+                                                     condition     = length(var.subscription_id) == 0 ? true : length(var.subscription_id) == 36
+                                                     error_message = "If specified the 'subscription_id' variable must be a correct subscription ID."
+                                                   }
 
                                                  }
 
