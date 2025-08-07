@@ -141,6 +141,7 @@ stages:
 
             displayName:               Remove control plane
             env:
+              APP_REGISTRATION_APP_ID:   $(APP_REGISTRATION_APP_ID)
               ARM_CLIENT_ID:             $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:         $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
