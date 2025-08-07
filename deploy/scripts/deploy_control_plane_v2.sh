@@ -303,7 +303,7 @@ function bootstrap_deployer() {
 		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
 	else
 		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_NAME"
-		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
+		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME:-undefined}"
 	fi
 
 	if [ $ado_flag == "--devops" ]; then
