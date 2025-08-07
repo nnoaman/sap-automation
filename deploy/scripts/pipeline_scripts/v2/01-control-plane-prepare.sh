@@ -226,7 +226,7 @@ if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConf
 	TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 	export TF_VAR_management_subscription_id
 else
-	unset	APPLICATION_CONFIGURATION_NAME
+	unset APPLICATION_CONFIGURATION_NAME
 fi
 
 if [ "$FORCE_RESET" == true ]; then
@@ -390,7 +390,6 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	DevOpsInfrastructureObjectId=$(grep -m1 "^DevOpsInfrastructureObjectId" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "$DevOpsInfrastructureObjectId" ]; then
 		export DevOpsInfrastructureObjectId
-		echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
 	fi
 
 	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
@@ -412,6 +411,39 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then
 		echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
 	fi
+
+	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+		export APPLICATION_CONFIGURATION_NAME
+
+	fi
+
+	if [ "$PLATFORM" == "devops" ]; then
+
+		if [ -n "${ARM_CLIENT_ID}" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
+		fi
+
+		if [ -n "${ARM_OBJECT_ID}" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
+		fi
+
+		if [ -n "${file_key_vault}" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEY_VAULT" "$file_key_vault"
+		fi
+
+		if [ -n "$DevOpsInfrastructureObjectId" ]; then
+			echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
+		fi
+
+		if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+			echo "APPLICATION_CONFIGURATION_NAME:      ${APPLICATION_CONFIGURATION_NAME}"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+		fi
+
+	fi
+
 fi
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
