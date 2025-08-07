@@ -42,25 +42,21 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 	export VARIABLE_GROUP_ID
 
-	if [ -v DEPLOYER_KEYVAULT ]; then
-		echo -e "$green--- DEPLOYER_KEYVAULT already set ---$reset_formatting"
-	else
-		if [ -v PARENT_VARIABLE_GROUP ]; then
-			PARENT_VARIABLE_GROUP_ID=0
+	if [ -v PARENT_VARIABLE_GROUP ]; then
+		PARENT_VARIABLE_GROUP_ID=0
 
-			if get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
-				DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
-				saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+		if get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
+			DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 
-				CONTROL_PLANE_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --output tsv)
-				saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+			CONTROL_PLANE_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --output tsv)
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
 
-				export PARENT_VARIABLE_GROUP_ID
-			else
-				echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
-				echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
-				exit 2
-			fi
+			export PARENT_VARIABLE_GROUP_ID
+		else
+			echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+			echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
+			exit 2
 		fi
 	fi
 
@@ -98,7 +94,7 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Setting the secrets for $CONTROL_PLANE_NAME "
+	echo "##vso[build.updatebuildnumber]Setting the secrets for $ZONE "
 fi
 
 return_code=0
