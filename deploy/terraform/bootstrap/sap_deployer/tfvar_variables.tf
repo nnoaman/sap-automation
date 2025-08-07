@@ -28,7 +28,12 @@ variable "location"                              {
 variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string
-                                                   default     = null
+
+                                                  validation {
+                                                    condition     = length(var.agent_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.agent_subnet_arm_id))
+                                                    error_message = "If specified the 'agent_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
+
                                                  }
 
 variable "prevent_deletion_if_contains_resources" {
@@ -546,6 +551,11 @@ variable "management_dns_subscription_id"             {
                                                         description = "String value giving the possibility to register custom dns a records in a separate subscription"
                                                         default     = ""
                                                         type        = string
+
+                                                        validation {
+                                                          condition     = length(var.management_dns_subscription_id) == 0 ? true : length(var.management_dns_subscription_id) == 36
+                                                          error_message = "If specified the 'management_dns_subscription_id' variable must be a correct subscription ID."
+                                                        }
                                                       }
 
 variable "management_dns_resourcegroup_name"          {
@@ -572,6 +582,10 @@ variable "privatelink_dns_subscription_id"            {
                                                         description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
                                                         default     = ""
                                                         type        = string
+                                                        validation {
+                                                          condition     = length(var.privatelink_dns_subscription_id) == 0 ? true : length(var.privatelink_dns_subscription_id) == 36
+                                                          error_message = "If specified the 'privatelink_dns_subscription_id' variable must be a correct subscription ID."
+                                                        }
                                                       }
 
 variable "privatelink_dns_resourcegroup_name"         {
@@ -632,6 +646,10 @@ variable "dev_center_deployment"                      {
 variable "DevOpsInfrastructure_object_id"             {
                                                         description = "Service principal object id for the DevOps Infrastructure"
                                                         default     = ""
+                                                        validation {
+                                                          condition     = length(var.DevOpsInfrastructure_object_id) == 0 ? true : length(var.DevOpsInfrastructure_object_id) == 36
+                                                          error_message = "If specified the 'DevOpsInfrastructure_object_id' variable must be a correct object ID."
+                                                        }
                                                       }
 
 #######################################4#######################################8
@@ -681,7 +699,7 @@ variable "app_registration_app_id"                    {
                                                         description = "The app registration id to be used for the webapp"
                                                         default     = ""
                                                         validation {
-                                                          condition     = length(var.app_registration_app_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.agent_subnet_arm_id))
+                                                          condition     = length(var.app_registration_app_id) == 0 ? true : length(var.app_registration_app_id) == 36
                                                           error_message = "If specified the 'app_registration_app_id' variable must be a correct Azure resource identifier."
                                                         }
                                                       }

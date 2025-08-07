@@ -29,6 +29,11 @@ variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string
                                                    default     = null
+                                                   validation {
+                                                     condition     = length(var.subscription_id) == 0 ? true : length(var.subscription_id) == 36
+                                                     error_message = "If specified the 'subscription_id' variable must be a correct subscription ID."
+                                                   }
+
                                                  }
 
 variable "prevent_deletion_if_contains_resources" {
@@ -235,7 +240,7 @@ variable "webapp_subnet_arm_id"                 {
                                                 }
 
 variable "webapp_subnet_address_prefix"        {
-                                                  description = "Subnet adress range for the Web App subnet"
+                                                  description = "Subnet address range for the Web App subnet"
                                                   default     = ""
                                                 }
 
@@ -465,13 +470,13 @@ variable "deployer_assign_resource_permissions"   {
 
 variable "use_private_endpoint"                       {
                                                         description = "Boolean value indicating if private endpoint should be used for the deployment"
-                                                        default     = false
+                                                        default     = true
                                                         type        = bool
                                                       }
 
 variable "use_service_endpoint"                       {
                                                         description = "Boolean value indicating if service endpoints should be used for the deployment"
-                                                        default     = false
+                                                        default     = true
                                                         type        = bool
                                                       }
 
@@ -516,6 +521,12 @@ variable "spn_id"                                     {
                                                         description = "SPN ID to be used for the deployment"
                                                         nullable    = true
                                                         default     = ""
+
+                                                        validation {
+                                                          condition     = length(var.spn_id) == 0 ? true : length(var.spn_id) == 36
+                                                          error_message = "If specified the 'spn_id' variable must be a correct subscription ID."
+                                                        }
+
                                                       }
 
 variable "public_network_access_enabled"              {
@@ -556,8 +567,12 @@ variable "management_dns_subscription_id"             {
                                                         description = "String value giving the possibility to register custom dns a records in a separate subscription"
                                                         default     = ""
                                                         type        = string
-                                                      }
 
+                                                        validation {
+                                                          condition     = length(var.management_dns_subscription_id) == 0 ? true : length(var.management_dns_subscription_id) == 36
+                                                          error_message = "If specified the 'management_dns_subscription_id' variable must be a correct subscription ID."
+                                                        }
+                                                      }
 variable "management_dns_resourcegroup_name"          {
                                                         description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
                                                         default     = ""
@@ -582,7 +597,12 @@ variable "privatelink_dns_subscription_id"            {
                                                         description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
                                                         default     = ""
                                                         type        = string
+                                                        validation {
+                                                          condition     = length(var.privatelink_dns_subscription_id) == 0 ? true : length(var.privatelink_dns_subscription_id) == 36
+                                                          error_message = "If specified the 'privatelink_dns_subscription_id' variable must be a correct subscription ID."
+                                                        }
                                                       }
+
 
 variable "privatelink_dns_resourcegroup_name"         {
                                                         description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate resourcegroup"
@@ -691,6 +711,10 @@ variable "app_service_deployment"                     {
 variable "app_registration_app_id"                    {
                                                         description = "The app registration id to be used for the webapp"
                                                         default     = ""
+                                                        validation {
+                                                          condition     = length(var.app_registration_app_id) == 0 ? true : length(var.app_registration_app_id) == 36
+                                                          error_message = "If specified the 'app_registration_app_id' variable must be a correct Azure resource identifier."
+                                                        }
                                                       }
 
 variable "sa_connection_string"                       {
