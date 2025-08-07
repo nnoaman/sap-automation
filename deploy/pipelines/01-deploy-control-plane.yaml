@@ -361,31 +361,12 @@ stages:
             continueOnError:           false
             inputs:
               azureSubscription:       ${{parameters.connection_name}}
-              addSpnToEnvironment:     false
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-webapp-configuration.sh
+              addSpnToEnvironment:     true
               visibleAzLogin:          false
               failOnStandardError:     false
-              scriptType:              bash
-              inlineScript: |
-                #!/bin/bash
-                app_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APP_SERVICE_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-                printf "Configure the Web Application authentication using the following script.\n" >"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-                printf "\n\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-                printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" "$APP_REGISTRATION_APP_ID" "$APP_SERVICE_NAME" "$APP_SERVICE_NAME" "$APP_SERVICE_NAME" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-                printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-                printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" $(APP_REGISTRATION_OBJECTID) $(ARM_TENANT_ID) $(ARM_OBJECT_ID) >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-                printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-                printf "az webapp restart --ids %s\n\n" "$app_resource_id" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-                printf "\n\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-                printf "[Access the Web App](https://%s.azurewebsites.net) \n\n" $(APP_SERVICE_NAME) >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-                echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
-                exit 0
-
             displayName: "Documentation"
             env:
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
