@@ -696,17 +696,17 @@ function sdaf_installer() {
 	if [ ! -f .terraform/terraform.tfstate ]; then
 		print_banner "$banner_title" "New deployment" "info"
 
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
-			print_banner "$banner_title" "Terraform init failed." "error"
-			return $return_value
 		else
 			return_value=$?
+			print_banner "$banner_title" "Terraform init failed." "error"
+			return $return_value
 		fi
 
 	else
@@ -816,13 +816,12 @@ function sdaf_installer() {
 	return_value=${PIPESTATUS[0]}
 	if [ 0 -eq $return_value ]; then
 		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
+		apply_needed=1
 	else
 		if [ 1 -eq $return_value ]; then
 			print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
 			return $return_value
 		fi
-		apply_needed=1
-
 	fi
 
 	state_path="SYSTEM"
@@ -836,7 +835,6 @@ function sdaf_installer() {
 		if [ -n "$DEPLOYER_KEYVAULT" ]; then
 			save_config_var "DEPLOYER_KEYVAULT" "${system_config_information}"
 		fi
-
 	fi
 
 	if [ "${deployment_system}" == sap_landscape ]; then
