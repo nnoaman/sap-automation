@@ -428,7 +428,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
 		fi
 
-		if [ -n "${file_key_vault}" ]; then
+		if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEY_VAULT" "$DEPLOYER_KEYVAULT"
 		fi
 
