@@ -364,6 +364,7 @@ stages:
               addSpnToEnvironment:     false
               visibleAzLogin:          false
               failOnStandardError:     false
+              scriptType:              bash
               inlineScript: |
                 #!/bin/bash
                 app_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APP_SERVICE_NAME' | project id, name, subscription" --query data[0].id --output tsv)
