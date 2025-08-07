@@ -605,7 +605,7 @@ variable "agent_pool"                                 {
                                                       }
 
 variable "agent_pat" {
-  description = "If provided, contains the Personal Access Token to be used"
+                                                        description = "If provided, contains the Personal Access Token to be used"
                                                         default     = ""
                                                       }
 
@@ -680,6 +680,10 @@ variable "app_service_deployment"                     {
 variable "app_registration_app_id"                    {
                                                         description = "The app registration id to be used for the webapp"
                                                         default     = ""
+                                                        validation {
+                                                          condition     = length(var.app_registration_app_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.agent_subnet_arm_id))
+                                                          error_message = "If specified the 'app_registration_app_id' variable must be a correct Azure resource identifier."
+                                                        }
                                                       }
 
 variable "sa_connection_string"                       {

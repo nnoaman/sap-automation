@@ -268,6 +268,26 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 end_group
+if [ "$USE_WEBAPP" = "true" ]; then
+	echo "Deploy Web Application:               true"
+
+	if [ ! -v APP_REGISTRATION_APP_ID ]; then
+		if [ "$PLATFORM" == "devops" ]; then
+			echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
+		elif [ "$PLATFORM" == "github" ]; then
+			echo "Variable APP_REGISTRATION_APP_ID was not defined."
+		fi
+		exit 2
+	fi
+	echo "App Registration ID:                  $APP_REGISTRATION_APP_ID"
+	TF_VAR_app_registration_app_id=$APP_REGISTRATION_APP_ID
+	export TF_VAR_app_registration_app_id
+
+	TF_VAR_app_service_deployment=true
+	export TF_VAR_app_service_deployment
+else
+	echo "Deploy Web Application:               false"
+fi
 
 export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log"
 
