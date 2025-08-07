@@ -399,7 +399,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	fi
 	echo "Deployer State File:                 $deployer_tfstate_key"
 
-	DEPLOYER_KEYVAULT=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
 
 	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
@@ -415,32 +415,6 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
 		export APPLICATION_CONFIGURATION_NAME
-
-	fi
-
-	if [ "$PLATFORM" == "devops" ]; then
-
-		if [ -n "${ARM_CLIENT_ID}" ]; then
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
-		fi
-
-		if [ -n "${ARM_OBJECT_ID}" ]; then
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
-		fi
-
-		if [ -n "${DEPLOYER_KEYVAULT}" ]; then
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEY_VAULT" "$DEPLOYER_KEYVAULT"
-		fi
-
-		if [ -n "$DevOpsInfrastructureObjectId" ]; then
-			echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
-		fi
-
-		if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-			echo "APPLICATION_CONFIGURATION_NAME:      ${APPLICATION_CONFIGURATION_NAME}"
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-		fi
 
 	fi
 
