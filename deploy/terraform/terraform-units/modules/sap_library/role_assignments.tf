@@ -7,23 +7,13 @@ resource "azurerm_role_assignment" "storage_tfstate" {
   principal_id                         = data.azuread_client_config.current.object_id
 
   lifecycle {
-    ignore_changes = [
-      principal_id
-    ]
+    create_before_destroy              = true
+
+    replace_triggered_by               = [
+                                           data.azuread_client_config.current.object_id
+                                         ]
   }
 
-}
-
-
-resource "azurerm_role_assignment" "blob_msi" {
-  provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && var.deployer.use ? (
-                                           length(try(var.deployer_tfstate.deployer_msi_id, "")) > 0 ? 1 : 0) : (
-                                           0
-                                           )
-  scope                                = azurerm_storage_account.storage_tfstate[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = var.deployer_tfstate.deployer_msi_id
 }
 
 resource "azurerm_role_assignment" "webapp_table" {

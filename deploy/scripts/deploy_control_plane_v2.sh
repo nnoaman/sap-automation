@@ -457,6 +457,9 @@ function bootstrap_library {
 			exit 20
 		fi
 
+    print_banner "$banner_title" "Waiting 60 to ensure permissions are applied." "info"
+		sleep 60
+
 		terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 		terraform_storage_account_subscription_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
 
