@@ -6,12 +6,18 @@ resource "azurerm_role_assignment" "storage_tfstate" {
   role_definition_name                 = "Storage Blob Data Contributor"
   principal_id                         = data.azuread_client_config.current.object_id
 
+  lifecycle {
+    ignore_changes = [
+      principal_id
+    ]
+  }
+
 }
 
 
 resource "azurerm_role_assignment" "blob_msi" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && var.deployer.use && (var.deployer_tfstate.deployer_msi_id != data.azuread_client_config.current.object_id) ? (
+  count                                = var.infrastructure.assign_permissions && var.deployer.use ? (
                                            length(try(var.deployer_tfstate.deployer_msi_id, "")) > 0 ? 1 : 0) : (
                                            0
                                            )
