@@ -62,12 +62,20 @@ variable "spn_id"                                {
                                                    description = "SPN ID to be used for the deployment"
                                                    nullable    = true
                                                    default     = ""
+                                                   validation {
+                                                     condition     = length(var.spn_id) == 0 ? true : length(var.spn_id) == 36
+                                                     error_message = "If specified the 'spn_id' variable must be a correct service principal ID."
+                                                   }
                                                  }
 
 variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string
-                                                   default     = null
+                                                   validation {
+                                                     condition     = length(var.subscription_id) == 0 ? true : length(var.subscription_id) == 36
+                                                     error_message = "If specified the 'subscription_id' variable must be a correct subscription ID."
+                                                   }
+
                                                  }
 
 variable "deployer_prefix"                       {
@@ -350,6 +358,10 @@ variable "management_dns_subscription_id"        {
                                                    description = "String value giving the possibility to register custom dns a records in a separate subscription"
                                                    default     = ""
                                                    type        = string
+                                                  validation {
+                                                    condition     = length(var.management_dns_subscription_id) == 0 ? true : length(var.management_dns_subscription_id) == 36
+                                                    error_message = "If specified the 'management_dns_subscription_id' variable must be a correct subscription ID."
+                                                  }
                                                  }
 
 variable "management_dns_resourcegroup_name"     {
@@ -394,6 +406,10 @@ variable "privatelink_dns_subscription_id"       {
                                                    description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
                                                    default     = ""
                                                    type        = string
+                                                  validation {
+                                                    condition     = length(var.privatelink_dns_subscription_id) == 0 ? true : length(var.privatelink_dns_subscription_id) == 36
+                                                    error_message = "If specified the 'privatelink_dns_subscription_id' variable must be a correct subscription ID."
+                                                  }
                                                  }
 
 variable "privatelink_dns_resourcegroup_name"    {

@@ -508,6 +508,10 @@ variable "spn_id"                                     {
                                                         description = "SPN ID to be used for the deployment"
                                                         nullable    = true
                                                         default     = ""
+                                                        validation {
+                                                          condition     = length(var.spn_id) == 0 ? true : length(var.spn_id) == 36
+                                                          error_message = "If specified the 'spn_id' variable must be a correct service principal ID."
+                                                        }
 
                                                       }
 

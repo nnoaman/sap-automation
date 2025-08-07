@@ -55,12 +55,20 @@ variable "spn_id"                                {
                                                    description = "SPN ID to be used for the deployment"
                                                    nullable    = true
                                                    default     = ""
+                                                   validation {
+                                                     condition     = length(var.spn_id) == 0 ? true : length(var.spn_id) == 36
+                                                     error_message = "If specified the 'spn_id' variable must be a correct service principal ID."
+                                                   }
                                                  }
 
 variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string
                                                    default     = null
+                                                   validation {
+                                                     condition     = length(var.subscription_id) == 0 ? true : length(var.subscription_id) == 36
+                                                     error_message = "If specified the 'subscription_id' variable must be a correct subscription ID."
+                                                   }
                                                  }
 
 variable "deployer_prefix"                       {

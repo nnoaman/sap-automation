@@ -56,12 +56,20 @@ variable "Description"                          {
 variable "subscription_id"                      {
                                                   description = "This is the target subscription for the deployment"
                                                   type        = string
-                                                  default     = ""
+                                                   validation {
+                                                     condition     = length(var.subscription_id) == 0 ? true : length(var.subscription_id) == 36
+                                                     error_message = "If specified the 'subscription_id' variable must be a correct subscription ID."
+                                                   }
+
                                                 }
 variable "management_subscription_id"           {
                                                   description = "This is the management subscription used by the deployment"
                                                   type        = string
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.management_subscription_id) == 0 ? true : length(var.management_subscription_id) == 36
+                                                    error_message = "If specified the 'management_subscription_id' variable must be a correct subscription ID."
+                                                  }
                                                 }
 
 variable "use_deployer"                          {
@@ -82,6 +90,11 @@ variable "resourcegroup_name"                   {
 variable "resourcegroup_arm_id"                 {
                                                   description = "If provided, the Azure resource group id"
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.resourcegroup_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.resourcegroup_arm_id))
+                                                    error_message = "If specified the 'resourcegroup_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
+
                                                 }
 
 variable "resourcegroup_tags"                   {
@@ -569,6 +582,10 @@ variable "use_spn"                              {
 variable "user_assigned_identity_id"            {
                                                   description = "If provided defines the user assigned identity to assign to the virtual machines"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.user_assigned_identity_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.user_assigned_identity_id))
+                                                                  error_message = "If specified the 'user_assigned_identity_id' variable must be a correct Azure resource identifier."
+                                                                }
                                                 }
 
 variable "deploy_monitoring_extension"          {
@@ -707,6 +724,11 @@ variable "management_dns_subscription_id"          {
                                                      description = "String value giving the possibility to register custom dns a records in a separate subscription"
                                                      default     = ""
                                                      type        = string
+
+                                                      validation {
+                                                        condition     = length(var.management_dns_subscription_id) == 0 ? true : length(var.management_dns_subscription_id) == 36
+                                                        error_message = "If specified the 'management_dns_subscription_id' variable must be a correct subscription ID."
+                                                      }
                                                    }
 
 variable "management_dns_resourcegroup_name"       {
@@ -719,6 +741,11 @@ variable "privatelink_dns_subscription_id"         {
                                                      description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
                                                      default     = ""
                                                      type        = string
+
+                                                     validation {
+                                                       condition     = length(var.privatelink_dns_subscription_id) == 0 ? true : length(var.privatelink_dns_subscription_id) == 36
+                                                       error_message = "If specified the 'privatelink_dns_subscription_id' variable must be a correct subscription ID."
+                                                     }
                                                    }
 
 variable "privatelink_dns_resourcegroup_name"      {
@@ -726,7 +753,6 @@ variable "privatelink_dns_resourcegroup_name"      {
                                                      default     = ""
                                                      type        = string
                                                    }
-
 
 variable "privatelink_file_id"                     {
                                                      description = "ID of the private link file resource"
@@ -736,7 +762,6 @@ variable "privatelink_file_id"                     {
                                                                   condition     = length(var.privatelink_file_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.privatelink_file_id))
                                                                   error_message = "If specified the 'privatelink_file_id' variable must be a correct Azure resource identifier."
                                                                 }
-
                                                    }
 variable "privatelink_storage_id"                  {
                                                      description = "ID of the private link storage resource"
@@ -1233,6 +1258,10 @@ variable "assign_permissions"                         {
 variable "spn_id"                                     {
                                                         description = "Service Principal Id to be used for the deployment"
                                                         default     = ""
+                                                        validation {
+                                                          condition     = length(var.spn_id) == 0 ? true : length(var.spn_id) == 36
+                                                          error_message = "If specified the 'spn_id' variable must be a correct service principal ID."
+                                                        }
                                                       }
 variable "platform_updates"                           {
                                                         description = "Specifies whether VMAgent Platform Updates is enabled"
