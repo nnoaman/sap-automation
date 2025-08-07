@@ -52,6 +52,9 @@ if [ "$PLATFORM" == "devops" ]; then
 				DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
 				saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 
+				CONTROL_PLANE_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --output tsv)
+				saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+
 				export PARENT_VARIABLE_GROUP_ID
 			else
 				echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"

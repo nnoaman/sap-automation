@@ -29,9 +29,7 @@ source "${parent_directory}/helper.sh"
 SCRIPT_NAME="$(basename "$0")"
 
 WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
-
 
 # Print the execution environment details
 print_header
@@ -74,6 +72,7 @@ elif [ "$PLATFORM" == "github" ]; then
 else
 	platform_flag=""
 fi
+deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 banner_title="Deploy Workload Zone"
 
