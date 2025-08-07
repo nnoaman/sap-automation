@@ -399,8 +399,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	fi
 	echo "Deployer State File:                 $deployer_tfstate_key"
 
-	file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Key Vault:                  ${file_key_vault}"
+	DEPLOYER_KEYVAULT=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
 
 	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then
@@ -429,7 +429,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		fi
 
 		if [ -n "${file_key_vault}" ]; then
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEY_VAULT" "$file_key_vault"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEY_VAULT" "$DEPLOYER_KEYVAULT"
 		fi
 
 		if [ -n "$DevOpsInfrastructureObjectId" ]; then
