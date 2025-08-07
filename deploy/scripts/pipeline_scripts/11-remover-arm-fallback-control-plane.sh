@@ -152,11 +152,11 @@ if [ 0 -eq $deployer_return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
-		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
+		remove_variable "$VARIABLE_GROUP_ID" "APP_SERVICE_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "CONTROL_PLANE_ENVIRONMENT"
 		remove_variable "$VARIABLE_GROUP_ID" "CONTROL_PLANE_LOCATION"
 		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
-		remove_variable "$VARIABLE_GROUP_ID" "APPSERVICE_NAME"
+		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_NAME"
 
 	fi
 	cd "$CONFIG_REPO_PATH" || exit

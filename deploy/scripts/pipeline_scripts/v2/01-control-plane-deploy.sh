@@ -330,7 +330,23 @@ else
 fi
 
 end_group
+APP_SERVICE_NAME=$(grep -m1 "^APP_SERVICE_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -n "${APP_SERVICE_NAME}" ]; then
+	export APP_SERVICE_NAME
+	echo "APP_SERVICE_NAME:      ${APP_SERVICE_NAME}"
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$APP_SERVICE_NAME"
+	fi
+fi
 
+APP_SERVICE_DEPLOYMENT=$(grep -m1 "^HAS_WEBAPP" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
+	export APP_SERVICE_DEPLOYMENT
+	echo "APP_SERVICE_DEPLOYMENT:      ${APP_SERVICE_DEPLOYMENT}"
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "$APP_SERVICE_DEPLOYMENT"
+	fi
+fi
 start_group "Update the repository"
 
 echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"

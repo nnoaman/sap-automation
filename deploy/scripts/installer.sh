@@ -732,35 +732,21 @@ if [ 1 != $return_value ]; then
 				echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
 			fi
 
+			APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+			if [ -n "${APP_SERVICE_NAME}" ]; then
+				save_config_var "APP_SERVICE_NAME" "${deployer_config_information}"
+				export APP_SERVICE_NAME
+			fi
+
+			HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+			if [ -n "${HAS_WEBAPP}" ]; then
+				save_config_var "HAS_WEBAPP" "${deployer_config_information}"
+				export HAS_WEBAPP
+			fi
+
 			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 			if [ -n "$keyvault" ]; then
-				save_config_var "keyvault" "${system_config_information}"
-			fi
-			if [ 1 == $called_from_ado ]; then
-
-				if [[ "$TF_VAR_use_webapp" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
-					webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-
-					if [ -n "$webapp_url_base" ]; then
-						az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
-						if [ -z "${az_var}" ]; then
-							az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-						else
-							az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-						fi
-					fi
-
-					webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
-					if [ -n "$webapp_id" ]; then
-						az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
-						if [ -z "${az_var}" ]; then
-							az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-						else
-							az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-						fi
-					fi
-
-				fi
+				save_config_var "keyvault" "${deployer_config_information}"
 			fi
 
 		fi

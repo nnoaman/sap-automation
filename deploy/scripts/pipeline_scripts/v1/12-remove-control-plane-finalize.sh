@@ -278,7 +278,7 @@ if [ 0 == $return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
-		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
+		remove_variable "$VARIABLE_GROUP_ID" "APP_SERVICE_NAME"
 	fi
 
 fi

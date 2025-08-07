@@ -450,7 +450,7 @@ if [ "$PLATFORM" == "devops" ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
 		remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
 		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
-		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
+		remove_variable "$VARIABLE_GROUP_ID" "APP_SERVICE_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"

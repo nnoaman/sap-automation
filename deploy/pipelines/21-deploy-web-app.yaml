@@ -14,7 +14,7 @@ parameters:
   - name:                              webappName
     displayName:                       Web App Name
     type:                              string
-    default:                           $(WEBAPP_URL_BASE)
+    default:                           $(APP_SERVICE_NAME)
 
   - name:                              keyvault
     displayName:                       Keyvault Name

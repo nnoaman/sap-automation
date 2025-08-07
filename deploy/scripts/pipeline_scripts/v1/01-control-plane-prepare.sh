@@ -382,6 +382,21 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  ${APPLICATION_CONFIGURATION_DEPLOYMENT}"
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "$APPLICATION_CONFIGURATION_DEPLOYMENT"
 	fi
+
+	APP_SERVICE_NAME=$(grep -m1 "^APP_SERVICE_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${APP_SERVICE_NAME}" ]; then
+		export APP_SERVICE_NAME
+		echo "APP_SERVICE_NAME:      ${APP_SERVICE_NAME}"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$APP_SERVICE_NAME"
+	fi
+
+	APP_SERVICE_DEPLOYMENT=$(grep -m1 "^HAS_WEBAPP" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
+		export APP_SERVICE_DEPLOYMENT
+		echo "APP_SERVICE_DEPLOYMENT:      ${APP_SERVICE_DEPLOYMENT}"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "$APP_SERVICE_DEPLOYMENT"
+	fi
+
 fi
 
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
