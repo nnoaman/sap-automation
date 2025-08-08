@@ -409,7 +409,7 @@ function sdaf_remover() {
 
 	print_banner "$banner_title" "Removal starter." "info" "Entering $SCRIPT_NAME"
 
-	if ! retrieve_parameters	; then
+	if ! retrieve_parameters; then
 		print_banner "$banner_title" "Retrieving parameters failed" "error"
 		return $?
 	fi
@@ -626,10 +626,11 @@ function sdaf_remover() {
 	else
 
 		allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
+		fileName="destroy_output.json"
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee "$fileName"; then
 				return_value=${PIPESTATUS[0]}
 				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
 			else
@@ -647,10 +648,29 @@ function sdaf_remover() {
 			fi
 		fi
 
-		if [ -f destroy_output.json ]; then
-			errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
+		if [ -f "$fileName" ]; then
+			errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 
 			if [[ -n $errors_occurred ]]; then
+
+				retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("You can only retry the Delete operation"))' "$fileName")
+				if [[ -n "${retry_errors_temp}" ]]; then
+					rm "$fileName"
+					sleep 30
+					# shellcheck disable=SC2086
+					if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee "$fileName"; then
+						return_value=${PIPESTATUS[0]}
+						print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
+					else
+						return_value=${PIPESTATUS[0]}
+						print_banner "$banner_title - $deployment_system" "Terraform destroy failed" "error"
+					fi
+					errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
+				fi
+			fi
+
+			if [[ -n $errors_occurred ]]; then
+
 				print_banner "$banner_title - $deployment_system" "Errors during the destroy phase" "success"
 				echo ""
 				echo "#########################################################################################"
