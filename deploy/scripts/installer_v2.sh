@@ -958,12 +958,8 @@ function sdaf_installer() {
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee apply_output.json; then
-				return_value=${PIPESTATUS[0]}
-			else
-				return_value=${PIPESTATUS[0]}
-			fi
-
+			terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee apply_output.json
+			return_value=${PIPESTATUS[0]}
 		else
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
@@ -973,9 +969,9 @@ function sdaf_installer() {
 			fi
 		fi
 
-		if [ $return_value -eq 1 ]; then
+		if [ 1 -eq $return_value ]; then
 			print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
-		elif [ $return_value -eq 2 ]; then
+		elif [ 2 -eq $return_value ]; then
 			# return code 2 is ok
 			print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 			return_value=0
@@ -992,56 +988,38 @@ function sdaf_installer() {
 				if [ -n "${approve}" ]; then
 
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-						return_value=$?
-					else
-						return_value=0
-					fi
+					ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+					return_value=$?
 
 					sleep 10
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
-							return_value=0
-						fi
+						ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+						return_value=$?
 					fi
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
-							return_value=0
-						fi
+						ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+						return_value=$?
 
 					fi
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
-							return_value=0
-						fi
+						ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+						return_value=$?
 					fi
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
-							return_value=0
-						fi
+						ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+						return_value=$?
 					fi
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
-							return_value=0
-						fi
+						ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+						return_value=$?
 					fi
 				else
 					return_value=10
@@ -1059,12 +1037,6 @@ function sdaf_installer() {
 	if [ ${DEBUG:-false} == true ]; then
 		echo "Terraform state file:"
 		terraform -chdir="${terraform_module_directory}" output -json
-	fi
-
-	if [ 0 -ne $return_value ]; then
-		print_banner "$banner_title" "Errors during the apply phase" "error"
-		unset TF_DATA_DIR
-		return $return_value
 	fi
 
 	if [ "${deployment_system}" == sap_deployer ]; then
@@ -1170,7 +1142,12 @@ function sdaf_installer() {
 	unset TF_DATA_DIR
 	print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
 
-	exit 0
+	if [ 0 -ne $return_value ]; then
+		print_banner "$banner_title" "Errors during the apply phase" "error"
+		unset TF_DATA_DIR
+	fi
+	exit $return_value
+
 }
 
 ###############################################################################
