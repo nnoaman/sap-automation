@@ -77,8 +77,6 @@ if [ "$USE_MSI" != "true" ]; then
 	fi
 fi
 
- 
-
 LogonToAzure $USE_MSI
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -489,7 +487,6 @@ if [ "$return_code" -eq 0 ]; then
 			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
 		fi
 	fi
-
 
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"; then
 		echo "Variable DEPLOYER_KEYVAULT was added to the $VARIABLE_GROUP variable group."

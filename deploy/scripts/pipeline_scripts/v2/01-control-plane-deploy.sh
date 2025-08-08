@@ -542,6 +542,10 @@ echo -e "$green--- Adding variables to storage ---$reset_formatting"
 if [ 0 = $return_code ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset_formatting"
+
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
+
 		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
 			echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
 		else
