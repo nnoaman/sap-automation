@@ -865,7 +865,7 @@ function validate_dependencies {
 
 	# if /opt/terraform exists, assign permissions to the user
 	if [ -d /opt/terraform ]; then
-	  current_owner=$(stat /opt/terraform --format %U)
+		current_owner=$(stat /opt/terraform --format %U)
 		if [ "$current_owner" != "$USER" ]; then
 			print_banner "Installer" "Changing ownership of /opt/terraform to $USER" "info"
 			# Change ownership to the current user
@@ -1078,6 +1078,19 @@ function ImportAndReRunApply {
 	print_banner "ImportAndReRunApply" "In function ImportAndReRunApply" "info"
 
 	if [ -f "$fileName" ]; then
+		retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("A retryable error occurred."))' "$fileName")
+		if [[ -n "${retry_errors_temp}" ]]; then
+		  rm "$fileName"
+			sleep 30
+			# shellcheck disable=SC2086
+			if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
+				import_return_value=${PIPESTATUS[0]}
+			else
+				import_return_value=${PIPESTATUS[0]}
+			fi
+		fi
+	fi
+	if [ -f "$fileName" ]; then
 
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 
@@ -1116,7 +1129,7 @@ function ImportAndReRunApply {
 					if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
 						import_return_value=$?
 					else
-					  import_return_value=$?
+						import_return_value=$?
 						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
 							if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
 								import_return_value=$?
@@ -1371,7 +1384,7 @@ function LogonToAzure() {
 			source "/etc/profile.d/deploy_server.sh"
 		else
 			echo "Running az login --identity"
-		  az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
+			az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
 		fi
 
 		az account show --query user --output table
