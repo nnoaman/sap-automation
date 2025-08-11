@@ -600,6 +600,9 @@ else
 			else
 				return_value=10
 				print_banner "$banner_title" "Terraform local init failed" "error" "Terraform init return code: $return_value"
+				if [ "$DEBUG" = true ]; then
+					az account show --output yaml
+				fi
 				exit $return_value
 			fi
 		fi
