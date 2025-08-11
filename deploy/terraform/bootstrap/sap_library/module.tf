@@ -25,7 +25,7 @@ module "sap_library" {
   short_named_endpoints_nics        = var.short_named_endpoints_nics
   storage_account_sapbits           = local.storage_account_sapbits
   storage_account_tfstate           = local.storage_account_tfstate
-  use_private_endpoint              = false
+  use_private_endpoint              = var.use_private_endpoint
   dns_settings                      = local.dns_settings
 }
 

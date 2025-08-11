@@ -24,6 +24,11 @@ data "azurerm_app_configuration_key" "deployer_network_id" {
 
 resource "azurerm_app_configuration_key" "libraryStateFileName" {
   provider                             = azurerm.deployer
+  depends_on                           = [
+                                           azurerm_private_dns_zone_virtual_network_link.vnet_mgmt_appconfig,
+                                           azurerm_private_dns_zone_virtual_network_link.appconfig_agent,
+                                           azurerm_private_dns_zone_virtual_network_link.appconfig_additional
+                                         ]
   count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_LibraryStateFileName", var.deployer.control_plane_name)
@@ -46,6 +51,11 @@ resource "azurerm_app_configuration_key" "libraryStateFileName" {
 
 resource "azurerm_app_configuration_key" "terraformRemoteStateStorageAccountId" {
   provider                             = azurerm.deployer
+  depends_on                           = [
+                                           azurerm_private_dns_zone_virtual_network_link.vnet_mgmt_appconfig,
+                                           azurerm_private_dns_zone_virtual_network_link.appconfig_agent,
+                                           azurerm_private_dns_zone_virtual_network_link.appconfig_additional
+                                         ]
   count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_TerraformRemoteStateStorageAccountId", var.deployer.control_plane_name)
@@ -71,6 +81,11 @@ resource "azurerm_app_configuration_key" "terraformRemoteStateStorageAccountId" 
 
 resource "azurerm_app_configuration_key" "SAPLibraryStorageAccountId" {
   provider                             = azurerm.deployer
+  depends_on                           = [
+                                           azurerm_private_dns_zone_virtual_network_link.vnet_mgmt_appconfig,
+                                           azurerm_private_dns_zone_virtual_network_link.appconfig_agent,
+                                           azurerm_private_dns_zone_virtual_network_link.appconfig_additional
+                                         ]
   count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SAPLibraryStorageAccountId", var.deployer.control_plane_name)
@@ -95,6 +110,11 @@ resource "azurerm_app_configuration_key" "SAPLibraryStorageAccountId" {
 
 resource "azurerm_app_configuration_key" "SAPMediaPath" {
   provider                             = azurerm.deployer
+  depends_on                           = [
+                                           azurerm_private_dns_zone_virtual_network_link.vnet_mgmt_appconfig,
+                                           azurerm_private_dns_zone_virtual_network_link.appconfig_agent,
+                                           azurerm_private_dns_zone_virtual_network_link.appconfig_additional
+                                         ]
   count                                = local.application_configuration_deployed ? 1 : 0
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SAPMediaPath", var.deployer.control_plane_name)
@@ -120,7 +140,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
   provider                             = azurerm.dnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
-                                           azurerm_storage_account.storage_tfstate,
                                            azurerm_private_dns_zone.appconfig
                                          ]
   name                                 = format("%s%s%s%s-appconfig",
@@ -147,7 +166,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_additional" 
   provider                             = azurerm.dnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint && length(var.dns_settings.additional_network_id) > 0 ? 1 : 0
   depends_on                           = [
-                                            azurerm_private_dns_zone.vault
+                                            azurerm_private_dns_zone.app_config
                                          ]
 
   name                                 = format("%s%s%s%s-appconfig-additional",
@@ -175,7 +194,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_agent" {
                                            var.use_private_endpoint &&
                                            length(var.deployer_tfstate.additional_network_id) > 0 ) ? 1 : 0
   depends_on                           = [
-                                            azurerm_private_dns_zone.vault
+                                            azurerm_private_dns_zone.app_config
                                          ]
 
   name                                 = format("%s%s%s%s-appconfig-agent",
