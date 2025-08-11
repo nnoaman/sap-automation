@@ -521,7 +521,7 @@ function migrate_deployer_state() {
 
 	cd "${deployer_dirname}" || exit
 	if [ -z "$terraform_storage_account_name" ]; then
-		if is_valid_id "$APPLICATION_CONFIGURATION_ID:-" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+		if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
 			export TF_VAR_application_configuration_id
 
