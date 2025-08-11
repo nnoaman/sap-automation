@@ -294,7 +294,7 @@ function bootstrap_deployer() {
 	fi
 
 	if [ -v APPLICATION_CONFIGURATION_ID ]; then
-		echo "Application configuration ID:        ${APPLICATION_CONFIGURATION_ID}"
+		echo "Application configuration ID:        ${APPLICATION_CONFIGURATION_ID:-undefined}"
 	else
 		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
 	fi
