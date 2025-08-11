@@ -174,6 +174,8 @@ if [ "$DEBUG" == true ]; then
 	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
 	set -o errexit
+	az account show --output yaml
+	printenv
 fi
 
 echo "Parameter file:                      $parameterfile"
@@ -600,9 +602,7 @@ else
 			else
 				return_value=10
 				print_banner "$banner_title" "Terraform local init failed" "error" "Terraform init return code: $return_value"
-				if [ "$DEBUG" = true ]; then
-					az account show --output yaml
-				fi
+
 				exit $return_value
 			fi
 		fi
