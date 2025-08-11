@@ -428,7 +428,8 @@ function bootstrap_library {
 
 	if [ 2 -eq $step ]; then
 		print_banner "$banner_title" "Bootstrapping the library..." "info"
-		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+
+		if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
 			export TF_VAR_application_configuration_id
 		fi
