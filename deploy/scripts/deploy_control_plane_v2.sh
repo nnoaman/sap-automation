@@ -336,10 +336,12 @@ function validate_keyvault_access {
 	TF_DATA_DIR="${deployer_dirname}"/.terraform
 	export TF_DATA_DIR
 
-	if ! printenv DEPLOYER_KEYVAULT; then
+	if [ -v DEPLOYER_KEYVAULT ]; then
 
-		if is_valid_id ${APPLICATION_CONFIGURATION_ID:-} "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-			DEPLOYER_KEYVAULT=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+		if [ -v APPLICATION_CONFIGURATION_ID ]; then
+			if is_valid_id ${APPLICATION_CONFIGURATION_ID:-} "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+				DEPLOYER_KEYVAULT=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+			fi
 		else
 			if [ -f ./.terraform/terraform.tfstate ]; then
 				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
@@ -349,15 +351,15 @@ function validate_keyvault_access {
 					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
 					terraform -chdir="${terraform_module_directory}" init -upgrade=true
 
-					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-					save_config_var "keyvault" "${deployer_config_information}"
+					DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+					save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
 				else
 					echo "Terraform state:                     local"
 					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/bootstrap/sap_deployer/
 					terraform -chdir="${terraform_module_directory}" init -upgrade=true
 
-					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-					save_config_var "keyvault" "${deployer_config_information}"
+					DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+					save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
 				fi
 			else
 				if [ $ado_flag != "--devops" ]; then
@@ -457,7 +459,7 @@ function bootstrap_library {
 			exit 20
 		fi
 
-    print_banner "$banner_title" "Waiting 60 to ensure permissions are applied." "info"
+		print_banner "$banner_title" "Waiting 60 to ensure permissions are applied." "info"
 		sleep 60
 
 		terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
@@ -573,10 +575,10 @@ function migrate_deployer_state() {
 		echo " ##vso[task.setprogress value=40;]Progress Indicator"
 		print_banner "$banner_title" "Could not find the SAP Library, please re-run!" "error"
 		exit 11
-  else
-	  tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
-	  terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-	  ARM_SUBSCRIPTION_ID=$(echo $tfstate_resource_id | cut -d'/' -f3)
+	else
+		tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
+		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+		ARM_SUBSCRIPTION_ID=$(echo $tfstate_resource_id | cut -d'/' -f3)
 		export ARM_SUBSCRIPTION_ID
 	fi
 
