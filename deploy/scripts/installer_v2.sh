@@ -706,6 +706,9 @@ function sdaf_installer() {
 		else
 			return_value=$?
 			print_banner "$banner_title" "Terraform init failed." "error"
+			if [ "$DEBUG" = true ]; then
+				az account show --output yaml
+			fi
 			return $return_value
 		fi
 
