@@ -306,7 +306,7 @@ function install_deployer() {
 
 	# shellcheck disable=SC2086
 
-	if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
+	if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
