@@ -178,7 +178,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_agent" {
                                             azurerm_private_dns_zone.vault
                                          ]
 
-  name                                 = format("%s%s%s%s-appconfig-additional",
+  name                                 = format("%s%s%s%s-appconfig-agent",
                                            try(var.naming.resource_prefixes.appconfig_link, ""),
                                            local.prefix,
                                            var.naming.separator,
