@@ -1064,6 +1064,10 @@ function deploy_control_plane() {
 	if [ -z "${step}" ]; then
 		step=0
 	fi
+	if [ "${FORCE_RESET:-false}" = true ]; then
+		step=0
+		save_config_var "step" "${deployer_config_information}"
+	fi
 	echo "Step:                                $step"
 	current_directory=$(pwd)
 
