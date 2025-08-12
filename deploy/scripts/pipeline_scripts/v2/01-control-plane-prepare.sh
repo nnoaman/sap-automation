@@ -21,7 +21,6 @@ source "${script_directory}/set-colors.sh"
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
 
-
 echo "${SYSTEM_DEBUG:-false}"
 echo "${DEBUG:-false}"
 set -x
@@ -68,13 +67,16 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
 		export TF_VAR_DevOpsInfrastructure_object_id
 	else
-		TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv && :)
-		if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
-			echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
-			export TF_VAR_DevOpsInfrastructure_object_id
-		else
-			echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
+
+		if TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv && :); then
+			if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+				echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+				export TF_VAR_DevOpsInfrastructure_object_id
+			else
+				echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
+			fi
 		fi
+
 	fi
 
 elif [ "$PLATFORM" == "github" ]; then
@@ -513,7 +515,7 @@ if [ "$PLATFORM" == "devops" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"
-  	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
 
 	fi
 fi

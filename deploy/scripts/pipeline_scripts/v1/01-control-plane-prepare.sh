@@ -140,12 +140,14 @@ if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
 	echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
 	export TF_VAR_DevOpsInfrastructure_object_id
 else
-	TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv && :)
-	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
-		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
-		export TF_VAR_DevOpsInfrastructure_object_id
-	else
-		echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
+
+	if TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv && :); then
+		if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+			echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+			export TF_VAR_DevOpsInfrastructure_object_id
+		else
+			echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
+		fi
 	fi
 fi
 
@@ -400,7 +402,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
 
 	echo "Environment:                         $ENVIRONMENT"
-echo "Location:                            $LOCATION"
+	echo "Location:                            $LOCATION"
 
 fi
 

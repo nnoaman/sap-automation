@@ -10,6 +10,8 @@ SCRIPT_NAME="$(basename "$0")"
 #call stack has full script name when using source
 source "${script_directory}/helper.sh"
 source "${parent_directory}/deploy_utils.sh"
+	echo "Environment variables:"
+	printenv | sort
 
 set -eu
 DEBUG=false
@@ -30,6 +32,8 @@ if checkforDevOpsVar APPLICATION_CONFIGURATION_NAME; then
 	echo "Running v2 script"
 	export SDAFWZ_CALLER_VERSION="v2"
 	echo ""
+	echo "${SYSTEM_DEBUG:-false}"
+  echo "${DEBUG:-false}"
 	"${script_directory}/v2/$SCRIPT_NAME"
 else
 	echo ""
