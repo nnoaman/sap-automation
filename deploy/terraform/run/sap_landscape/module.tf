@@ -42,7 +42,6 @@ module "sap_landscape" {
   peer_with_control_plane_vnet                 = var.use_deployer ? var.peer_with_control_plane_vnet : false
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
   public_network_access_enabled                = var.public_network_access_enabled
-  soft_delete_retention_days                   = var.soft_delete_retention_days
   storage_account_replication_type             = var.storage_account_replication_type
   tags                                         = var.tags
   terraform_template_version                   = local.version_label

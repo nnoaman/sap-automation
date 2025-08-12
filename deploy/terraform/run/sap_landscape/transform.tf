@@ -80,6 +80,7 @@ locals {
                                            set_secret_expiry                      = var.set_secret_expiry
                                            enable_purge_control_for_keyvaults     = var.enable_purge_control_for_keyvaults
                                            enable_rbac_authorization_for_keyvault = var.enable_rbac_authorization_for_keyvault
+                                           soft_delete_retention_days             = var.soft_delete_retention_days
 
                                          }
 
