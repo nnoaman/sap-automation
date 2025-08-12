@@ -93,6 +93,7 @@ function source_helper_scripts() {
 ############################################################################################
 
 function parse_arguments() {
+	approve=""
 	local input_opts
 	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help,devops,github -- "$@")
 	is_input_opts_valid=$?
