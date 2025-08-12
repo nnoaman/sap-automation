@@ -58,7 +58,7 @@ resource "azurerm_key_vault" "kv_user" {
                                               ),
                                               local.deployer_subnet_management_id,
                                               var.infrastructure.additional_subnet_id
-                                            ],
+                                            ]),
                                             try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, [])
                                           ))
             }
