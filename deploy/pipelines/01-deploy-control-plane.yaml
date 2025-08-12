@@ -230,6 +230,19 @@ stages:
               WEB_APP_CLIENT_SECRET:            $(WEB_APP_CLIENT_SECRET)
               ZONE:                             ${{ parameters.config_repo_path }}
               keyvault:                         $(DEPLOYER_KEYVAULT)
+          - task: Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-webapp-variables.sh"
+              failOnStderr:            false
+            displayName:               "Get Web App Variables"
+            name:                      GetWebAppVariables
+            env:
+              APPLICATION_CONFIGURATION_NAME: $(APPLICATION_CONFIGURATION_NAME)
+              CONTROL_PLANE_NAME:           ${{ parameters.control_plane_name }}
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              HAS_APPSERVICE_DEPLOYED:      $(HAS_APPSERVICE_DEPLOYED)
+
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
     variables:
@@ -245,7 +258,7 @@ stages:
     condition: |
       and
       (
-        eq($(HAS_APPSERVICE_DEPLOYED), true),
+        eq(stageDependencies.DeployControlplaneStage.DeployControlplaneJob.outputs['GetWebAppVariables.HAS_WEBAPP'], 'true'),
         eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
       )
