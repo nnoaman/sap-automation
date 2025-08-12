@@ -16,6 +16,7 @@ data "terraform_remote_state" "deployer"          {
                                                                      key                  = var.deployer_tfstate_key
                                                                      subscription_id      = local.SAPLibrary_subscription_id
                                                                      use_msi              = true
+                                                                     use_azuread_auth     = true
                                                                    }
                                                   }
 
