@@ -30,7 +30,7 @@ resource "azurerm_key_vault" "kv_user" {
                                          )
   tenant_id                            = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days           = var.key_vault.soft_delete_retention_days
-  purge_protection_enabled             = var.key_vault.enable_purge_control_for_keyvaults
+  purge_protection_enabled             = var.key_vault.enable_purge_control
   sku_name                             = "standard"
   enable_rbac_authorization            = var.key_vault.enable_rbac_authorization
 
