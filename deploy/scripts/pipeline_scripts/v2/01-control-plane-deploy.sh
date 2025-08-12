@@ -269,7 +269,7 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 end_group
-if [ "$USE_WEBAPP" = "true" ]; then
+if [ "${HAS_APPSERVICE_DEPLOYED:-false}" = "true" ]; then
 	echo "Deploy Web Application:               true"
 
 	if [ ! -v APP_REGISTRATION_APP_ID ]; then
@@ -284,8 +284,6 @@ if [ "$USE_WEBAPP" = "true" ]; then
 	TF_VAR_app_registration_app_id=$APP_REGISTRATION_APP_ID
 	export TF_VAR_app_registration_app_id
 
-	TF_VAR_app_service_deployment=true
-	export TF_VAR_app_service_deployment
 else
 	echo "Deploy Web Application:               false"
 fi
