@@ -117,13 +117,13 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
 
 resource "azurerm_role_assignment" "role_assignment_vault_ssi" {
   provider                             = azurerm.deployer
-  count                                = var.key_vault.enable_rbac_authorization && contains(keys(var.deployer_tfstate), "deployer_system_assigned_identity")? 1 : 0
+  count                                = var.key_vault.enable_rbac_authorization && var.deployer_tfstate.deployer_uai.principal_id != azurerm_client_config.current.principal_id ? 1 : 0
   scope                                = var.key_vault.user.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
   role_definition_name                 = "Key Vault Administrator"
-  principal_id                         = var.deployer_tfstate.deployer_system_assigned_identity
+  principal_id                         = azurerm_client_config.current.principal_id
   timeouts                             {
                                           read   = "1m"
                                           create = "5m"
