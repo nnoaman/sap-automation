@@ -1064,7 +1064,6 @@ function deploy_control_plane() {
 	if [ -z "${step}" ]; then
 		step=0
 	fi
-	printenv | sort
 	if [ "${FORCE_RESET:-False}" == True ]; then
 		step=0
 		print_banner "Control Plane Deployment" "Resetting the control plane deployment..." "info"
