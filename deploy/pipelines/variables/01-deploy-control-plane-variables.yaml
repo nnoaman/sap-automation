@@ -8,25 +8,10 @@
 #--------------------------------------+---------------------------------------8
 
 parameters:
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+  - name:                              control_plane_name
+    displayName:                       "Control Plane configuration name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
-    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
-
-  - name:                              library
-    displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
-
-  - name:                              environment
-    displayName:                       "Environment name, MGMT, DEV, QA, etc"
-    type:                              string
-    default:                           MGMT
-
-  - name:                              use_webapp_param
-    displayName:                       "Deploy the configuration web application"
-    type:                              boolean
-    default:                           true
+    default:                           MGMT-WEEU-DEP00
 
   - name:                              use_deployer
     displayName:                       Run on self hosted agent
@@ -80,9 +65,6 @@ variables:
 
   - name:                              connection_name
     value:                             ${{ parameters.connection_name }}
-
-  - name:                              deployer_environment
-    value:                             ${{ parameters.environment }}
 
   - name:                              force_reset
     value:                             ${{ parameters.force_reset }}
