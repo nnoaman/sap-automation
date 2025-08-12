@@ -103,16 +103,6 @@ if [ "${FORCE_RESET:-false}" = true ]; then
 	else
 		echo -e "$bold_red--- Resetting the environment file ---$reset"
 	fi
-	step=0
-else
-	if [ -f "${deployer_environment_file_name}" ]; then
-		step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-		if [ -z "$step" ]; then
-			step=0
-		fi
-	else
-		step=0
-	fi
 fi
 
 echo "Step:                                $step"

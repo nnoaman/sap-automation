@@ -262,7 +262,13 @@ function bootstrap_deployer() {
 
 	local local_return_code=0
 	load_config_vars "${deployer_config_information}" "step"
+
 	if [ -z "$step" ]; then
+		step=0
+		save_config_var "step" "${deployer_config_information}"
+	fi
+
+	if [ "${FORCE_RESET:-false}" = true ]; then
 		step=0
 		save_config_var "step" "${deployer_config_information}"
 	fi
@@ -448,7 +454,12 @@ function bootstrap_library {
 			--deployer_statefile_foldername "${relative_path}" \
 			--control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-} \
 			"$autoApproveParameter"; then
-			step=3
+
+			if [ "${FORCE_RESET:-false}" = true ]; then
+				step=0
+			else
+				step=3
+			fi
 			save_config_var "step" "${deployer_config_information}"
 			print_banner "$banner_title" "Bootstrapping the library succeeded." "success"
 			unset TF_VAR_application_configuration_id
@@ -517,6 +528,11 @@ function migrate_deployer_state() {
 	#                                                                                        #
 	##########################################################################################
 	local banner_title="Deployer"
+	if [ "${FORCE_RESET:-false}" = true ]; then
+		print_banner "$banner_title" "Not migrating the deployer state due to the Force rerun flag..." "warning"
+		return 0
+	fi
+
 	print_banner "$banner_title" "Migrating the deployer state..." "info"
 
 	cd "${deployer_dirname}" || exit
@@ -629,6 +645,10 @@ function migrate_library_state() {
 	##########################################################################################
 	local banner_title="Library"
 
+	if [ "${FORCE_RESET:-false}" = true ]; then
+		print_banner "$banner_title" "Not migrating the library state due to the Force rerun flag..." "warning"
+		return 0
+	fi
 	print_banner "$banner_title" "Migrating the library state..." "info"
 
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
