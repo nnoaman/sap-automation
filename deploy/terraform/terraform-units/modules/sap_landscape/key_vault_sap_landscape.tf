@@ -97,9 +97,9 @@ resource "azurerm_management_lock" "keyvault" {
 #######################################4#######################################8
 
 
-resource "azurerm_role_assignment" "role_assignment_msi" {
+resource "azurerm_role_assignment" "role_assignment_vault_msi" {
   provider                             = azurerm.deployer
-  count                                = var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions ? 1 : 0
+  count                                = var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions && contains(keys(var.deployer_tfstate,"deployer_uai")) ? 1 : 0
   scope                                = var.key_vault.user.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
@@ -113,9 +113,9 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
                                        }
 }
 
-resource "azurerm_role_assignment" "role_assignment_msi_officer" {
+resource "azurerm_role_assignment" "role_assignment_vault_msi_officer" {
   provider                             = azurerm.deployer
-  count                                = var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions ? 1 : 0
+  count                                = var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions && contains(keys(var.deployer_tfstate,"deployer_uai")) ? 1 : 0
   scope                                = var.key_vault.user.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
