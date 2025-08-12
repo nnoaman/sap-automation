@@ -58,6 +58,23 @@ if [ "$PLATFORM" == "devops" ]; then
 			echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 			exit 2
 		fi
+	else
+		deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+		if [ -f "${deployer_environment_file_name}" ]; then
+			step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+		else
+			step=0
+		fi
+		echo "Step:                                $step"
+
+		if [ 1 != "${step}" ]; then
+			if [ "$PLATFORM" == "devops" ]; then
+				echo "##vso[task.logissue type=warning]Secrets already set"
+			else
+				echo "Secrets already set"
+			fi
+			exit 0
+		fi
 	fi
 
 	echo -e "$green--- az login ---$reset"
