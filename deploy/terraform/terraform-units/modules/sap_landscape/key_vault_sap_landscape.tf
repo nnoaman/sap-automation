@@ -97,7 +97,7 @@ resource "azurerm_management_lock" "keyvault" {
 #######################################4#######################################8
 
 
-resource "azurerm_role_assignment" "role_assignment_vault_msi" {
+resource "azurerm_role_assignment" "role_assignment_msi" {
   provider                             = azurerm.deployer
   count                                = var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions && contains(keys(var.deployer_tfstate,"deployer_uai")) ? 1 : 0
   scope                                = var.key_vault.user.exists ? (
@@ -113,7 +113,7 @@ resource "azurerm_role_assignment" "role_assignment_vault_msi" {
                                        }
 }
 
-resource "azurerm_role_assignment" "role_assignment_vault_msi_officer" {
+resource "azurerm_role_assignment" "role_assignment_msi_officer" {
   provider                             = azurerm.deployer
   count                                = var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions && contains(keys(var.deployer_tfstate,"deployer_uai")) ? 1 : 0
   scope                                = var.key_vault.user.exists ? (
