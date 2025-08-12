@@ -76,11 +76,6 @@ locals {
                                            spn_id                 = coalesce(data.azurerm_client_config.current_main.object_id, var.spn_id)
                                          }
   key_vault_temp =                       {
-                                           exists                     = length(var.user_keyvault_id) > 0
-                                           set_secret_expiry          = var.set_secret_expiry
-                                           enable_purge_control       = var.enable_purge_control_for_keyvaults
-                                           enable_rbac_authorization  = var.enable_rbac_authorization_for_keyvault
-                                           soft_delete_retention_days = var.soft_delete_retention_days
 
                                          }
 
@@ -115,12 +110,16 @@ locals {
                                                                                                          " ")
                                                                                                          )) > 0
                                                                                     }
-                                           private_key_secret_name                = var.workload_zone_private_key_secret_name
-                                           public_key_secret_name                 = var.workload_zone_public_key_secret_name
-                                           username_secret_name                   = var.workload_zone_username_secret_name
-                                           password_secret_name                   = var.workload_zone_password_secret_name
-                                           enable_rbac_authorization              = var.enable_rbac_authorization_for_keyvault
-                                           set_secret_expiry                      = var.set_secret_expiry
+                                           private_key_secret_name    = var.workload_zone_private_key_secret_name
+                                           public_key_secret_name     = var.workload_zone_public_key_secret_name
+                                           username_secret_name       = var.workload_zone_username_secret_name
+                                           password_secret_name       = var.workload_zone_password_secret_name
+                                           enable_rbac_authorization  = var.enable_rbac_authorization_for_keyvault
+                                           set_secret_expiry          = var.set_secret_expiry
+                                           exists                     = length(var.user_keyvault_id) > 0
+                                           set_secret_expiry          = var.set_secret_expiry
+                                           enable_purge_control       = var.enable_purge_control_for_keyvaults
+                                           soft_delete_retention_days = var.soft_delete_retention_days
                                         }
 
 
