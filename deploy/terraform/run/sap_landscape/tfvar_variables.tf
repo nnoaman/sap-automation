@@ -1250,7 +1250,7 @@ variable "additional_subnet_id"                {
 #######################################4#######################################8
 
 variable "assign_permissions"                         {
-                                                        description = "Boolean flag indicating if the subscription permissions should be assigned"
+                                                        description = "Boolean flag indicating if permissions should be assigned"
                                                         default     = true
                                                         type        = bool
                                                       }
