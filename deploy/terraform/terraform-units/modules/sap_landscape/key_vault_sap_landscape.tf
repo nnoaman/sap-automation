@@ -47,7 +47,6 @@ resource "azurerm_key_vault" "kv_user" {
                                             ]
                                           )
 
-                                          ,
             virtual_network_subnet_ids = distinct(concat(compact(
                                             [
                                               var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
