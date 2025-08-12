@@ -81,7 +81,7 @@ function parse_arguments() {
 	approve=""
 	subscription=$ARM_SUBSCRIPTION_ID
 	only_deployer=0
-	approve=""
+
 	deployer_parameter_file=""
 	library_parameter_file=""
 
@@ -1064,8 +1064,10 @@ function deploy_control_plane() {
 	if [ -z "${step}" ]; then
 		step=0
 	fi
+	printenv | sort
 	if [ "${FORCE_RESET:-false}" = true ]; then
 		step=0
+		print_banner "Control Plane Deployment" "Resetting the control plane deployment..." "info"
 		save_config_var "step" "${deployer_config_information}"
 	fi
 	echo "Step:                                $step"
