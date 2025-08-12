@@ -21,6 +21,19 @@ source "${script_directory}/set-colors.sh"
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
 
+set -eu
+DEBUG=false
+set -o pipefail
+
+if [ "${SYSTEM_DEBUG:-false}" = true ]; then
+	set -x
+	DEBUG=true
+	echo "Environment variables:"
+	printenv | sort
+fi
+export DEBUG
+
+
 # Print the execution environment details
 print_header
 echo ""
