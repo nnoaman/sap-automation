@@ -268,7 +268,7 @@ function bootstrap_deployer() {
 		save_config_var "step" "${deployer_config_information}"
 	fi
 
-	if [ "${FORCE_RESET:-false}" = true ]; then
+	if [ "${FORCE_RESET:-False}" == True ]; then
 		step=0
 		save_config_var "step" "${deployer_config_information}"
 	fi
@@ -455,7 +455,7 @@ function bootstrap_library {
 			--control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-} \
 			"$autoApproveParameter"; then
 
-			if [ "${FORCE_RESET:-false}" = true ]; then
+			if [ "${FORCE_RESET:-False}" == True ]; then
 				step=0
 			else
 				step=3
@@ -528,7 +528,7 @@ function migrate_deployer_state() {
 	#                                                                                        #
 	##########################################################################################
 	local banner_title="Deployer"
-	if [ "${FORCE_RESET:-false}" = true ]; then
+	if [ "${FORCE_RESET:-False}" == True ]; then
 		print_banner "$banner_title" "Not migrating the deployer state due to the Force rerun flag..." "warning"
 		return 0
 	fi
@@ -645,7 +645,7 @@ function migrate_library_state() {
 	##########################################################################################
 	local banner_title="Library"
 
-	if [ "${FORCE_RESET:-false}" = true ]; then
+	if [ "${FORCE_RESET:-False}" == True ]; then
 		print_banner "$banner_title" "Not migrating the library state due to the Force rerun flag..." "warning"
 		return 0
 	fi
@@ -936,7 +936,7 @@ function execute_deployment_steps() {
 		fi
 	fi
 
-	if [ "${FORCE_RESET:-false}" = true ]; then
+	if [ "${FORCE_RESET:-False}" == True ]; then
 		print_banner "$banner_title" "Not migrating the deployer state due to the Force rerun flag..." "warning"
 		return 0
 	fi
@@ -1065,7 +1065,7 @@ function deploy_control_plane() {
 		step=0
 	fi
 	printenv | sort
-	if [ "${FORCE_RESET:-false}" = true ]; then
+	if [ "${FORCE_RESET:-False}" == True ]; then
 		step=0
 		print_banner "Control Plane Deployment" "Resetting the control plane deployment..." "info"
 		save_config_var "step" "${deployer_config_information}"

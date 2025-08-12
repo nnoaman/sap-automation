@@ -102,7 +102,7 @@ echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 
-if [ "${FORCE_RESET:-false}" = true ]; then
+if [ "${FORCE_RESET:-False}" == True ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Forcing a re-install"
 	else

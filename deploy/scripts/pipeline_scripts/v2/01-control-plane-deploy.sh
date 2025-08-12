@@ -310,7 +310,7 @@ fi
 cd "$CONFIG_REPO_PATH" || exit
 start_group "Deploying control plane"
 
-if [ "${FORCE_RESET:-false}" = true ]; then
+if [ "${FORCE_RESET:-False}" == True ]; then
 	step=0
 	save_config_var "step" "${deployer_config_information}"
 fi
