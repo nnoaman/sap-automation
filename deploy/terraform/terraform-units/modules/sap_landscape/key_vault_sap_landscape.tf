@@ -319,15 +319,10 @@ resource "time_offset" "secret_expiry_date" {
 resource "time_sleep" "wait_for_role_assignment" {
   create_duration                      = "60s"
 
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
-                                           azurerm_role_assignment.role_assignment_msi_officer,
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_private_dns_zone_virtual_network_link.vault
-
-                                         ]
+  triggers                           = {
+                                           msi = try(role_assignment_msi.role_assignment_msi[0].id, "")
+                                           spn = try(role_assignment_spn.role_assignment_spn[0].id, "")
+                                       }
 }
 
 

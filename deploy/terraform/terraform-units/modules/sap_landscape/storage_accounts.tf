@@ -693,11 +693,11 @@ resource "azurerm_storage_share" "install_smb" {
 resource "time_sleep" "wait_for_private_endpoints" {
   create_duration                      = "120s"
 
-  depends_on                           = [
-                                           azurerm_private_endpoint.install,
-                                           azurerm_private_endpoint.transport,
-                                           azurerm_private_endpoint.kv_user
-                                         ]
+  triggers                           = {
+                                           install   = try(azurerm_private_endpoint.install[0].id, "")
+                                           transport = try(azurerm_private_endpoint.transport[0].id, "")
+                                           kv_user   = try(azurerm_private_endpoint.kv_user[0].id, "")
+                                       }
 }
 
 
