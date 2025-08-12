@@ -57,7 +57,7 @@ if [ ! -f "$library_tfvars_file_name" ]; then
 	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
-
+set +x
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
 
