@@ -35,6 +35,9 @@ parameters:
     displayName:                       Force a re-install - may require multiple re-runs
     type:                              boolean
 
+  - name:                              test
+    type:                              boolean
+    default:                           false
 stages:
   - stage:                             Prepare_Deployer
     condition:                         and(not(failed()), not(canceled()))

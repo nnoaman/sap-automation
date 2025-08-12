@@ -1,17 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the Control Plane                   |
 #                                                                              |
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 
 parameters:
+
   - name:                              control_plane_name
-    displayName:                       "Control Plane configuration name, use the following syntax: ENV-LOCA-VNET"
+    displayName:                       "Environment name, MGMT, DEV, QA, etc"
     type:                              string
-    default:                           MGMT-WEEU-DEP00
+    default:                           CTL-SECE-DEP02
 
   - name:                              use_deployer
     displayName:                       Run on self hosted agent
@@ -31,28 +32,13 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.environment }}
+  - group:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              run_on
-    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['AGENT'])]
+    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.environment }}
-
-  - name:                              use_webapp
-    value:                             ${{ lower(parameters.use_webapp_param) }}
-
-  - name:                              deployer_foldername
-    value:                             ${{ parameters.deployer }}
-
-  - name:                              deployer_tfvars_filename
-    value:                             ${{ parameters.deployer }}.tfvars
-
-  - name:                              library_foldername
-    value:                             ${{ parameters.library }}
-
-  - name:                              library_tfvars_filename
-    value:                             ${{ parameters.library }}.tfvars
+    value:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              log
     value:                             logfile_$(Build.BuildId)
@@ -61,13 +47,25 @@ variables:
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
   - name:                              this_agent
-    value:                             $[upper(coalesce(variables['POOL'], variables['AGENT']))]
+    value:                             $[upper(coalesce(variables['POOL'], variables['Agent']))]
 
   - name:                              connection_name
     value:                             ${{ parameters.connection_name }}
 
+  - name:                              control_plane_name
+    value:                             ${{ parameters.control_plane_name }}
+
   - name:                              force_reset
     value:                             ${{ parameters.force_reset }}
 
-  - name:                              control_plane_name
-    value:                             $[upper(format('{0}-{1}-{2}', split('${{ parameters.deployer }}', '-')[0], split('${{ parameters.deployer }}', '-')[1], split('${{ parameters.deployer }}', '-')[2]))]
+  - name:                              library_foldername
+    value:                             $[format('{0}-{1}-SAP_LIBRARY', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
+
+  - name:                              library_tfvars_filename
+    value:                             $[format('{0}-{1}-SAP_LIBRARY.tfvars', split('${{ parameters.control_plane_name }}', '-')[0], split('${{ parameters.control_plane_name }}', '-')[1])]
+
+  - name:                              deployer_foldername
+    value:                             $[format('{0}-INFRASTRUCTURE', '${{ parameters.control_plane_name }}')]
+
+  - name:                              deployer_tfvars_filename
+    value:                             $[format('{0}-INFRASTRUCTURE.tfvars', '${{ parameters.control_plane_name }}')]
