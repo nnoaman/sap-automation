@@ -121,11 +121,7 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
-          library:                     ${{ parameters.library }}
-          environment:                 ${{ parameters.environment }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-          use_deployer:                ${{ parameters.use_deployer }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
           force_reset:                 ${{ parameters.force_reset }}
     jobs:
       - job:                           SaveDeploymentCredentials
@@ -161,26 +157,7 @@ stages:
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
               ZONE:                         $(control_plane_name)
-          - task:                      Bash@3
-            inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            name:                      StoreSecrets
-            displayName:               Store deployment credentials in Key Vault
-            env:
-              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
-              ARM_OBJECT_ID:                $(ARM_OBJECT_ID)
-              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:                $(ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
-              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-              USE_MSI:                      $(Use_MSI)
-              ZONE:                         ${{ upper(parameters.environment) }}
+
 
   - stage:                             Deploy_controlplane
     dependsOn:
@@ -190,11 +167,7 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
-          library:                     ${{ parameters.library }}
-          environment:                 ${{ parameters.environment }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-          use_deployer:                ${{ parameters.use_deployer }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
           force_reset:                 ${{ parameters.force_reset }}
     displayName:                       Deploy the control plane
 
@@ -259,11 +232,8 @@ stages:
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
-          deployer: ${{ parameters.deployer }}
-          library: ${{ parameters.library }}
-          environment: ${{ parameters.environment }}
-          use_webapp_param: ${{ parameters.use_webapp_param }}
-          use_deployer: ${{ parameters.use_deployer }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
+          force_reset:                 ${{ parameters.force_reset }}
     displayName: Deploy SAP configuration Web App
 
     dependsOn:
@@ -272,8 +242,7 @@ stages:
     condition: |
       and
       (
-        eq(${{ parameters.use_webapp_param }}, true),
-        eq(${{ parameters.deploy_webapp_software }}, true),
+        eq($(HAS_APPSERVICE_DEPLOYED), true),
         eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
       )
