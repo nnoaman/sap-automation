@@ -21,26 +21,16 @@ source "${script_directory}/set-colors.sh"
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
 
-set -eu
-DEBUG=false
-set -o pipefail
 
-if [ "${SYSTEM_DEBUG:-false}" = true ]; then
-	set -x
-	DEBUG=true
-	echo "Environment variables:"
-	printenv | sort
-fi
-export DEBUG
-
-
+echo "${SYSTEM_DEBUG:-false}"
+echo "${DEBUG:-false}"
+set -x
 # Print the execution environment details
 print_header
 echo ""
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
@@ -57,7 +47,7 @@ if [ ! -f "$library_tfvars_file_name" ]; then
 	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	exit 2
 fi
-set +x
+
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
 
