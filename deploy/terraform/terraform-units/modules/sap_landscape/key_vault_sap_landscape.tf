@@ -32,7 +32,7 @@ resource "azurerm_key_vault" "kv_user" {
   soft_delete_retention_days           = var.key_vault.soft_delete_retention_days
   purge_protection_enabled             = var.key_vault.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
-  enable_rbac_authorization            = var.key_vault.enable_rbac_authorization_for_keyvault
+  enable_rbac_authorization            = var.key_vault.enable_rbac_authorization
 
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags

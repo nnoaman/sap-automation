@@ -76,11 +76,11 @@ locals {
                                            spn_id                 = coalesce(data.azurerm_client_config.current_main.object_id, var.spn_id)
                                          }
   key_vault_temp =                       {
-                                           exists                                 = length(var.user_keyvault_id) > 0
-                                           set_secret_expiry                      = var.set_secret_expiry
-                                           enable_purge_control_for_keyvaults     = var.enable_purge_control_for_keyvaults
-                                           enable_rbac_authorization_for_keyvault = var.enable_rbac_authorization_for_keyvault
-                                           soft_delete_retention_days             = var.soft_delete_retention_days
+                                           exists                             = length(var.user_keyvault_id) > 0
+                                           set_secret_expiry                  = var.set_secret_expiry
+                                           enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
+                                           enable_rbac_authorization          = var.enable_rbac_authorization_for_keyvault
+                                           soft_delete_retention_days         = var.soft_delete_retention_days
 
                                          }
 
