@@ -175,19 +175,19 @@ function secretExists {
 		--query "[?name=='${secret_name}'].name | [0]" \
 		--output tsv >&2
 	kvSecretExitsCode=$?
-	if [ "$DEBUG" == true ]; then
+	if [ "${DEBUG:-false}" == true ]; then
 		echo "DEBUG: Command completed. exit_code=$kvSecretExitsCode" >&2
 	fi
 
 	set -e
 
 	if [ $kvSecretExitsCode -eq 0 ]; then
-		if [ "$DEBUG" == true ]; then
+		if [ "${DEBUG:-false}" == true ]; then
 			echo "DEBUG: Secret ${secret_name} exists in Key Vault ${keyvault}" >&2
 		fi
 	else
 		# If the secret does not exist, we return 1
-		if [ "$DEBUG" == true ]; then
+		if [ "${DEBUG:-false}" == true ]; then
 			echo "DEBUG: Secret ${secret_name} does not exist in Key Vault ${keyvault} - Return code: ${kvSecretExitsCode}" >&2
 		fi
 	fi
