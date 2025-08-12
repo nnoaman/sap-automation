@@ -208,7 +208,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_spn" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   provider                             = azurerm.main
-  count                                = !var.key_vault.user.exists && !var.key_vault.enable_purge_control_for_keyvaults ? (
+  count                                = !var.key_vault.user.exists && !var.key_vault.enable_rbac_authorization ? (
                                            0) : (
                                            length(var.deployer_tfstate) > 0 ? (
                                              length(var.deployer_tfstate.deployer_uai) == 2 ? (
@@ -349,7 +349,7 @@ data "azurerm_private_endpoint_connection" "kv_user" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
   provider                             = azurerm.main
-  count                                = var.key_vault.enable_purge_control_for_keyvaults ? (
+  count                                = var.key_vault.enable_rbac_authorization ? (
                                            0) : (
                                            length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
                                              length(var.additional_users_to_add_to_keyvault_policies)) : (
@@ -372,7 +372,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
 
 resource "azurerm_role_assignment" "kv_user_additional_users" {
   provider                             = azurerm.main
-  count                                = var.key_vault.enable_purge_control_for_keyvaults ? (
+  count                                = var.key_vault.enable_rbac_authorization ? (
                                            length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
                                              length(var.additional_users_to_add_to_keyvault_policies)) : (
                                              0
