@@ -320,8 +320,8 @@ resource "time_sleep" "wait_for_role_assignment" {
   create_duration                      = "60s"
 
   triggers                           = {
-                                           msi = try(role_assignment_msi.role_assignment_msi[0].id, "")
-                                           spn = try(role_assignment_spn.role_assignment_spn[0].id, "")
+                                           msi = try(azurerm_role_assignment.role_assignment_msi[0].id, "")
+                                           spn = try(azurerm_role_assignment.role_assignment_spn[0].id, "")
                                        }
 }
 
