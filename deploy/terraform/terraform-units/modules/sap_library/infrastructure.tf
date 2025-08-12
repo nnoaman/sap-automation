@@ -89,7 +89,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob-agent" 
                                            azurerm_storage_account.storage_tfstate,
                                            azurerm_private_dns_zone.blob
                                          ]
-  name                                 = format("%s%s%s%s-blob",
+  name                                 = format("%s%s%s%s-blob-agent",
                                            var.naming.resource_prefixes.dns_link,
                                            local.prefix,
                                            var.naming.separator,
