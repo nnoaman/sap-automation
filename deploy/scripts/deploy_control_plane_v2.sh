@@ -936,6 +936,11 @@ function execute_deployment_steps() {
 		fi
 	fi
 
+	if [ "${FORCE_RESET:-false}" = true ]; then
+		print_banner "$banner_title" "Not migrating the deployer state due to the Force rerun flag..." "warning"
+		return 0
+	fi
+
 	if [ 3 -eq "${step}" ]; then
 		if ! migrate_deployer_state; then
 			return_value=$?
