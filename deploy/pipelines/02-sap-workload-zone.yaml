@@ -15,9 +15,9 @@ parameters:
     default:                           DEV-WEEU-SAP01
 
   - name:                              control_plane_name
-    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    displayName:                       "Control plane name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
-    default:                           MGMT
+    default:                           MGMT-WEEU-DEP01
 
   - name:                              inherit_settings
     displayName:                       Inherit Terraform state file information from control plane
@@ -80,7 +80,6 @@ stages:
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
               ZONE:                         ${{ upper(parameters.workload_zone_name) }}
-
 
   - stage:                             Deploy_SAP_workload_zone
     dependsOn:
