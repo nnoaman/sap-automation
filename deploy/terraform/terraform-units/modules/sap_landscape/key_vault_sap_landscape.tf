@@ -46,7 +46,7 @@ resource "azurerm_key_vault" "kv_user" {
                                               length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                             ]
                                           )
-            virtual_network_subnet_ids = compact(
+            virtual_network_subnet_ids = distinct(compact(
                                             [
                                               var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
                                                 var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
@@ -56,9 +56,10 @@ resource "azurerm_key_vault" "kv_user" {
                                                 ""
                                               ),
                                               local.deployer_subnet_management_id,
-                                              var.infrastructure.additional_subnet_id
+                                              var.infrastructure.additional_subnet_id,
+                                              try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, [])
                                             ]
-                                          )
+                                          ))
             }
 
   lifecycle {
