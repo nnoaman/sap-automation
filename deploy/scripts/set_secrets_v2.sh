@@ -165,7 +165,7 @@ function secretExists {
 
 	set +e
 
-	if [ "$DEBUG" == true ]; then
+	if [ "${DEBUG:-false}" == true ]; then
 		echo "DEBUG: Current az account: $(az account show --query user --output yaml)" >&2
 		echo "DEBUG: About to run az command with params: keyvault='$keyvault', subscription='$subscription', secret_name='$secret_name'" >&2
 	fi
