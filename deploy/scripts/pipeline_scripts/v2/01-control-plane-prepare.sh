@@ -21,9 +21,6 @@ source "${script_directory}/set-colors.sh"
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
 
-echo "${SYSTEM_DEBUG:-false}"
-echo "${DEBUG:-false}"
-set -x
 # Print the execution environment details
 print_header
 echo ""
@@ -102,13 +99,6 @@ echo "Configuration file:                  $deployer_environment_file_name"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 
-if [ "${FORCE_RESET:-False}" == True ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=warning]Forcing a re-install"
-	else
-		echo -e "$bold_red--- Resetting the environment file ---$reset"
-	fi
-fi
 if [ -f "${deployer_environment_file_name}" ]; then
 	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
 else
@@ -229,7 +219,12 @@ else
 fi
 
 if [ "$FORCE_RESET" == true ]; then
-	echo "##vso[task.logissue type=warning]Forcing a re-install"
+
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=warning]Forcing a re-install"
+	else
+		echo -e "$bold_red--- Resetting the environment file ---$reset"
+	fi
 	echo "Running on:            $THIS_AGENT"
 	sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
 	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"

@@ -249,7 +249,7 @@ else
 fi
 
 if [ "$FORCE_RESET" == true ]; then
-	echo "##vso[task.logissue type=warning]Forcing a re-install"
+
 	echo "Running on:            $THIS_AGENT"
 	sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
 	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
