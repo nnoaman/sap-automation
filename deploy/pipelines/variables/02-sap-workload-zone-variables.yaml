@@ -92,25 +92,19 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.workload_environment }}
+  - group:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment }}
+    value:                             SDAF-${{ parameters.control_plane_name }}
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment }}
+    value:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              workload_zone_foldername
-    value:                             ${{ parameters.workload_zone }}
+    value:                             ${{ parameters.workload_zone }}-INFRASTRUCTURE
 
   - name:                              workload_zone_tfvars_filename
-    value:                             ${{ parameters.workload_zone }}.tfvars
-
-  - name:                              deployer_environment
-    value:                             ${{ parameters.deployer_environment }}
-
-  - name:                              deployer_region
-    value:                             ${{ parameters.deployer_region }}
+    value:                             ${{ parameters.workload_zone }}-INFRASTRUCTURE.tfvars
 
   - name:                              inherit
     value:                             $[lower(${{ parameters.inherit_settings }})]
@@ -123,6 +117,3 @@ variables:
 
   - name:                              test
     value:                             ${{ parameters.test }}
-
-  - name:                              workload_zone_name
-    value:                             $[upper(format('{0}-{1}-{2}', split('${{ parameters.workload_zone }}', '-')[0], split('${{ parameters.workload_zone }}', '-')[1], split('${{ parameters.workload_zone }}', '-')[2]))]
