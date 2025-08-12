@@ -79,27 +79,7 @@ stages:
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
-              ZONE:                         $(workload_zone_name)
-          - task:                      Bash@3
-            inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            name:                      StoreSecrets
-            displayName:               Store deployment credentials in Key Vault
-            env:
-              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
-              ARM_OBJECT_ID:                $(ARM_OBJECT_ID)
-              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:                $(ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
-              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-              USE_MSI:                      $(Use_MSI)
-              ZONE:                         ${{ upper(parameters.workload_environment) }}
+              ZONE:                         ${{ upper(parameters.workload_zone_name) }}
 
 
   - stage:                             Deploy_SAP_workload_zone
@@ -110,10 +90,8 @@ stages:
     variables:
       - template:                      variables/02-sap-workload-zone-variables.yaml
         parameters:
-          workload_zone:               ${{ parameters.workload_zone }}
-          workload_environment:        ${{ parameters.workload_environment }}
-          deployer_environment:        ${{ parameters.deployer_environment }}
-          deployer_region:             ${{ parameters.deployer_region }}
+          workload_zone_name:          ${{ parameters.workload_zone_name }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
           inherit_settings:            ${{ parameters.inherit_settings }}
     jobs:
       - job:                           Deploy_SAP_workload_zone
