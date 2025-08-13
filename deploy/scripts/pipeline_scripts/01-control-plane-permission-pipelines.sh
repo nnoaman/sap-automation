@@ -36,7 +36,7 @@ print_header
 # Configure DevOps
 configure_devops
 
-echo "Getting the queue ID"
+echo "Getting the queue ID for $AGENT_POOL"
 queueId=$(az pipelines queue list --query "[?name=='$AGENT_POOL'].id | [0]" -o tsv)
 
 pipeLines=$(az pipelines list --query [].id --output tsv)
