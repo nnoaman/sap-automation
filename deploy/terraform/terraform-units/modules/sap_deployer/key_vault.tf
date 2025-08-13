@@ -44,12 +44,12 @@ resource "azurerm_key_vault" "kv_user" {
                                             length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                           ]
                                         )
-            virtual_network_subnet_ids = compact(concat(var.subnets_to_add,
+             virtual_network_subnet_ids = compact(concat(var.subnets_to_add,
                                                  [var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (data.azurerm_subnet.subnet_mgmt[0].id) : (azurerm_subnet.subnet_mgmt[0].id)],
                                                  [var.app_service.use ? var.infrastructure.virtual_network.management.subnet_webapp.exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id : ""],
                                                  [var.infrastructure.dev_center_deployment ? var.infrastructure.virtual_network.management.subnet_agent.exists ? (data.azurerm_subnet.subnet_agent[0].id) : (azurerm_subnet.subnet_agent[0].id) : ""]
                                                 ))
-  }
+          }
 
   lifecycle                        {
                                      ignore_changes = [network_acls]
