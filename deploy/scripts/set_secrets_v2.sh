@@ -9,17 +9,14 @@
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 SCRIPT_NAME="$(basename "$0")"
-
-if printenv DEBUG; then
-	if [ $DEBUG = true ]; then
-		set -x
-		DEBUG=true
-		echo "prefix variables:"
-		printenv | sort
-	fi
-fi
-export DEBUG
 set -eu
+
+if [ "${DEBUG:-false}" == true ]; then
+	set -x
+	DEBUG=true
+	echo "prefix variables:"
+	printenv | sort
+fi
 
 deploy_using_msi_only=0
 keyvault=""

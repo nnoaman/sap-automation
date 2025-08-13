@@ -29,6 +29,13 @@ source "${parent_directory}/helper.sh"
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
+	if [ "${SYSTEM_DEBUG:-false}" == true ]; then
+		set -x
+		DEBUG=true
+		echo "prefix variables:"
+		printenv | sort
+		export DEBUG
+	fi
 
 	platform_flag="--ado"
 
