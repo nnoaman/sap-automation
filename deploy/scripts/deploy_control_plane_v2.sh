@@ -516,7 +516,7 @@ function bootstrap_library {
 # Returns:                                                                                  #
 #   0 on success, non-zero on failure                                                       #
 # Usage:                                                                                    #
-#   migrate_library_state                                                                   #
+#   migrate_deployer_state                                                                   #
 #############################################################################################
 
 function migrate_deployer_state() {
@@ -528,6 +528,7 @@ function migrate_deployer_state() {
 	#                                                                                        #
 	##########################################################################################
 	local banner_title="Deployer"
+	local migrate_deployer_return_value=0
 	if [ "${FORCE_RESET:-False}" == True ]; then
 		print_banner "$banner_title" "Not migrating the deployer state due to the Force rerun flag..." "warning"
 		return 0
@@ -607,6 +608,7 @@ function migrate_deployer_state() {
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" --storage_accountname ${terraform_storage_account_name} \
 		$ado_flag "${autoApproveParameter}"; then
+		migrate_deployer_return_value=$?
 		print_banner "$banner_title" "Migrating the Deployer state succeeded." "success"
 	else
 		echo ""
@@ -622,6 +624,7 @@ function migrate_deployer_state() {
 
 	unset TF_DATA_DIR
 	cd "$root_dirname" || exit
+	return $migrate_deployer_return_value
 
 }
 
@@ -644,6 +647,7 @@ function migrate_library_state() {
 	#                                                                                        #
 	##########################################################################################
 	local banner_title="Library"
+	migrate_library_return_value=$?
 
 	if [ "${FORCE_RESET:-False}" == True ]; then
 		print_banner "$banner_title" "Not migrating the library state due to the Force rerun flag..." "warning"
@@ -702,7 +706,6 @@ function migrate_library_state() {
 
 				fi
 			else
-
 				print_banner "$banner_title" "Sourcing parameters from ${deployer_config_information}" "info"
 				load_config_vars "${deployer_config_information}" "tfstate_resource_id"
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -739,12 +742,14 @@ function migrate_library_state() {
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}" \
 		--storage_accountname "${terraform_storage_account_name}" $ado_flag "${autoApproveParameter}"; then
-		return_code=$?
+		migrate_library_return_value=$?
 		print_banner "$banner_title" "Migrating the Library state succeeded." "success"
 	else
 		print_banner "$banner_title" "Migrating the Library state failed." "error"
 		step=4
 		save_config_var "step" "${deployer_config_information}"
+		cd "$root_dirname" || exit
+
 		return 40
 	fi
 
@@ -752,6 +757,7 @@ function migrate_library_state() {
 
 	step=5
 	save_config_var "step" "${deployer_config_information}"
+	return $migrate_library_return_value
 }
 
 ############################################################################################
@@ -942,35 +948,35 @@ function execute_deployment_steps() {
 	fi
 
 	if [ 3 -eq "${step}" ]; then
-		if ! migrate_deployer_state; then
+		if migrate_deployer_state; then
+			step=4
+			save_config_var "step" "${deployer_config_information}"
+		else
 			return_value=$?
 			print_banner "Deployer" "Migration of deployer state failed" "error"
 			return $return_value
-		else
-			step=4
-			save_config_var "step" "${deployer_config_information}"
 		fi
 	fi
 	if [ 4 -eq "${step}" ]; then
-		if ! migrate_library_state; then
+		if migrate_library_state; then
+			step=5
+			save_config_var "step" "${deployer_config_information}"
+		else
 			return_value=$?
 			step=4
 			save_config_var "step" "${deployer_config_information}"
 			return 40
-		else
-			step=5
-			save_config_var "step" "${deployer_config_information}"
 		fi
 	fi
 	if [ 5 -eq "${step}" ]; then
 		if [ "${ado_flag}" != "--devops" ]; then
-			if ! copy_files_to_public_deployer; then
+			if copy_files_to_public_deployer; then
+				step=3
+				save_config_var "step" "${deployer_config_information}"
+			else
 				return_value=$?
 				print_banner "Copy" "Copying files failed" "error"
 				return $return_value
-			else
-				step=3
-				save_config_var "step" "${deployer_config_information}"
 			fi
 		fi
 	else
@@ -1134,7 +1140,9 @@ function deploy_control_plane() {
 		fi
 	fi
 
-	if ! execute_deployment_steps $step; then
+	if execute_deployment_steps $step; then
+		return_value=$?
+	else
 		return_value=$?
 		print_banner "Control Plane Deployment" "Executing deployment steps failed" "error"
 	fi
