@@ -430,7 +430,7 @@ function parse_arguments() {
 		esac
 	done
 
-	banner_title="Set Secrets"
+	banner_title="Set Secrets v2"
 
 	[[ -z "$prefix" ]] && {
 		print_banner "$banner_title" "prefix is required" "error"
@@ -441,6 +441,10 @@ function parse_arguments() {
 		print_banner "$banner_title" "subscription is required" "error"
 		return 10
 	}
+	if ! is_valid_guid "${subscription}"; then
+		print_banner "$banner_title" "subscription is incorrect" "error"
+		return 10
+	fi
 
 	if [ 0 -eq "$deploy_using_msi_only" ]; then
 
