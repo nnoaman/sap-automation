@@ -85,7 +85,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure "$USE_MSI"
+	LogonToAzure "${USE_MSI:-ARM_USE_MSI}"
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"
