@@ -192,7 +192,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_agent" {
   provider                             = azurerm.dnsmanagement
   count                                = ( var.dns_settings.register_storage_accounts_keyvaults_with_dns &&
                                            var.use_private_endpoint &&
-                                           (contains(keys(var.deployer_tfstate), "additional_network_id") ? length(var.deployer_tfstate.additional_network_id) > 0 ?1 : 0) : 0
+                                           (contains(keys(var.deployer_tfstate), "additional_network_id") ? length(var.deployer_tfstate.additional_network_id) > 0 : false) ? 1 : 0
   )
   depends_on                           = [
                                             azurerm_private_dns_zone.appconfig
