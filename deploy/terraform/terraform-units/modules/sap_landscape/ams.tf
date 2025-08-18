@@ -40,7 +40,6 @@ resource "azapi_resource" "ams_instance" {
     type                                = "SystemAssigned"
   }
   body = {
-    schema_validation_enabled             = false
     properties = {
       appServicePlanConfiguration = {
           capacity                       = 1
