@@ -43,6 +43,7 @@ resource "azapi_resource" "ams_instance" {
           tier                           = "ElasticPremium"
         }
       appLocation                        = local.region
+      schema_validation_enabled          = false
       routingPreference                  = "RouteAll"
       logAnalyticsWorkspaceArmId         = length(local.ams_laws_arm_id) > 0 ? local.ams_laws_arm_id : null
       managedResourceGroupConfiguration  = {
