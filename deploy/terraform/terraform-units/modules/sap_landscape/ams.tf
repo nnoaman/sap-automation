@@ -24,7 +24,7 @@ resource "azurerm_subnet_route_table_association" "ams" {
 
 # Created AMS instance if log analytics workspace is NOT defined
 resource "azapi_resource" "ams_instance" {
-  type                                  = "Microsoft.Workloads/monitors@2024-12-01-preview"
+  type                                  = "Microsoft.Workloads/monitors@2024-10-02-01-preview"
   count                                 = local.create_ams_instance && var.infrastructure.virtual_networks.sap.subnet_ams.defined ? 1 : 0
   name                                  = local.ams_instance_name
   location                              = local.region
@@ -32,7 +32,10 @@ resource "azapi_resource" "ams_instance" {
   depends_on                            = [
                                             azurerm_virtual_network.vnet_sap,
                                             azurerm_subnet.ams
+
                                           ]
+
+  schema_validation_enabled             = false
   identity {
     type                                = "SystemAssigned"
   }
@@ -43,7 +46,7 @@ resource "azapi_resource" "ams_instance" {
           tier                           = "ElasticPremium"
         }
       appLocation                        = local.region
-      schema_validation_enabled          = false
+
       routingPreference                  = "RouteAll"
       logAnalyticsWorkspaceArmId         = length(local.ams_laws_arm_id) > 0 ? local.ams_laws_arm_id : null
       managedResourceGroupConfiguration  = {
