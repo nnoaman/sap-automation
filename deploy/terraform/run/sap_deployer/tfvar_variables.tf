@@ -644,7 +644,7 @@ variable "agent_ado_url"                              {
                                                         default     = ""
                                                       }
 
-variable "agent_ado_project"                         {
+variable "agent_ado_project"                          {
                                                         description = "If provided, contains the project name ADO repository"
                                                         default     = ""
                                                       }
@@ -664,6 +664,27 @@ variable "DevOpsInfrastructure_object_id"             {
                                                         default     = ""
                                                       }
 
+variable "devops_platform"                            {
+                                                        description = "Type of agent to be used"
+                                                        type        = string
+                                                        default     = ""
+                                                      }
+variable "github_app_token"                           {
+                                                        description = "If provided, contains token to access github"
+                                                        default     = ""
+                                                      }
+variable "github_server_url"                          {
+                                                        description = "If provided, contains the Server Url of the GitHub instance"
+                                                        default     = "https://github.com"
+                                                      }
+variable "github_api_url"                             {
+                                                        description = "If provided, contains the API Url of the GitHub instance"
+                                                        default     = "https://api.github.com"
+                                                      }
+variable "github_repository"                          {
+                                                        description = "If provided, contains the Reference to the repositry (e.g. owner/repository)"
+                                                        default     = ""
+                                                      }
 
 #######################################4#######################################8
 #                                                                              #
