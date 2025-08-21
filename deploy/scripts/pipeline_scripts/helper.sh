@@ -41,7 +41,7 @@ function print_banner() {
 	local boldred="\e[1;31m"
 	local cyan="\e[1;36m"
 	local green="\e[1;32m"
-	local reset="\e[0m"
+	local reset_formatting="\e[0m"
 	local yellow="\e[0;33m"
 
 	local color
@@ -77,25 +77,25 @@ function print_banner() {
 	echo -e "${color}"
 	echo "#################################################################################"
 	echo "#                                                                               #"
-	echo -e "#${color}${centered_title}${reset}#"
+	echo -e "#${color}${centered_title}${reset_formatting}#"
 	echo "#                                                                               #"
-	echo -e "#${color}${centered_message}${reset}#"
+	echo -e "#${color}${centered_message}${reset_formatting}#"
 	echo "#                                                                               #"
 
 	if [ ${#secondary_message} -gt 3 ]; then
 		local centered_secondary_message
 		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
-		echo -e "#${color}${centered_secondary_message}${reset}#"
+		echo -e "#${color}${centered_secondary_message}${reset_formatting}#"
 		echo "#                                                                               #"
 	fi
 	if [ ${#tertiary_message} -gt 3 ]; then
 		local centered_tertiary_message
 		centered_tertiary_message=$(printf "%*s%s%*s" $padding_tertiary_message "" "$tertiary_message" $padding_tertiary_message "")
-		echo -e "#${color}${centered_tertiary_message}${reset}#"
+		echo -e "#${color}${centered_tertiary_message}${reset_formatting}#"
 		echo "#                                                                               #"
 	fi
 	echo "#################################################################################"
-	echo -e "${reset}"
+	echo -e "${reset_formatting}"
 	echo ""
 }
 
@@ -126,10 +126,10 @@ function saveVariableInVariableGroup() {
 
 	if [ -n "$variable_value" ]; then
 
-	  print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
+		print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
 
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
-		if [ "$DEBUG" = True ]; then
+		if [ "${DEBUG:-False}" = True ]; then
 			echo "Variable value: $az_var"
 			echo "Variable length: ${#az_var}"
 		fi
@@ -156,13 +156,22 @@ function saveVariableInVariableGroup() {
 
 function configureNonDeployer() {
 	green="\e[1;32m"
-	reset="\e[0m"
-	local tf_version=$1
-	local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
-	echo -e "$green--- Install dos2unix ---$reset"
-	sudo apt-get -qq install dos2unix
+	reset_formatting="\e[0m"
 
-	sudo apt-get -qq install zip
+	# Check if running in GitHub Actions
+	if [ -v GITHUB_ACTIONS ]; then
+		echo -e "$green--- Running in GitHub Actions environment ---$reset_formatting" # Skip all installation commands for GitHub Actions as they are already in the Dockerfile
+		return 0
+	else
+		echo -e "$green--- Running in Azure DevOps or standard environment ---$reset_formatting"
+
+		local tf_version=$1
+		local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
+
+		echo -e "$green--- Install dos2unix ---$reset_formatting"
+		sudo apt-get -qq install dos2unix
+
+		sudo apt-get -qq install zip
 
 	if ! which terraform; then
 		if [ -n "$tf_version" ]; then
@@ -174,15 +183,15 @@ function configureNonDeployer() {
 			tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
 		fi
 
-		wget -q "$tf_url"
-		return_code=$?
-		if [ 0 != $return_code ]; then
-			echo "##vso[task.logissue type=error]Unable to download Terraform version $tf_version."
-			exit 2
-		fi
-		unzip -qq "terraform_${tf_version}_linux_amd64.zip"
-		sudo mv terraform /bin/
-		rm -f "terraform_${tf_version}_linux_amd64.zip"
+			wget -q "$tf_url"
+			return_code=$?
+			if [ 0 != $return_code ]; then
+				echo "##vso[task.logissue type=error]Unable to download Terraform version $tf_version."
+				exit 2
+			fi
+			unzip -qq "terraform_${tf_version}_linux_amd64.zip"
+			sudo mv terraform /bin/
+			rm -f "terraform_${tf_version}_linux_amd64.zip"
 	fi
 }
 
@@ -284,6 +293,7 @@ function get_region_from_code() {
 	"WEUS") LOCATION_IN_FILENAME="westus" ;;
 	"WUS2") LOCATION_IN_FILENAME="westus2" ;;
 	"WUS3") LOCATION_IN_FILENAME="westus3" ;;
+	"NZNO") LOCATION_IN_FILENAME="newzealandnorth" ;;
 	*) LOCATION_IN_FILENAME="westeurope" ;;
 	esac
 	echo "$LOCATION_IN_FILENAME"
@@ -291,6 +301,8 @@ function get_region_from_code() {
 }
 
 function get_variable_group_id() {
+	local green="\e[1;32m"
+	local reset_formatting="\e[0m"
 	local variable_group_name="$1"
 	local variable_group_id
 	var_name="$2"
@@ -303,7 +315,7 @@ function get_variable_group_id() {
 
 	echo ""
 	echo -e "${green}Variable group information:"
-	echo -e "--------------------------------------------------------------------------------${reset}"
+	echo -e "--------------------------------------------------------------------------------${reset_formatting}"
 	echo "Variable group name:                 $variable_group_name"
 	echo "Variable group id:                   $variable_group_id"
 	echo ""
@@ -317,12 +329,40 @@ function get_variable_group_id() {
 function print_header() {
 	echo ""
 	local green="\e[1;32m"
-	local reset="\e[0m"
+	local reset_formatting="\e[0m"
 	echo ""
 	echo -e "${green}DevOps information:"
-	echo -e "-------------------------------------------------------------------------------$reset"
+	echo -e "-------------------------------------------------------------------------------$reset_formatting"
+
+	# Initialize THIS_AGENT if not already defined
+	if [ -z "${THIS_AGENT+x}" ]; then
+		# For GitHub Actions
+		if [ -n "${GITHUB_ACTIONS+x}" ]; then
+			THIS_AGENT=${RUNNER_NAME:-"GitHub Actions Runner"}
+		# For Azure DevOps
+		elif [ -n "${TF_BUILD+x}" ]; then
+			THIS_AGENT=${AGENT_NAME:-"Azure DevOps Agent"}
+		# Default value for CLI or other environments
+		else
+			THIS_AGENT="CLI"
+		fi
+		export THIS_AGENT
+	fi
 
 	echo "Agent pool:                          $THIS_AGENT"
+
+	if [ -z "${SYSTEM_COLLECTIONURI+x}" ]; then
+		if [ -n "${GITHUB_ACTIONS+x}" ]; then
+			SYSTEM_COLLECTIONURI=${GITHUB_SERVER_URL:-"https://github.com"}
+		fi
+	fi
+
+	if [ -z "${SYSTEM_TEAMPROJECT+x}" ]; then
+		if [ -n "${GITHUB_ACTIONS+x}" ]; then
+			SYSTEM_TEAMPROJECT=${GITHUB_REPOSITORY:-"N/A"}
+		fi
+	fi
+
 	echo "Organization:                        $SYSTEM_COLLECTIONURI"
 	echo "Project:                             $SYSTEM_TEAMPROJECT"
 	echo ""
@@ -333,12 +373,12 @@ function print_header() {
 		echo "Deployer Agent Pool:                 $POOL"
 	fi
 	echo ""
-	echo -e "${green}Azure CLI version:${reset}"
-	echo -e "${green}-------------------------------------------------${reset}"
+	echo -e "${green}Azure CLI version:${reset_formatting}"
+	echo -e "${green}-------------------------------------------------${reset_formatting}"
 	az --version
 	echo ""
-	echo -e "${green}Terraform version:${reset}"
-	echo -e "${green}-------------------------------------------------${reset}"
+	echo -e "${green}Terraform version:${reset_formatting}"
+	echo -e "${green}-------------------------------------------------${reset_formatting}"
 	if [ -f /opt/terraform/bin/terraform ]; then
 		tfPath="/opt/terraform/bin/terraform"
 	else
@@ -352,8 +392,10 @@ function print_header() {
 }
 
 function configure_devops() {
+	local green="\e[1;32m"
+	local reset_formatting="\e[0m"
 	echo ""
-	echo -e "$green--- Configure devops CLI extension ---$reset"
+	echo -e "$green--- Configure devops CLI extension ---$reset_formatting"
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 	az config set extension.dynamic_install_allow_preview=true --output none --only-show-errors
 
