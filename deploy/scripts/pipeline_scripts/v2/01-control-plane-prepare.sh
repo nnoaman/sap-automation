@@ -80,6 +80,55 @@ if [ ! -f "$library_tfvars_file_name" ]; then
 	exit 2
 fi
 
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+
+	# Configure DevOps
+	configure_devops
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+
+	TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
+	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+		export TF_VAR_DevOpsInfrastructure_object_id
+	else
+
+		if TF_VAR_DevOpsInfrastructure_object_id=$(az ad sp list --display-name DevOpsInfrastructure --all --filter "displayname eq 'DevOpsInfrastructure'" --query "[].id | [0]" --output tsv && :); then
+			if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
+				echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+				export TF_VAR_DevOpsInfrastructure_object_id
+			else
+				echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
+			fi
+		fi
+
+	fi
+
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="$CONTROL_PLANE_NAME"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
+fi
+
+file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+
+if [ -z "${TF_VAR_ansible_core_version}" ]; then
+	TF_VAR_ansible_core_version=2.16
+	export TF_VAR_ansible_core_version
+fi
+
+cd "$CONFIG_REPO_PATH" || exit
+mkdir -p .sap_deployment_automation
+
 echo "Configuration file:                  $deployer_environment_file_name"
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo "Environment:                         $ENVIRONMENT"
