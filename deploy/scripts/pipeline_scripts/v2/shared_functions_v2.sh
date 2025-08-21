@@ -60,12 +60,12 @@ initialize_platform_variables
 export SHARED_FUNCTIONS_LOADED="true"
 
 function get_platform() {
-	if [[ -v GITHUB_ACTIONS ]]; then
+	if [[ -n "${GITHUB_ACTIONS+x}" ]]; then
 		echo "github"
 		return
 	fi
 
-	if [[ -v SYSTEM_TEAMPROJECT ]] && [[ -v AGENT_NAME ]] && [[ -v AGENT_MACHINE ]] && [[ -v AGENT_ID ]]; then
+	if [[ -n "${SYSTEM_TEAMPROJECT+x}" ]] && [[ -n "${AGENT_NAME+x}" ]] && [[ -n "${AGENT_MACHINE+x}" ]] && [[ -n "${AGENT_ID+x}" ]]; then
 		echo "devops"
 		return
 	fi
@@ -92,7 +92,7 @@ function get_value_with_key() {
 		exit_error "Cannot get value with an empty key" 1
 	fi
 
-	if [[ -v APPLICATION_CONFIGURATION_NAME ]]; then
+	if [[ -n "${APPLICATION_CONFIGURATION_NAME+x}" ]]; then
 		value=$(__appconfig_get_value_with_key $key $label)
 	else
 		value=$(__get_value_with_key $key)
@@ -109,7 +109,7 @@ function set_value_with_key() {
 		exit_error "Cannot set value with an empty key" 1
 	fi
 
-	if [[ -v APPLICATION_CONFIGURATION_NAME ]]; then
+	if [[ -n "${APPLICATION_CONFIGURATION_NAME+x}" ]]; then
 		__appconfig_set_value_with_key $key $value
 	else
 		__set_value_with_key $key $value
@@ -123,7 +123,7 @@ function get_secret_with_key() {
 		exit_error "Cannot get secret with an empty key" 1
 	fi
 
-	if [[ -v APPLICATION_CONFIGURATION_NAME ]]; then
+	if [[ -n "${APPLICATION_CONFIGURATION_NAME+x}" ]]; then
 		value=$(__appconfig_get_secret_with_key $key)
 	else
 		value=$(__get_secret_with_key $key)
@@ -140,7 +140,7 @@ function set_secret_with_key() {
 		exit_error "Cannot set secret with an empty key" 1
 	fi
 
-	if [[ -v APPLICATION_CONFIGURATION_NAME ]]; then
+	if [[ -n "${APPLICATION_CONFIGURATION_NAME+x}" ]]; then
 		__appconfig_set_secret_with_key $key $value
 	else
 		__set_secret_with_key $key $value

@@ -24,9 +24,9 @@ export DEBUG
 
 # Detect platform
 detect_platform() {
-	if [ -v GITHUB_ACTIONS ]; then
+	if [ -n "${GITHUB_ACTIONS+x}" ]; then
 		PLATFORM="github"
-	elif [ -v TF_BUILD ]; then
+	elif [ -n "${TF_BUILD+x}" ]; then
 		PLATFORM="devops"
 	else
 		# Default to CLI for interactive use
