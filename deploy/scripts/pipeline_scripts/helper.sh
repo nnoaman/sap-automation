@@ -164,14 +164,15 @@ function configureNonDeployer() {
 		return 0
 	else
 		echo -e "$green--- Running in Azure DevOps or standard environment ---$reset_formatting"
+	fi
 
-		local tf_version=$1
-		local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
+	local tf_version=$1
+	local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
 
-		echo -e "$green--- Install dos2unix ---$reset_formatting"
-		sudo apt-get -qq install dos2unix
+	echo -e "$green--- Install dos2unix ---$reset_formatting"
+	sudo apt-get -qq install dos2unix
 
-		sudo apt-get -qq install zip
+	sudo apt-get -qq install zip
 
 	if ! which terraform; then
 		if [ -n "$tf_version" ]; then
