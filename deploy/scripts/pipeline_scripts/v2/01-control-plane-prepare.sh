@@ -54,9 +54,15 @@ fi
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
+ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+
+if [ "$PLATFORM" == "github" ]; then
+	DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
+	DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
+	LIBRARY_FOLDERNAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY"
+	LIBRARY_TFVARS_FILENAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY.tfvars"
+fi
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
@@ -75,8 +81,13 @@ if [ ! -f "$library_tfvars_file_name" ]; then
 fi
 
 echo "Configuration file:                  $deployer_environment_file_name"
+echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
+echo "Deployer Folder Name:                $DEPLOYER_FOLDERNAME"
+echo "Deployer TFVars Filename:            $DEPLOYER_TFVARS_FILENAME"
+echo "Library Folder Name:                 $LIBRARY_FOLDERNAME"
+echo "Library TFVars Filename:             $LIBRARY_TFVARS_FILENAME"
 
 if [ "$FORCE_RESET" == "True" ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
