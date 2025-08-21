@@ -83,6 +83,11 @@ locals {
                                            ansible_core_version           = var.ansible_core_version
                                            tf_version                     = var.tf_version
                                            DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
+                                           app_token                      = var.github_app_token
+                                           repository                     = var.github_repository
+                                           server_url                     = var.github_server_url
+                                           api_url                        = var.github_api_url
+                                           platform                       = var.devops_platform
                                          }
   }
   deployer                             = {
