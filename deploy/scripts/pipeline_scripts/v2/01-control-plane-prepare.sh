@@ -84,10 +84,8 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 
 elif [ "$PLATFORM" == "github" ]; then
-	# No specific variable group setup for GitHub Actions
-	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
-	export VARIABLE_GROUP_ID="$ZONE"
+	export VARIABLE_GROUP_ID="$CONTROL_PLANE_NAME"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
 
