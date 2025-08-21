@@ -25,8 +25,15 @@ source "${grand_parent_directory}/deploy_utils.sh"
 print_header
 echo ""
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+
+if [ "$PLATFORM" == "github" ]; then
+	DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
+	DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
+	LIBRARY_FOLDERNAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY"
+	LIBRARY_TFVARS_FILENAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY.tfvars"
+fi
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
@@ -96,8 +103,13 @@ cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
 echo "Configuration file:                  $deployer_environment_file_name"
+echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
+echo "Deployer Folder Name:                $DEPLOYER_FOLDERNAME"
+echo "Deployer TFVars Filename:            $DEPLOYER_TFVARS_FILENAME"
+echo "Library Folder Name:                 $LIBRARY_FOLDERNAME"
+echo "Library TFVars Filename:             $LIBRARY_TFVARS_FILENAME"
 
 if [ -f "${deployer_environment_file_name}" ]; then
 	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
