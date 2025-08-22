@@ -525,7 +525,19 @@ if [ "$PLATFORM" == "devops" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
-
+	fi
+elif [ "$PLATFORM" == "github" ]; then
+	if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
+		echo "##[group]Upload summary"
+		upload_summary "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+		echo "##[endgroup]"
+	fi
+	if [ 0 -eq "$return_code" ]; then
+			set_value_with_key "APPLICATION_CONFIGURATION_NAME" "${APPLICATION_CONFIGURATION_NAME}" "env"
+			set_value_with_key "CONTROL_PLANE_NAME" "${CONTROL_PLANE_NAME}" "env"
+			set_value_with_key "DEPLOYER_KEYVAULT" "${DEPLOYER_KEYVAULT}" "env"
+			set_value_with_key "CONTROL_PLANE_ENVIRONMENT" "${ENVIRONMENT}" "env"
+			set_value_with_key "CONTROL_PLANE_LOCATION" "${LOCATION}" "env"
 	fi
 fi
 exit $return_code
