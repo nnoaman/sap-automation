@@ -30,9 +30,15 @@ source "${grand_parent_directory}/deploy_utils.sh"
 print_header
 echo ""
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
+ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+
+if [ "$PLATFORM" == "github" ]; then
+	DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
+	DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
+	LIBRARY_FOLDERNAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY"
+	LIBRARY_TFVARS_FILENAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY.tfvars"
+fi
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
