@@ -86,6 +86,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+	export ZONE="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 
 	# Set required environment variables for GitHub
