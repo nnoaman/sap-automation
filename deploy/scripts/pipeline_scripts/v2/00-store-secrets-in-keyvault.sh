@@ -40,15 +40,22 @@ set -eu
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 return_code=0
 
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-
 cd "${CONFIG_REPO_PATH}" || exit
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
-echo -e "$green--- Validations ---$reset"
+# Set platform-specific output
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[build.updatebuildnumber]Setting the secrets for $ZONE"
+	echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
+	git checkout -q "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Setting the secrets for $ZONE"
+	echo -e "$green--- Checkout $GITHUB_REF_NAME ---$reset"
+	git checkout -q "$GITHUB_REF_NAME"
+fi
+
+echo -e "$green--- Validations ---$reset_formatting"
 if [ "$USE_MSI" != "true" ]; then
 	print_banner "$banner_title" "Using Service Principals for deployment" "info"
 
