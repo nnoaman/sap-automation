@@ -352,7 +352,7 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:hwma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,workload,help,msi,ado -- "$@")
+	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:hwmag --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,workload,help,msi,ado,github -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -413,6 +413,9 @@ function parse_arguments() {
 			shift
 			;;
 		-a | --ado)
+			shift
+			;;
+		-g | --github)
 			shift
 			;;
 		-h | --help)
