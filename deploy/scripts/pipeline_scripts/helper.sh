@@ -38,7 +38,7 @@ function print_banner() {
 		tertiary_message="$tertiary_message"
 	fi
 
-	local boldred="\e[1;31m"
+	local bold_red="\e[1;31m"
 	local cyan="\e[1;36m"
 	local green="\e[1;32m"
 	local reset_formatting="\e[0m"
@@ -47,7 +47,7 @@ function print_banner() {
 	local color
 	case "$type" in
 	error)
-		color="$boldred"
+		color="$bold_red"
 		;;
 	success)
 		color="$green"
@@ -130,7 +130,7 @@ function saveVariableInVariableGroup() {
 
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
 		if [ "${DEBUG:-False}" = True ]; then
-			echo "Variable value: $az_var"
+			echo "Variable value:  $az_var"
 			echo "Variable length: ${#az_var}"
 		fi
 		if [ ${#az_var} -gt 0 ]; then
@@ -197,7 +197,7 @@ function configureNonDeployer() {
 }
 
 function LogonToAzure() {
-	local useMSI=$1
+	local useMSI=${1:-true}
 	local subscriptionId=$ARM_SUBSCRIPTION_ID
 
 	if [ "$useMSI" != "true" ]; then
@@ -370,7 +370,7 @@ function print_header() {
 	if printenv TF_VAR_agent_pat; then
 		echo "Deployer Agent PAT:                  IsDefined"
 	fi
-	if printenv POOL; then
+	if [ -v POOL ]; then
 		echo "Deployer Agent Pool:                 $POOL"
 	fi
 	echo ""
@@ -412,7 +412,11 @@ function configure_devops() {
 		echo "Azure DevOps extension installed."
 	fi
 
-	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
+	if [ -n "${SYSTEM_COLLECTIONURI+x}" ] && [ -n "${SYSTEM_TEAMPROJECTID+x}" ]; then
+		az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
+	else
+		echo "Skipping Azure DevOps CLI configuration - running in a non-Azure DevOps environment"
+	fi
 
 	extension_installed=$(az extension list --query "[?contains(name, 'resource-graph')].name | [0]" --output tsv)
 
