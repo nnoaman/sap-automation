@@ -427,11 +427,11 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	fi
 
 	file_deployer_tfstate_key=$(grep -m1 "^deployer_tfstate_key" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -z "$file_deployer_tfstate_key" ]; then
+	if [ -n "$file_deployer_tfstate_key" ]; then
 		deployer_tfstate_key=$file_deployer_tfstate_key
 		export deployer_tfstate_key
 	fi
-	echo "Deployer State File:                 $deployer_tfstate_key"
+	echo "Deployer State File:                 ${deployer_tfstate_key}"
 
 	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
