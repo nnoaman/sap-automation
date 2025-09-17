@@ -181,9 +181,8 @@ function parse_arguments() {
 	echo "Current directory:                   $(pwd)"
 	echo "Parameter file:                      ${parameter_file_name}"
 
-	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
-	echo "Current directory:                   $(pwd)"
-	echo "Parameter file:                      ${parameter_file_name}"
+	param_dirname=$(dirname "${parameter_file_name}")
+	export TF_DATA_DIR="${param_dirname}"/.terraform
 
 	# Check that parameter files have environment and location defined
 	if ! validate_key_parameters "$parameter_file_name"; then
@@ -219,7 +218,7 @@ function parse_arguments() {
 function install_deployer() {
 	deployment_system=sap_deployer
 	local green="\033[0;32m"
-	local reset_formatting="\033[0m"
+	local reset="\033[0m"
 	approve=""
 
 	# Define an array of helper scripts
@@ -240,13 +239,15 @@ function install_deployer() {
 		print_banner "$banner_title" "Validating parameters failed" "error"
 		return $?
 	fi
+	param_dirname=$(dirname "${parameter_file_name}")
+	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	print_banner "$banner_title" "Deploying the deployer" "info"
 
 	#Persisting the parameters across executions
 	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 	generic_config_information="${automation_config_directory}"config
-	deployer_config_information="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
+	deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	if [ ! -f "$deployer_config_information" ]; then
@@ -256,24 +257,18 @@ function install_deployer() {
 		fi
 	fi
 
-	# Ensure we use the original directory for the parameter file
 	param_dirname=$(pwd)
 
 	init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-	# Use absolute path for var_file to avoid path resolution issues
-	var_file=$(realpath "${parameter_file_name}")
-	param_dirname=$(dirname "${var_file}")
-	export TF_DATA_DIR="${param_dirname}/.terraform"
+	var_file="${param_dirname}/${parameter_file_name}"
 
 	echo ""
 	echo -e "${green}Deployment information:"
-	echo -e "-------------------------------------------------------------------------------$reset_formatting"
+	echo -e "-------------------------------------------------------------------------------$reset"
 
 	echo "Configuration file:                  $parameter_file_name"
-	echo "Configuration file (full path):      $var_file"
 	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
-	echo "TF_DATA_DIR:                         ${TF_DATA_DIR}"
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 	export TF_DATA_DIR="${param_dirname}"/.terraform
@@ -288,7 +283,6 @@ function install_deployer() {
 		extra_vars=" -var-file=${param_dirname}/terraform.tfvars"
 	fi
 
-	# Create a symlink to the parameter file in the current directory if needed
 	if [[ -v GITHUB_ACTIONS ]]; then
 		echo "Running in GitHub Actions environment"
 		parameter_file_basename=$(basename "${parameter_file_name}")
@@ -319,7 +313,6 @@ function install_deployer() {
 					unset TF_DATA_DIR
 					return $return_value
 				fi
-				return 0
 			else
 				print_banner "$banner_title" "Running terraform init" "info"
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -backend-config "path=${param_dirname}/terraform.tfstate"; then
@@ -347,7 +340,7 @@ function install_deployer() {
 
 	# shellcheck disable=SC2086
 
-	if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
+	if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
@@ -367,7 +360,7 @@ function install_deployer() {
 		rm plan_output.log
 	fi
 
-	if [[ -v TEST_ONLY ]]; then
+	if [ "${TEST_ONLY:-false}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 		exit 10
 	fi
@@ -418,14 +411,14 @@ function install_deployer() {
 			if [[ -n $errors_occurred ]]; then
 				return_value=0
 				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 					return_value=0
 				else
 					return_value=$?
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 						return_value=0
 					else
 						return_value=$?
@@ -433,7 +426,7 @@ function install_deployer() {
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 						return_value=0
 					else
 						return_value=$?
@@ -441,7 +434,7 @@ function install_deployer() {
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 						return_value=0
 					else
 						return_value=$?
@@ -449,7 +442,7 @@ function install_deployer() {
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 						return_value=0
 					else
 						return_value=$?
@@ -457,7 +450,7 @@ function install_deployer() {
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 						return_value=0
 					else
 						return_value=$?
@@ -469,11 +462,15 @@ function install_deployer() {
 						else
 							return_value=$?
 						fi
-					fi
 				fi
 			fi
+		fi
 
-			echo "Terraform Apply return code:         $return_value"
+		echo "Terraform Apply return code:         $return_value"
+
+		if [ 0 != $return_value ]; then
+			print_banner "$banner_title" "!!! Error when creating the deployer !!!." "error"
+			return 10
 		fi
 	fi
 
@@ -486,7 +483,7 @@ function install_deployer() {
 		export DEPLOYER_KEYVAULT
 	fi
 
-	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_id | tr -d \")
 	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
 		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
 		export APPLICATION_CONFIGURATION_ID
@@ -506,6 +503,31 @@ function install_deployer() {
 		export APP_SERVICE_NAME
 	fi
 
+	APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+	if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_config_information}"
+		export APPLICATION_CONFIGURATION_DEPLOYMENT
+		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
+	fi
+
+	ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_client_id | tr -d \")
+	if [ -n "${ARM_CLIENT_ID}" ]; then
+		save_config_var "ARM_CLIENT_ID" "${deployer_config_information}"
+		export ARM_CLIENT_ID
+	fi
+
+	ARM_OBJECT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+	if [ -n "${ARM_OBJECT_ID}" ]; then
+		save_config_var "ARM_OBJECT_ID" "${deployer_config_information}"
+		export ARM_OBJECT_ID
+	fi
+
+	DevOpsInfrastructureObjectId=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw DevOpsInfrastructureObjectId | tr -d \")
+	if [ -n "${DevOpsInfrastructureObjectId}" ]; then
+		save_config_var "DevOpsInfrastructureObjectId" "${deployer_config_information}"
+		export DevOpsInfrastructureObjectId
+	fi
+
 	HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
 	if [ -n "${HAS_WEBAPP}" ]; then
 		save_config_var "HAS_WEBAPP" "${deployer_config_information}"
@@ -518,7 +540,7 @@ function install_deployer() {
 		export MSI_ID
 	fi
 
-	DEPLOYER_MSI_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_msi_client_id | tr -d \")
+	DEPLOYER_MSI_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_msi_id | tr -d \")
 	if [ -n "$DEPLOYER_MSI_CLIENT_ID" ]; then
 		save_config_var "DEPLOYER_MSI_CLIENT_ID" "${deployer_config_information}"
 		export DEPLOYER_MSI_CLIENT_ID
