@@ -8,26 +8,25 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
-#call stack has full script name when using source
-# shellcheck disable=SC1091
-source "${parent_directory}/helper.sh"
-# shellcheck disable=SC1091
+# Source the shared platform configuration
 source "${script_directory}/shared_platform_config.sh"
-# shellcheck disable=SC1091
 source "${script_directory}/shared_functions.sh"
-# shellcheck disable=SC1091
 source "${script_directory}/set-colors.sh"
-
-# shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
 
-DEBUG=false
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=true
-	echo "Environment variables:"
-	printenv | sort
-fi
+# Source helper scripts
+source "${parent_directory}/helper.sh"
+
+# Set platform-specific output
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in ${DEPLOYER_FOLDERNAME}"
+	DEBUG=false
+	if [ "$SYSTEM_DEBUG" = True ]; then
+		set -x
+		DEBUG=true
+		echo "Environment variables:"
+		printenv | sort
+	fi
 
 export DEBUG
 set -eu
@@ -46,7 +45,7 @@ if [ "$PLATFORM" == "github" ]; then
 	LIBRARY_TFVARS_FILENAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY.tfvars"
 fi
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
+deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
@@ -96,14 +95,11 @@ if [ "$PLATFORM" == "devops" ]; then
 
 elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
-	export VARIABLE_GROUP_ID="$CONTROL_PLANE_NAME"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
 
-file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
-
-if [ -z "${TF_VAR_ansible_core_version}" ]; then
+if [ ! -v TF_VAR_ansible_core_version ]; then
 	TF_VAR_ansible_core_version=2.16
 	export TF_VAR_ansible_core_version
 fi
@@ -120,20 +116,29 @@ echo "Deployer TFVars Filename:            $DEPLOYER_TFVARS_FILENAME"
 echo "Library Folder Name:                 $LIBRARY_FOLDERNAME"
 echo "Library TFVars Filename:             $LIBRARY_TFVARS_FILENAME"
 
-if [ -f "${deployer_environment_file_name}" ]; then
-	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-else
+# Handle force reset across platforms
+if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=warning]Forcing a re-install"
+	fi
+	echo -e "$bold_red--- Resetting the environment file ---$reset_formatting"
 	step=0
+else
+	if [ -f "${deployer_environment_file_name}" ]; then
+		step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+	else
+		step=0
+	fi
 fi
+
 echo "Step:                                $step"
 
-if [ 0 != "${step}" ]; then
+if [ 0 -ne ${step:-0} ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=warning]Control Plane already prepared"
+		echo "##vso[task.logissue type=warning]Already prepared"
 	else
-		echo "Control Plane already prepared"
+		echo "WARNING: Already prepared"
 	fi
-	exit 0
 fi
 
 # Git checkout for the correct branch
@@ -142,6 +147,10 @@ if [ "$PLATFORM" == "devops" ]; then
 elif [ "$PLATFORM" == "github" ]; then
 	git checkout -q "$GITHUB_REF_NAME"
 fi
+
+# Set Azure subscription
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
+echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -169,15 +178,11 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		# GitHub Actions uses standard ARM_CLIENT_SECRET
 		echo "Using standard Azure authentication for GitHub Actions"
 	fi
+	ARM_TENANT_ID="${tenantId:-$ARM_TENANT_ID}"
 
-	if [ -v tenantId ]; then
-		# If tenantId is set, use it
-		ARM_TENANT_ID="${tenantId}"
-	else
-		# Otherwise, use the default ARM_TENANT_ID
+	if [ -z "${ARM_TENANT_ID:-}" ]; then
 		ARM_TENANT_ID=$(az account show --query tenantId -o tsv)
 	fi
-
 	export ARM_TENANT_ID
 
 	ARM_USE_AZUREAD=true
@@ -185,7 +190,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 else
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
-	if [ "$USE_MSI" == "true" ]; then
+	if [ "${USE_MSI:-false}" == "true" ]; then
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 		ARM_USE_MSI=true
@@ -210,13 +215,14 @@ fi
 
 # Get SPN ID differently per platform
 if [ "$PLATFORM" == "devops" ]; then
+	echo "0"
 	TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
 elif [ "$PLATFORM" == "github" ]; then
 	# Use value from env or from GitHub environment
 	TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
 fi
 if [ -n "$TF_VAR_spn_id" ]; then
-	if is_valid_guid $TF_VAR_spn_id; then
+		if is_valid_guid $TF_VAR_spn_id; then
 		export TF_VAR_spn_id
 		echo "Service Principal Object id:         $TF_VAR_spn_id"
 	fi
@@ -239,8 +245,8 @@ else
 	unset APPLICATION_CONFIGURATION_NAME
 fi
 
-if [ "$FORCE_RESET" == true ]; then
-
+# Force reset handling across platforms
+if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Forcing a re-install"
 	else
@@ -251,8 +257,7 @@ if [ "$FORCE_RESET" == true ]; then
 	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
 	sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
 
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "${APPLICATION_CONFIGURATION_ID:-}" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$tfstate_resource_id" ]; then
 		if [ "$PLATFORM" == "devops" ]; then
 			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
@@ -265,11 +270,11 @@ if [ "$FORCE_RESET" == true ]; then
 	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
-		echo "Terraform Remote State Account:      ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+		echo "Terraform Remote State Account:       ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
-		echo "Terraform Remote State RG Name:      ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+		echo "Terraform Remote State RG Name:       ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
 	fi
 
 	if [ -n "${tfstate_resource_id}" ]; then
@@ -283,36 +288,9 @@ if [ "$FORCE_RESET" == true ]; then
 	export REINSTALL_SUBSCRIPTION
 	REINSTALL_RESOURCE_GROUP=$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME
 	export REINSTALL_RESOURCE_GROUP
-
 fi
 
-# Platform-specific flags
-if [ "$PLATFORM" == "devops" ]; then
-	platform_flag="--ado"
-elif [ "$PLATFORM" == "github" ]; then
-	# Set required environment variables for GitHub
-	export USER=${GITHUB_ACTOR:-githubuser}
-	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
-	platform_flag="--github"
-
-	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
-	export TF_VAR_github_server_url
-
-	TF_VAR_github_api_url=${GITHUB_API_URL}
-	export TF_VAR_github_api_url
-
-	TF_VAR_github_repository=${GITHUB_REPOSITORY}
-	export TF_VAR_github_repository
-
-	TF_VAR_devops_platform="github"
-	export TF_VAR_devops_platform
-else
-	platform_flag=""
-fi
-
-git pull -q
-
-start_group "Decrypting state files"
+echo -e "$green--- Variables ---$reset_formatting"
 
 # Handle state.zip differently per platform
 
@@ -342,6 +320,59 @@ else
 	pass="localpassword"
 fi
 
+export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
+set +eu
+
+msi_flag=""
+if [ "${USE_MSI:-false}" == "true" ]; then
+	msi_flag=" --msi "
+	TF_VAR_use_spn=false
+	export TF_VAR_use_spn
+	echo "Deployer using:                      Managed Identity"
+else
+	TF_VAR_use_spn=true
+	export TF_VAR_use_spn
+	echo "Deployer using:                      Service Principal"
+fi
+
+if [ "$DEBUG" == True ]; then
+	echo "ARM Environment variables:"
+	printenv | grep ARM_
+fi
+echo -e "$green--- Control Plane deployment---$reset_formatting"
+
+# Platform-specific flags
+if [ "$PLATFORM" == "devops" ]; then
+	platform_flag="--ado"
+elif [ "$PLATFORM" == "github" ]; then
+	# Set required environment variables for GitHub
+	export USER=${GITHUB_ACTOR:-githubuser}
+	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
+	platform_flag="--github"
+
+	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
+	export TF_VAR_github_server_url
+
+	TF_VAR_github_api_url=${GITHUB_API_URL}
+	export TF_VAR_github_api_url
+
+	TF_VAR_github_repository=${GITHUB_REPOSITORY}
+	export TF_VAR_github_repository
+
+	TF_VAR_devops_platform="github"
+	export TF_VAR_devops_platform
+else
+	platform_flag=""
+fi
+
+end_group
+
+git pull -q
+
+cd "${CONFIG_REPO_PATH}" || exit
+
+start_group "Decrypting state files"
+
 if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg ]; then
 	echo "Decrypting state file"
 	echo ${pass} |
@@ -358,41 +389,26 @@ fi
 
 end_group
 
-export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
-set +eu
+start_group "Deploy the control plane"
+# Deploy the control plane
 
-msi_flag=""
-if [ "${USE_MSI:-false}" == "true" ]; then
-	msi_flag=" --msi "
-	TF_VAR_use_spn=false
-	export TF_VAR_use_spn
-	echo "Deployer using:                      Managed Identity"
-else
-	TF_VAR_use_spn=true
-	export TF_VAR_use_spn
-	echo "Deployer using:                      Service Principal"
-fi
-
-if [ "${DEBUG:-false}" == true ]; then
-	echo "ARM Environment variables:"
-	printenv | grep ARM_
-fi
-echo -e "$green--- Control Plane deployment---$reset"
-
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --deployer_parameter_file "${deployer_tfvars_file_name}" \
-	--library_parameter_file "${library_tfvars_file_name}" \
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --control_plane_name "${CONTROL_PLANE_NAME}" \
 	--subscription "$ARM_SUBSCRIPTION_ID" \
-	--auto-approve ${platform_flag} "$msi_flag" --only_deployer; then
+	--auto-approve ${platform_flag} ${msi_flag} --only_deployer; then
 	return_code=$?
-	echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
+	fi
 	echo "Return code from deploy_control_plane_v2 $return_code."
 else
 	return_code=$?
-	echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Return code from deploy_control_plane_v2 $return_code."
+	fi
 	echo "Return code from deploy_control_plane_v2 $return_code."
 fi
 echo ""
-echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset}"
+echo -e "${cyan}deploy_control_plane_v2 returned:        $return_code${reset_formatting}"
 echo ""
 
 set -eu
@@ -433,6 +449,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
 		export APPLICATION_CONFIGURATION_NAME
+		echo "Application Configuration Name:      ${APPLICATION_CONFIGURATION_NAME}"
 	fi
 
 	APP_SERVICE_NAME=$(grep -m1 "^APP_SERVICE_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
@@ -445,9 +462,18 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
 		export APP_SERVICE_DEPLOYMENT
 	fi
-
+	DEPLOYER_MSI_CLIENT_ID=$(grep -m1 "^DEPLOYER_MSI_CLIENT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	echo "DEPLOYER_MSI_CLIENT_ID:              ${DEPLOYER_MSI_CLIENT_ID:-}"
+	# Set output variables for GitHub Actions
+	if [ "$PLATFORM" == "github" ]; then
+		set_output_variable "deployer_keyvault" "${DEPLOYER_KEYVAULT}"
+		set_output_variable "this_agent" "self-hosted"
+		set_output_variable "app_config_name" "${APPLICATION_CONFIGURATION_NAME}"
+		set_output_variable "msi_id" "${DEPLOYER_MSI_CLIENT_ID}"
+	fi
 fi
-echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+
+echo -e "$green--- Adding deployment automation configuration to repository ---$reset_formatting"
 added=0
 cd "$CONFIG_REPO_PATH" || exit
 
@@ -458,20 +484,20 @@ elif [ "$PLATFORM" == "github" ]; then
 	git pull -q origin "$GITHUB_REF_NAME"
 fi
 
-echo -e "$green--- Update repo ---$reset"
+echo -e "$green--- Update repo ---$reset_formatting"
 
 if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
 	added=1
 fi
 
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
+	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 	added=1
 fi
 
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/.terraform/terraform.tfstate ]; then
+	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/.terraform/terraform.tfstate"
 	added=1
 fi
 
@@ -497,6 +523,15 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 	added=1
 fi
 
+if [ -f .sap_deployment_automation/terraform.log ]; then
+	rm .sap_deployment_automation/terraform.log
+fi
+
+if [ -f LICENSE.txt ]; then
+	rm LICENSE.txt
+fi
+
+# Commit changes based on platform
 if [ 1 = $added ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
@@ -518,7 +553,6 @@ if [ 1 = $added ]; then
 			upload_summary ".sap_deployment_automation/$CONTROL_PLANE_NAME.md"
 		fi
 	fi
-
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
@@ -543,4 +577,6 @@ elif [ "$PLATFORM" == "github" ]; then
 			set_value_with_key "DEPLOYER_KEYVAULT" "${DEPLOYER_KEYVAULT}" "env"
 	fi
 fi
+end_group
+
 exit $return_code
