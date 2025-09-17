@@ -116,5 +116,6 @@ variable "spn_id"                      { description = "SPN ID to be used for th
 
 variable "app_service"                 { description = "Details of the Application Service" }
 
-variable "additional_network_id"       { description = "Additional network ID" }
+variable "app_config_service"          { description = "Details of the Application Configuration Service" }
 
+variable "additional_network_id"       { description = "Additional network ID" }

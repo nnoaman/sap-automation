@@ -255,3 +255,24 @@ output "diagnostics_account_id"                  {
                                                     value       = length(var.deployer.deployer_diagnostics_account_arm_id) == 0 ? azurerm_storage_account.deployer[0].id : var.deployer.deployer_diagnostics_account_arm_id
                                                  }
 
+###############################################################################
+#                                                                             #
+#                                App Config                                   #
+#                                                                             #
+###############################################################################
+
+
+output "application_configuration_name"          {
+                                                    description = "Application Configuration Name"
+                                                    value       = var.app_config_service.deploy ? (
+                                                      length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].name : data.azurerm_app_configuration.app_config[0].name) : (
+                                                      "")
+                                                 }
+
+
+output "application_configuration_id"            {
+                                                    description = "Application Configuration Resource Id"
+                                                    value       = var.app_config_service.deploy ? (
+                                                      length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id) : (
+                                                      "")
+                                                 }
