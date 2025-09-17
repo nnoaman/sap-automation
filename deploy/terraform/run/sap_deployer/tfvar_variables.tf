@@ -832,7 +832,7 @@ variable "application_configuration_deployment"  {
                                                     default     = false
                                                  }
 
-variable "application_configuration_name"          {
+variable "application_configuration_name"        {
                                                     description = "Defines the Azure application configuration name"
                                                     type        = string
                                                     default     = ""
