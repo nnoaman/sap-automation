@@ -5,9 +5,6 @@
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
-#colors for terminal
-bold_red="\e[1;31m"
-reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -145,10 +142,33 @@ function parse_arguments() {
 		esac
 	done
 
-	if [ ! -f "${parameter_file_name}" ]; then
+	# If it's a relative path in GitHub Actions
+	if [[ -v GITHUB_ACTIONS && ! -f "${parameter_file_name}" ]]; then
+		echo "Running in GitHub Actions, checking alternative file paths..."
 
+		# Try common path patterns for GitHub Actions
+		possible_paths=(
+			"${parameter_file_name}"
+			"$(pwd)/${parameter_file_name}"
+			"$(dirname "$(pwd)")/${parameter_file_name}"
+			"${GITHUB_WORKSPACE}/WORKSPACES/DEPLOYER/${CONTROL_PLANE_NAME}-INFRASTRUCTURE/${parameter_file_name}"
+		)
+
+		for path in "${possible_paths[@]}"; do
+			if [[ -f "$path" ]]; then
+				echo "Found parameter file at: $path"
+				parameter_file_name="$path"
+				break
+			fi
+		done
+	fi
+
+	if [ ! -f "${parameter_file_name}" ]; then
 		printf -v val %-40.40s "$parameter_file_name"
 		print_banner "$banner_title" "Parameter file does not exist: $parameter_file_name" "error"
+		echo "Current directory: $(pwd)"
+		echo "Files in current directory:"
+		ls -la
 		return 2 #No such file or directory
 	fi
 
@@ -159,9 +179,11 @@ function parse_arguments() {
 
 	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
 	echo "Current directory:                   $(pwd)"
+	echo "Parameter file:                      ${parameter_file_name}"
 
-	param_dirname=$(dirname "${parameter_file_name}")
-	export TF_DATA_DIR="${param_dirname}"/.terraform
+	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
+	echo "Current directory:                   $(pwd)"
+	echo "Parameter file:                      ${parameter_file_name}"
 
 	# Check that parameter files have environment and location defined
 	if ! validate_key_parameters "$parameter_file_name"; then
@@ -197,7 +219,7 @@ function parse_arguments() {
 function install_deployer() {
 	deployment_system=sap_deployer
 	local green="\033[0;32m"
-	local reset="\033[0m"
+	local reset_formatting="\033[0m"
 	approve=""
 
 	# Define an array of helper scripts
@@ -218,15 +240,13 @@ function install_deployer() {
 		print_banner "$banner_title" "Validating parameters failed" "error"
 		return $?
 	fi
-	param_dirname=$(dirname "${parameter_file_name}")
-	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	print_banner "$banner_title" "Deploying the deployer" "info"
 
 	#Persisting the parameters across executions
 	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 	generic_config_information="${automation_config_directory}"config
-	deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
+	deployer_config_information="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	if [ ! -f "$deployer_config_information" ]; then
@@ -236,18 +256,24 @@ function install_deployer() {
 		fi
 	fi
 
+	# Ensure we use the original directory for the parameter file
 	param_dirname=$(pwd)
 
 	init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-	var_file="${param_dirname}/${parameter_file_name}"
+	# Use absolute path for var_file to avoid path resolution issues
+	var_file=$(realpath "${parameter_file_name}")
+	param_dirname=$(dirname "${var_file}")
+	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	echo ""
 	echo -e "${green}Deployment information:"
-	echo -e "-------------------------------------------------------------------------------$reset"
+	echo -e "-------------------------------------------------------------------------------$reset_formatting"
 
 	echo "Configuration file:                  $parameter_file_name"
+	echo "Configuration file (full path):      $var_file"
 	echo "Control Plane name:                  $CONTROL_PLANE_NAME"
+	echo "TF_DATA_DIR:                         ${TF_DATA_DIR}"
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 	export TF_DATA_DIR="${param_dirname}"/.terraform
@@ -259,7 +285,17 @@ function install_deployer() {
 	extra_vars=""
 
 	if [ -f terraform.tfvars ]; then
-		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+		extra_vars=" -var-file=${param_dirname}/terraform.tfvars"
+	fi
+
+	# Create a symlink to the parameter file in the current directory if needed
+	if [[ -v GITHUB_ACTIONS ]]; then
+		echo "Running in GitHub Actions environment"
+		parameter_file_basename=$(basename "${parameter_file_name}")
+		if [[ ! -f "${parameter_file_basename}" && -f "${var_file}" ]]; then
+			echo "Creating symlink: ${parameter_file_basename} -> ${var_file}"
+			ln -sf "${var_file}" "${parameter_file_basename}"
+		fi
 	fi
 
 	allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
@@ -283,7 +319,7 @@ function install_deployer() {
 					unset TF_DATA_DIR
 					return $return_value
 				fi
-
+				return 0
 			else
 				print_banner "$banner_title" "Running terraform init" "info"
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -backend-config "path=${param_dirname}/terraform.tfstate"; then
@@ -331,7 +367,7 @@ function install_deployer() {
 		rm plan_output.log
 	fi
 
-	if [ "${TEST_ONLY}" == "True" ]; then
+	if [[ -v TEST_ONLY ]]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 		exit 10
 	fi
@@ -426,15 +462,18 @@ function install_deployer() {
 					else
 						return_value=$?
 					fi
+					if [ -f apply_output.json ]; then
+						# shellcheck disable=SC2086
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+							return_value=0
+						else
+							return_value=$?
+						fi
+					fi
 				fi
 			fi
-		fi
 
-		echo "Terraform Apply return code:         $return_value"
-
-		if [ 0 != $return_value ]; then
-			print_banner "$banner_title" "!!! Error when creating the deployer !!!." "error"
-			return 10
+			echo "Terraform Apply return code:         $return_value"
 		fi
 	fi
 
@@ -473,6 +512,19 @@ function install_deployer() {
 		export HAS_WEBAPP
 	fi
 
+	MSI_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_msi_id | tr -d \")
+	if [ -n "${MSI_ID}" ]; then
+		save_config_var "MSI_ID" "${deployer_config_information}"
+		export MSI_ID
+	fi
+
+	DEPLOYER_MSI_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_msi_client_id | tr -d \")
+	if [ -n "$DEPLOYER_MSI_CLIENT_ID" ]; then
+		save_config_var "DEPLOYER_MSI_CLIENT_ID" "${deployer_config_information}"
+		export DEPLOYER_MSI_CLIENT_ID
+	fi
+
+
 	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${deployer_random_id}" ]; then
 		custom_random_id="${deployer_random_id:0:3}"
@@ -482,6 +534,10 @@ function install_deployer() {
 	fi
 
 	unset TF_DATA_DIR
+	if [ 0 != $return_value ]; then
+		print_banner "$banner_title" "!!! Error when creating the deployer !!!." "error"
+		return_value=10
+	fi
 
 	print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
