@@ -9,17 +9,14 @@
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 SCRIPT_NAME="$(basename "$0")"
-
-if printenv DEBUG; then
-	if [ $DEBUG = True ]; then
-		set -x
-		DEBUG=True
-		echo "prefix variables:"
-		printenv | sort
-	fi
-fi
-export DEBUG
 set -eu
+
+if [ "${DEBUG:-false}" == True ]; then
+	set -x
+	DEBUG=true
+	echo "prefix variables:"
+	printenv | sort
+fi
 
 deploy_using_msi_only=0
 keyvault=""
@@ -165,7 +162,7 @@ function secretExists {
 
 	set +e
 
-	if [ "$DEBUG" == True ]; then
+	if [ "${DEBUG:-false}" == True ]; then
 		echo "DEBUG: Current az account: $(az account show --query user --output yaml)" >&2
 		echo "DEBUG: About to run az command with params: keyvault='$keyvault', subscription='$subscription', secret_name='$secret_name'" >&2
 	fi
@@ -175,19 +172,19 @@ function secretExists {
 		--query "[?name=='${secret_name}'].name | [0]" \
 		--output tsv >&2
 	kvSecretExitsCode=$?
-	if [ "$DEBUG" == True ]; then
+	if [ "${DEBUG:-false}" == True ]; then
 		echo "DEBUG: Command completed. exit_code=$kvSecretExitsCode" >&2
 	fi
 
 	set -e
 
 	if [ $kvSecretExitsCode -eq 0 ]; then
-		if [ "$DEBUG" == True ]; then
+		if [ "${DEBUG:-false}" == True ]; then
 			echo "DEBUG: Secret ${secret_name} exists in Key Vault ${keyvault}" >&2
 		fi
 	else
 		# If the secret does not exist, we return 1
-		if [ "$DEBUG" == True ]; then
+		if [ "${DEBUG:-false}" == True ]; then
 			echo "DEBUG: Secret ${secret_name} does not exist in Key Vault ${keyvault} - Return code: ${kvSecretExitsCode}" >&2
 		fi
 	fi
@@ -355,7 +352,7 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:hwma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,workload,help,msi,ado -- "$@")
+	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:hwmag --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,workload,help,msi,ado,github -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -380,8 +377,10 @@ function parse_arguments() {
 			;;
 		-n | --application_configuration_name)
 			APPLICATION_CONFIGURATION_NAME="$2"
-			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-			export APPLICATION_CONFIGURATION_ID
+			if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+				APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+				export APPLICATION_CONFIGURATION_ID
+			fi
 			export APPLICATION_CONFIGURATION_NAME
 			shift 2
 			;;
@@ -416,6 +415,9 @@ function parse_arguments() {
 		-a | --ado)
 			shift
 			;;
+		-g | --github)
+			shift
+			;;
 		-h | --help)
 			show_help
 			exit 3
@@ -428,7 +430,7 @@ function parse_arguments() {
 		esac
 	done
 
-	banner_title="Set Secrets"
+	banner_title="Set Secrets v2"
 
 	[[ -z "$prefix" ]] && {
 		print_banner "$banner_title" "prefix is required" "error"
@@ -439,6 +441,10 @@ function parse_arguments() {
 		print_banner "$banner_title" "subscription is required" "error"
 		return 10
 	}
+	if ! is_valid_guid "${subscription}"; then
+		print_banner "$banner_title" "subscription is incorrect" "error"
+		return 10
+	fi
 
 	if [ 0 -eq "$deploy_using_msi_only" ]; then
 
@@ -492,11 +498,16 @@ function retrieve_parameters() {
 
 				print_banner "$banner_title" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
 
-				keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-				print_banner "$banner_title" "Key vault: $keyvault" "info" "${CONTROL_PLANE_NAME}_KeyVaultName ${prefix}"
+				if [ -v DEPLOYER_KEYVAULT ]; then
+					keyvault="$DEPLOYER_KEYVAULT"
+					keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
+				else
+					keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+					print_banner "$banner_title" "Key vault: $keyvault" "info" "${CONTROL_PLANE_NAME}_KeyVaultName ${prefix}"
 
-				keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-				STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
+					keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+					STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
+				fi
 
 				export keyvault
 			fi
@@ -543,6 +554,7 @@ function set_all_secrets() {
 
 	echo "Key vault:                           ${keyvault}"
 	echo "Subscription:                        ${STATE_SUBSCRIPTION}"
+	echo "Prefix:                              ${prefix}"
 
 	secret_name="${prefix}"-subscription-id
 
