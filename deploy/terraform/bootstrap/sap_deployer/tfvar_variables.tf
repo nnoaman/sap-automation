@@ -808,3 +808,24 @@ variable "deploy_defender_extension"            {
                                                   default     = false
                                                 }
 
+#########################################################################################
+#                                                                                       #
+#  Application configuration variables                                                  #
+#                                                                                       #
+#########################################################################################
+
+variable "application_configuration_id"          {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
+variable "application_configuration_deployment"  {
+                                                    description = "If defined, will add the Microsoft.Azure.ApplicationConfiguration extension to the virtual machines"
+                                                    default     = false
+                                                 }
+
+variable "application_configuration_name"        {
+                                                    description = "Defines the Azure application configuration name"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
