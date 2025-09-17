@@ -14,7 +14,6 @@ source "${script_directory}/shared_functions.sh"
 source "${script_directory}/set-colors.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
-# Source helper scripts
 source "${parent_directory}/helper.sh"
 
 # Set platform-specific output
@@ -27,6 +26,7 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "Environment variables:"
 		printenv | sort
 	fi
+fi
 
 export DEBUG
 set -eu
