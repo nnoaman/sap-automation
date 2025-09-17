@@ -1039,8 +1039,8 @@ function deploy_control_plane() {
 		return_value=0
 		if [ 1 -eq $only_deployer ]; then
 			printf -v key_vault_name '%-40s' "${DEPLOYER_KEYVAULT}"
-			printf -v app_config_name '%-40s' "$APPLICATION_CONFIGURATION_NAME"
-			printf -v ctrl_plane_name '%-40s' "$CONTROL_PLANE_NAME"
+			printf -v app_config_name '%-40s' "${APPLICATION_CONFIGURATION_NAME:-}"
+			printf -v ctrl_plane_name '%-40s' "${CONTROL_PLANE_NAME}"
 
 			echo ""
 			echo "###############################################################################"
