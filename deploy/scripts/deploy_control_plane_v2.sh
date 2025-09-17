@@ -81,7 +81,7 @@ function parse_arguments() {
 	approve=""
 	subscription=$ARM_SUBSCRIPTION_ID
 	only_deployer=0
-
+	approve=""
 	deployer_parameter_file=""
 	library_parameter_file=""
 
@@ -164,7 +164,7 @@ function parse_arguments() {
 			shift
 			;;
 		--github)
-			ado_flag="--devops"
+			ado_flag="--github"
 			shift
 			;;
 		-r | --recover)
@@ -178,10 +178,12 @@ function parse_arguments() {
 		esac
 	done
 	current_directory=$(pwd)
+	echo "Current directory:                   ${current_directory}"
 	if [ -z "${deployer_parameter_file}" ]; then
 		deployer_parameter_file="$current_directory/DEPLOYER/$CONTROL_PLANE_NAME-INFRASTRUCTURE/$CONTROL_PLANE_NAME-INFRASTRUCTURE.tfvars"
 		echo "Deployer parameter file:             ${deployer_parameter_file}"
 	fi
+
 	if [ -z "${library_parameter_file}" ]; then
 		prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
 		library_parameter_file="$current_directory/LIBRARY/$prefix-SAP_LIBRARY/$prefix-SAP_LIBRARY.tfvars"
@@ -229,7 +231,7 @@ function parse_arguments() {
 	validate_exports
 	return_code=$?
 	if [ 0 != $return_code ]; then
-		return $return_code
+		exit $return_code
 	fi
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
@@ -262,7 +264,6 @@ function bootstrap_deployer() {
 
 	local local_return_code=0
 	load_config_vars "${deployer_config_information}" "step"
-
 	if [ -z "$step" ]; then
 		step=0
 		save_config_var "step" "${deployer_config_information}"
@@ -279,6 +280,20 @@ function bootstrap_deployer() {
 
 		cd "${deployer_dirname}" || exit
 
+		# In GitHub Actions, copy the parameter file to the current directory to ensure Terraform can find it
+		if [[ -v GITHUB_ACTIONS ]]; then
+			echo "Running in GitHub Actions environment"
+			# Create a local copy of the parameter file if it doesn't already exist
+			parameter_file_basename=$(basename "${deployer_parameter_file}")
+			if [[ ! -f "${parameter_file_basename}" && -f "${deployer_parameter_file}" ]]; then
+				echo "Creating local copy of parameter file: ${parameter_file_basename} from ${deployer_parameter_file}"
+				cp -f "${deployer_parameter_file}" "${parameter_file_basename}"
+				deployer_parameter_file_name="${parameter_file_basename}"
+				allParameters=$(printf " --parameter_file %s %s" "${deployer_parameter_file_name}" "${autoApproveParameter}")
+				echo "Updated parameters: $allParameters"
+			fi
+		fi
+
 		echo "Calling install_deployer_v2.sh:         $allParameters"
 
 		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
@@ -286,30 +301,22 @@ function bootstrap_deployer() {
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
 			step=1
 			save_config_var "step" "${deployer_config_information}"
+			load_config_vars "${deployer_config_information}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_ID" "APPLICATION_CONFIGURATION_NAME"
+			echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
+			export DEPLOYER_KEYVAULT
+
+			if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+				export APPLICATION_CONFIGURATION_ID
+			fi
+			if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+				echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
+				export APPLICATION_CONFIGURATION_NAME
+			fi
 		else
 			local_return_code=$?
 			echo "Return code from install_deployer_v2: ${local_return_code}"
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error" "Return code: ${local_return_code}"
 		fi
-	fi
-	if [ -v DEPLOYER_KEYVAULT ]; then
-		echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
-	else
-		load_config_vars "${deployer_config_information}" "DEPLOYER_KEYVAULT"
-		echo "Key vault:                           ${DEPLOYER_KEYVAULT:-undefined}"
-	fi
-
-	if [ -v APPLICATION_CONFIGURATION_ID ]; then
-		echo "Application configuration ID:        ${APPLICATION_CONFIGURATION_ID:-undefined}"
-	else
-		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
-	fi
-
-	if [ -v APPLICATION_CONFIGURATION_NAME ]; then
-		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
-	else
-		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_NAME"
-		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME:-undefined}"
 	fi
 
 	if [ $ado_flag == "--devops" ]; then
@@ -346,7 +353,7 @@ function validate_keyvault_access {
 
 		if [ -v APPLICATION_CONFIGURATION_ID ]; then
 			if is_valid_id ${APPLICATION_CONFIGURATION_ID:-} "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-				DEPLOYER_KEYVAULT=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+			DEPLOYER_KEYVAULT=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 			fi
 		else
 			if [ -f ./.terraform/terraform.tfstate ]; then
@@ -751,6 +758,9 @@ function migrate_library_state() {
 		cd "$root_dirname" || exit
 
 		return 40
+	else
+		return_code=$?
+		print_banner "$banner_title" "Migrating the Library state succeeded." "success"
 	fi
 
 	cd "$root_dirname" || exit
@@ -771,7 +781,7 @@ function migrate_library_state() {
 ############################################################################################
 
 function copy_files_to_public_deployer() {
-	if [ "${ado_flag}" != "--devops	" ]; then
+	if [ "${ado_flag}" != "--devops" ]; then
 		cd "${current_directory}" || exit
 
 		load_config_vars "${deployer_config_information}" "sshsecret"
@@ -825,17 +835,25 @@ function copy_files_to_public_deployer() {
 ############################################################################################
 
 function retrieve_parameters() {
+	# Initialize APPLICATION_CONFIGURATION_ID to prevent unbound variable errors
+	APPLICATION_CONFIGURATION_ID=${APPLICATION_CONFIGURATION_ID:-""}
 
 	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
+		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID" || true
+		# If still not set, initialize to empty string
+		APPLICATION_CONFIGURATION_ID=${APPLICATION_CONFIGURATION_ID:-""}
 	fi
 
 	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		application_configuration_name=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f9)
 		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 		if [ -z "$key_vault_id" ]; then
-			if [ $ado_flag == "--devops" ]; then
+			if [ "${ado_flag:-none}" == "--devops" ]; then
 				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+			elif [ "${ado_flag:-none}" == "--github" ]; then
+				echo "::warning::Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+			else
+				echo "Warning: Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
 			fi
 		fi
 
@@ -881,18 +899,25 @@ function retrieve_parameters() {
 			load_config_vars "${deployer_config_information}" \
 				tfstate_resource_id DEPLOYER_KEYVAULT
 
-			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
-			export TF_VAR_spn_keyvault_id
+			# Ensure DEPLOYER_KEYVAULT is not unbound
+			DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
+
+			if [ -n "${DEPLOYER_KEYVAULT}" ] && [ -n "${ARM_SUBSCRIPTION_ID:-}" ]; then
+				TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv 2>/dev/null || echo "")
+				export TF_VAR_spn_keyvault_id
+			fi
 
 			export TF_VAR_tfstate_resource_id
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			export terraform_storage_account_name
+			if [ -n "${tfstate_resource_id:-}" ]; then
+				terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+				export terraform_storage_account_name
 
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			export terraform_storage_account_resource_group_name
+				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+				export terraform_storage_account_resource_group_name
 
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-			export terraform_storage_account_subscription_id
+				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+				export terraform_storage_account_subscription_id
+			fi
 		fi
 	fi
 
