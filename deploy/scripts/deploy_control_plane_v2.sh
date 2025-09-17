@@ -758,9 +758,6 @@ function migrate_library_state() {
 		cd "$root_dirname" || exit
 
 		return 40
-	else
-		return_code=$?
-		print_banner "$banner_title" "Migrating the Library state succeeded." "success"
 	fi
 
 	cd "$root_dirname" || exit
