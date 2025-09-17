@@ -86,12 +86,7 @@ function parse_arguments() {
 	library_parameter_file=""
 
 	local input_opts
-	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,devops,msi,github,ado -- "$@")
-	return_code=$?
-	if [ $return_code -ne 0 ]; then
-		echo "Error parsing arguments. Use --help for usage information."
-		exit 1
-	fi
+	input_opts=$(getopt -n deploy_control_plane_v2 -o c:d:l:s:c:p:t:a:k:ifohrvm --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,terraform_storage_account_name:,vault:,auto-approve,force,only_deployer,help,recover,devops,msi,github -- "$@")
 	VALID_ARGUMENTS=$?
 
 	if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -101,6 +96,7 @@ function parse_arguments() {
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
+
 		-c | --control_plane_name)
 			CONTROL_PLANE_NAME="$2"
 			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
@@ -127,8 +123,6 @@ function parse_arguments() {
 			subscription="$2"
 			TF_VAR_subscription_id="$subscription"
 			export TF_VAR_subscription_id
-			ARM_SUBSCRIPTION_ID="$subscription"
-			export ARM_SUBSCRIPTION_ID
 			shift 2
 			;;
 		-t | --terraform_storage_account_name)
@@ -151,15 +145,9 @@ function parse_arguments() {
 			deploy_using_msi_only=1
 			USE_MSI=true
 			export USE_MSI
-			ARM_USE_MSI=true
-			export ARM_USE_MSI
 			shift
 			;;
 		-v | --devops)
-			ado_flag="--devops"
-			shift
-			;;
-		--ado)
 			ado_flag="--devops"
 			shift
 			;;
@@ -192,11 +180,11 @@ function parse_arguments() {
 	fi
 
 	if [ ! -f "${library_parameter_file}" ]; then
-		control_plane_missing_v2 'library parameter file' $SCRIPT_NAME
+		control_plane_missing_v2 'library tfvars file' "$library_parameter_file"
 		exit 2 #No such file or directory
 	fi
 	if [ ! -f "${deployer_parameter_file}" ]; then
-		control_plane_missing_v2 'deployer parameter file' $SCRIPT_NAME
+		control_plane_missing_v2 'deployer tfvars file' "$deployer_parameter_file"
 		exit 2 #No such file or directory
 	fi
 
@@ -237,8 +225,8 @@ function parse_arguments() {
 
 	# Convert the region to the correct code
 	get_region_code "$region"
-	return_code=$?
-	return $return_code
+
+	echo "Exiting parse_arguments with"
 
 }
 
@@ -265,11 +253,6 @@ function bootstrap_deployer() {
 	local local_return_code=0
 	load_config_vars "${deployer_config_information}" "step"
 	if [ -z "$step" ]; then
-		step=0
-		save_config_var "step" "${deployer_config_information}"
-	fi
-
-	if [ "${FORCE_RESET:-False}" == True ]; then
 		step=0
 		save_config_var "step" "${deployer_config_information}"
 	fi
@@ -349,12 +332,10 @@ function validate_keyvault_access {
 	TF_DATA_DIR="${deployer_dirname}"/.terraform
 	export TF_DATA_DIR
 
-	if [ -v DEPLOYER_KEYVAULT ]; then
+	if ! printenv DEPLOYER_KEYVAULT; then
 
-		if [ -v APPLICATION_CONFIGURATION_ID ]; then
-			if is_valid_id ${APPLICATION_CONFIGURATION_ID:-} "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+		if is_valid_id ${APPLICATION_CONFIGURATION_ID:-} "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			DEPLOYER_KEYVAULT=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-			fi
 		else
 			if [ -f ./.terraform/terraform.tfstate ]; then
 				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
@@ -364,15 +345,16 @@ function validate_keyvault_access {
 					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
 					terraform -chdir="${terraform_module_directory}" init -upgrade=true
 
-					DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-					save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+					save_config_var "keyvault" "${deployer_config_information}"
+					save_config_var "deployer_tfstate_key" "${deployer_config_information}"
 				else
 					echo "Terraform state:                     local"
 					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/bootstrap/sap_deployer/
 					terraform -chdir="${terraform_module_directory}" init -upgrade=true
 
-					DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-					save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+					save_config_var "keyvault" "${deployer_config_information}"
 				fi
 			else
 				if [ $ado_flag != "--devops" ]; then
@@ -441,8 +423,7 @@ function bootstrap_library {
 
 	if [ 2 -eq $step ]; then
 		print_banner "$banner_title" "Bootstrapping the library..." "info"
-
-		if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
 			export TF_VAR_application_configuration_id
 		fi
@@ -461,12 +442,7 @@ function bootstrap_library {
 			--deployer_statefile_foldername "${relative_path}" \
 			--control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-} \
 			"$autoApproveParameter"; then
-
-			if [ "${FORCE_RESET:-False}" == True ]; then
-				step=0
-			else
-				step=3
-			fi
+			step=3
 			save_config_var "step" "${deployer_config_information}"
 			print_banner "$banner_title" "Bootstrapping the library succeeded." "success"
 			unset TF_VAR_application_configuration_id
@@ -477,9 +453,6 @@ function bootstrap_library {
 			unset TF_VAR_application_configuration_id
 			exit 20
 		fi
-
-		print_banner "$banner_title" "Waiting 60 to ensure permissions are applied." "info"
-		sleep 60
 
 		terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 		terraform_storage_account_subscription_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
@@ -523,7 +496,7 @@ function bootstrap_library {
 # Returns:                                                                                  #
 #   0 on success, non-zero on failure                                                       #
 # Usage:                                                                                    #
-#   migrate_deployer_state                                                                   #
+#   migrate_library_state                                                                   #
 #############################################################################################
 
 function migrate_deployer_state() {
@@ -535,94 +508,61 @@ function migrate_deployer_state() {
 	#                                                                                        #
 	##########################################################################################
 	local banner_title="Deployer"
-	local migrate_deployer_return_value=0
-	if [ "${FORCE_RESET:-False}" == True ]; then
-		print_banner "$banner_title" "Not migrating the deployer state due to the Force rerun flag..." "warning"
-		return 0
-	fi
-
 	print_banner "$banner_title" "Migrating the deployer state..." "info"
 
 	cd "${deployer_dirname}" || exit
+	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+		print_banner "$banner_title" "Sourcing parameters from: $APPLICATION_CONFIGURATION_NAME" "info"
+
+		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
+
+		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+		ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
+		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+	fi
+
 	if [ -z "$terraform_storage_account_name" ]; then
-		if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
-			export TF_VAR_application_configuration_id
+		print_banner "$banner_title" "Sourcing parameters from: " "info" "$(basename ${deployer_config_information})"
+		load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		export TF_VAR_tfstate_resource_id
+		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+		export terraform_storage_account_name
+		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+		export terraform_storage_account_resource_group_name
 
-			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
-
-			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
-			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-			save_config_vars "${deployer_config_information}" "tfstate_resource_id"
-		fi
-		if [ -z "$terraform_storage_account_name" ]; then
-
-			if [ -f .terraform/terraform.tfstate ]; then
-				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-				if [ -n "$azure_backend" ]; then
-					print_banner "$banner_title" "The state is already migrated to Azure!!!" "info"
-
-					terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-					terraform_storage_account_name=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-					terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-					tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
-					TF_VAR_tfstate_resource_id=$tfstate_resource_id
-					export TF_VAR_tfstate_resource_id
-					export terraform_storage_account_name
-					export terraform_storage_account_resource_group_name
-					export terraform_storage_account_subscription_id
-					save_config_vars "${deployer_config_information}" "tfstate_resource_id"
-
-				fi
-			else
-
-				print_banner "$banner_title" "Sourcing parameters from ${deployer_config_information}" "info"
-				load_config_vars "${deployer_config_information}" "tfstate_resource_id"
-				TF_VAR_tfstate_resource_id=$tfstate_resource_id
-				export TF_VAR_tfstate_resource_id
-				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-				export terraform_storage_account_name
-				export terraform_storage_account_resource_group_name
-				export terraform_storage_account_subscription_id
-			fi
-		fi
+		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+		export terraform_storage_account_subscription_id
+	fi
+	if [ -z "${terraform_storage_account_name}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_config_information}"
 		echo " ##vso[task.setprogress value=40;]Progress Indicator"
 		print_banner "$banner_title" "Could not find the SAP Library, please re-run!" "error"
 		exit 11
-	else
-		tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
-		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-		ARM_SUBSCRIPTION_ID=$(echo $tfstate_resource_id | cut -d'/' -f3)
-		export ARM_SUBSCRIPTION_ID
 	fi
 
 	echo ""
-	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name "${CONTROL_PLANE_NAME}" \
-	--application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-} --storage_accountname ${terraform_storage_account_name} "
+	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}""
 	echo ""
 
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
-		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" --storage_accountname ${terraform_storage_account_name} \
+	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
+		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
 		$ado_flag "${autoApproveParameter}"; then
-		migrate_deployer_return_value=$?
-		print_banner "$banner_title" "Migrating the Deployer state succeeded." "success"
-	else
+
 		echo ""
 		step=3
 		save_config_var "step" "${deployer_config_information}"
 		print_banner "$banner_title" "Migrating the Deployer state failed." "error"
 		exit 30
+	else
+		print_banner "$banner_title" "Migrating the Deployer state succeeded." "success"
 	fi
 
 	cd "$root_dirname" || exit
@@ -631,7 +571,6 @@ function migrate_deployer_state() {
 
 	unset TF_DATA_DIR
 	cd "$root_dirname" || exit
-	return $migrate_deployer_return_value
 
 }
 
@@ -654,12 +593,7 @@ function migrate_library_state() {
 	#                                                                                        #
 	##########################################################################################
 	local banner_title="Library"
-	migrate_library_return_value=$?
 
-	if [ "${FORCE_RESET:-False}" == True ]; then
-		print_banner "$banner_title" "Not migrating the library state due to the Force rerun flag..." "warning"
-		return 0
-	fi
 	print_banner "$banner_title" "Migrating the library state..." "info"
 
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
@@ -678,11 +612,6 @@ function migrate_library_state() {
 			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
-			export ARM_SUBSCRIPTION_ID
-
-			TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
-			export TF_VAR_subscription_id
-
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 			export TF_VAR_tfstate_resource_id
 			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
@@ -704,15 +633,10 @@ function migrate_library_state() {
 					export terraform_storage_account_name
 					export terraform_storage_account_resource_group_name
 					export terraform_storage_account_subscription_id
-					save_config_vars "${deployer_config_information}" "tfstate_resource_id"
-					ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
-					export ARM_SUBSCRIPTION_ID
-
-					TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
-					export TF_VAR_subscription_id
 
 				fi
 			else
+
 				print_banner "$banner_title" "Sourcing parameters from ${deployer_config_information}" "info"
 				load_config_vars "${deployer_config_information}" "tfstate_resource_id"
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -723,12 +647,6 @@ function migrate_library_state() {
 				export terraform_storage_account_name
 				export terraform_storage_account_resource_group_name
 				export terraform_storage_account_subscription_id
-				ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
-				export ARM_SUBSCRIPTION_ID
-
-				TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
-				export TF_VAR_subscription_id
-
 			fi
 		fi
 	fi
@@ -743,28 +661,25 @@ function migrate_library_state() {
 	fi
 
 	echo ""
-	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} \
-	--application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-} --storage_accountname ${terraform_storage_account_name}"
+	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name} --control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}""
 	echo ""
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
+	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}" \
-		--storage_accountname "${terraform_storage_account_name}" $ado_flag "${autoApproveParameter}"; then
-		migrate_library_return_value=$?
-		print_banner "$banner_title" "Migrating the Library state succeeded." "success"
-	else
+		$ado_flag "${autoApproveParameter}"; then
+
 		print_banner "$banner_title" "Migrating the Library state failed." "error"
 		step=4
 		save_config_var "step" "${deployer_config_information}"
-		cd "$root_dirname" || exit
-
 		return 40
+	else
+		return_code=$?
+		print_banner "$banner_title" "Migrating the Library state succeeded." "success"
 	fi
 
 	cd "$root_dirname" || exit
 
 	step=5
 	save_config_var "step" "${deployer_config_information}"
-	return $migrate_library_return_value
 }
 
 ############################################################################################
@@ -788,7 +703,7 @@ function copy_files_to_public_deployer() {
 			# Only run this when not on deployer
 			print_banner "Copy-Files" "Copying the parameter files..." "info"
 
-			if [ -n "${sshsecret}" ]; then
+			if [ -v sshsecret ]; then
 				step=3
 				save_config_var "step" "${deployer_config_information}"
 				printf "%s\n" "Collecting secrets from KV"
@@ -835,13 +750,13 @@ function retrieve_parameters() {
 	# Initialize APPLICATION_CONFIGURATION_ID to prevent unbound variable errors
 	APPLICATION_CONFIGURATION_ID=${APPLICATION_CONFIGURATION_ID:-""}
 
-	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID" || true
 		# If still not set, initialize to empty string
 		APPLICATION_CONFIGURATION_ID=${APPLICATION_CONFIGURATION_ID:-""}
 	fi
 
-	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+	if is_valid_id "${APPLICATION_CONFIGURATION_ID}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 		application_configuration_name=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f9)
 		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 		if [ -z "$key_vault_id" ]; then
@@ -964,41 +879,36 @@ function execute_deployment_steps() {
 		fi
 	fi
 
-	if [ "${FORCE_RESET:-False}" == True ]; then
-		print_banner "$banner_title" "Not migrating the deployer state due to the Force rerun flag..." "warning"
-		return 0
-	fi
-
 	if [ 3 -eq "${step}" ]; then
-		if migrate_deployer_state; then
-			step=4
-			save_config_var "step" "${deployer_config_information}"
-		else
+		if ! migrate_deployer_state; then
 			return_value=$?
 			print_banner "Deployer" "Migration of deployer state failed" "error"
 			return $return_value
+		else
+			step=4
+			save_config_var "step" "${deployer_config_information}"
 		fi
 	fi
 	if [ 4 -eq "${step}" ]; then
-		if migrate_library_state; then
-			step=5
-			save_config_var "step" "${deployer_config_information}"
-		else
+		if ! migrate_library_state; then
 			return_value=$?
 			step=4
 			save_config_var "step" "${deployer_config_information}"
 			return 40
+		else
+			step=5
+			save_config_var "step" "${deployer_config_information}"
 		fi
 	fi
 	if [ 5 -eq "${step}" ]; then
 		if [ "${ado_flag}" != "--devops" ]; then
-			if copy_files_to_public_deployer; then
-				step=3
-				save_config_var "step" "${deployer_config_information}"
-			else
+			if ! copy_files_to_public_deployer; then
 				return_value=$?
 				print_banner "Copy" "Copying files failed" "error"
 				return $return_value
+			else
+				step=3
+				save_config_var "step" "${deployer_config_information}"
 			fi
 		fi
 	else
@@ -1092,11 +1002,6 @@ function deploy_control_plane() {
 	if [ -z "${step}" ]; then
 		step=0
 	fi
-	if [ "${FORCE_RESET:-False}" == True ]; then
-		step=0
-		print_banner "Control Plane Deployment" "Resetting the control plane deployment..." "info"
-		save_config_var "step" "${deployer_config_information}"
-	fi
 	echo "Step:                                $step"
 	current_directory=$(pwd)
 
@@ -1162,9 +1067,7 @@ function deploy_control_plane() {
 		fi
 	fi
 
-	if execute_deployment_steps $step; then
-		return_value=$?
-	else
+	if ! execute_deployment_steps $step; then
 		return_value=$?
 		print_banner "Control Plane Deployment" "Executing deployment steps failed" "error"
 	fi
