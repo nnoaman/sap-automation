@@ -462,6 +462,7 @@ function install_deployer() {
 						else
 							return_value=$?
 						fi
+					fi
 				fi
 			fi
 		fi
