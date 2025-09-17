@@ -62,7 +62,7 @@ function print_banner() {
 	local bold_red="\e[1;31m"
 	local cyan="\e[1;36m"
 	local green="\e[1;32m"
-	local reset="\e[0m"
+	local reset_formatting="\e[0m"
 	local yellow="\e[0;33m"
 
 	local color
@@ -98,18 +98,18 @@ function print_banner() {
 	echo -e "${color}"
 	echo "#################################################################################"
 	echo "#                                                                               #"
-	echo -e "#${color}${centered_title}${reset}#"
+	echo -e "#${color}${centered_title}${reset_formatting}#"
 	echo "#                                                                               #"
-	echo -e "#${color}${centered_message}${reset}#"
+	echo -e "#${color}${centered_message}${reset_formatting}#"
 	echo "#                                                                               #"
 	if [ ${#secondary_message} -gt 3 ]; then
 		local centered_secondary_message
 		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
-		echo -e "#${color}${centered_secondary_message}${reset}#"
+		echo -e "#${color}${centered_secondary_message}${reset_formatting}#"
 		echo "#                                                                               #"
 	fi
 	echo "#################################################################################"
-	echo -e "${reset}"
+	echo -e "${reset_formatting}"
 	echo ""
 }
 
@@ -1180,8 +1180,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 					import_return_value=0
-					echo -e "$bold_red Errors occurred during the apply phase:$reset"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
+					echo -e "$bold_red Errors occurred during the apply phase:$reset_formatting"
+					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset_formatting"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
 					for item in "${errors[@]}"; do
@@ -1201,8 +1201,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 
-					echo -e "$bold_red Errors occurred during the apply phase:$reset"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
+					echo -e "$bold_red Errors occurred during the apply phase:$reset_formatting"
+					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset_formatting"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 					error_count=${#errors[@]}
 
