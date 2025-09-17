@@ -99,6 +99,9 @@ elif [ "$PLATFORM" == "github" ]; then
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 fi
 
+file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+
 if [ ! -v TF_VAR_ansible_core_version ]; then
 	TF_VAR_ansible_core_version=2.16
 	export TF_VAR_ansible_core_version
