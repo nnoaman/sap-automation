@@ -12,10 +12,22 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in ${DEPLOYER_FOLDERNAME} ${LIBRARY_FOLDERNAME}"
+	DEBUG=false
+	if [ "$SYSTEM_DEBUG" = True ]; then
+		set -x
+		DEBUG=True
+		TF_LOG=DEBUG
+		export TF_LOG
+
+		echo "Environment variables:"
+		printenv | sort
+	fi
 fi
 
-#External helper functions
+export DEBUG
+
+# External helper functions
 
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
@@ -24,34 +36,7 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 # Source helper scripts
 source "${parent_directory}/helper.sh"
-
-SCRIPT_NAME="$(basename "$0")"
-
-banner_title="Deploy Control Plane"
-
 source "${grand_parent_directory}/deploy_utils.sh"
-
-#call stack has full script name when using source
-source "${parent_directory}/helper.sh"
-
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
-	TF_LOG=DEBUG
-	export TF_LOG
-
-	echo "Environment variables:"
-	printenv | sort
-
-fi
-export DEBUG
-set -eu
-
-print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
-
-echo -e "$green--- File Validations ---$reset"
 
 # Print the execution environment details
 print_header
@@ -68,7 +53,6 @@ if [ "$PLATFORM" == "github" ]; then
 fi
 
 if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-
 	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found" "error"
 		echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
 	exit 2
@@ -91,9 +75,10 @@ application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+
 if [ -f "${deployer_environment_file_name}" ]; then
 	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-	echo "Step:                                $step"
+	echo "Step:                                ${step:-0}"
 fi
 
 terraform_storage_account_name=""
@@ -168,8 +153,8 @@ echo -e "$green--- az login ---$reset"
 # Set logon variables
 if [ "$USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
@@ -212,6 +197,7 @@ if [ -z "$key_vault_id" ]; then
 		echo "ERROR: Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration."
 	fi
 fi
+
 TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
 export TF_VAR_deployer_kv_user_arm_id
 
@@ -259,8 +245,10 @@ if [ -n "$tfstate_resource_id" ]; then
 
 else
 	echo "Terraform storage account:            undefined"
-	storage_account_parameter=""
+	storage_account_parameter=
 fi
+
+start_group "Decrypting state files"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
@@ -320,6 +308,7 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 end_group
+
 if [ "${HAS_APPSERVICE_DEPLOYED:-false}" = "true" ]; then
 	echo "Deploy Web Application:               true"
 
@@ -343,7 +332,19 @@ export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
 print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
-if [ "$DEBUG" == true ]; then
+msi_flag=""
+if [ "${USE_MSI:-false}" == "true" ]; then
+	msi_flag=" --msi "
+	TF_VAR_use_spn=false
+	export TF_VAR_use_spn
+	echo "Deployer using:                      Managed Identity"
+else
+	TF_VAR_use_spn=true
+	export TF_VAR_use_spn
+	echo "Deployer using:                      Service Principal"
+fi
+
+if [ "$DEBUG" == True ]; then
 	echo "ARM Environment variables:"
 	printenv | grep ARM_
 fi
@@ -380,6 +381,7 @@ else
 fi
 
 end_group
+
 APP_SERVICE_NAME=$(grep -m1 "^APP_SERVICE_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 if [ -n "${APP_SERVICE_NAME}" ]; then
 	export APP_SERVICE_NAME
@@ -402,6 +404,13 @@ start_group "Update the repository"
 echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"
 added=0
 cd "${CONFIG_REPO_PATH}" || exit
+
+# Pull latest changes from appropriate branch
+if [ "$PLATFORM" == "devops" ]; then
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	git pull -q origin "$GITHUB_REF_NAME"
+fi
 
 echo -e "$green--- Update repo ---$reset_formatting"
 if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
@@ -452,6 +461,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			else
 				pass="localpassword"
 			fi
+
 			added=1
 		fi
 	else
@@ -478,7 +488,6 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	fi
 fi
 
-
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
 	git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 	added=1
@@ -495,13 +504,13 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 		echo "Library Terraform state:               local"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
 			if [ "$PLATFORM" == "devops" ]; then
-				sudo apt-get -qq install zip
+					sudo apt-get -qq install zip
 
-				echo "Compressing the library state file"
+					echo "Compressing the library state file"
 				pass=${SYSTEM_COLLECTIONID//-/}
 				zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
 				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-				rm "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+					rm "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
 			elif [ "$PLATFORM" == "github" ]; then
 				rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
 				echo "Encrypting state file"
@@ -567,7 +576,7 @@ if [ 1 = $added ]; then
 
 	if [ $DEBUG = True ]; then
 		git status --verbose
-		if git commit --message --verbose "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"; then
+		if git commit -m "$commit_message" || true; then
 			if [ "$PLATFORM" == "devops" ]; then
 				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 					echo "Failed to push changes to the repository."
@@ -603,7 +612,6 @@ if [ 0 -eq "$return_code" ]; then
 	fi
 	if [ "$PLATFORM" == "devops" ]; then
 		echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset_formatting"
-
 		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
 			echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
 		else
