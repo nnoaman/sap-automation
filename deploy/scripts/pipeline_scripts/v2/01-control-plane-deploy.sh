@@ -636,6 +636,7 @@ if [ 0 -eq "$return_code" ]; then
 			echo "##vso[task.logissue type=error]Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
 			echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
 		fi
+	fi
 	elif [ "$PLATFORM" == "github" ]; then
 		# Set output variables for GitHub Actions
 		echo "Setting output variable for GitHub Actions"
