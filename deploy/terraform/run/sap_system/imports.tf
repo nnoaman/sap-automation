@@ -37,7 +37,7 @@ data "terraform_remote_state" "landscape"            {
 data "azurerm_key_vault_secret" "subscription_id" {
   count                                = length(var.subscription_id) > 0 ? 0 : (var.use_spn ? 1 : 0)
   name                                 = format("%s-subscription-id", local.environment)
-  key_vault_id                         = local.spn_key_vault_arm_id
+  key_vault_id                         = local.key_vault.spn.id
   timeouts                             {
                                           read = "1m"
                                        }
@@ -46,46 +46,134 @@ data "azurerm_key_vault_secret" "subscription_id" {
 data "azurerm_key_vault_secret" "client_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", local.environment)
-  key_vault_id                         = local.spn_key_vault_arm_id
-}
-
-ephemeral "azurerm_key_vault_secret" "client_secret" {
-  count                                = var.use_spn ? 1 : 0
-  name                                 = format("%s-client-secret", local.environment)
-  key_vault_id                         = local.spn_key_vault_arm_id
-}
-
-data "azurerm_key_vault_secret" "tenant_id" {
-  count                                = var.use_spn ? 1 : 0
-  name                                 = format("%s-tenant-id", local.environment)
-  key_vault_id                         = local.spn_key_vault_arm_id
-
-}
-
-data "azurerm_key_vault_secret" "cp_subscription_id" {
-  count                                = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ?  (var.use_spn ? 1 : 0) : 0
-  name                                 = format("%s-subscription-id", data.terraform_remote_state.deployer[0].outputs.environment)
-  key_vault_id                         = local.spn_key_vault_arm_id
+  key_vault_id                         = local.key_vault.spn.id
   timeouts                             {
                                           read = "1m"
                                        }
 }
 
-data "azurerm_key_vault_secret" "cp_client_id" {
+ephemeral "azurerm_key_vault_secret" "client_secret" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-secret", local.environment)
+  key_vault_id                         = local.key_vault.spn.id
+
+}
+
+data "azurerm_key_vault_secret" "tenant_id" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-tenant-id", local.environment)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+
+data "azurerm_key_vault_secret" "cp_subscription_id" {
   count                                = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ?  (var.use_spn ? 1 : 0) : 0
+  name                                 = format("%s-subscription-id", data.terraform_remote_state.deployer[0].outputs.environment)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+data "azurerm_key_vault_secret" "cp_client_id" {
+  count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", data.terraform_remote_state.deployer[0].outputs.environment)
-  key_vault_id                         = local.spn_key_vault_arm_id
+  key_vault_id                         = local.key_vault.spn.id
+
 }
 
 ephemeral "azurerm_key_vault_secret" "cp_client_secret" {
-  count                                = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ?  (var.use_spn ? 1 : 0) : 0
+  count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-secret", data.terraform_remote_state.deployer[0].outputs.environment)
-  key_vault_id                         = local.spn_key_vault_arm_id
+  key_vault_id                         = local.key_vault.spn.id
 }
 
 data "azurerm_key_vault_secret" "cp_tenant_id" {
-  count                                = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ?  (var.use_spn ? 1 : 0) : 0
+  count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-tenant-id", data.terraform_remote_state.deployer[0].outputs.environment)
-  key_vault_id                         = local.spn_key_vault_arm_id
+  key_vault_id                         = local.key_vault.spn.id
 }
 
+data "azurerm_key_vault_secret" "subscription_id_v2" {
+  count                                = length(var.subscription_id) > 0 ? 0 : (var.use_spn ? 1 : 0)
+  name                                 = format("%s-subscription-id", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+
+data "azurerm_key_vault_secret" "client_id_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-id", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+ephemeral "azurerm_key_vault_secret" "client_secret_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-secret", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+
+}
+
+data "azurerm_key_vault_secret" "tenant_id_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-tenant-id", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+
+data "azurerm_key_vault_secret" "cp_client_id_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-id", var.control_plane_name)
+  key_vault_id                         = local.key_vault.spn.id
+
+}
+
+ephemeral "azurerm_key_vault_secret" "cp_client_secret_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-secret", var.control_plane_name)
+  key_vault_id                         = local.key_vault.spn.id
+}
+
+data "azurerm_key_vault_secret" "cp_tenant_id_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-tenant-id", var.control_plane_name)
+  key_vault_id                         = local.key_vault.spn.id
+}
+
+data "azurerm_key_vault_secret" "cp_subscription_id_v2" {
+  count                                = 1
+  name                                 = format("%s-subscription-id", var.control_plane_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+
+
+data "azurerm_app_configuration_key" "media_path"    {
+  count                                = local.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id               = local.infrastructure.application_configuration_id
+  key                                  = format("%s_SAPMediaPath", coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, "")))
+  label                                = coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, ""))
+}
+
+data "azurerm_app_configuration_key" "credentials_vault"    {
+  count                                = local.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id               = local.infrastructure.application_configuration_id
+  key                                  = format("%s_KeyVaultResourceId", coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, "")))
+  label                                = coalesce(var.control_plane_name, try(data.terraform_remote_state.landscape.outputs.control_plane_name, ""))
+}
+
+data "azurerm_app_configuration_key" "workload_credentials_vault"    {
+  count                                = local.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id               = local.infrastructure.application_configuration_id
+  key                                  = format("%s_KeyVaultResourceId", coalesce(var.workload_zone_name, try(data.terraform_remote_state.landscape.outputs.workload_zone_name, "")))
+  label                                = coalesce(var.workload_zone_name, try(data.terraform_remote_state.landscape.outputs.workload_zone_name, ""))
+}
