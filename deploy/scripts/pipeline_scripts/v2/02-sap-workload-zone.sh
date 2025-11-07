@@ -37,11 +37,13 @@ fi
 export DEBUG
 set -eu
 
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
-
-WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
-
-echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
@@ -53,21 +55,17 @@ mkdir -p .sap_deployment_automation
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
-	echo -e "$bold_red--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset"
+	print_banner "$banner_title" "File ${WORKLOAD_ZONE_TFVARS_FILENAME} was not found" "error"
 	echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_TFVARS_FILENAME was not found."
 	exit 2
 fi
 
-# Print the execution environment details
-print_header
-
-# Configure DevOps
-configure_devops
-
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+	if ! get_variable_group_id "$VARIABLE_GROUP_CONTROL_PLANE" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
 fi
 export VARIABLE_GROUP_ID
 
@@ -102,14 +100,6 @@ fi
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id
 
-
-if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
-	echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
-else
-	echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-	echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-fi
-
 if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
@@ -117,28 +107,9 @@ if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; 
 fi
 export PARENT_VARIABLE_GROUP_ID
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
-
-if [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
-	APPLICATION_CONFIGURATION_ID=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID")
-	APPLICATION_CONFIGURATION_NAME=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_ID" "$APPLICATION_CONFIGURATION_ID"; then
-		echo "Variable APPLICATION_CONFIGURATION_ID was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable APPLICATION_CONFIGURATION_ID was not added to the $VARIABLE_GROUP variable group."
-	fi
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"; then
-		echo "Variable APPLICATION_CONFIGURATION_NAME was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable APPLICATION_CONFIGURATION_NAME was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable APPLICATION_CONFIGURATION_NAME was not added to the $VARIABLE_GROUP variable group."
-	fi
-fi
-
-
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
+
+# dos2unix -q tfvarsFile
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
@@ -149,25 +120,64 @@ LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
-export deployer_tfstate_key
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
+SYSTEM_CONFIGURATION_FILE="$workload_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
 
-landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+separator="-"
+if [[ "$DEPLOYER_ENVIRONMENT" == *"$separator"* ]]; then
+	DEPLOYER_ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $1}')
+	DEPLOYER_LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $2}')
+	DEPLOYER_NETWORK_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $3}')
+	CONTROL_PLANE_NAME="$DEPLOYER_ENVIRONMENT-$DEPLOYER_LOCATION_CODE_IN_FILENAME-$DEPLOYER_NETWORK_IN_FILENAME"
+	deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT_IN_FILENAME}" "${DEPLOYER_LOCATION_CODE_IN_FILENAME}" "${DEPLOYER_NETWORK_IN_FILENAME}")
+else
+	deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT}" "${LOCATION_CODE_IN_FILENAME}" "")
+fi
+
+if [ ! -f "${deployer_environment_file_name}" ]; then
+	echo -e "$bold_red--- $deployer_environment_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]Control plane configuration file $deployer_environment_file_name was not found."
+	exit 2
+else
+	echo "Deployer Environment File:           $deployer_environment_file_name"
+fi
+
+echo "Workload Zone Environment File:      $workload_environment_file_name"
+touch "$workload_environment_file_name"
+
+deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${deployer_environment_file_name}" "deployer_tfstate_key")
+if [ -z "$deployer_tfstate_key" ]; then
+	deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_environment_file_name}" "deployer_tfstate_key")
+	if [ -z "$deployer_tfstate_key" ]; then
+
+		echo -e "$bold_red--- DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP ---$reset"
+		echo "##vso[task.logissue type=error]DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP."
+		exit 2
+	else
+		# Delete the old variable
+
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" ""
+	fi
+fi
+export deployer_tfstate_key
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
+CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
+
+DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "deployer_keyvault")
+export DEPLOYER_KEYVAULT
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+
+landscape_tfstate_key=$WORKLOAD_ZONE_FOLDERNAME.terraform.tfstate
 export landscape_tfstate_key
 
 echo -e "${green}Deployment details:"
 echo -e "-------------------------------------------------------------------------${reset}"
 
-echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "Control plane environment file:      $deployer_environment_file_name"
-echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment file:      $workload_environment_file_name"
 echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
-if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
-	echo "APPLICATION_CONFIGURATION_NAME:      $APPLICATION_CONFIGURATION_NAME"
-fi
-echo ""
-
 echo ""
 
 echo "Environment:                         $ENVIRONMENT"
@@ -195,33 +205,37 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
+# dos2unix -q "${workload_environment_file_name}"
 
-	TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
-	export TF_VAR_management_subscription_id
+load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id" "subscription"
 
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-	if [ -z "$tfstate_resource_id" ]; then
-		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+
+export TF_VAR_spn_keyvault_id
+TF_VAR_management_subscription_id=$(echo "$TF_VAR_spn_keyvault_id" | cut -d '/' -f 3)
+export TF_VAR_management_subscription_id
+
+terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
+if [ -z "$terraform_storage_account_name" ]; then
+	terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
+	if [ -z "$terraform_storage_account_name" ]; then
+		terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
 	fi
-else
-	echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
-	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
-	load_config_vars "${deployer_environment_file_name}" "subscription"
-	TF_VAR_management_subscription_id="$subscription"
-	export TF_VAR_management_subscription_id
-
 fi
 
+tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' and type=='microsoft.storage/storageaccounts' | project id, name, subscription" --query data[0].id --output tsv)
+
+TF_VAR_tfstate_resource_id="$tfstate_resource_id"
+export TF_VAR_tfstate_resource_id
+
 if [ -z "$tfstate_resource_id" ]; then
-	echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	echo "##vso[task.logissue type=error]Terraform state storage account resource id was not defined in ${deployer_environment_file_name})."
 	exit 2
 fi
 
-terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "$terraform_storage_account_subscription_id"
 
 export terraform_storage_account_name
 export terraform_storage_account_resource_group_name
@@ -232,25 +246,26 @@ if [ -z "$tfstate_resource_id" ]; then
 	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 	export tfstate_resource_id
 fi
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$terraform_storage_account_name"
 
-cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 print_banner "$banner_title" "Starting the deployment" "info"
-
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
-	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
-	--ado --auto-approve; then
+cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
+	--type sap_landscape \
+	--deployer_tfstate_key "${deployer_tfstate_key}" --storageaccountname "${terraform_storage_account_name}" \
+	--state_subscription "${terraform_storage_account_subscription_id}" --auto-approve --ado; then
 	return_code=$?
-	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
+	echo "##vso[task.logissue type=warning]Workload zone deployment completed successfully."
 else
 	return_code=$?
-	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME failed" "error"
-
-	echo "##vso[task.logissue type=error]Terraform apply failed."
+	echo "##vso[task.logissue type=error]Workload zone deployment failed."
+	exit 1
 fi
+
 echo "Return code from deployment:         ${return_code}"
 
-if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
-	KEYVAULT=$(grep -m1 "^workload_zone_key_vault=" ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -f "${workload_environment_file_name}" ]; then
+	KEYVAULT=$(grep -m1 "^workloadkeyvault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Key Vault:                  ${KEYVAULT}"
 
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
@@ -258,6 +273,11 @@ if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$KEYVAULT"
 	fi
 
+fi
+
+if [ -n "$terraform_storage_account_name" ]; then
+	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$terraform_storage_account_name"
 fi
 
 set +o errexit
@@ -273,15 +293,21 @@ if [ -f .terraform/terraform.tfstate ]; then
 	added=1
 fi
 
-if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
-	git add ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}"
+if [ -f "${workload_environment_file_name}" ]; then
+	git add "${workload_environment_file_name}"
 	added=1
-fi
 
+	if [ -f "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}" ]; then
+		rm "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}"
+		git rm --ignore-unmatch -q "$automation_config_directory/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}"
+	fi
+
+fi
 
 if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
 	git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
 	added=1
+
 fi
 
 if [ 1 == $added ]; then
