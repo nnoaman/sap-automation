@@ -7,6 +7,35 @@
 #                                                                              #
 #######################################4#######################################8
 
+resource "azurerm_private_dns_zone" "appconfig" {
+  provider                             = azurerm.main
+  count                                = local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  depends_on                           = [
+                                           azurerm_resource_group.library
+                                         ]
+  name                                 = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
+                                           split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                           azurerm_resource_group.library[0].name
+                                         )
+  tags                                 = var.infrastructure.tags
+}
+
+data "azurerm_private_dns_zone" "appconfig" {
+  provider                             = azurerm.privatelinkdnsmanagement
+  count                                = !local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  name                                 = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
+  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,
+                                           var.infrastructure.resource_group.exists ? (
+                                             split("/", var.infrastructure.resource_group.id)[4]) : (
+                                             azurerm_resource_group.library[0].name
+                                         ))
+
+}
+
+
+
 data  "azurerm_app_configuration" "app_config" {
   count                                = local.application_configuration_deployed ? 1 : 0
   provider                             = azurerm.deployer
@@ -216,7 +245,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_agent" {
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
 }
-
 
 locals {
   application_configuration_deployed   = length(var.deployer.application_configuration_id ) > 0
