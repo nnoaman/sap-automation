@@ -538,8 +538,8 @@ locals {
                                            length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }), (
                                            var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_scs } : { fence_kdump_disk_size = 0 } ), (
                                            var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_lun_number = var.use_fence_kdump_lun_scs } : { fence_kdump_lun_number = -1 }
-
                                            )
+
                                          )
 
   database                             = merge(
@@ -549,7 +549,7 @@ locals {
                                            (local.db_avset_arm_ids_defined                        ? { avset_arm_ids  = local.avset_arm_ids }                   : null),
                                            (length(local.frontend_ips)      > 0                   ? { loadbalancer   = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }),
                                            (length(local.db_tags)           > 0                   ? { tags           = local.db_tags }                         : null),
-                                           (local.db_sid_specified                                ? { instance       = local.instance }                        : null), (
+                                           (local.db_sid_specified                                ? { instance       = local.instance }                        : null),
                                            ( var.use_fence_kdump &&
                                              var.database_high_availability )                     ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_db } : { fence_kdump_disk_size = 0 } ,
                                              ( var.use_fence_kdump &&
