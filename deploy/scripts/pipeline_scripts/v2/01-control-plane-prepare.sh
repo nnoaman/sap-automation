@@ -162,9 +162,9 @@ if printenv ARM_SUBSCRIPTION_ID; then
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 fi
 
-echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "$deployer_tfvars_file_name"
-dos2unix -q "$library_tfvars_file_name"
+# echo -e "$green--- Convert config files to UX format ---$reset"
+# dos2unix -q "$deployer_tfvars_file_name"
+# dos2unix -q "$library_tfvars_file_name"
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
