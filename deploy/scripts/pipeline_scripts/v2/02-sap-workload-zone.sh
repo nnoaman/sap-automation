@@ -132,7 +132,6 @@ APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID"
 export APPLICATION_CONFIGURATION_SUBSCRIPTION_ID
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
-dos2unix -q tfvarsFile
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
@@ -194,8 +193,6 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	fi
 	exit 2
 fi
-
-dos2unix -q "${workload_environment_file_name}"
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
