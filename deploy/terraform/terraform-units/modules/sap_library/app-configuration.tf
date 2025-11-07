@@ -9,7 +9,7 @@
 
 resource "azurerm_private_dns_zone" "appconfig" {
   provider                             = azurerm.main
-  count                                = local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = local.application_configuration_deployed && local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
@@ -23,7 +23,7 @@ resource "azurerm_private_dns_zone" "appconfig" {
 
 data "azurerm_private_dns_zone" "appconfig" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = !local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = local.application_configuration_deployed && !local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
   resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
