@@ -339,7 +339,6 @@ else
 	save_config_vars "${system_environment_file_name}" REMOTE_STATE_SA
 fi
 
-
 tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 TF_VAR_tfstate_resource_id=$tfstate_resource_id
 export TF_VAR_tfstate_resource_id
@@ -369,7 +368,6 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 
 	account_set=1
 fi
-
 
 deployer_tfstate_key_parameter=""
 
@@ -451,29 +449,28 @@ if [[ -n $landscape_tfstate_key ]]; then
 	workloadZone_State_file_Size=$(expr "$workloadZone_State_file_Size_String")
 
 	if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
-			print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "error"
-			unset TF_DATA_DIR
+		print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "error"
+		unset TF_DATA_DIR
 
-			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
-			exit 2
+		az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+		exit 2
 	fi
 fi
 
 if [[ -n $deployer_tfstate_key ]]; then
 
-  deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+	deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
 
 	deployer_Statefile_Size=$(expr "$deployer_Statefile_Size_String")
 
 	if [ "$deployer_Statefile_Size" -lt 50000 ]; then
-			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
-			unset TF_DATA_DIR
+		print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
+		unset TF_DATA_DIR
 
-			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
-			exit 2
+		az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+		exit 2
 	fi
 fi
-
 
 if [[ -z $STATE_SUBSCRIPTION ]]; then
 	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
@@ -783,47 +780,47 @@ if [ 1 != $return_value ]; then
 			if [ -n "$keyvault" ]; then
 				save_config_var "keyvault" "${system_config_information}"
 			fi
-	fi
-
-	if [ "${deployment_system}" == sap_landscape ]; then
-		state_path="LANDSCAPE"
-		if [ $landscape_tfstate_key_exists == false ]; then
-			save_config_vars "${system_environment_file_name}" \
-				landscape_tfstate_key
 		fi
-	fi
 
-	if [ "${deployment_system}" == sap_library ]; then
-		if [ -z "${REMOTE_STATE_SA}" ]; then
-			print_banner "$banner_title" "The SAP Library storage account is not defined" "error"
-			echo "##vso[task.logissue type=error]The SAP Library storage account is not defined"
-			exit 1
+		if [ "${deployment_system}" == sap_landscape ]; then
+			state_path="LANDSCAPE"
+			if [ $landscape_tfstate_key_exists == false ]; then
+				save_config_vars "${system_environment_file_name}" \
+					landscape_tfstate_key
+			fi
 		fi
-		state_path="LIBRARY"
-		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-			tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
-			STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
-			az account set --sub "${STATE_SUBSCRIPTION}"
+		if [ "${deployment_system}" == sap_library ]; then
+			if [ -z "${REMOTE_STATE_SA}" ]; then
+				print_banner "$banner_title" "The SAP Library storage account is not defined" "error"
+				echo "##vso[task.logissue type=error]The SAP Library storage account is not defined"
+				exit 1
+			fi
+			state_path="LIBRARY"
+			if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+				tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
+				STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
-			REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+				az account set --sub "${STATE_SUBSCRIPTION}"
 
-			getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+				REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 
-			if [ 1 == "$called_from_ado" ]; then
-				SAPBITS=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
-				if [ -n "${SAPBITS}" ]; then
-					az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value")
-					if [ -z "${az_var}" ]; then
-						az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "$SAPBITS" --output none --only-show-errors
-					else
-						az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "$SAPBITS" --output none --only-show-errors
+				getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+
+				if [ 1 == "$called_from_ado" ]; then
+					SAPBITS=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
+					if [ -n "${SAPBITS}" ]; then
+						az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value")
+						if [ -z "${az_var}" ]; then
+							az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "$SAPBITS" --output none --only-show-errors
+						else
+							az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "$SAPBITS" --output none --only-show-errors
+						fi
 					fi
 				fi
 			fi
 		fi
 	fi
-
 	apply_needed=1
 
 fi
@@ -1132,7 +1129,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
 		save_config_var "APPLICATION_CONFIGURATION_NAME" "${system_environment_file_name}"
 		export APPLICATION_CONFIGURATION_NAME
 	fi
-
 
 	APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 	if [ -n "${APP_SERVICE_NAME}" ]; then
