@@ -132,10 +132,16 @@ while :; do
 		;;
 	-d | --deployer_tfstate_key)
 		deployer_tfstate_key="$2"
+		CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d"-" -f1-3)
+		TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+		export TF_VAR_control_plane_name
 		shift 2
 		;;
 	-l | --landscape_tfstate_key)
 		landscape_tfstate_key="$2"
+		WORKLOAD_ZONE_NAME=$(echo "$landscape_tfstate_key" | cut -d"-" -f1-3)
+		TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+		export TF_VAR_workload_zone_name
 		shift 2
 		;;
 	-a | --ado)
@@ -753,6 +759,32 @@ fi
 state_path="SYSTEM"
 if [ 1 != $return_value ]; then
 
+	if [ "${deployment_system}" == sap_deployer ]; then
+		state_path="DEPLOYER"
+
+		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+
+			deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
+			save_config_var "deployer_public_ip_address" "${system_config_information}"
+
+			APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+			if [ -n "${APP_SERVICE_NAME}" ]; then
+				save_config_var "APP_SERVICE_NAME" "${deployer_config_information}"
+				export APP_SERVICE_NAME
+			fi
+
+			HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+			if [ -n "${HAS_WEBAPP}" ]; then
+				save_config_var "HAS_WEBAPP" "${deployer_config_information}"
+				export HAS_WEBAPP
+			fi
+
+			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+			if [ -n "$keyvault" ]; then
+				save_config_var "keyvault" "${system_config_information}"
+			fi
+	fi
+
 	if [ "${deployment_system}" == sap_landscape ]; then
 		state_path="LANDSCAPE"
 		if [ $landscape_tfstate_key_exists == false ]; then
@@ -1088,6 +1120,19 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	if [ -n "$webapp_id" ]; then
 		save_config_var "webapp_id" "${system_environment_file_name}"
 	fi
+
+	APP_CONFIG_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+	if [ -n "${APP_CONFIG_DEPLOYMENT}" ]; then
+		save_config_var "APP_CONFIG_DEPLOYMENT" "${system_environment_file_name}"
+		export APP_CONFIG_DEPLOYMENT
+	fi
+
+	APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
+	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_NAME" "${system_environment_file_name}"
+		export APPLICATION_CONFIGURATION_NAME
+	fi
+
 
 	APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 	if [ -n "${APP_SERVICE_NAME}" ]; then
