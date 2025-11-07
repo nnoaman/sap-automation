@@ -58,40 +58,6 @@ if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_
 	exit 2
 fi
 
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
-	fi
-else
-	if [ "$USE_MSI" == "true" ]; then
-		TF_VAR_use_spn=false
-		export TF_VAR_use_spn
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
-		echo "Deployment using:                    Managed Identity"
-	else
-		TF_VAR_use_spn=true
-		export TF_VAR_use_spn
-		ARM_USE_MSI=false
-		export ARM_USE_MSI
-		echo "Deployment using:                    Service Principal"
-	fi
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
-
-fi
-
-if printenv OBJECT_ID; then
-	if is_valid_guid "$OBJECT_ID"; then
-		TF_VAR_spn_id="$OBJECT_ID"
-		export TF_VAR_spn_id
-	fi
-fi
 # Print the execution environment details
 print_header
 
@@ -104,6 +70,38 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	exit 2
 fi
 export VARIABLE_GROUP_ID
+
+# Set logon variables
+if [ "$USE_MSI" == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+else
+	ARM_USE_MSI=false
+	export ARM_USE_MSI
+fi
+
+if [ -v SYSTEM_ACCESSTOKEN ]; then
+	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
+fi
+
+# Check if running on deployer
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "${tf_version:-1.13.3}"
+fi
+
+echo -e "$green--- az login ---$reset"
+LogonToAzure $USE_MSI
+return_code=$?
+if [ 0 != $return_code ]; then
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
+fi
+
+TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+export TF_VAR_subscription_id
+
 
 if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
 	echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
