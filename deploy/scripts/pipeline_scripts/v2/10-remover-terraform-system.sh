@@ -60,8 +60,6 @@ then
 fi
 export VARIABLE_GROUP_ID
 
-dos2unix -q tfvarsFile
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
@@ -160,8 +158,6 @@ if [ "$SID" != "$SID_IN_FILENAME" ]; then
 	echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
 	exit 2
 fi
-
-dos2unix -q "${workload_environment_file_name}"
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
