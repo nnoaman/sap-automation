@@ -123,3 +123,6 @@ variables:
 
   - name:                              test
     value:                             ${{ parameters.test }}
+
+  - name:                              control_plane_name
+    value:                             ${{ parameters.deployer_environment }}
