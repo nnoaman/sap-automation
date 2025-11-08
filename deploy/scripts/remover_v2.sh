@@ -2,6 +2,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+green="\e[1;32m"
+bold_red="\e[1;31m"
+cyan="\e[1;36m"
+bold_red_underscore="\e[1;4;31m"
+reset_formatting="\e[0m"
+reset="\e[0m"
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
