@@ -91,9 +91,7 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
 		export TF_VAR_DevOpsInfrastructure_object_id
 	else
-
-		echo "##vso[task.logissue type=error]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
-
+		echo "##vso[task.logissue type=warning]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
 	fi
 
 elif [ "$PLATFORM" == "github" ]; then
