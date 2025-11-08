@@ -56,7 +56,7 @@ library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRA
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+		echo "##vso[task.logissue type=error]File {$deployer_tfvars_file_name} was not found."
 	fi
 	exit 2
 
@@ -492,8 +492,8 @@ if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
 	added=1
 fi
 
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+if [ -f "{$deployer_tfvars_file_name}" ]; then
+	git add -f "{$deployer_tfvars_file_name}"
 	added=1
 fi
 
