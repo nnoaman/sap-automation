@@ -455,7 +455,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	APP_SERVICE_NAME=$(grep -m1 "^APP_SERVICE_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${APP_SERVICE_NAME}" ]; then
 		export APP_SERVICE_NAME
-		echo "APP_SERVICE_NAME:      ${APP_SERVICE_NAME}"
+		echo "AppService Name:                     ${APP_SERVICE_NAME}"
 	fi
 
 	APP_SERVICE_DEPLOYMENT=$(grep -m1 "^HAS_WEBAPP" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
@@ -487,8 +487,8 @@ fi
 
 echo -e "$green--- Update repo ---$reset_formatting"
 
-if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
-	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+if [ -f "${deployer_environment_file_name}" ]; then
+	git add "${deployer_environment_file_name}"
 	added=1
 fi
 
