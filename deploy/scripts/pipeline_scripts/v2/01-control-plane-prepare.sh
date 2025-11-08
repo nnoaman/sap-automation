@@ -46,19 +46,25 @@ if [ "$PLATFORM" == "github" ]; then
 fi
 
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
-deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
 
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
-	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+	fi
 	exit 2
+
 fi
 
 if [ ! -f "$library_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
-	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	fi
 	exit 2
+
 fi
 
 # Platform-specific configuration
@@ -225,7 +231,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
 fi
 if [ -n "$TF_VAR_spn_id" ]; then
-		if is_valid_guid $TF_VAR_spn_id; then
+	if is_valid_guid $TF_VAR_spn_id; then
 		export TF_VAR_spn_id
 		echo "Service Principal Object id:         $TF_VAR_spn_id"
 	fi
@@ -571,9 +577,9 @@ elif [ "$PLATFORM" == "github" ]; then
 		echo "##[endgroup]"
 	fi
 	if [ 0 -eq "$return_code" ]; then
-			set_value_with_key "APPLICATION_CONFIGURATION_NAME" "${APPLICATION_CONFIGURATION_NAME}" "env"
-			set_value_with_key "CONTROL_PLANE_NAME" "${CONTROL_PLANE_NAME}" "env"
-			set_value_with_key "DEPLOYER_KEYVAULT" "${DEPLOYER_KEYVAULT}" "env"
+		set_value_with_key "APPLICATION_CONFIGURATION_NAME" "${APPLICATION_CONFIGURATION_NAME}" "env"
+		set_value_with_key "CONTROL_PLANE_NAME" "${CONTROL_PLANE_NAME}" "env"
+		set_value_with_key "DEPLOYER_KEYVAULT" "${DEPLOYER_KEYVAULT}" "env"
 	fi
 fi
 end_group
