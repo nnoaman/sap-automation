@@ -940,23 +940,15 @@ function deploy_control_plane() {
 	echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 	echo "Environment:                         $environment"
 	echo "Region code:                         ${region_code}"
+	echo "Network code:                        ${network}"
 	echo "Deployer State File:                 ${deployer_tfstate_key}"
 	echo "Library State File:                  ${library_tfstate_key}"
 	echo "Deployer Subscription:               ${subscription}"
 
 	generic_environment_file_name="${CONFIG_DIR}"/config
-	automation_config_directory="${CONFIG_DIR}/.sap_deployment_automation"
+	automation_config_directory="${CONFIG_DIR}"
 
 	deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network")
-	echo "Deployer Environment File:          ${deployer_environment_file_name}"
-
-
-	if [ ! -f "$deployer_environment_file_name" ]; then
-		if [ -f "${CONFIG_DIR}/${environment}${region_code}" ]; then
-			echo "Copying existing configuration file"
-			sudo mv "${CONFIG_DIR}/${environment}${region_code}" "${deployer_environment_file_name}"
-		fi
-	fi
 
 	if [ $force == 1 ]; then
 		if [ -f "${deployer_environment_file_name}" ]; then
