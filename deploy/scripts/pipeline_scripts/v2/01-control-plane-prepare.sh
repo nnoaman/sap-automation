@@ -121,9 +121,9 @@ echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"
 echo "Deployer Folder Name:                $DEPLOYER_FOLDERNAME"
-echo "Deployer TFVars Filename:            $DEPLOYER_TFVARS_FILENAME"
+echo "Deployer TFVars Filename:            $DEPLOYER_FOLDERNAME.tfvars"
 echo "Library Folder Name:                 $LIBRARY_FOLDERNAME"
-echo "Library TFVars Filename:             $LIBRARY_TFVARS_FILENAME"
+echo "Library TFVars Filename:             $LIBRARY_FOLDERNAME.tfvars"
 
 # Handle force reset across platforms
 if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" ]; then
@@ -244,7 +244,7 @@ if printenv ARM_SUBSCRIPTION_ID; then
 fi
 
 if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+	TF_VAR_management_subscription_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 	export TF_VAR_management_subscription_id
 else
 	unset APPLICATION_CONFIGURATION_NAME
@@ -262,7 +262,7 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
 	sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
 
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "${APPLICATION_CONFIGURATION_ID:-}" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$tfstate_resource_id" ]; then
 		if [ "$PLATFORM" == "devops" ]; then
 			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
@@ -467,6 +467,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
 		export APP_SERVICE_DEPLOYMENT
 	fi
+
 	DEPLOYER_MSI_CLIENT_ID=$(grep -m1 "^DEPLOYER_MSI_CLIENT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "DEPLOYER_MSI_CLIENT_ID:              ${DEPLOYER_MSI_CLIENT_ID:-}"
 	# Set output variables for GitHub Actions
