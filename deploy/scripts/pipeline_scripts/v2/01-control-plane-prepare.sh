@@ -20,7 +20,7 @@ source "${parent_directory}/helper.sh"
 if [ "$PLATFORM" == "devops" ]; then
 	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in ${DEPLOYER_FOLDERNAME}"
 	DEBUG=false
-	if [ "$SYSTEM_DEBUG" = True ]; then
+	if [ "${SYSTEM_DEBUG:-False}" == True ]; then
 		set -x
 		DEBUG=true
 		echo "Environment variables:"
