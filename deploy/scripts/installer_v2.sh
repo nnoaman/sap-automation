@@ -14,8 +14,8 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Fail on any error, undefined variable, or pipeline failure
 
-# Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-false}" == 'true' ]]; then
+# Enable debug mode if DEBUG is set to 'True'
+if [[ "${DEBUG:-false}" == 'True' ]]; then
 	# Enable debugging
 	# Exit on error
 	set -euox pipefail

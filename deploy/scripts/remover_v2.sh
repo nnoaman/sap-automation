@@ -2,11 +2,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#colors for terminal
-bold_red="\e[1;31m"
-green="\e[1;32m"
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
@@ -21,7 +16,7 @@ script_directory="$(dirname "${full_script_path}")"
 set -euo pipefail
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-false}" == 'true' ]]; then
+if [[ "${DEBUG:-false}" == 'True' ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error
