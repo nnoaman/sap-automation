@@ -153,8 +153,8 @@ echo -e "$green--- az login ---$reset"
 # Set logon variables
 if [ "$USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
@@ -382,6 +382,53 @@ fi
 
 end_group
 
+if [ "$PLATFORM" == "devops" ]; then
+	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+	if [ -n "$DEPLOYER_KEYVAULT" ]; then
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"; then
+			echo "Saved DEPLOYER_KEYVAULT in variable group."
+		else
+			echo "##vso[task.logissue type=warning]Failed to save DEPLOYER_KEYVAULT in variable group."
+		fi
+	fi
+fi
+
+ARM_CLIENT_ID=$(grep -m1 "^ARM_CLIENT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -n "${ARM_CLIENT_ID}" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
+	fi
+fi
+export ARM_CLIENT_ID
+
+ARM_OBJECT_ID=$(grep -m1 "^ARM_OBJECT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -n "${ARM_OBJECT_ID}" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
+	fi
+fi
+
+export ARM_OBJECT_ID
+
+APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+	export APPLICATION_CONFIGURATION_NAME
+	echo "APPLICATION_CONFIGURATION_NAME:      ${APPLICATION_CONFIGURATION_NAME}"
+	if [ "$PLATFORM" == "devops" ]; then
+
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+	fi
+fi
+
+APPLICATION_CONFIGURATION_DEPLOYMENT=$(grep -m1 "^APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
+	export APPLICATION_CONFIGURATION_DEPLOYMENT
+	echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  ${APPLICATION_CONFIGURATION_DEPLOYMENT}"
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "$APPLICATION_CONFIGURATION_DEPLOYMENT"
+	fi
+fi
+
 APP_SERVICE_NAME=$(grep -m1 "^APP_SERVICE_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 if [ -n "${APP_SERVICE_NAME}" ]; then
 	export APP_SERVICE_NAME
@@ -399,6 +446,15 @@ if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "$APP_SERVICE_DEPLOYMENT"
 	fi
 fi
+if [ "$PLATFORM" == "devops" ]; then
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+fi
+
+echo "Environment:                         $ENVIRONMENT"
+echo "Location:                            $LOCATION"
+
 start_group "Update the repository"
 
 echo -e "$green--- Pushing the changes to the repository ---$reset_formatting"
@@ -504,13 +560,13 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 		echo "Library Terraform state:               local"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
 			if [ "$PLATFORM" == "devops" ]; then
-					sudo apt-get -qq install zip
+				sudo apt-get -qq install zip
 
-					echo "Compressing the library state file"
+				echo "Compressing the library state file"
 				pass=${SYSTEM_COLLECTIONID//-/}
 				zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
 				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-					rm "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+				rm "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
 			elif [ "$PLATFORM" == "github" ]; then
 				rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
 				echo "Encrypting state file"
@@ -631,15 +687,15 @@ if [ 0 -eq "$return_code" ]; then
 			echo "Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
 		fi
 
-	if [ -n "$WEBAPP_ID" ]; then
-		WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_URL_BASE" "$WEBAPP_URL_BASE"; then
-			echo "Variable WEBAPP_URL_BASE was added to the $VARIABLE_GROUP variable group."
-		else
-			echo "##vso[task.logissue type=error]Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+		if [ -n "$WEBAPP_ID" ]; then
+			WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
+			if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_URL_BASE" "$WEBAPP_URL_BASE"; then
+				echo "Variable WEBAPP_URL_BASE was added to the $VARIABLE_GROUP variable group."
+			else
+				echo "##vso[task.logissue type=error]Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+				echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+			fi
 		fi
-	fi
 	elif [ "$PLATFORM" == "github" ]; then
 		# Set output variables for GitHub Actions
 		echo "Setting output variable for GitHub Actions"
