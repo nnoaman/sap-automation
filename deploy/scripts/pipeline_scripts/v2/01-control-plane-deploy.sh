@@ -14,7 +14,7 @@ SCRIPT_NAME="$(basename "$0")"
 if [ "$PLATFORM" == "devops" ]; then
 	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in ${DEPLOYER_FOLDERNAME} ${LIBRARY_FOLDERNAME}"
 	DEBUG=false
-	if [ "$SYSTEM_DEBUG" = True ]; then
+	if [ "${SYSTEM_DEBUG:-False}" == True ]; then
 		set -x
 		DEBUG=True
 		TF_LOG=DEBUG
@@ -147,7 +147,7 @@ msi_flag=""
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
@@ -158,6 +158,18 @@ if [ "$USE_MSI" == "true" ]; then
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
+	if [ "$USE_MSI" != "true" ]; then
+
+		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+		export ARM_TENANT_ID
+		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+		export ARM_SUBSCRIPTION_ID
+	else
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+	fi
+
 	LogonToAzure "${USE_MSI:-false}"
 	return_code=$?
 	if [ 0 != $return_code ]; then
@@ -177,11 +189,6 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
-
-if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-	export APPLICATION_CONFIGURATION_ID
-fi
 
 APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
 export APPLICATION_CONFIGURATION_SUBSCRIPTION_ID
