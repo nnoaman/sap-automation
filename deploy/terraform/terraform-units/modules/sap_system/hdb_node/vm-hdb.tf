@@ -119,7 +119,7 @@ resource "azurerm_network_interface_application_security_group_association" "db"
                                            var.deploy_application_security_groups ? var.database_server_count : 0) : (
                                            0
                                          )
-  network_interface_id                 = var.use_admin_nic_for_asg && var.database.database_dual_network_interfaces ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : azurerm_network_interface.nics_dbnodes_db[count.index].id
+  network_interface_id                 = var.use_admin_nic_for_asg && var.database.dual_network_interfaces ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : azurerm_network_interface.nics_dbnodes_db[count.index].id
   application_security_group_id        = var.db_asg_id
 }
 
@@ -229,13 +229,13 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
 
   network_interface_ids                = local.enable_storage_subnet && var.enable_storage_nic ? (
                                            compact([
-                                               var.database.database_dual_network_interfaces ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
+                                               var.database.dual_network_interfaces ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
                                                azurerm_network_interface.nics_dbnodes_db[count.index].id,
                                                azurerm_network_interface.nics_dbnodes_storage[count.index].id
                                              ])
 
                                            ) : (
-                                           var.database.database_dual_network_interfaces ? (
+                                           var.database.dual_network_interfaces ? (
                                              var.options.legacy_nic_order ? (
                                                [
                                                  azurerm_network_interface.nics_dbnodes_admin[count.index].id,
