@@ -267,6 +267,8 @@ function parse_arguments() {
 		network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
 	fi
 
+	automation_config_directory="${CONFIG_DIR}"
+
 	system_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${environment}" "${region_code}" "${network_logical_name}")
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	if valid_region_name "${region}"; then
