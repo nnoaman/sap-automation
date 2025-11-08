@@ -535,11 +535,17 @@ fi
 # Commit changes based on platform
 if [ 1 = $added ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-		git config --global user.name "$BUILD_REQUESTEDFOR"
-		git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
-		if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-			echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+		set +e
+		git diff --cached --quiet
+		git_diff_return_code=$?
+		set -e
+		if [ 1 == $git_diff_return_code ]; then
+			git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+			git config --global user.name "$BUILD_REQUESTEDFOR"
+			git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
+			if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+				echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+			fi
 		fi
 	elif [ "$PLATFORM" == "github" ]; then
 		set +e
@@ -579,5 +585,5 @@ elif [ "$PLATFORM" == "github" ]; then
 	fi
 fi
 end_group
-
+echo "Exit code:                             $return_code"
 exit $return_code

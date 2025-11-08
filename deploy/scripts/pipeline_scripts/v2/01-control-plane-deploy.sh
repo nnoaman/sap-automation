@@ -48,15 +48,12 @@ NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
 
 if [ "$PLATFORM" == "github" ]; then
 	DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
-	DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
 	LIBRARY_FOLDERNAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY"
-	LIBRARY_TFVARS_FILENAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY.tfvars"
 fi
 
 automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
-
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
 
@@ -222,9 +219,9 @@ echo -e "-----------------------------------------------------------------------
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo ""
 echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
-echo "Deployer tfVars:                     $DEPLOYER_TFVARS_FILENAME"
+echo "Deployer tfVars:                     $DEPLOYER_FOLDERNAME.tfvars"
 echo "Library Folder:                      $LIBRARY_FOLDERNAME"
-echo "Library tfVars:                      $LIBRARY_TFVARS_FILENAME"
+echo "Library tfVars:                      $LIBRARY_FOLDERNAME"
 
 if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"

@@ -673,17 +673,17 @@ function sdaf_installer() {
 	if [ ! -f .terraform/terraform.tfstate ]; then
 		print_banner "$banner_title" "New deployment" "info"
 
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
+			print_banner "$banner_title" "Terraform init succeeded." "success"
+		else
 			return_value=$?
 			print_banner "$banner_title" "Terraform init failed." "error"
 			return $return_value
-		else
-			return_value=$?
 		fi
 
 	else
