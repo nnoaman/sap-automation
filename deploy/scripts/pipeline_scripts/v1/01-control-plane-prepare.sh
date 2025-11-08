@@ -252,11 +252,11 @@ if [ "$FORCE_RESET" == True ]; then
 	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_RG")
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
-		echo "Terraform Remote State Account:     ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+		echo "Terraform Remote State Account:      ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
-		echo "Terraform Remote State RG Name:     ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+		echo "Terraform Remote State RG Name:      ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ] && [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
@@ -347,62 +347,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 			echo "##vso[task.logissue type=warning]Failed to save DEPLOYER_KEYVAULT in variable group."
 		fi
 	fi
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-
-	ARM_CLIENT_ID=$(grep -m1 "^ARM_CLIENT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${ARM_CLIENT_ID}" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
-	fi
-	export ARM_CLIENT_ID
-
-	ARM_OBJECT_ID=$(grep -m1 "^ARM_OBJECT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${ARM_OBJECT_ID}" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
-	fi
-	export ARM_OBJECT_ID
-
-	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-		export APPLICATION_CONFIGURATION_NAME
-		echo "APPLICATION_CONFIGURATION_NAME:      ${APPLICATION_CONFIGURATION_NAME}"
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-	fi
-
-	DevOpsInfrastructureObjectId=$(grep -m1 "^DevOpsInfrastructureObjectId" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "$DevOpsInfrastructureObjectId" ]; then
-		export DevOpsInfrastructureObjectId
-		echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
-	fi
-
-	APPLICATION_CONFIGURATION_DEPLOYMENT=$(grep -m1 "^APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
-		export APPLICATION_CONFIGURATION_DEPLOYMENT
-		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  ${APPLICATION_CONFIGURATION_DEPLOYMENT}"
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "$APPLICATION_CONFIGURATION_DEPLOYMENT"
-	fi
-
-	APP_SERVICE_NAME=$(grep -m1 "^APP_SERVICE_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${APP_SERVICE_NAME}" ]; then
-		export APP_SERVICE_NAME
-		echo "APP_SERVICE_NAME:      ${APP_SERVICE_NAME}"
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$APP_SERVICE_NAME"
-	fi
-
-	APP_SERVICE_DEPLOYMENT=$(grep -m1 "^HAS_WEBAPP" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
-		export APP_SERVICE_DEPLOYMENT
-		echo "APP_SERVICE_DEPLOYMENT:      ${APP_SERVICE_DEPLOYMENT}"
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "$APP_SERVICE_DEPLOYMENT"
-	fi
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
-
-	echo "Environment:                         $ENVIRONMENT"
-	echo "Location:                            $LOCATION"
 
 fi
-
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
 cd "$CONFIG_REPO_PATH" || exit
