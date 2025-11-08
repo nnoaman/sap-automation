@@ -945,6 +945,7 @@ function deploy_control_plane() {
 	echo "Deployer Subscription:               ${subscription}"
 
 	generic_environment_file_name="${CONFIG_DIR}"/config
+	automation_config_directory="${CONFIG_DIR}/.sap_deployment_automation"
 
 	deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network")
 
