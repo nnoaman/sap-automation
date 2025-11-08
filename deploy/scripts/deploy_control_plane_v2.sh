@@ -948,6 +948,8 @@ function deploy_control_plane() {
 	automation_config_directory="${CONFIG_DIR}/.sap_deployment_automation"
 
 	deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network")
+	echo "Deployer Environment File:          ${deployer_environment_file_name}"
+
 
 	if [ ! -f "$deployer_environment_file_name" ]; then
 		if [ -f "${CONFIG_DIR}/${environment}${region_code}" ]; then
