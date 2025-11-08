@@ -239,9 +239,7 @@ if printenv ARM_SUBSCRIPTION_ID; then
 fi
 
 if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-  echo "1"
-	TF_VAR_management_subscription_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
-	echo "2"
+	TF_VAR_management_subscription_id=$ARM_SUBSCRIPTION_ID
 	export TF_VAR_management_subscription_id
 else
 	unset APPLICATION_CONFIGURATION_NAME
