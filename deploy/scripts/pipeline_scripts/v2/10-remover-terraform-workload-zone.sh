@@ -65,7 +65,7 @@ fi
 
 print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
 
-tfvarsFile="LANDSCAPE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
+tfvarsFile="LANDSCAPE/${WORKLOAD_ZONE_FOLDERNAME}/${WORKLOAD_ZONE_TFVARS_FILENAME}"
 
 cd "${CONFIG_REPO_PATH}" || exit
 # Platform-specific git checkout
