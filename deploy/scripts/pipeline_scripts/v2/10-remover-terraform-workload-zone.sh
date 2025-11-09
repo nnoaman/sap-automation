@@ -12,7 +12,14 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Removing the workload zone defined in $WORKLOAD_ZONE_NAME "
+	echo "##vso[build.updatebuildnumber]Removing the workload zone defined in $WORKLOAD_ZONE_NAME"
+	DEBUG=false
+	if [ "${SYSTEM_DEBUG:-False}" == True ]; then
+		set -x
+		DEBUG=true
+		echo "Environment variables:"
+		printenv | sort
+	fi
 fi
 
 # External helper functions

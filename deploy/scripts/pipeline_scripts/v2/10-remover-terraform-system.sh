@@ -12,7 +12,14 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Removing the system defined in $SAP_SYSTEM_FOLDERNAME "
+	echo "##vso[build.updatebuildnumber]Removing the system defined in $SAP_SYSTEM_FOLDERNAME"
+	DEBUG=false
+	if [ "${SYSTEM_DEBUG:-False}" == True ]; then
+		set -x
+		DEBUG=true
+		echo "Environment variables:"
+		printenv | sort
+	fi
 fi
 
 # External helper functions
