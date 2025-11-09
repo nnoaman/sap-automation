@@ -133,7 +133,7 @@ landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
+deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export deployer_tfstate_key
 
 echo ""
@@ -197,7 +197,7 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	key_vault_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_KeyVaultResourceId")
 	key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
-	workload_key_vault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultName" "${WORKLOAD_ZONE_NAME}")
+	workload_key_vault=$(get_value_with_key "${WORKLOAD_ZONE_NAME}_KeyVaultName")
 
 	management_subscription_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_SubscriptionId")
 	TF_VAR_management_subscription_id=${management_subscription_id}
