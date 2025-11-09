@@ -61,7 +61,6 @@ print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
 tfvarsFile="LANDSCAPE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 
 cd "${CONFIG_REPO_PATH}" || exit
-mkdir -p .sap_deployment_automation
 # Platform-specific git checkout
 if [ "$PLATFORM" == "devops" ]; then
 	echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
