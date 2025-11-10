@@ -456,14 +456,6 @@ function remove_control_plane() {
 		az storage account update --name "$diagnostics_account_name" --resource-group "$diagnostics_account_resource_group_name" --subscription "$diagnostics_account_subscription_id" --allow-shared-key-access --output none
 	fi
 
-	# if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
-	# 	return_value=$?
-	# 	print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
-	# else
-	# 	return_value=0
-	# 	print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
-	# fi
-
 	print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
 
 	deployer_statefile_foldername_path="${param_dirname}"
@@ -559,6 +551,16 @@ function remove_control_plane() {
 	if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
 		rm "${param_dirname}/.terraform/terraform.tfstate"
 	fi
+
+	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+	if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+		return_value=$?
+		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
+	else
+		return_value=0
+		print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
+	fi
+
 
 	if [ 0 != $return_value ]; then
 		return $return_value
