@@ -326,7 +326,6 @@ function remove_control_plane() {
 	parse_arguments "$@"
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
-
 	deployer_environment_file_name="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
 
 	# Check that Terraform and Azure CLI is installed
@@ -335,13 +334,6 @@ function remove_control_plane() {
 	if [ 0 != $return_code ]; then
 		echo "validate_dependencies returned $return_code"
 		exit $return_code
-	fi
-
-	if ! checkforEnvVar APPLICATION_CONFIGURATION_ID; then
-		load_config_vars "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID"
-		export APPLICATION_CONFIGURATION_ID
-	else
-		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}"
 	fi
 
 	retrieve_parameters
