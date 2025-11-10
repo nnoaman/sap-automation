@@ -170,12 +170,8 @@ if [ -v  ARM_SUBSCRIPTION_ID ]; then
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 fi
 
-# Handle application configuration
-if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	TF_VAR_management_subscription_id=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f3)
-
-	export TF_VAR_management_subscription_id
-fi
+TF_VAR_management_subscription_id=$ARM_SUBSCRIPTION_ID
+export TF_VAR_management_subscription_id
 
 echo -e "$green--- Variables ---$reset_formatting"
 
@@ -437,26 +433,28 @@ if [ "$PLATFORM" == "devops" ]; then
 	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		echo "Deleting variables"
 
+		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_DEPLOYMENT"
 		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_NAME"
-		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_DEPLOYMENT"
-		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
-		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
 		remove_variable "$VARIABLE_GROUP_ID" "APPSERVICE_NAME"
+		remove_variable "$VARIABLE_GROUP_ID" "APP_SERVICE_DEPLOYMENT"
+		remove_variable "$VARIABLE_GROUP_ID" "APP_SERVICE_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "CONTROL_PLANE_ENVIRONMENT"
 		remove_variable "$VARIABLE_GROUP_ID" "CONTROL_PLANE_LOCATION"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
+		remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
+		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
+		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
+		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
-		remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
-		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
-		remove_variable "$VARIABLE_GROUP_ID" "APP_SERVICE_NAME"
-		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
-		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
-		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
-		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
 	fi
 fi
 
