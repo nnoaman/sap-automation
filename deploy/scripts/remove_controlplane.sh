@@ -366,12 +366,12 @@ if [ 0 != $return_value ]; then
 	exit 10
 fi
 
-if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
-	return_value=$?
-	print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
-else
-	print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
-fi
+# if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+# 	return_value=$?
+# 	print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
+# else
+# 	print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
+# fi
 
 print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
 
