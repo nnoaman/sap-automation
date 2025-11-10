@@ -456,13 +456,13 @@ function remove_control_plane() {
 		az storage account update --name "$diagnostics_account_name" --resource-group "$diagnostics_account_resource_group_name" --subscription "$diagnostics_account_subscription_id" --allow-shared-key-access --output none
 	fi
 
-	if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
-		return_value=$?
-		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
-	else
-		return_value=0
-		print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
-	fi
+	# if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+	# 	return_value=$?
+	# 	print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
+	# else
+	# 	return_value=0
+	# 	print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
+	# fi
 
 	print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
 
