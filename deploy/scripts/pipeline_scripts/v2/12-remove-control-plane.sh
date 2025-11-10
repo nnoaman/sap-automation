@@ -89,26 +89,20 @@ fi
 
 if [ "$PLATFORM" == "devops" ]; then
 	if [ "$USE_MSI" != "true" ]; then
-
 		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 		export ARM_TENANT_ID
 		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
 		export ARM_SUBSCRIPTION_ID
 	else
-	LogonToAzure "${USE_MSI:-false}"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
+		LogonToAzure "${USE_MSI:-false}"
+		return_code=$?
+		if [ 0 != $return_code ]; then
+			echo -e "$bold_red--- Login failed ---$reset"
+			echo "##vso[task.logissue type=error]az login failed."
+			exit $return_code
+		fi
 	fi
 fi
-if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-	export APPLICATION_CONFIGURATION_ID
-fi
-
-prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
 
 DEPLOYER_FOLDERNAME="$CONTROL_PLANE_NAME-INFRASTRUCTURE"
 automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
@@ -132,7 +126,6 @@ if [ ! -f "$library_tfvars_file_name" ]; then
 		echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
 	fi
 	exit 2
-
 fi
 
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
