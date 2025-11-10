@@ -540,8 +540,19 @@ else
 	if [ 0 != $return_value ]; then
 		keyvault=''
 		deployer_tfstate_key=''
+		DEPLOYER_KEYVAULT=''
+		APPLICATION_CONFIGURATION_NAME=''
+		APPLICATION_CONFIGURATION_DEPLOYMENT=''
+		APP_SERVICE_DEPLOYMENT=''
+		APP_SERVICE_NAME=''
+
 		save_config_var "$keyvault" "${deployer_environment_file_name}"
 		save_config_var "$deployer_tfstate_key" "${deployer_environment_file_name}"
+		save_config_var "$DEPLOYER_KEYVAULT" "${deployer_environment_file_name}"
+		save_config_var "$APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}"
+		save_config_var "$APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}"
+		save_config_var "$APP_SERVICE_DEPLOYMENT" "${deployer_environment_file_name}"
+		save_config_var "$APP_SERVICE_NAME" "${deployer_environment_file_name}"
 		if [ -f "${deployer_environment_file_name}" ]; then
 			rm "${deployer_environment_file_name}"
 		fi
