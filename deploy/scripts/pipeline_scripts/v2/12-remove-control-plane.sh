@@ -211,8 +211,8 @@ else
 fi
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
-	--deployer_parameter_file "$deployerTFvarsFile" \
-	--library_parameter_file "$libraryTFvarsFile" \
+	--deployer_parameter_file "$deployer_tfvars_file_name" \
+	--library_parameter_file "$library_tfvars_file_name" \
 	"$platform_flag" --auto-approve --keep_agent; then
 	return_code=$?
 	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 1 completed" "success"
