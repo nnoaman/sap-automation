@@ -326,7 +326,13 @@ function remove_control_plane() {
 	parse_arguments "$@"
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
-	deployer_environment_file_name="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
+	ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+  LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+  NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
+
+  automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+
+  deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 
 	# Check that Terraform and Azure CLI is installed
 	validate_dependencies
