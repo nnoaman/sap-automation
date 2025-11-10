@@ -22,11 +22,6 @@
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
-#colors for terminal
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
-
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -36,7 +31,7 @@ script_directory="$(dirname "${full_script_path}")"
 set -euo pipefail
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-false}" == 'true' ]]; then
+if [[ "${DEBUG:-False}" == 'True' ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error
@@ -240,16 +235,12 @@ function parse_arguments() {
 ############################################################################################
 
 function retrieve_parameters() {
-	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-		load_config_vars "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID"
-	fi
 
 	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-		application_configuration_name=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f9)
 		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 		if [ -z "$key_vault_id" ]; then
 			if [ $ado_flag == "--ado" ]; then
-				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
 			fi
 		fi
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
