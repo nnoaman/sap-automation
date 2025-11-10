@@ -21,7 +21,7 @@ if checkforDevOpsVar APPLICATION_CONFIGURATION_NAME; then
 		echo "Running v2 script"
 		export SDAFWZ_CALLER_VERSION="v2"
 		echo ""
-		# "${script_directory}/v2/$SCRIPT_NAME"
+		"${script_directory}/v2/$SCRIPT_NAME"
 	else
 		echo ""
 		echo "Running v1 script"
