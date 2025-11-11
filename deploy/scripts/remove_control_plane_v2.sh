@@ -577,6 +577,10 @@ function remove_control_plane() {
 			print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
 		fi
 
+		az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT"
+		az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network
+		sleep 15
+
 		if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
 			return_value=$?
 			print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"

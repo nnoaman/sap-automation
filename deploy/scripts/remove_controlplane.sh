@@ -485,6 +485,14 @@ if [ 1 -eq $keep_agent ]; then
 		print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
 	fi
 
+	if [ -z "$keyvault" ]; then
+		load_config_vars "${deployer_environment_file_name}" "keyvault"
+		if valid_kv_name "$keyvault"; then
+			az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$keyvault"
+		fi
+
+	fi
+
 	if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
