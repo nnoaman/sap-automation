@@ -40,7 +40,14 @@ export AZURE_DEVOPS_EXT_PAT
 
 cd "$CONFIG_REPO_PATH" || exit
 
-environment_file_name=".sap_deployment_automation/$CONTROL_PLANE_NAME"
+
+ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
+
+automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
+
 
 # Print the execution environment details
 print_header
