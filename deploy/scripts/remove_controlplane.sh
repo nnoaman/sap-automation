@@ -474,7 +474,7 @@ if [ 1 -eq $keep_agent ]; then
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	if terraform -chdir="${terraform_module_directory}" init -reconfigure -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
+	if terraform -chdir="${terraform_module_directory}" init  --backend-config "path=${param_dirname}/terraform.tfstate"; then
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
 	else
