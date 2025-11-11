@@ -56,8 +56,12 @@ mkdir -p .sap_deployment_automation
 
 ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
+automation_config_directory="${CONFIG_DIR}"
+
+deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
+
 DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
 DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
 prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
@@ -372,9 +376,9 @@ if [ 0 == $return_code ]; then
 	fi
 
 fi
-if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
-	rm ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
-	git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+if [ -f "$deployer_environment_file_name" ]; then
+	rm "$deployer_environment_file_name"
+	git rm -q --ignore-unmatch "$deployer_environment_file_name"
 	changed=1
 fi
 
