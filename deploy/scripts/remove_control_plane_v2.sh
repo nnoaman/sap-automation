@@ -588,6 +588,14 @@ function remove_control_plane() {
 
 		var_file="${deployer_parameter_file}"
 
+		if terraform -chdir="${terraform_module_directory}" init -reconfigure -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			return_value=$?
+			print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
+		else
+			return_value=$?
+			print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
+		fi
+
 		print_banner "Remove Control Plane " "Running Terraform destroy (deployer)" "info"
 
 		if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${var_file}" -refresh=false -var "use_spn=$use_spn" "${approve_parameter}"; then
