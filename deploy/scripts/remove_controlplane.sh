@@ -471,6 +471,9 @@ save_config_var "step" "${deployer_environment_file_name}"
 
 if [ 1 -eq $keep_agent ]; then
 
+	cd "${deployer_dirname}" || exit
+	param_dirname=$(pwd)
+
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 

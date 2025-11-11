@@ -557,13 +557,13 @@ function remove_control_plane() {
 
 		save_config_vars "${deployer_environment_file_name}" \
 			tfstate_resource_id
-
 	fi
 
 	cd "${current_directory}" || exit
 
 	if [ 1 -eq $keep_agent ]; then
 
+		cd "${deployer_dirname}" || exit
 		param_dirname=$(pwd)
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
