@@ -366,7 +366,6 @@ if [ 0 != $return_value ]; then
 	exit 10
 fi
 
-
 print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
@@ -449,15 +448,6 @@ else
 	exit 20
 fi
 
-terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
-
-if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
-	return_value=$?
-	print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
-else
-	print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
-fi
-
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
@@ -480,7 +470,29 @@ step=1
 save_config_var "step" "${deployer_environment_file_name}"
 
 if [ 1 -eq $keep_agent ]; then
+
+	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+	export TF_DATA_DIR="${param_dirname}/.terraform"
+
+	if terraform -chdir="${terraform_module_directory}" init -reconfigure -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
+		return_value=$?
+		print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
+	else
+		return_value=$?
+		print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
+	fi
+
+	if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+		return_value=$?
+		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
+	else
+		print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
+	fi
 	echo "Keeping the Azure DevOps agent"
+
+	cd "${deployer_dirname}" || exit
+
+	param_dirname=$(pwd)
 
 else
 	cd "${deployer_dirname}" || exit
@@ -504,8 +516,6 @@ else
 		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 	fi
 
-	var_file="${param_dirname}"/"${deployer_tfvars_filename}"
-
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -514,15 +524,7 @@ else
 	echo "#########################################################################################"
 	echo ""
 
-	if terraform -chdir="${terraform_module_directory}" init -reconfigure -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
-		return_value=$?
-		print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
-	else
-		return_value=$?
-		print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
-	fi
-
-	if terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" "${approve_parameter}"; then
+	if terraform -chdir="${terraform_module_directory}" destroy -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
 		return_value=$?
 		echo ""
 		echo -e "${cyan}Terraform destroy:                      succeeded$reset_formatting"
