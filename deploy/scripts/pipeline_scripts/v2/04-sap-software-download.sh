@@ -83,12 +83,17 @@ else
 fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
+
+sapbits_location_base_path=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SAPMediaPath" "${CONTROL_PLANE_NAME}")
+
+
 command="ansible-playbook -e download_directory=$AGENT_TEMP_DIRECTORY \
 -e BOM_directory=${sample_path} \
 -e bom_base_name=$BOM_NAME \
 -e deployer_kv_name=$DEPLOYER_KEYVAULT \
 -e check_storage_account=$CHECK_STORAGE_ACCOUNT \
 -e orchestration_ansible_user=$USER \
+-e sapbits_location_base_path=$sapbits_location_base_path \
  $EXTRA_PARAMETERS $SAP_AUTOMATION_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml"
 
 echo "##[section]Executing [$command]..."
