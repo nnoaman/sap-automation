@@ -578,6 +578,7 @@ function remove_control_plane() {
 		fi
 
 		az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT"
+		az keyvault update --name "$DEPLOYER_KEYVAULT" --public-network-access Enabled
 		az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network
 		sleep 15
 
