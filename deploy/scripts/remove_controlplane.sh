@@ -514,6 +514,14 @@ else
 	echo "#########################################################################################"
 	echo ""
 
+	if terraform -chdir="${terraform_module_directory}" init -reconfigure -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
+		return_value=$?
+		print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
+	else
+		return_value=$?
+		print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
+	fi
+
 	if terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" "${approve_parameter}"; then
 		return_value=$?
 		echo ""
