@@ -23,11 +23,11 @@ source "${grand_parent_directory}/deploy_utils.sh"
 source "${parent_directory}/helper.sh"
 
 
-DEBUG=False
+DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" = True ]; then
   set -x
-  DEBUG=True
+  DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 
@@ -99,31 +99,27 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
-
-echo "Keyvault: $key_vault"
-echo " ##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
+echo " ##vso[task.setvariable variable=KV_NAME;isOutput=true]$DEPLOYER_KEYVAULT"
 
 echo -e "$green--- BoM $BOM ---$reset"
 echo "##vso[build.updatebuildnumber]Downloading BoM defined in $BOM"
 
 echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
 
-SUsername_from_Keyvault=$(az keyvault secret list --vault-name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --query "[].{Name:name} | [? contains(Name,'S-Username')] | [0]" -o tsv)
+SUsername_from_Keyvault=$(az keyvault secret list --vault-name "$DEPLOYER_KEYVAULT" --subscription "$ARM_SUBSCRIPTION_ID" --query "[].{Name:name} | [? contains(Name,'S-Username')] | [0]" -o tsv)
 if [ "$SUsername_from_Keyvault" == "$SUSERNAME" ]; then
   echo -e "$green--- $SUsername present in keyvault. In case of download errors check that user and password are correct ---$reset"
 else
   echo -e "$green--- Setting the S username in key vault ---$reset"
-  az keyvault secret set --name "S-Username" --vault-name "$key_vault" --value="$SUSERNAME" --subscription "$ARM_SUBSCRIPTION_ID" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
+  az keyvault secret set --name "S-Username" --vault-name "$DEPLOYER_KEYVAULT" --value="$SUSERNAME" --subscription "$ARM_SUBSCRIPTION_ID" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
 fi
 
-SPassword_from_Keyvault=$(az keyvault secret list --vault-name "${key_vault}" --subscription "$ARM_SUBSCRIPTION_ID" --query "[].{Name:name} | [? contains(Name,'S-Password')] | [0]" -o tsv)
+SPassword_from_Keyvault=$(az keyvault secret list --vault-name "$DEPLOYER_KEYVAULT" --subscription "$ARM_SUBSCRIPTION_ID" --query "[].{Name:name} | [? contains(Name,'S-Password')] | [0]" -o tsv)
 if [ "$SPASSWORD" == "$SPassword_from_Keyvault" ]; then
   echo -e "$green--- Password present in keyvault. In case of download errors check that user and password are correct ---$reset"
 else
   echo -e "$green--- Setting the S user name password in key vault ---$reset"
-  az keyvault secret set --name "S-Password" --vault-name "$key_vault" --value "$SPASSWORD" --subscription "$ARM_SUBSCRIPTION_ID" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
-
+  az keyvault secret set --name "S-Password" --vault-name "$DEPLOYER_KEYVAULT" --value "$SPASSWORD" --subscription "$ARM_SUBSCRIPTION_ID" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
 fi
 
 echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUSERNAME"
