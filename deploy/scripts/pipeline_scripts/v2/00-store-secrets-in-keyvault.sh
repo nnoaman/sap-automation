@@ -14,8 +14,6 @@ source "${script_directory}/shared_functions.sh"
 source "${script_directory}/set-colors.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
-source "${parent_directory}/helper.sh"
-
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
 	echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
