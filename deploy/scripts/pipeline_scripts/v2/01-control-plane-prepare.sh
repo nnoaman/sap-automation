@@ -119,7 +119,7 @@ echo "Deployer Folder Name:                $DEPLOYER_FOLDERNAME"
 echo "Deployer TFVars Filename:            $DEPLOYER_FOLDERNAME.tfvars"
 echo "Library Folder Name:                 $LIBRARY_FOLDERNAME"
 echo "Library TFVars Filename:             $LIBRARY_FOLDERNAME.tfvars"
-
+step=0
 # Handle force reset across platforms
 if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
@@ -129,7 +129,7 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	step=0
 else
 	if [ -f "${deployer_environment_file_name}" ]; then
-		step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+		step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	else
 		step=0
 	fi
