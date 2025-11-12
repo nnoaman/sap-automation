@@ -1106,26 +1106,23 @@ function sdaf_installer() {
 
 	if [ "${deployment_system}" == sap_landscape ]; then
 
-		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-			workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-			if [ -n "${workloadkeyvault}" ]; then
-				save_config_var "workloadkeyvault" "${system_environment_file_name}"
-			fi
-			workload_zone_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-			if [ -n "${workload_zone_random_id}" ]; then
-				save_config_var "workload_zone_random_id" "${system_environment_file_name}"
-				custom_random_id="${workload_zone_random_id:0:3}"
-				sed -i -e /"custom_random_id"/d "${var_file}"
-				printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
+		if [ -n "${workloadkeyvault}" ]; then
+			save_config_var "workloadkeyvault" "${system_environment_file_name}"
+		fi
+		workload_zone_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+		if [ -n "${workload_zone_random_id}" ]; then
+			save_config_var "workload_zone_random_id" "${system_environment_file_name}"
+			custom_random_id="${workload_zone_random_id:0:3}"
+			sed -i -e /"custom_random_id"/d "${var_file}"
+			printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
-			fi
 		fi
 
 	fi
 
 	if [ "${deployment_system}" == sap_library ]; then
 		REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-		sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
 
 		library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 		if [ -n "${library_random_id}" ]; then

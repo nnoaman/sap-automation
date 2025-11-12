@@ -289,12 +289,13 @@ fi
 echo "Return code from deployment:         ${return_code}"
 
 if [ -f "${workload_environment_file_name}" ]; then
-	KEYVAULT=$(grep -m1 "^workload_zone_key_vault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	KEYVAULT=$(grep -m1 "^workloadkeyvault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Key Vault:                  ${KEYVAULT}"
 
 	if [ "$PLATFORM" == "devops" ]; then
-		echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+
 		if [ -n "$KEYVAULT" ]; then
+			echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$KEYVAULT"
 		fi
 	fi
@@ -320,8 +321,8 @@ if [ -f .terraform/terraform.tfstate ]; then
 	added=1
 fi
 
-if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
-	git add ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}"
+if [ -f "${workload_environment_file_name}" ]; then
+	git add "${workload_environment_file_name}"
 	added=1
 fi
 
