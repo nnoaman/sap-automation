@@ -321,18 +321,21 @@ function print_header() {
 	local green="\e[1;32m"
 	local reset="\e[0m"
 	echo ""
-	echo -e "${green}DevOps information:"
-	echo -e "-------------------------------------------------------------------------------$reset"
+	if [ "$PLATFORM" == "devops" ]; then
 
-	echo "Agent pool:                          $THIS_AGENT"
-	echo "Organization:                        $SYSTEM_COLLECTIONURI"
-	echo "Project:                             $SYSTEM_TEAMPROJECT"
-	echo ""
-	if printenv TF_VAR_agent_pat; then
-		echo "Deployer Agent PAT:                  IsDefined"
-	fi
-	if printenv POOL; then
-		echo "Deployer Agent Pool:                 $POOL"
+		echo -e "${green}DevOps information:"
+		echo -e "-------------------------------------------------------------------------------$reset"
+
+		echo "Agent pool:                          ${THIS_AGENT:-unknown}"
+		echo "Organization:                        $SYSTEM_COLLECTIONURI"
+		echo "Project:                             $SYSTEM_TEAMPROJECT"
+		echo ""
+		if printenv TF_VAR_agent_pat; then
+			echo "Deployer Agent PAT:                  IsDefined"
+		fi
+		if printenv POOL; then
+			echo "Deployer Agent Pool:                 $POOL"
+		fi
 	fi
 	echo ""
 	echo -e "${green}Azure CLI version:${reset}"
