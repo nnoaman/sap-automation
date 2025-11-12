@@ -28,24 +28,23 @@ source "${parent_directory}/helper.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
-DEBUG=false
-
-if [ "${SYSTEM_DEBUG:-False}" = True ]; then
-	set -x
-	DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
-
-fi
-export DEBUG
-set -eu
-
 # Print the execution environment details
 print_header
 echo ""
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
+	DEBUG=false
+
+	if [ "${SYSTEM_DEBUG:-False}" = True ]; then
+		set -x
+		DEBUG=True
+		echo "Environment variables:"
+		printenv | sort
+
+	fi
+	export DEBUG
+	set -eu
 	# Configure DevOps
 	configure_devops
 

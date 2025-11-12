@@ -2,79 +2,102 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
+# Source the shared platform configuration
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+source "${SCRIPT_DIR}/shared_platform_config.sh"
+source "${SCRIPT_DIR}/shared_functions.sh"
+source "${SCRIPT_DIR}/set-colors.sh"
 
+SCRIPT_NAME="$(basename "$0")"
 
-#External helper functions
+# Set platform-specific output
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
+fi
+banner_title="SAP Configuration and Installation Preparation"
+# External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
-
-SCRIPT_NAME="$(basename "$0")"
-
-banner_title="Deploy SAP System"
-
 #call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
-
-#call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
 banner_title="SAP Configuration and Installation - Ansible"
 
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
-
-fi
-export DEBUG
-set -eu
-
 # Print the execution environment details
 print_header
+echo ""
 
-# Configure DevOps
-configure_devops
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	DEBUG=false
+
+	if [ "${SYSTEM_DEBUG:-False}" = True ]; then
+		set -x
+		DEBUG=True
+		echo "Environment variables:"
+		printenv | sort
+
+	fi
+	export DEBUG
+	set -eu
+	# Configure DevOps
+	configure_devops
+
+	platform_flag="--ado"
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
+	platform_flag="--github"
+else
+	platform_flag=""
+fi
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 #Stage could be executed on a different machine by default, need to login again for ansible
 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 
-# Set logon variables
-if [ $USE_MSI == "true" ]; then
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
-
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.13.3}"
 fi
+if [ "$PLATFORM" == "devops" ]; then
+	# Set logon variables
+	if [ $USE_MSI == "true" ]; then
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+	fi
 
-if az account show --query name; then
-	echo -e "$green--- Already logged in to Azure ---$reset"
-else
-	# Check if running on deployer
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure $USE_MSI
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
+	if az account show --query name; then
+		echo -e "$green--- Already logged in to Azure ---$reset"
+	else
+		# Check if running on deployer
+		echo -e "$green--- az login ---$reset"
+		LogonToAzure $USE_MSI
+		return_code=$?
+		if [ 0 != $return_code ]; then
+			echo -e "$bold_red--- Login failed ---$reset"
+			echo "##vso[task.logissue type=error]az login failed."
+			exit $return_code
+		fi
 	fi
 fi
-
 key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$VAULT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
@@ -126,7 +149,6 @@ tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (Resour
 control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
 export control_plane_subscription
-
 
 ############################################################################################
 #                                                                                          #
