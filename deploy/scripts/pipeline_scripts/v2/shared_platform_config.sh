@@ -68,7 +68,7 @@ configure_platform_variables() {
 		# Map Azure DevOps variables to common names
 		[ ! -v SAP_AUTOMATION_REPO_PATH ] && export SAP_AUTOMATION_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}/sap-automation"
 		[ ! -v CONFIG_REPO_PATH ] && export CONFIG_REPO_PATH="${SYSTEM_DEFAULTWORKINGDIRECTORY}/WORKSPACES}"
-		export DEVOPS_PAT="${AZURE_DEVOPS_EXT_PAT:-${SYSTEM_ACCESSTOKEN}}"
+		export DEVOPS_PAT="${AZURE_DEVOPS_EXT_PAT:-${SYSTEM_ACCESSTOKEN:-}}"
 	fi
 
 	# Setup common paths for scripts
