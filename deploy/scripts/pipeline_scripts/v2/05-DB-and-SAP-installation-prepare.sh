@@ -12,7 +12,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Downloading the software defined in $BOM_NAME"
+	echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"fi
 fi
 
 # External helper functions
@@ -109,8 +109,6 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		exit 2
 	fi
 fi
-
-echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
 
 echo "SID:                                 ${SID}"
 echo "Workload Zone Name:                  $WORKLOAD_ZONE_NAME"
