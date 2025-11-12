@@ -66,7 +66,6 @@ fi
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
 
-
 # Print the execution environment details
 print_header
 echo ""
@@ -138,7 +137,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-		configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
@@ -272,7 +271,6 @@ fi
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 print_banner "$banner_title" "Starting the deployment" "info"
 
-
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
 	"${platform_flag}" --storage_accountname "${terraform_storage_account_name}" --auto-approve; then
@@ -290,13 +288,15 @@ else
 fi
 echo "Return code from deployment:         ${return_code}"
 
-if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
-	KEYVAULT=$(grep -m1 "^workload_zone_key_vault=" ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -f "${workload_environment_file_name}" ]; then
+	KEYVAULT=$(grep -m1 "^workload_zone_key_vault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Key Vault:                  ${KEYVAULT}"
 
-	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-	if [ -n "$KEYVAULT" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$KEYVAULT"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+		if [ -n "$KEYVAULT" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$KEYVAULT"
+		fi
 	fi
 
 fi
@@ -313,7 +313,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	git pull -q origin "$GITHUB_REF_NAME"
 fi
 
-
 added=0
 
 if [ -f .terraform/terraform.tfstate ]; then
@@ -325,7 +324,6 @@ if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
 	git add ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}"
 	added=1
 fi
-
 
 if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
 	git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
@@ -381,7 +379,7 @@ if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md" 
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md" >> $GITHUB_STEP_SUMMARY
+		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 

@@ -249,7 +249,6 @@ if [ -n "$tfstate_resource_id" ]; then
 
 else
 	echo "Terraform storage account:            undefined"
-	storage_account_parameter=
 fi
 
 start_group "Decrypting state files"
@@ -308,7 +307,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	else
 		exit_error "Private PGP key not found." 3
 	fi
-	pass="localpassword"
 fi
 
 end_group
@@ -419,7 +417,6 @@ if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
 	export APPLICATION_CONFIGURATION_NAME
 	echo "APPLICATION_CONFIGURATION_NAME:      ${APPLICATION_CONFIGURATION_NAME}"
 	if [ "$PLATFORM" == "devops" ]; then
-
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
 	fi
 fi
