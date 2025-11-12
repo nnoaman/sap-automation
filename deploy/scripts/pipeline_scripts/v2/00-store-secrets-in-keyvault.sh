@@ -29,6 +29,8 @@ fi
 export DEBUG
 set -eu
 
+banner_title="Store Secrets in Key Vault"
+SCRIPT_NAME="$(basename "$0")"
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 return_code=0
