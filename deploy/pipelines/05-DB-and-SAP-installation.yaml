@@ -204,6 +204,7 @@ stages:
               azureTenantId:                  $(ARM_TENANT_ID)
               azureSubscriptionId:            $(ARM_SUBSCRIPTION_ID)
               USE_MSI:                        $(USE_MSI)
+              SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
               remoteStateStorageAccount:      $(TERRAFORM_STATE_STORAGE_ACCOUNT)
               controlPlaneSubscriptionId:     $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.base_os_configuration, true) }}:
@@ -225,6 +226,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
@@ -246,6 +248,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.bom_processing, true) }}:
@@ -267,6 +270,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.scs_installation, true) }}:
@@ -288,6 +292,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.database_install, true) }}:
@@ -309,6 +314,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.db_load, true) }}:
@@ -330,6 +336,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
@@ -351,6 +358,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.pas_installation, true) }}:
@@ -372,6 +380,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.application_server_installation, true) }}:
@@ -393,6 +402,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.webdispatcher_installation, true) }}:
@@ -414,6 +424,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.post_configuration_actions, true) }}:
@@ -435,6 +446,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
@@ -456,6 +468,7 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.acss_registration, true) }}:
@@ -479,6 +492,7 @@ stages:
                   acssEnvironment:            ${{ parameters.acss_environment }}
                   acssSapProduct:             ${{ parameters.acss_sap_product }}
                   USE_MSI:                    $(USE_MSI)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.ams_provider, true) }}:
@@ -499,6 +513,7 @@ stages:
                   azureClientSecret:          $(ARM_CLIENT_SECRET)
                   azureTenantId:              $(ARM_TENANT_ID)
                   azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  SYSTEM_ACCESSTOKEN:         $(System.AccessToken)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - template:                         templates\collect-log-files.yaml
