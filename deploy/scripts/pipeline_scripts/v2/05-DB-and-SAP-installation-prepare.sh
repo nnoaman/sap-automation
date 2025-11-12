@@ -14,7 +14,7 @@ SCRIPT_NAME="$(basename "$0")"
 if [ "$PLATFORM" == "devops" ]; then
 	echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"fi
 fi
-
+banner_title="SAP Configuration and Installation Preparation"
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
