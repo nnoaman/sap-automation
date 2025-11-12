@@ -88,17 +88,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	git checkout -q "$GITHUB_REF_NAME"
 fi
 
-if [ ! -f "$CONFIG_REPO_PATH/$tfvarsFile" ]; then
-	print_banner "$banner_title" "$SAP_SYSTEM_TFVARS_FILENAME was not found" "error"
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
-		exit 2
-	elif [ "$PLATFORM" == "github" ]; then
-		echo "File $SAP_SYSTEM_TFVARS_FILENAME was not found."
-		exit 2
-	fi
-fi
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.13.3}"
@@ -110,8 +99,6 @@ if [ "$USE_MSI" == "true" ]; then
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
-
-
 
 if [ "$PLATFORM" == "devops" ]; then
 	if [ "$USE_MSI" != "true" ]; then
