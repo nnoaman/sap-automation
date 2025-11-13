@@ -168,8 +168,7 @@ echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$key_vault"
 az keyvault secret show --name "${WORKLOAD_ZONE_NAME}-sid-sshkey" --vault-name "$key_vault" --subscription "$key_vault_subscription_id" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.
-chmod 600 artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
-ls -lart artifacts/
+sudo chmod 600 artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
 
 2> >(while read line; do (echo >&2 "STDERROR: $line"); done)
 
