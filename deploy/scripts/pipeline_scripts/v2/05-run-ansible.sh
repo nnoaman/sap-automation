@@ -159,6 +159,10 @@ if [ -f "$PARAMETERS_FOLDER/extra-params.yaml" ]; then
 	EXTRA_PARAM_FILE="-e @$PARAMETERS_FOLDER/extra-params.yaml"
 fi
 
+sudo chmod -R 600 "$PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME"
+ls -lart "$PARAMETERS_FOLDER/artifacts/"
+
+
 ############################################################################################
 #                                                                                          #
 # Run Pre tasks if Ansible playbook with the correct naming exists                         #
