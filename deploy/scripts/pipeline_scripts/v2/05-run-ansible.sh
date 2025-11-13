@@ -12,7 +12,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]SAP Configuration and Installation - ${PARAMETERS_FOLDER}"
+	echo "##vso[build.updatebuildnumber]SAP Configuration and Installation"
 fi
 
 # External helper functions
