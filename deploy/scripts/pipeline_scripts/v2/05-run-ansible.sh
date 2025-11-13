@@ -99,10 +99,16 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 fi
 
+tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+
+export control_plane_subscription
+
 key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
 key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
 key_vault_name=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
+az account set --subscription "$key_vault_subscription" --output none
 
 if [ -n "$key_vault_subscription" ]; then
 	echo "##[section]Using Key Vault subscription: $key_vault_subscription"
@@ -116,11 +122,15 @@ set -eu
 if [ ! -f "$PARAMETERS_FOLDER"/sshkey ]; then
 	echo "##[section]Retrieving sshkey..."
 	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
-	sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
+	if [ ! -f "$PARAMETERS_FOLDER"/sshkey ]; then
+		sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
+	fi
 fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
 user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value -o tsv)
+
+
 
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
@@ -146,12 +156,6 @@ if [ -f "$PARAMETERS_FOLDER/extra-params.yaml" ]; then
 	EXTRA_PARAM_FILE="-e @$PARAMETERS_FOLDER/extra-params.yaml"
 fi
 
-tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-
-export control_plane_subscription
-
-az account set --subscription "$control_plane_subscription" --output none
 
 ############################################################################################
 #                                                                                          #
