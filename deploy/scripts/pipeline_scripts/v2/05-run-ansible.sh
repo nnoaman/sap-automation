@@ -12,9 +12,9 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying ${PARAMETERS_FOLDER} using BoM ${BOM_BASE_NAME}"
+	echo "##vso[build.updatebuildnumber]SAP Configuration and Installation - ${PARAMETERS_FOLDER}"
 fi
-banner_title="SAP Configuration and Installation Preparation"
+
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
