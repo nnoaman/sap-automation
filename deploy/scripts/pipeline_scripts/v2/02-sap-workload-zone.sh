@@ -72,6 +72,9 @@ echo ""
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
+
+	echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
+
 	# Configure DevOps
 	configure_devops
 
@@ -112,7 +115,6 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
@@ -124,11 +126,15 @@ else
 	platform_flag=""
 fi
 
+if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export APPLICATION_CONFIGURATION_ID
+fi
+
+
 banner_title="Deploy Workload Zone"
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
-
-echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
