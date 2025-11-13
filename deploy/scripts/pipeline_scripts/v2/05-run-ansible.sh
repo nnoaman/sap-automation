@@ -12,7 +12,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
+	echo "##vso[build.updatebuildnumber]Deploying ${PARAMETERS_FOLDER} using BoM ${BOM_BASE_NAME}"
 fi
 banner_title="SAP Configuration and Installation Preparation"
 # External helper functions
