@@ -138,14 +138,14 @@ user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$k
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
 
-echo "Extra parameters passed: $EXTRA_PARAMS"
-
 base=$(basename "$ANSIBLE_FILE_PATH")
 
 filename_without_prefix=$(echo "$base" | awk -F'.' '{print $1}')
 return_code=0
 
-echo "Extra parameters passed: $EXTRA_PARAMS"
+if [ -n "$EXTRA_PARAMS" ]; then
+	echo "Extra parameters passed: $EXTRA_PARAMS"
+fi
 echo "Check for file: ${filename_without_prefix}"
 
 command="ansible --version"

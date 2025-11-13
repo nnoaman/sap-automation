@@ -6,7 +6,6 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 
-
 #External helper functions
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
@@ -99,14 +98,14 @@ user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$V
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
 
-echo "Extra parameters passed: $EXTRA_PARAMS"
-
 base=$(basename "$ANSIBLE_FILE_PATH")
 
 filename_without_prefix=$(echo "$base" | awk -F'.' '{print $1}')
 return_code=0
 
-echo "Extra parameters passed: $EXTRA_PARAMS"
+if [ -n "$EXTRA_PARAMS" ]; then
+	echo "Extra parameters passed: $EXTRA_PARAMS"
+fi
 echo "Check for file: ${filename_without_prefix}"
 
 command="ansible --version"
@@ -126,7 +125,6 @@ tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (Resour
 control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
 export control_plane_subscription
-
 
 ############################################################################################
 #                                                                                          #
