@@ -58,7 +58,7 @@
   ansible.builtin.set_fact:
     params_by_name: >-
                                        {{
-                                         (common_params + distro_params)
+                                         ( common_params | community.general.lists_mergeby( distro_params, 'name' ) )
                                        }}
   vars:
     common_params: >-
