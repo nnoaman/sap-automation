@@ -147,6 +147,8 @@ if [ -n "$EXTRA_PARAMS" ]; then
 	echo "Extra parameters passed: $EXTRA_PARAMS"
 fi
 
+sudo chmod 600 "$PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME"
+
 command="ansible --version"
 eval "${command}"
 
