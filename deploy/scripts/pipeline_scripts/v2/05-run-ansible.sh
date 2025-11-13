@@ -119,18 +119,18 @@ fi
 
 set -eu
 
-if [ ! -f "$PARAMETERS_FOLDER"/sshkey ]; then
+cd $PARAMETERS_FOLDER || exit
+
+if [ ! -f "artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey" ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
-	if [ ! -f "$PARAMETERS_FOLDER"/sshkey ]; then
-		sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
+	if [ ! -f "artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey" ]; then
+		sudo chmod 600 "artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 	fi
 fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
 user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value -o tsv)
-
-
 
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
@@ -171,7 +171,7 @@ if [ -f "${filename}" ]; then
 										$EXTRA_PARAM_FILE ${filename} -e 'kv_name=$key_vault_name'"
 	echo "##[section]Executing [$redacted_command]..."
 
-	command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey    \
+	command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey    \
 						-e 'kv_name=$key_vault_name' -e @$SAP_PARAMS                                 \
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                             \
 						-e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS               \
