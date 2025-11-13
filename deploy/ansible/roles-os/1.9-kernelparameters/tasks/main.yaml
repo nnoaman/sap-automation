@@ -59,7 +59,7 @@
     params_by_name: >-
                                        {{
                                          (common_params + distro_params) |
-                                         items2dict(key_attr='name')
+                                         items2dict(key_name='name')
                                        }}
   vars:
     common_params: >-
