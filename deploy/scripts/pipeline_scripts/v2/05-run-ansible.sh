@@ -98,13 +98,16 @@ if [ "$PLATFORM" == "devops" ]; then
 		fi
 	fi
 fi
-key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$VAULT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+
+key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
 key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
+key_vault_name=$(echo "$key_vault_id" | cut -d '/' -f 9)
+
 
 if [ -n "$key_vault_subscription" ]; then
 	echo "##[section]Using Key Vault subscription: $key_vault_subscription"
 else
-	echo "##[error]Key Vault subscription not found for vault: $VAULT_NAME"
+	echo "##[error]Key Vault subscription not found for vault: $key_vault_name"
 	exit 1
 fi
 
@@ -112,12 +115,12 @@ set -eu
 
 if [ ! -f "$PARAMETERS_FOLDER"/sshkey ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$VAULT_NAME" --subscription "$key_vault_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/sshkey"
 	sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
 fi
 
-password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$VAULT_NAME" --subscription "$key_vault_subscription" --query value --output tsv)
-user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$VAULT_NAME" --subscription "$key_vault_subscription" --query value -o tsv)
+password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
+user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value -o tsv)
 
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
@@ -161,11 +164,11 @@ if [ -f "${filename}" ]; then
 	echo "##[group]- preconfiguration"
 
 	redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS '$EXTRA_PARAMS' \
-										$EXTRA_PARAM_FILE ${filename} -e 'kv_name=$VAULT_NAME'"
+										$EXTRA_PARAM_FILE ${filename} -e 'kv_name=$key_vault_name'"
 	echo "##[section]Executing [$redacted_command]..."
 
 	command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey    \
-						-e 'kv_name=$VAULT_NAME' -e @$SAP_PARAMS                                 \
+						-e 'kv_name=$key_vault_name' -e @$SAP_PARAMS                                 \
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                             \
 						-e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS               \
 						-e orchestration_ansible_user=$USER                                      \
@@ -180,7 +183,7 @@ if [ -f "${filename}" ]; then
 fi
 
 command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey       \
-					-e 'kv_name=$VAULT_NAME' -e @$SAP_PARAMS                                    \
+					-e 'kv_name=$key_vault_name' -e @$SAP_PARAMS                                    \
 					-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
 					-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
 					-e orchestration_ansible_user=$USER                                         \
@@ -189,7 +192,7 @@ command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey 
           $ANSIBLE_FILE_PATH"
 
 redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS $EXTRA_PARAMS        \
-									$EXTRA_PARAM_FILE $ANSIBLE_FILE_PATH  -e 'kv_name=$VAULT_NAME'"
+									$EXTRA_PARAM_FILE $ANSIBLE_FILE_PATH  -e 'kv_name=$key_vault_name'"
 
 echo "##[section]Executing [$command]..."
 echo "##[group]- output"
@@ -211,11 +214,11 @@ if [ -f "${filename}" ]; then
 
 	echo "##[group]- postconfiguration"
 	redacted_command="ansible-playbook -i '$INVENTORY' -e @'$SAP_PARAMS' $EXTRA_PARAMS    \
-										'$EXTRA_PARAM_FILE' '${filename}'  -e 'kv_name=$VAULT_NAME'"
+										'$EXTRA_PARAM_FILE' '${filename}'  -e 'kv_name=$key_vault_name'"
 	echo "##[section]Executing [$redacted_command]..."
 
 	command="ansible-playbook -i '$INVENTORY' --private-key '$PARAMETERS_FOLDER/sshkey'   \
-						-e 'kv_name=$VAULT_NAME' -e @$SAP_PARAMS                                    \
+						-e 'kv_name=$key_vault_name' -e @$SAP_PARAMS                                    \
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
 						-e orchestration_ansible_user=$USER                                         \
   					-e ansible_user=$user_name                                                  \

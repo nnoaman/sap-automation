@@ -23,3 +23,6 @@ variables:
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
+
+  - name:                              workload_zone_name
+    value:                             ${{ parameters.environment }}

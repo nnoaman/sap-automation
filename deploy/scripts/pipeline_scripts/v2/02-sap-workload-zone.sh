@@ -96,6 +96,22 @@ if [ "$PLATFORM" == "devops" ]; then
 		exit 2
 	fi
 	export PARENT_VARIABLE_GROUP_ID
+	TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION"; then
+		echo "Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was not added to the $VARIABLE_GROUP variable group."
+	fi
+
+	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "ARM_SUBSCRIPTION_ID")
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"; then
+		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+	fi
+
 
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions

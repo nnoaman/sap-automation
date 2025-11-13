@@ -52,3 +52,5 @@ steps:
     USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}
     TERRAFORM_STATE_STORAGE_ACCOUNT: ${{ parameters.terraformStateStorageAccount }}
     CONTROL_PLANE_SUBSCRIPTION_ID:   ${{ parameters.controlPlaneSubscriptionId }}
+    CONTROL_PLANE_NAME:             ${{ parameters.controlPlaneName }}
+    WORKLOAD_ZONE_NAME:             ${{ parameters.workloadZoneName }}
