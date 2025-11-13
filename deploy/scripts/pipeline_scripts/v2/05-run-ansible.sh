@@ -146,7 +146,7 @@ if [ -f "$PARAMETERS_FOLDER/extra-params.yaml" ]; then
 	EXTRA_PARAM_FILE="-e @$PARAMETERS_FOLDER/extra-params.yaml"
 fi
 
-tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_STATE_STORAGE_ACCOUNT' | project id, name, subscription" --query data[0].id --output tsv)
+tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
 export control_plane_subscription
