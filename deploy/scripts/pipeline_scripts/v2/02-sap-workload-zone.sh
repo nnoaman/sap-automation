@@ -28,17 +28,18 @@ source "${parent_directory}/helper.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
-WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
-tfvarsFile="$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
+
+
+tfvarsFile="$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_NAME-INFRASTRUCTURE/$WORKLOAD_ZONE_NAME-INFRASTRUCTURE.tfvars"
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
-ENVIRONMENT_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $1}')
-LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $2}')
+ENVIRONMENT_IN_FILENAME=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $1}')
+LOCATION_CODE_IN_FILENAME=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
-NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
+NETWORK_IN_FILENAME=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $3}')
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
@@ -131,12 +132,9 @@ if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	export APPLICATION_CONFIGURATION_ID
 fi
 
-
 banner_title="Deploy Workload Zone"
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
-
-tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
 echo -e "$cyan tfvarsFile: $tfvarsFile $reset"
 
@@ -151,9 +149,12 @@ elif [ "$PLATFORM" == "github" ]; then
 	git checkout -q "$GITHUB_REF_NAME"
 fi
 
-if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
-	echo -e "$bold_red--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset"
-	echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_TFVARS_FILENAME was not found."
+if [ ! -f "$tfvarsFile" ]; then
+	echo -e "$bold_red--- $$WORKLOAD_ZONE_NAME-INFRASTRUCTURE/$WORKLOAD_ZONE_NAME-INFRASTRUCTURE.tfvars was not found ---$reset"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_NAME-INFRASTRUCTURE/$WORKLOAD_ZONE_NAME-INFRASTRUCTURE.tfvars was not found."
+	fi
+
 	exit 2
 fi
 
@@ -285,15 +286,10 @@ export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
 export tfstate_resource_id
 
-if [ -z "$tfstate_resource_id" ]; then
-	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-	export tfstate_resource_id
-fi
-
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 print_banner "$banner_title" "Starting the deployment" "info"
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$WORKLOAD_ZONE_TFVARS_FILENAME" --type sap_landscape \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$tfvarsFile" --type sap_landscape \
 	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
 	"${platform_flag}" --storage_accountname "${terraform_storage_account_name}" --auto-approve; then
 	return_code=$?
