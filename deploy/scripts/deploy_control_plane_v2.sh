@@ -278,7 +278,7 @@ function bootstrap_deployer() {
 	echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
 	export DEPLOYER_KEYVAULT
 
-	if [ -v "$APPLICATION_CONFIGURATION_NAME" ]; then
+	if [ -v APPLICATION_CONFIGURATION_NAME ]; then
 		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
 	fi
 
