@@ -673,7 +673,7 @@ function migrate_library_state() {
 ############################################################################################
 
 function copy_files_to_public_deployer() {
-	if [ "${devops_flag}" != "--devops" ]; then
+	if [ "${devops_flag}" == "none" ]; then
 		cd "${current_directory}" || exit
 
 		load_config_vars "${deployer_environment_file_name}" "sshsecret"
