@@ -146,7 +146,6 @@ return_code=0
 if [ -n "$EXTRA_PARAMS" ]; then
 	echo "Extra parameters passed: $EXTRA_PARAMS"
 fi
-echo "Check for file: ${filename_without_prefix}"
 
 command="ansible --version"
 eval "${command}"
@@ -155,13 +154,8 @@ EXTRA_PARAM_FILE=""
 
 if [ -f "$PARAMETERS_FOLDER/extra-params.yaml" ]; then
 	echo "Extra parameter file passed: $PARAMETERS_FOLDER/extra-params.yaml"
-
 	EXTRA_PARAM_FILE="-e @$PARAMETERS_FOLDER/extra-params.yaml"
 fi
-
-sudo chmod -R 600 "$PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME"
-ls -lart "$PARAMETERS_FOLDER/artifacts/"
-
 
 ############################################################################################
 #                                                                                          #
@@ -169,6 +163,8 @@ ls -lart "$PARAMETERS_FOLDER/artifacts/"
 #                                                                                          #
 ############################################################################################
 filename=./config/Ansible/"${filename_without_prefix}"_pre.yml
+
+echo "Check if file: ${filename} exists"
 
 if [ -f "${filename}" ]; then
 	echo "##[group]- preconfiguration"
@@ -209,7 +205,7 @@ command="ansible-playbook -i '$INVENTORY'                                       
 redacted_command="ansible-playbook -i '$INVENTORY' --private-key $PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS -e orchestration_ansible_user=$USER -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}"
 
 echo "##[section]Executing [$command]..."
-echo "##[group]- output"
+echo "##[group]- configuration"
 eval "${command}"
 return_code=$?
 echo "##[section]Ansible playbook execution completed with exit code [$return_code]"
@@ -222,7 +218,7 @@ echo "##[endgroup]"
 ############################################################################################
 
 filename=./config/Ansible/"${filename_without_prefix}"_post.yml
-echo "Check for file: ${filename}"
+echo "Check if file: ${filename} exists"
 
 if [ -f "${filename}" ]; then
 
