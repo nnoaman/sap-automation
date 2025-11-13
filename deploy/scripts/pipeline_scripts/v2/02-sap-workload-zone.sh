@@ -28,9 +28,7 @@ source "${parent_directory}/helper.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
-
-
-tfvarsFile="$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_NAME-INFRASTRUCTURE/$WORKLOAD_ZONE_NAME-INFRASTRUCTURE.tfvars"
+tfvarsFile="$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_NAME-INFRASTRUCTURE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:upper:]' '[:lower:]' | tr -d ' \t\n\r\f"')
@@ -150,9 +148,9 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 if [ ! -f "$tfvarsFile" ]; then
-	echo -e "$bold_red--- $$WORKLOAD_ZONE_NAME-INFRASTRUCTURE/$WORKLOAD_ZONE_NAME-INFRASTRUCTURE.tfvars was not found ---$reset"
+	echo -e "$bold_red--- $$WORKLOAD_ZONE_NAME-INFRASTRUCTURE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars was not found ---$reset"
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_NAME-INFRASTRUCTURE/$WORKLOAD_ZONE_NAME-INFRASTRUCTURE.tfvars was not found."
+		echo "##vso[task.logissue type=error]File $WORKLOAD_ZONE_NAME-INFRASTRUCTURE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars was not found."
 	fi
 
 	exit 2
@@ -209,7 +207,7 @@ echo "CONTROL_PLANE_NAME:                  $CONTROL_PLANE_NAME"
 echo "Control plane environment file:      $deployer_environment_file_name"
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment file:      $workload_environment_file_name"
-echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
+echo "Workload zone TFvars:                ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
 	echo "APPLICATION_CONFIGURATION_NAME:      $APPLICATION_CONFIGURATION_NAME"
 fi
@@ -225,17 +223,17 @@ echo "Network in file:                     $NETWORK_IN_FILENAME"
 
 # Validate folder name components match tfvars file settings
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-	print_banner "$banner_title" "Environment mismatch" "error" "The environment setting in the tfvars file is not a part of the $WORKLOAD_ZONE_TFVARS_FILENAME file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	print_banner "$banner_title" "Environment mismatch" "error" "The environment setting in the tfvars file is not a part of the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]The environment setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$ENVIRONMENT' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+		echo "##vso[task.logissue type=error]The environment setting in ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars '$ENVIRONMENT' does not match the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	fi
 	exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-	print_banner "$banner_title" "Location mismatch" "error" "The 'location' setting in the tfvars file is not represented in the $WORKLOAD_ZONE_TFVARS_FILENAME file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	print_banner "$banner_title" "Location mismatch" "error" "The 'location' setting in the tfvars file is not represented in the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]The location setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$LOCATION' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+		echo "##vso[task.logissue type=error]The location setting in ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars '$LOCATION' does not match the ${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	fi
 	exit 2
 fi
