@@ -154,6 +154,7 @@ fi
 
 az account set --subscription "$tfstate_subscription_id" --output none --only-show-errors
 
+echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
 echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-sshkey"
 echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$key_vault"
 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-password"
