@@ -79,7 +79,7 @@
 
 - name:                                "1.9 Kernel parameters - Convert back to list for iteration"
   ansible.builtin.set_fact:
-    get_parameters_to_apply:           "{{ params_by_name.values() | list }}"
+    get_parameters_to_apply:           "{{ params_by_name | list }}"
 # Print Distribution ID if it is passed correctly.
 - name:                                "1.9 Kernel parameters - Display distribution_id which will be used"
   ansible.builtin.debug:
