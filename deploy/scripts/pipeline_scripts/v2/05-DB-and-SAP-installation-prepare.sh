@@ -154,12 +154,11 @@ fi
 
 az account set --subscription "$tfstate_subscription_id" --output none --only-show-errors
 
-echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${workload_prefix}-sid-sshkey"
-echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vault"
-echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
-echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload_prefix}-sid-username"
+echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-sshkey"
+echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$key_vault"
+echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-password"
+echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-username"
 echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
-echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]${control_plane_subscription}"
 
 az keyvault secret show --name "${WORKLOAD_ZONE_NAME}-sid-sshkey" --vault-name "$key_vault" --subscription "$key_vault_subscription_id" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
