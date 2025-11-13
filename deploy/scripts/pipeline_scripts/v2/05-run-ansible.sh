@@ -121,11 +121,11 @@ set -eu
 
 cd $PARAMETERS_FOLDER || exit
 
-if [ ! -f "artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey" ]; then
+if [ ! -f "artifacts/$PREPARATION_SSH_KEY_NAME" ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
-	if [ ! -f "artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey" ]; then
-		sudo chmod 600 "artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"artifacts/$PREPARATION_SSH_KEY_NAME"
+	if [ ! -f "artifacts/$PREPARATION_SSH_KEY_NAME" ]; then
+		sudo chmod 600 "artifacts/$PREPARATION_SSH_KEY_NAME"
 	fi
 fi
 
@@ -171,8 +171,9 @@ if [ -f "${filename}" ]; then
 										$EXTRA_PARAM_FILE ${filename} -e 'kv_name=$key_vault_name'"
 	echo "##[section]Executing [$redacted_command]..."
 
-	command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey    \
-						-e 'kv_name=$key_vault_name' -e @$SAP_PARAMS                                 \
+	command="ansible-playbook -i $INVENTORY                                            \
+	          --private-key $PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME     \
+						-e 'kv_name=$key_vault_name' -e @$SAP_PARAMS                             \
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                             \
 						-e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS               \
 						-e orchestration_ansible_user=$USER                                      \
@@ -186,8 +187,8 @@ if [ -f "${filename}" ]; then
 
 fi
 
-command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey       \
-					-e 'kv_name=$key_vault_name' -e @$SAP_PARAMS                                    \
+	command="ansible-playbook -i $INVENTORY                                            \
+	          --private-key $PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME     \
 					-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
 					-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
 					-e orchestration_ansible_user=$USER                                         \
