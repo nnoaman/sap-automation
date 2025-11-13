@@ -154,7 +154,6 @@ fi
 
 az account set --subscription "$tfstate_subscription_id" --output none --only-show-errors
 
-echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${tfstate_subscription_id}"
 echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"

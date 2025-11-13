@@ -200,14 +200,14 @@ stages:
               azureTenantId:                  $(ARM_TENANT_ID)
               controlPlaneName:               $(CONTROL_PLANE_NAME)
               controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-              extraParams:                    "$(Preparation.NEW_PARAMETERS)"
+              extraParams:                    $(Preparation.NEW_PARAMETERS)
               parametersFolder:               $(Preparation.FOLDER)
-              passwordSecretName:             "$(Preparation.PASSWORD_KEY_NAME)"
+              passwordSecretName:             $(Preparation.PASSWORD_KEY_NAME)
               remoteStateStorageAccount:      $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-              sapParams:                      "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-              secretName:                     "$(Preparation.SSH_KEY_NAME)"
+              sapParams:                      ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+              secretName:                     $(Preparation.SSH_KEY_NAME)
               sidHosts:                       $(Preparation.HOSTS)
-              userNameSecretName:             "$(Preparation.USERNAME_KEY_NAME)"
+              userNameSecretName:             $(Preparation.USERNAME_KEY_NAME)
               vaultName:                      $(KEYVAULT)
               workloadZoneName:               $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.base_os_configuration, true) }}:
@@ -224,14 +224,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
@@ -248,14 +248,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.bom_processing, true) }}:
@@ -272,14 +272,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.scs_installation, true) }}:
@@ -296,14 +296,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.database_install, true) }}:
@@ -320,14 +320,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.db_load, true) }}:
@@ -344,14 +344,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
@@ -368,14 +368,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.pas_installation, true) }}:
@@ -392,14 +392,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.application_server_installation, true) }}:
@@ -416,14 +416,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.webdispatcher_installation, true) }}:
@@ -432,14 +432,14 @@ stages:
                   displayName:                Web Dispatcher
                   ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_04_sap_web_install.yaml
                   ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   parametersFolder:           $(Preparation.FOLDER)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
                   sidHosts:                   $(Preparation.HOSTS)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   azureClientId:              $(ARM_CLIENT_ID)
                   azureClientSecret:          $(ARM_CLIENT_SECRET)
                   azureTenantId:              $(ARM_TENANT_ID)
@@ -462,14 +462,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
@@ -482,14 +482,14 @@ stages:
                   azureTenantId:              $(ARM_TENANT_ID)
                   controlPlaneName:           $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId: $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   parametersFolder:           $(Preparation.FOLDER)
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
                   remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
                   sidHosts:                   $(Preparation.HOSTS)
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   workloadZoneName:           $(Preparation.WORKLOAD_ZONE_NAME)
           - ${{ if eq(parameters.acss_registration, true) }}:
@@ -498,14 +498,14 @@ stages:
                   displayName:                "ACSS Registration"
                   ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_00_acss_registration.yaml
                   ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   parametersFolder:           $(Preparation.FOLDER)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
                   sidHosts:                   $(Preparation.HOSTS)
-                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:                $(Preparation.NEW_PARAMETERS)
                   azureClientId:              $(ARM_CLIENT_ID)
                   azureClientSecret:          $(ARM_CLIENT_SECRET)
                   azureTenantId:              $(ARM_TENANT_ID)
@@ -522,12 +522,12 @@ stages:
                   displayName:                "AMS Provider Creation"
                   ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_01_ams_monitoring.yaml
                   ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  secretName:                 $(Preparation.SSH_KEY_NAME)
+                  passwordSecretName:         $(Preparation.PASSWORD_KEY_NAME)
+                  userNameSecretName:         $(Preparation.USERNAME_KEY_NAME)
                   vaultName:                  $(KEYVAULT)
                   parametersFolder:           $(Preparation.FOLDER)
-                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sapParams:                  ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
                   sidHosts:                   $(Preparation.HOSTS)
                   extraParams:                ${{ parameters.extra_params }}
                   azureClientId:              $(ARM_CLIENT_ID)
