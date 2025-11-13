@@ -121,14 +121,15 @@ set -eu
 
 cd $PARAMETERS_FOLDER || exit
 
-if [ ! -f "artifacts/$PREPARATION_SSH_KEY_NAME" ]; then
+if [ ! -f "$PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME" ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"artifacts/$PREPARATION_SSH_KEY_NAME"
-	if [ ! -f "artifacts/$PREPARATION_SSH_KEY_NAME" ]; then
-		sudo chmod 600 "artifacts/$PREPARATION_SSH_KEY_NAME"
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME"
+	if [ ! -f "$PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME" ]; then
+		sudo chmod 600 "$PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME"
 	fi
 else
-	sudo chmod 600 "artifacts/$PREPARATION_SSH_KEY_NAME"
+	echo "##[section]SSH key already exists, skipping retrieval."
+	sudo chmod 600 "$PARAMETERS_FOLDER/artifacts/$PREPARATION_SSH_KEY_NAME"
 fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
