@@ -37,8 +37,6 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 return_code=0
 
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-
 cd "${CONFIG_REPO_PATH}" || exit
 echo -e "$green--- Pushing the changes to the repository ---$reset"
 # Pull changes if there are other deployment jobs
