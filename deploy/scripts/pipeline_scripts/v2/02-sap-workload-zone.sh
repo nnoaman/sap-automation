@@ -342,8 +342,8 @@ if [ -f "${workload_environment_file_name}" ]; then
 	added=1
 fi
 
-if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
-	git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
+if [ -f "$tfvarsFile" ]; then
+	git add "$tfvarsFile"
 	added=1
 fi
 
