@@ -72,7 +72,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	export VARIABLE_GROUP_ID
 elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
-	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
+	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 	platform_flag="--github"
 else
