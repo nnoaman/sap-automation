@@ -30,18 +30,19 @@ SCRIPT_NAME="$(basename "$0")"
 
 DEBUG=false
 
-if [ "${SYSTEM_DEBUG:-False}" = True ]; then
-  set -x
-  DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
-
+if [ "$PLATFORM" == "devops" ]; then
+	if [ "${SYSTEM_DEBUG:-False}" = True ]; then
+		set -x
+		DEBUG=True
+		echo "Environment variables:"
+		printenv | sort
+	fi
+	export DEBUG
+	AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
+	export AZURE_DEVOPS_EXT_PAT
+elif [ "$PLATFORM" == "github" ]; then
+	echo "Configuring for GitHub Actions"
 fi
-export DEBUG
-set -eu
-
-AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-export AZURE_DEVOPS_EXT_PAT
 
 cd "$CONFIG_REPO_PATH" || exit
 
@@ -70,8 +71,6 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 	export VARIABLE_GROUP_ID
 elif [ "$PLATFORM" == "github" ]; then
-	# No specific variable group setup for GitHub Actions
-	# Values will be stored in GitHub Environment variables
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
@@ -81,51 +80,99 @@ else
 fi
 
 echo -e "$green--- Validations ---$reset"
-if [ ! -f "${environment_file_name}" ]; then
-  echo -e "$bold_red--- ${environment_file_name} was not found ---$reset"
-  echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
-  exit 2
-fi
-if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-  exit 2
-fi
+if [ "$PLATFORM" == "devops" ]; then
+	if [ ! -f "${environment_file_name}" ]; then
+		echo -e "$bold_red--- ${environment_file_name} was not found ---$reset"
+		echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
+		exit 2
+	fi
+	if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+		exit 2
+	fi
 
-if [ "azure pipelines" == $THIS_AGENT ]; then
-  echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
-  exit 2
-fi
+	if [ "azure pipelines" == $THIS_AGENT ]; then
+		echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
+		exit 2
+	fi
 
-if [ "your S User" == "$SUSERNAME" ]; then
-  echo "##vso[task.logissue type=error]Please define the S-Username variable."
-  exit 2
-fi
+	if [ "your S User" == "$SUSERNAME" ]; then
+		echo "##vso[task.logissue type=error]Please define the S-Username variable."
+		exit 2
+	fi
 
-if [ "your S user password" == "$SPASSWORD" ]; then
-  echo "##vso[task.logissue type=error]Please define the S-Password variable."
-  exit 2
+	if [ "your S user password" == "$SPASSWORD" ]; then
+		echo "##vso[task.logissue type=error]Please define the S-Password variable."
+		exit 2
+	fi
+elif [ "$PLATFORM" == "github" ]; then
+	if [ ! -f "${environment_file_name}" ]; then
+		echo "::error title=Missing File::File '${environment_file_name}' was not found"
+		exit 2
+	fi
+	if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
+		echo "::error title=Missing Variable::Variable 'ARM_SUBSCRIPTION_ID' was not defined."
+		exit 2
+	fi
+
+	if [ -z "$SUSERNAME" ]; then
+		echo "::error title=Missing Variable ::Please define the S-Username variable."
+		exit 2
+	fi
+
+	if [ -z "$SPASSWORD" ]; then
+		echo "::error title=Missing Secret::Please define the S-Password secret."
+		exit 2
+	fi
 fi
 
 echo -e "$green--- az login ---$reset"
+
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)"
-    echo -e "$green--- az login ---$reset"
-  LogonToAzure false
+	configureNonDeployer "${tf_version:-1.13.3}"
 fi
-return_code=$?
-if [ 0 != $return_code ]; then
-  echo -e "$bold_red--- Login failed ---$reset"
-  echo "##vso[task.logissue type=error]az login failed."
-  exit $return_code
+echo -e "$green--- az login ---$reset"
+# Set logon variables
+if [ "$USE_MSI" == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
+if [ "$PLATFORM" == "devops" ]; then
+	if [ "$USE_MSI" != "true" ]; then
+
+		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+		export ARM_TENANT_ID
+		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+		export ARM_SUBSCRIPTION_ID
+	else
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+	fi
+	LogonToAzure "${USE_MSI:-false}"
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+fi
+
+APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
+export APPLICATION_CONFIGURATION_SUBSCRIPTION_ID
+
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo " ##vso[task.setvariable variable=KV_NAME;isOutput=true]$DEPLOYER_KEYVAULT"
 
+echo "Keyvault: $DEPLOYER_KEYVAULT"
+
+
 echo -e "$green--- BoM $BOM ---$reset"
-echo "##vso[build.updatebuildnumber]Downloading BoM defined in $BOM"
+echo "Downloading BoM defined in $BOM"
 
 echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
 
@@ -145,9 +192,34 @@ else
   az keyvault secret set --name "S-Password" --vault-name "$DEPLOYER_KEYVAULT" --value "$SPASSWORD" --subscription "$ARM_SUBSCRIPTION_ID" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
 fi
 
-echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUSERNAME"
-echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$SPASSWORD"
-echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$BOM"
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUSERNAME"
+	echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$SPASSWORD"
+	echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$BOM"
+elif [ "$PLATFORM" == "github" ]; then
+	start_group "Download SAP Bill of Materials"
+
+	az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
+	return_code=0
+
+	sample_path=${SAMPLE_REPO_PATH}/SAP
+	command="ansible-playbook \
+		-e download_directory=${GITHUB_WORKSPACE} \
+		-e s_user=${SUSERNAME} \
+		-e BOM_directory=${sample_path} \
+		-e bom_base_name='${BOM}' \
+		-e deployer_kv_name=${DEPLOYER_KEYVAULT} \
+		-e check_storage_account=${re_download} \
+		-e orchestration_ansible_user=root \
+		${EXTRA_PARAMETERS} \
+		${SAP_AUTOMATION_REPO_PATH}/deploy/ansible/playbook_bom_downloader.yaml"
+	echo "Executing [$command]"
+	eval $command
+	return_code=$?
+
+	end_group
+	exit $return_code
+fi
 
 echo -e "$green--- Done ---$reset"
 exit 0
