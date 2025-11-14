@@ -302,6 +302,7 @@ function show_help {
 	echo "#      -c or --spn_id                          SPN application id                       #"
 	echo "#      -p or --spn_secret                      SPN password                             #"
 	echo "#      -t or --tenant_id                       SPN Tenant id                            #"
+	echo "#      -g or --gh_pat                          GitHub Personal Access Token             #"
 	echo "#      -h or --help                            Show help                                #"
 	echo "#                                                                                       #"
 	echo "#   Example:                                                                            #"
@@ -355,7 +356,7 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:hwma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,workload,help,msi,ado -- "$@")
+	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:g:hwma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,gh_pat:,workload,help,msi,ado -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -403,6 +404,10 @@ function parse_arguments() {
 			;;
 		-k | --keyvault_subscription)
 			STATE_SUBSCRIPTION="$2"
+			shift 2
+			;;
+		-g | --gh_pat)
+			gh_pat="$2"
 			shift 2
 			;;
 		-w | --workload)
@@ -558,6 +563,16 @@ function set_all_secrets() {
 	else
 		print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
 		return 20
+	fi
+
+	if [ "$PLATFORM" == "github" ] && [ -n "${gh_pat:-}" ]; then
+		secret_name="${prefix}"-GH-PAT
+		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${gh_pat}" "secret" >/dev/null; then
+			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
+		else
+			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
+			return 20
+		fi
 	fi
 
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then

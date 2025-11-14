@@ -124,8 +124,15 @@ if [ -z "$key_vault" ]; then
 fi
 
 if [ "$USE_MSI" != "true" ]; then
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --client_tenant_id "$TENANT_ID" --ado; then
+	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$CLIENT_ID" "--client_secret" "$CLIENT_SECRET" "--client_tenant_id" "$TENANT_ID")
+
+	if [ "$PLATFORM" == "github" ] && [ -n "${GH_PAT:-}" ]; then
+		set_secrets_args+=("--gh_pat" "$GH_PAT")
+	fi
+
+	set_secrets_args+=("--ado")
+
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" "${set_secrets_args[@]}"; then
 		return_code=$?
 	else
 		return_code=$?
@@ -133,8 +140,15 @@ if [ "$USE_MSI" != "true" ]; then
 		exit $return_code
 	fi
 else
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --msi --ado; then
+	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--msi")
+
+	if [ "$PLATFORM" == "github" ] && [ -n "${GH_PAT:-}" ]; then
+		set_secrets_args+=("--gh_pat" "$GH_PAT")
+	fi
+
+	set_secrets_args+=("--ado")
+
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" "${set_secrets_args[@]}"; then
 		return_code=$?
 	else
 		return_code=$?
