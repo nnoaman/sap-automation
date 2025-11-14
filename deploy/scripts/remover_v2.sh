@@ -82,7 +82,7 @@ function source_helper_scripts() {
 function parse_arguments() {
 	local input_opts
 	approve=""
-	input_opts=$(getopt -n remover_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
+	input_opts=$(getopt -n remover_v2 -o p:t:o:d:l:s:n:c:w:ahifg --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help,github -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -100,6 +100,13 @@ function parse_arguments() {
 			export TF_IN_AUTOMATION
 			shift
 			;;
+		-g | --github)
+			called_from_ado=1
+			approve="--auto-approve"
+			TF_IN_AUTOMATION=true
+			export TF_IN_AUTOMATION
+			shift
+			;;
 		-d | --deployer_tfstate_key)
 			deployer_tfstate_key="$2"
 			shift 2
@@ -110,9 +117,10 @@ function parse_arguments() {
 			;;
 		-n | --application_configuration_name)
 			APPLICATION_CONFIGURATION_NAME="$2"
-			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-			export APPLICATION_CONFIGURATION_ID
-			export APPLICATION_CONFIGURATION_NAME
+			if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+				APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+				export APPLICATION_CONFIGURATION_ID
+			fi
 			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
 			export TF_VAR_application_configuration_id
 			shift 2
