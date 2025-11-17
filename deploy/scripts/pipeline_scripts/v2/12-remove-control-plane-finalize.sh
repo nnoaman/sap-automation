@@ -57,6 +57,7 @@ mkdir -p .sap_deployment_automation
 ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
 NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
+CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 automation_config_directory="${CONFIG_DIR}"
 
