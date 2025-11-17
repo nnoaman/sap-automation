@@ -108,6 +108,16 @@ key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATI
 key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
 key_vault_name=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
+
+if [ ! -v SSH_KEY_NAME ]; then
+	SSH_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-sshkey"
+else
+  if [ -z "$SSH_KEY_NAME" ]; then
+		SSH_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-sshkey"
+	fi
+
+fi
+
 az account set --subscription "$key_vault_subscription" --output none
 
 if [ -n "$key_vault_subscription" ]; then
@@ -120,7 +130,7 @@ fi
 set -eu
 
 cd $PARAMETERS_FOLDER || exit
-mkdir -p "artifacts"
+
 
 if [ ! -f "$PARAMETERS_FOLDER/artifacts/$SSH_KEY_NAME" ]; then
 	echo "##[section]Retrieving sshkey..."
