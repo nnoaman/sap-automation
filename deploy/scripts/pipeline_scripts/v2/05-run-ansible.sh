@@ -115,8 +115,25 @@ else
   if [ -z "$SSH_KEY_NAME" ]; then
 		SSH_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-sshkey"
 	fi
-
 fi
+
+if [ ! -v PASSWORD_KEY_NAME ]; then
+	PASSWORD_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-password"
+else
+  if [ -z "$PASSWORD_KEY_NAME" ]; then
+		PASSWORD_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-password"
+	fi
+fi
+
+if [ ! -v USERNAME_KEY_NAME ]; then
+	USERNAME_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-username"
+else
+  if [ -z "$USERNAME_KEY_NAME" ]; then
+		USERNAME_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-username"
+	fi
+fi
+
+
 
 az account set --subscription "$key_vault_subscription" --output none
 
@@ -146,6 +163,7 @@ if [ ! -f "$SSH_KEY_NAME" ]; then
 else
 	echo "##[section]SSH key already exists, skipping retrieval."
 	sudo chmod 600 "$SSH_KEY_NAME"
+	ls -lart
 fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
