@@ -147,13 +147,7 @@ set -eu
 curdir=$(dirname "$SAP_PARAMS")
 
 cd "$curdir" || exit
-ls -lart
-cd ..
-ls -lart
-
-pwd
 echo "SSH Key name: $SSH_KEY_NAME"
-
 
 if [ ! -f "$SSH_KEY_NAME" ]; then
 	echo "##[section]Retrieving sshkey..."
@@ -181,7 +175,6 @@ return_code=0
 if [ -n "$EXTRA_PARAMS" ]; then
 	echo "Extra parameters passed: $EXTRA_PARAMS"
 fi
-
 
 command="ansible --version"
 eval "${command}"
