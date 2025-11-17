@@ -130,7 +130,7 @@ fi
 set -eu
 
 cd $PARAMETERS_FOLDER || exit
-
+mkdir -p artifacts
 
 if [ ! -f "$PARAMETERS_FOLDER/artifacts/$SSH_KEY_NAME" ]; then
 	echo "##[section]Retrieving sshkey..."
