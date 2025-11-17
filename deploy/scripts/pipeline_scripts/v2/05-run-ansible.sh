@@ -200,7 +200,7 @@ echo "Check if file: ${filename} exists"
 if [ -f "${filename}" ]; then
 	echo "##[group]- preconfiguration"
 
-	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=$USER -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
+	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=${USER:-$user_name} -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
 
 	echo "##[section]Executing [$redacted_command]..."
 
@@ -233,7 +233,7 @@ command="ansible-playbook -i '$INVENTORY'                                  \
     						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' -e @$SAP_PARAMS  \
 					      $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}	"
 
-redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=$USER -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}"
+redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=${USER:-$user_name} -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}"
 
 echo "##[section]Executing [$command]..."
 echo "##[group]- configuration"
@@ -254,7 +254,7 @@ echo "Check if file: ${filename} exists"
 if [ -f "${filename}" ]; then
 
 	echo "##[group]- postconfiguration"
-	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=$USER -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
+	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=${USER:-$user_name} -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
 	echo "##[section]Executing [$redacted_command]..."
 
 	command="ansible-playbook -i '$INVENTORY'                                \
