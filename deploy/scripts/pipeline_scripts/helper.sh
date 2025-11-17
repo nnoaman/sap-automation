@@ -321,7 +321,7 @@ function print_header() {
 	local green="\e[1;32m"
 	local reset="\e[0m"
 	echo ""
-	if [ "$PLATFORM" == "devops" ]; then
+	if [ "${PLATFORM:-devops}" == "devops" ]; then
 
 		echo -e "${green}DevOps information:"
 		echo -e "-------------------------------------------------------------------------------$reset"
