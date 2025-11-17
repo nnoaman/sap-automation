@@ -132,13 +132,16 @@ set -eu
 cd $PARAMETERS_FOLDER || exit
 mkdir -p artifacts
 cd artifacts || exit
+
+pwd
 echo "SSH Key name: $SSH_KEY_NAME"
+
 
 if [ ! -f "$SSH_KEY_NAME" ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$SSH_KEY_NAME"
-	if [ ! -f "$$SSH_KEY_NAME" ]; then
-		sudo chmod 600 "$$SSH_KEY_NAME"
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv > "$SSH_KEY_NAME"
+	if [ -f "$SSH_KEY_NAME" ]; then
+		sudo chmod 600 "$SSH_KEY_NAME"
 	fi
 else
 	echo "##[section]SSH key already exists, skipping retrieval."
