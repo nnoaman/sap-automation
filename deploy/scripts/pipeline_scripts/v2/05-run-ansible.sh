@@ -145,6 +145,9 @@ fi
 set -eu
 
 cd $SAP_PARAMS || exit
+ls -lart
+cd ..
+ls -lart
 
 pwd
 echo "SSH Key name: $SSH_KEY_NAME"
