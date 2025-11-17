@@ -565,7 +565,7 @@ function set_all_secrets() {
 		return 20
 	fi
 
-	if [ "$PLATFORM" == "github" ] && [ -n "${gh_pat:-}" ]; then
+	if [ "${PLATFORM:-devops}" == "github" ] && [ -n "${gh_pat:-}" ]; then
 		secret_name="${prefix}"-GH-PAT
 		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${gh_pat}" "secret" >/dev/null; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
