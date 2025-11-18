@@ -566,9 +566,12 @@ function sdaf_installer() {
 	echo "Parameter file:                      $parameterFilename"
 	echo "Current directory:                   $(pwd)"
 	echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
+	echo "Control Plane state file name:       ${deployer_tfstate_key}"
 	if [ -n "${WORKLOAD_ZONE_NAME}" ]; then
 		echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
 		landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+		echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
+		echo "Workload state file name:            ${landscape_tfstate_key}"
 	fi
 	key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
