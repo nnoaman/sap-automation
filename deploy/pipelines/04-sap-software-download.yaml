@@ -99,7 +99,7 @@ stages:
               SPASSWORD:                $(S-Password)
               SUSERNAME:                $(S-Username)
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              USE_MSI:                  ${{ lower($(Use_MSI)) }}
+              USE_MSI:                  $(Use_MSI)
   - stage:                             Software_download
     variables:
       - template:                      variables/04-sap-software-download-variables.yaml
@@ -143,4 +143,4 @@ stages:
               EXTRA_PARAMETERS:         ${{ parameters.ExtraParams }}
               SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              USE_MSI:                  ${{ lower($(Use_MSI)) }}
+              USE_MSI:                  $(Use_MSI)

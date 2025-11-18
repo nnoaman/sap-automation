@@ -120,7 +120,7 @@ stages:
               TF_VAR_ansible_core_version:    $(ansible_core_version)
               TF_VAR_tf_version:              $(tf_version)
               TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
-              USE_MSI:                        ${{ lower($(Use_MSI)) }}
+              USE_MSI:                        $(Use_MSI)
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
               keyvault:                       $(DEPLOYER_KEYVAULT)
   - stage:                             PopulateKeyVault
@@ -170,8 +170,7 @@ stages:
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-              USE_MSI:                      ${{ lower($(Use_MSI)) }}
-
+              USE_MSI:                      $(Use_MSI)
               ZONE:                         ${{ upper(replace(parameters.deployer, '-INFRASTRUCTURE', '')) }}
 
   - stage:                             Deploy_controlplane
@@ -239,7 +238,7 @@ stages:
               TF_VAR_spn_id:               $(ARM_OBJECT_ID)
               TF_VAR_tf_version:           $(tf_version)
               TF_VAR_use_webapp:           ${{ parameters.use_webapp_param }}
-              USE_MSI:                     ${{ lower($(Use_MSI)) }}
+              USE_MSI:                     $(Use_MSI)
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
               ZONE:                        $(CONTROL_PLANE_NAME)
               keyvault:                    $(DEPLOYER_KEYVAULT)
