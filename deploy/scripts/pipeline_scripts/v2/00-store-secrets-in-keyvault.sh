@@ -127,13 +127,11 @@ fi
 shopt -s nocasematch
 
 if [ "$USE_MSI" != "True" ]; then
-	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_secret" "$ARM_CLIENT_SECRET" "--client_tenant_id" "$ARM_TENANT_ID")
+	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_secret" "$ARM_CLIENT_SECRET" "--client_tenant_id" "$ARM_TENANT_ID" --ado)
 
 	if [ "$PLATFORM" == "github" ] && [ -n "${GH_PAT:-}" ]; then
-		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_secret" "$ARM_CLIENT_SECRET" "--client_tenant_id" "$ARM_TENANT_ID" "--gh_pat" "$GH_PAT")
+		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_secret" "$ARM_CLIENT_SECRET" "--client_tenant_id" "$ARM_TENANT_ID" "--gh_pat" "$GH_PAT"  --ado)
 	fi
-
-	set_secrets_args+=("--ado")
 
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" "${set_secrets_args[@]}"; then
 		return_code=$?
@@ -143,13 +141,12 @@ if [ "$USE_MSI" != "True" ]; then
 		exit $return_code
 	fi
 else
-	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_tenant_id" "$ARM_TENANT_ID" --msi)
+	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_tenant_id" "$ARM_TENANT_ID" --msi  --ado)
 
 	if [ "$PLATFORM" == "github" ] && [ -n "${GH_PAT:-}" ]; then
-		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_tenant_id" "$ARM_TENANT_ID" "--gh_pat" "$GH_PAT" --msi)
+		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_tenant_id" "$ARM_TENANT_ID" "--gh_pat" "$GH_PAT" --msi  --ado)
 	fi
 
-	set_secrets_args+=("--ado")
 
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" "${set_secrets_args[@]}"; then
 		return_code=$?
@@ -162,8 +159,6 @@ fi
 
 # Disable case-insensitive matching to restore default behavior
 shopt -u nocasematch
-
-
 
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 

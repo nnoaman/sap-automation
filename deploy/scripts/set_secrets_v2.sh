@@ -21,8 +21,6 @@ fi
 export DEBUG
 set -eu
 
-deploy_using_msi_only=0
-keyvault=""
 
 function addKeyVaultNetworkRule {
 	local keyvault=$1
@@ -445,7 +443,7 @@ function parse_arguments() {
 		return 10
 	}
 
-	if [ 0 -eq "$deploy_using_msi_only" ]; then
+	if [ 0 -eq "${deploy_using_msi_only:-0}" ]; then
 
 		if [ -z "$client_id" ]; then
 			print_banner "$banner_title" "client_id is required" "error"
