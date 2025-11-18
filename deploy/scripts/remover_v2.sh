@@ -522,7 +522,6 @@ function sdaf_remover() {
 	fi
 
 	#setting the user environment variables
-	set_executing_user_environment_variables "none"
 
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${deployment_system}"
 	cd "${param_dirname}" || exit
@@ -574,7 +573,7 @@ function sdaf_remover() {
 		else
 			return_value=$?
 			print_banner "$banner_title - $deployment_system" "Terraform init failed" "error"
-			return $return_value
+			return 100
 		fi
 	else
 		echo "Terraform state:                     remote"
