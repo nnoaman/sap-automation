@@ -121,12 +121,18 @@ function parse_arguments() {
 			;;
 		-d | --deployer_tfstate_key)
 			deployer_tfstate_key="$2"
+			TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+			export TF_VAR_deployer_tfstate_key
 			shift 2
 			;;
 		-c | --control_plane_name)
 			CONTROL_PLANE_NAME="$2"
 			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
 			export TF_VAR_control_plane_name
+			deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+			TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+			export TF_VAR_deployer_tfstate_key
+
 			shift 2
 			;;
 		-n | --application_configuration_name)
