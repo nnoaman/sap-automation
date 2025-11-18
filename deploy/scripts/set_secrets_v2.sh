@@ -443,7 +443,7 @@ function parse_arguments() {
 		return 10
 	}
 
-	if [ 0 -eq "${deploy_using_msi_only:-0}" ]; then
+  if [ "$USE_MSI" != "true" ]; then
 
 		if [ -z "$client_id" ]; then
 			print_banner "$banner_title" "client_id is required" "error"

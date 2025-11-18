@@ -99,7 +99,7 @@ stages:
               SYSTEM_ACCESSTOKEN:        $(System.AccessToken)
               TF_VAR_control_plane_name: $(CONTROL_PLANE_NAME)
               TF_VAR_workload_zone_name: ${{ parameters.workload_environment }}
-              USE_MSI:                   $(Use_MSI)
+              USE_MSI:                   ${{ lower($(Use_MSI)) }}
               WORKLOAD_ZONE_NAME:        ${{ parameters.workload_zone }}
 
   - stage:                             Remove_SAP_workload_zone
@@ -147,5 +147,5 @@ stages:
               SYSTEM_ACCESSTOKEN:        $(System.AccessToken)
               TF_VAR_control_plane_name: $(CONTROL_PLANE_NAME)
               TF_VAR_workload_zone_name: ${{ parameters.workload_environment }}
-              USE_MSI:                   $(Use_MSI)
+              USE_MSI:                   ${{ lower($(Use_MSI)) }}
               WORKLOAD_ZONE_NAME:        ${{ parameters.workload_environment }}
