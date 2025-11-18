@@ -67,10 +67,8 @@ function get_value_with_key() {
 	fi
 
 	if [[ -n ${APPLICATION_CONFIGURATION_NAME+x} ]]; then
-	  echo "Getting value for key from ${APPLICATION_CONFIGURATION_NAME}: ${key}"
 		value=$(__appconfig_get_value_with_key "$key" "$label")
 	else
-		echo "Getting value for key from ${VARIABLE_GROUP_ID}: ${key}"
 		value=$(__get_value_with_key "$key")
 	fi
 
