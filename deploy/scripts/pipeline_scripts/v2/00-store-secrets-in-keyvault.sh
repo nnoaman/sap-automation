@@ -127,10 +127,10 @@ fi
 shopt -s nocasematch
 
 if [ "$USE_MSI" != "True" ]; then
-	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$CLIENT_ID" "--client_secret" "$CLIENT_SECRET" "--client_tenant_id" "$TENANT_ID")
+	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_secret" "$ARM_CLIENT_SECRET" "--client_tenant_id" "$ARM_TENANT_ID")
 
 	if [ "$PLATFORM" == "github" ] && [ -n "${GH_PAT:-}" ]; then
-		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$CLIENT_ID" "--client_secret" "$CLIENT_SECRET" "--client_tenant_id" "$TENANT_ID" "--gh_pat" "$GH_PAT")
+		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_secret" "$ARM_CLIENT_SECRET" "--client_tenant_id" "$ARM_TENANT_ID" "--gh_pat" "$GH_PAT")
 	fi
 
 	set_secrets_args+=("--ado")
@@ -143,10 +143,10 @@ if [ "$USE_MSI" != "True" ]; then
 		exit $return_code
 	fi
 else
-	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$CLIENT_ID" "--client_tenant_id" "$TENANT_ID")
+	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_tenant_id" "$ARM_TENANT_ID")
 
 	if [ "$PLATFORM" == "github" ] && [ -n "${GH_PAT:-}" ]; then
-		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$CLIENT_ID" "--client_tenant_id" "$TENANT_ID" "--gh_pat" "$GH_PAT")
+		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_tenant_id" "$ARM_TENANT_ID" "--gh_pat" "$GH_PAT")
 	fi
 
 	set_secrets_args+=("--ado")
