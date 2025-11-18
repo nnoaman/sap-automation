@@ -531,17 +531,17 @@ function migrate_deployer_state() {
 	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
 	echo ""
 
-	if ! "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
 		$devops_flag "${autoApproveParameter}"; then
+		print_banner "$banner_title" "Migrating the Deployer state succeeded." "success"
 
+	else
 		echo ""
 		step=3
 		save_config_var "step" "${deployer_environment_file_name}"
 		print_banner "$banner_title" "Migrating the Deployer state failed." "error"
 		exit 30
-	else
-		print_banner "$banner_title" "Migrating the Deployer state succeeded." "success"
 	fi
 
 	cd "$root_dirname" || exit
