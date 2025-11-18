@@ -548,7 +548,7 @@ function sdaf_installer() {
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
 		print_banner "$banner_title" "Validating parameters failed" "error"
-		return $?
+		return 100
 	fi
 
 	if ! retrieve_parameters; then
