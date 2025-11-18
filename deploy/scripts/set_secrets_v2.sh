@@ -575,25 +575,24 @@ function set_all_secrets() {
 		fi
 	fi
 
+	#turn off output, we do not want to show the details being uploaded to keyvault
+	secret_name="${prefix}"-client-id
+	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_id}" "configuration" >/dev/null; then
+		print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
+	else
+		print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
+		return 20
+	fi
+
+	secret_name="${prefix}"-tenant-id
+	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${tenant_id}" "configuration" >/dev/null; then
+		print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
+	else
+		print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
+		return 20
+	fi
+
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then
-
-		#turn off output, we do not want to show the details being uploaded to keyvault
-		secret_name="${prefix}"-client-id
-		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_id}" "configuration" >/dev/null; then
-			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
-		else
-			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
-			return 20
-		fi
-
-		secret_name="${prefix}"-tenant-id
-		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${tenant_id}" "configuration" >/dev/null; then
-			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
-		else
-			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
-			return 20
-		fi
-
 		secret_name="${prefix}"-client-secret
 		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}" "secret" >/dev/null; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
