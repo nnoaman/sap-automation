@@ -590,7 +590,7 @@ function set_all_secrets() {
 		return 20
 	fi
 
-	if [ 0 = "${deploy_using_msi_only:-}" ]; then
+  if [ "$USE_MSI" != "true" ]; then
 		secret_name="${prefix}"-client-secret
 		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}" "secret" >/dev/null; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
