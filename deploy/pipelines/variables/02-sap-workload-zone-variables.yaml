@@ -125,4 +125,7 @@ variables:
     value:                             ${{ parameters.test }}
 
   - name:                              control_plane_name
-    value:                             ${{ parameters.deployer_environment }}
+    value:                             ${{ upper(replace(parameters.deployer_environment, '-INFRASTRUCTURE', '') ) }}
+
+  - name:                              workload_zone_name
+    value:                             ${{ upper(replace(parameters.workload_environment, '-INFRASTRUCTURE', '') ) }}
