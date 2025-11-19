@@ -96,12 +96,12 @@ echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.13.3}"
 
-	ARM_CLIENT_ID="${servicePrincipalId:-$ARM_CLIENT_ID}"
-	export ARM_CLIENT_ID
-	TF_VAR_spn_id=$ARM_CLIENT_ID
-	export TF_VAR_spn_id
-
 	if [ "$PLATFORM" == "devops" ]; then
+		ARM_CLIENT_ID="${servicePrincipalId:-$ARM_CLIENT_ID}"
+		export ARM_CLIENT_ID
+		TF_VAR_spn_id=$ARM_CLIENT_ID
+		export TF_VAR_spn_id
+
 		# Azure DevOps specific authentication logic
 		if printenv servicePrincipalKey; then
 			unset ARM_OIDC_TOKEN
@@ -127,7 +127,6 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		ARM_TENANT_ID=$(az account show --query tenantId -o tsv)
 	fi
 	export ARM_TENANT_ID
-
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
@@ -170,7 +169,7 @@ if is_valid_guid "$TF_VAR_spn_id"; then
 fi
 
 # Reset the account if sourcing was done
-if [ -v  ARM_SUBSCRIPTION_ID ]; then
+if [ -v ARM_SUBSCRIPTION_ID ]; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 fi
@@ -276,8 +275,6 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 fi
 
 end_group
-
-
 
 start_group "Finalize the control plane removal"
 cd "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
