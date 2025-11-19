@@ -113,7 +113,7 @@ data "azurerm_key_vault_secret" "client_id_v2" {
                                        }
 }
 ephemeral "azurerm_key_vault_secret" "client_secret_v2" {
-  count                                = var.use_spn ? 1 : 0
+  count                                = var.use_spn ? 0 : 0
   name                                 = format("%s-client-secret", var.workload_zone_name)
   key_vault_id                         = local.key_vault.spn.id
 
@@ -136,7 +136,7 @@ data "azurerm_key_vault_secret" "cp_client_id_v2" {
 }
 
 ephemeral "azurerm_key_vault_secret" "cp_client_secret_v2" {
-  count                                = var.use_spn ? 1 : 0
+  count                                = var.use_spn ? 0 : 0
   name                                 = format("%s-client-secret", var.control_plane_name)
   key_vault_id                         = local.key_vault.spn.id
 }
