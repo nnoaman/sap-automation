@@ -457,7 +457,6 @@ variable "automation_path_to_private_key"       {
 variable "use_spn"                              {
                                                   description = "Log in using a service principal when performing the deployment"
                                                   default     = false
-
                                                 }
 
 
