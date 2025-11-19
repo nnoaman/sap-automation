@@ -145,6 +145,8 @@ if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
+TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+export TF_VAR_subscription_id
 
 start_group "Decrypting state files"
 # Handle state.zip differently per platform
