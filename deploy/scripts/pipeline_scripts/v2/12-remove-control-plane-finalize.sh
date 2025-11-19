@@ -155,7 +155,7 @@ else
 	fi
 fi
 
-if [ "$USE_MSI" != "true" ]; then
+if [ "${USE_MSI:-false}" != "true" ]; then
 
 	# Get SPN ID differently per platform
 	if [ "$PLATFORM" == "devops" ]; then

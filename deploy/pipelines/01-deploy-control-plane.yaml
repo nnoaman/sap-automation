@@ -82,7 +82,7 @@ stages:
           - task:                                 TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
-              terraformVersion:                   latest
+              terraformVersion:                   $(tf_version)
           # Set Variables.
           - task:                                 AzureCLI@2
             continueOnError:                      false

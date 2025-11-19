@@ -291,9 +291,6 @@ if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]Return code from remover $return_code."
 else
 	if [ 0 == $return_code ]; then
-		if [ -d .terraform ]; then
-			rm -r .terraform
-		fi
 		# Pull changes if there are other deployment jobs
 		if [ "$PLATFORM" == "devops" ]; then
 			git pull -q origin "$BUILD_SOURCEBRANCHNAME"
