@@ -113,7 +113,7 @@ automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
-library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY.tfvars"
 
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
@@ -305,34 +305,34 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	fi
 fi
 
-if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+if [ -f "LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/.terraform/terraform.tfstate" ]; then
+	git add -f "LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/.terraform/terraform.tfstate"
 	changed=1
 
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
-	local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
+	local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/.terraform/terraform.tfstate" || true)
 
 	if [ -n "$local_backend" ]; then
 		echo "Deployer Terraform state:              local"
 
-		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+		if [ -f "LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/terraform.tfstate" ]; then
 			echo "Compressing the library state file"
 			if [ "$PLATFORM" == "devops" ]; then
 				sudo apt-get install zip -y
 				pass=${SYSTEM_COLLECTIONID//-/}
-				zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+				zip -q -j -P "${pass}" "LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/state" "LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/terraform.tfstate"
+				git add -f "LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/state.zip"
 			elif [ "$PLATFORM" == "github" ]; then
-				rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+				rm LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/state.gpg >/dev/null 2>&1 || true
 
 				echo "Encrypting state file"
 				gpg --batch \
-					--output LIBRARY/$LIBRARY_FOLDERNAME/state.gpg \
+					--output LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/state.gpg \
 					--encrypt \
 					--disable-dirmngr --recipient sap-azure-deployer@example.com \
 					--trust-model always \
-					LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate
-				git add -f LIBRARY/$LIBRARY_FOLDERNAME/state.gpg
+					LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/terraform.tfstate
+				git add -f "LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/state.gpg"
 			else
 				pass="localpassword"
 			fi
@@ -342,8 +342,8 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	fi
 fi
 
-if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars" ]; then
-	git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars"
+if [ -f "LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/backend-config.tfvars" ]; then
+	git rm -q --ignore-unmatch "LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/backend-config.tfvars"
 	changed=1
 fi
 
