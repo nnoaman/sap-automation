@@ -44,7 +44,7 @@ data "azurerm_key_vault_secret" "subscription_id" {
 }
 
 data "azurerm_key_vault_secret" "client_id" {
-  count                                = var.use_spn  ? 1 : 0
+  count                                = var.use_spn && (length(trim(var.workload_zone_name)) == 0 ? 1 : 0)
   name                                 = format("%s-client-id", local.environment)
   key_vault_id                         = local.key_vault.spn.id
   timeouts                             {
@@ -53,14 +53,14 @@ data "azurerm_key_vault_secret" "client_id" {
 }
 
 ephemeral "azurerm_key_vault_secret" "client_secret" {
-  count                                = var.use_spn  ? 1 : 0
+  count                                = var.use_spn && (length(trim(var.workload_zone_name)) == 0 ? 1 : 0)
   name                                 = format("%s-client-secret", local.environment)
   key_vault_id                         = local.key_vault.spn.id
 
 }
 
 data "azurerm_key_vault_secret" "tenant_id" {
-  count                                = var.use_spn && length(var.workload_zone_name) == 0 ? 1 : 0
+  count                                = var.use_spn && (length(trim(var.workload_zone_name)) == 0 ? 1 : 0)
   name                                 = format("%s-tenant-id", local.environment)
   key_vault_id                         = local.key_vault.spn.id
   timeouts                             {

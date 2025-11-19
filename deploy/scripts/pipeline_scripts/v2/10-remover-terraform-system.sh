@@ -94,8 +94,7 @@ if [ "$USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
-	TF_VAR_use_spn=false
-	export TF_VAR_use_spn
+	unset TF_VAR_use_spn
 fi
 
 if [ "$PLATFORM" == "devops" ]; then

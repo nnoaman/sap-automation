@@ -394,7 +394,6 @@ function retrieve_parameters() {
 		unset ARM_CLIENT_SECRET
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
-		export TF_VAR_use_spn=false
 
 	fi
 
@@ -672,7 +671,7 @@ function sdaf_remover() {
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
 				return_value=$?
 				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
 			else
