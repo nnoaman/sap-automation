@@ -350,6 +350,16 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		fi
 	fi
 
+	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"; then
+			echo "Saved APPLICATION_CONFIGURATION_NAME in variable group."
+		else
+			echo "##vso[task.logissue type=warning]Failed to save APPLICATION_CONFIGURATION_NAME in variable group."
+		fi
+	fi
+
+
 fi
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
