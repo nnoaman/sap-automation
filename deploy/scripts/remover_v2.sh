@@ -401,10 +401,7 @@ function retrieve_parameters() {
 #   sdaf_remover                                                                           #
 ############################################################################################
 function sdaf_remover() {
-	landscape_tfstate_key=""
-	called_from_ado=0
 	extra_vars=""
-	WORKLOAD_ZONE_NAME=""
 
 	# Define an array of helper scripts
 	helper_scripts=(
@@ -450,7 +447,7 @@ function sdaf_remover() {
 	echo "Deployment region code:              $region_code"
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
-	if [ "${DEBUG:-False}" = True ]; then
+	if [ "${DEBUG:-false}" = true ]; then
 		print_banner "$banner_title - $deployment_system" "Enabling debug mode" "info"
 		set -x
 		set -o errexit
