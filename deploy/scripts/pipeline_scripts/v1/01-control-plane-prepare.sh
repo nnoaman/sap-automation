@@ -3,6 +3,7 @@
 # Licensed under the MIT License.
 
 green="\e[1;32m"
+cyan="\e[1;36m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 
@@ -42,6 +43,7 @@ set -eu
 print_header
 
 # Configure DevOps
+
 configure_devops
 
 # Check if running on deployer

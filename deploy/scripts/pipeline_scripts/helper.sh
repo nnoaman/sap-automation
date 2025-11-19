@@ -361,7 +361,8 @@ function configure_devops() {
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 	az config set extension.dynamic_install_allow_preview=true --output none --only-show-errors
 
-	if [ "${PLATFORM:-ado}" == "devops" ]; then
+	if [ -n "${TF_BUILD+x}" ]; then
+
 		echo -e "$green--- Configure devops CLI extension ---$reset"
 
 		# Check if Azure DevOps extension is installed, if not, install it
@@ -376,7 +377,7 @@ function configure_devops() {
 			echo "Azure DevOps extension installed."
 		fi
 
-		az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
+		az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECTID" --output none
 	fi
 
 	extension_installed=$(az extension list --query "[?contains(name, 'resource-graph')].name | [0]" --output tsv)
