@@ -179,20 +179,21 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy SAP Workload Zone
             env:
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              ARM_USE_MSI:             $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              DEPLOYER_KEYVAULT:       $(DEPLOYER_KEYVAULT)
-              FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              TEST_ONLY:               ${{ parameters.test }}
-              TF_IN_AUTOMATION:        true
-              TF_LOG:                  $(TF_LOG)
-              TF_VAR_subscription_id:  $(ARM_SUBSCRIPTION_ID)
-              USE_MSI:                 $(Use_MSI)
+              APPLICATION_CONFIGURATION_NAME: $(APPLICATION_CONFIGURATION_NAME)
+              ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                  $(ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+              ARM_USE_MSI:                    $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
+              CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:              $(DEPLOYER_KEYVAULT)
+              FENCING_SPN_PWD:                $(FENCING_SPN_PWD)
+              SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+              TEST_ONLY:                      ${{ parameters.test }}
+              TF_IN_AUTOMATION:               true
+              TF_LOG:                         $(TF_LOG)
+              TF_VAR_subscription_id:         $(ARM_SUBSCRIPTION_ID)
+              USE_MSI:                        $(Use_MSI)
