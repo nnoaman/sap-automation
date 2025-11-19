@@ -291,7 +291,6 @@ function parse_arguments() {
 	else
 		TEST_ONLY="false"
 	fi
-  echo "TF_VAR_use_spn:                      $TF_VAR_use_spn"
 
 	return 0
 }
@@ -669,8 +668,6 @@ function sdaf_remover() {
 		# 		fi
 		# 	fi
 		# fi
-
-		echo "TF_VAR_use_spn:                      $TF_VAR_use_spn"
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086

@@ -125,7 +125,6 @@ if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 	export APPLICATION_CONFIGURATION_ID
 fi
-echo "TF_VAR_use_spn:                      $TF_VAR_use_spn"
 
 APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
 export APPLICATION_CONFIGURATION_SUBSCRIPTION_ID
@@ -274,7 +273,6 @@ echo "Statefile subscription:              $terraform_storage_account_subscripti
 echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
-echo "TF_VAR_use_spn:                      $TF_VAR_use_spn"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
