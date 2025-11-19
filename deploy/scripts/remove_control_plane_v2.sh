@@ -214,8 +214,7 @@ function parse_arguments() {
 		export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 	else
 		if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-			sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
-			sudo chown -R "$USER" /opt/terraform
+			mkdir -p /opt/terraform/.terraform.d/plugin-cache
 		fi
 		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 	fi
