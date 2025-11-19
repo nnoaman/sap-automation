@@ -127,7 +127,7 @@ fi
 if [ ! -f "$library_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+		echo "##vso[task.logissue type=error]File LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY.tfvars was not found."
 	fi
 	exit 2
 fi
@@ -157,9 +157,9 @@ if [ "$PLATFORM" == "devops" ]; then
 		unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 	fi
 
-	if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+	if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/state.zip" ]; then
 		echo "Unzipping the library state file"
-		unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
+		unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY"
 	fi
 
 elif [ "$PLATFORM" == "github" ]; then
@@ -183,13 +183,13 @@ elif [ "$PLATFORM" == "github" ]; then
 					--output "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate" \
 					--decrypt "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg"
 		fi
-		if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
+		if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/state.gpg" ]; then
 			echo "Decrypting state file"
 			echo "${pass}" |
 				gpg --batch \
 					--passphrase-fd 0 \
-					--output "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" \
-					--decrypt "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
+					--output "${CONFIG_REPO_PATH}/LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/terraform.tfstate" \
+					--decrypt "${CONFIG_REPO_PATH}/LIBRARY/$ENVIRONMENT-$LOCATION-SAP_LIBRARY/state.gpg"
 		fi
 	else
 		exit_error "Private PGP key not found." 3
