@@ -358,23 +358,26 @@ function print_header() {
 
 function configure_devops() {
 	echo ""
-	echo -e "$green--- Configure devops CLI extension ---$reset"
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 	az config set extension.dynamic_install_allow_preview=true --output none --only-show-errors
 
-	# Check if Azure DevOps extension is installed, if not, install it
+	if [ "${PLATFORM:-ado}" == "devops" ]; then
+		echo -e "$green--- Configure devops CLI extension ---$reset"
 
-	extension_installed=$(az extension list --query "[?contains(name, 'azure-devops')].name | [0]" --output tsv)
+		# Check if Azure DevOps extension is installed, if not, install it
 
-	if [ -n "$extension_installed" ]; then
-		echo "Azure DevOps extension already installed."
-		az extension update --name azure-devops --output none --only-show-errors
-	else
-		az extension add --name azure-devops --output none --only-show-errors
-		echo "Azure DevOps extension installed."
+		extension_installed=$(az extension list --query "[?contains(name, 'azure-devops')].name | [0]" --output tsv)
+
+		if [ -n "$extension_installed" ]; then
+			echo "Azure DevOps extension already installed."
+			az extension update --name azure-devops --output none --only-show-errors
+		else
+			az extension add --name azure-devops --output none --only-show-errors
+			echo "Azure DevOps extension installed."
+		fi
+
+		az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 	fi
-
-	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
 	extension_installed=$(az extension list --query "[?contains(name, 'resource-graph')].name | [0]" --output tsv)
 
