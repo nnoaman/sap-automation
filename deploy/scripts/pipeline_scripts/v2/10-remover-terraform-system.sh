@@ -90,12 +90,6 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
-if [ "$USE_MSI" == "true" ]; then
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-	unset TF_VAR_use_spn
-fi
 
 if [ "$PLATFORM" == "devops" ]; then
 	if [ "$USE_MSI" != "true" ]; then
@@ -116,6 +110,17 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]az login failed."
 		exit $return_code
 	fi
+else
+	if [ "$USE_MSI" == "true" ]; then
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		unset TF_VAR_use_spn
+		echo "Deployment credentials:              Managed Service Identity"
+  else
+		echo "Deployment credentials:              Service Principal"
+	fi
+
 fi
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
