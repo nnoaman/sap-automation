@@ -90,7 +90,7 @@ ephemeral "azurerm_key_vault_secret" "cp_client_secret" {
 }
 
 data "azurerm_key_vault_secret" "cp_tenant_id" {
-  count                                = var.use_spn ? 0 : length(try(data.terraform_remote_state.deployer[0].outputs.environment, ""))>0 ? 1 : 0
+  count                                = var.use_spn && length(try(data.terraform_remote_state.deployer[0].outputs.environment, ""))>0 ? 1 : 0
   name                                 = format("%s-tenant-id", data.terraform_remote_state.deployer[0].outputs.environment)
   key_vault_id                         = local.key_vault.spn.id
 }
