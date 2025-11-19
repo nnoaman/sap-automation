@@ -71,6 +71,9 @@ elif [ "$PLATFORM" == "github" ]; then
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
 	platform_flag="--github"
+
+	export USER=${GITHUB_ACTOR:-githubuser}
+
 else
 	platform_flag=""
 fi

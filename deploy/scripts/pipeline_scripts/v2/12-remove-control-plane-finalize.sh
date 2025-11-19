@@ -155,17 +155,20 @@ else
 	fi
 fi
 
-# Get SPN ID differently per platform
-if [ "$PLATFORM" == "devops" ]; then
-	TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
-elif [ "$PLATFORM" == "github" ]; then
-	# Use value from env or from GitHub environment
-	TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
-fi
+if [ "$USE_MSI" != "true" ]; then
 
-if is_valid_guid "$TF_VAR_spn_id"; then
-	export TF_VAR_spn_id
-	echo "Service Principal Object id:         $TF_VAR_spn_id"
+	# Get SPN ID differently per platform
+	if [ "$PLATFORM" == "devops" ]; then
+		TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
+	elif [ "$PLATFORM" == "github" ]; then
+		# Use value from env or from GitHub environment
+		TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
+	fi
+
+	if is_valid_guid "$TF_VAR_spn_id"; then
+		export TF_VAR_spn_id
+		echo "Service Principal Object id:         $TF_VAR_spn_id"
+	fi
 fi
 
 # Reset the account if sourcing was done
@@ -176,6 +179,9 @@ fi
 
 TF_VAR_management_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_management_subscription_id
+
+TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+export TF_VAR_subscription_id
 
 echo -e "$green--- Variables ---$reset_formatting"
 
@@ -235,6 +241,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	# Set required environment variables for GitHub
 	export USER=${GITHUB_ACTOR:-githubuser}
 	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
+
 	platform_flag="--github"
 
 	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
