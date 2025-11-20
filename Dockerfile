@@ -108,16 +108,11 @@ RUN mkdir -p /root/.ssh /home/azureadm/.ssh && \
     chmod 600 /root/.ssh/config /home/azureadm/.ssh/config && \
     chown -R azureadm:azureadm /home/azureadm/.ssh
 
-# Set ownership and make directories writable for GitHub Actions
+# Create directories needed by SDAF scripts and GitHub Actions
 RUN chown -R azureadm:azureadm /source && \
-    mkdir -p /__w && \
-    chown -R azureadm:azureadm /__w && \
-    chmod -R 755 /__w && \
-    mkdir -p /home/azureadm/.terraform.d/plugin-cache && \
-    chown -R azureadm:azureadm /home/azureadm/.terraform.d
-
-# Set Terraform plugin cache directory
-ENV TF_PLUGIN_CACHE_DIR=/home/azureadm/.terraform.d/plugin-cache
+    mkdir -p /__w/_temp/_runner_file_commands /opt/terraform/.terraform.d/plugin-cache && \
+    chown -R azureadm:azureadm /__w /opt/terraform && \
+    chmod -R 755 /__w /opt/terraform
 
 WORKDIR /source
 
