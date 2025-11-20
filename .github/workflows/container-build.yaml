@@ -49,6 +49,12 @@ jobs:
         tf_version=$(curl -s https://releases.hashicorp.com/terraform/index.json | jq -r '.versions | keys[]' | grep -Ev 'alpha|beta|rc' | sort -V | tail -n 1)
         echo "tf=$tf_version" >> $GITHUB_OUTPUT
 
+        # Get the actual UID/GID from host
+        HOST_UID=$(id -u azureadm)
+        echo "HOST_UID=$HOST_UID" >> $GITHUB_OUTPUT
+        HOST_GID=$(id -g azureadm)
+        echo "HOST_GID=$HOST_GID" >> $GITHUB_OUTPUT
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -84,6 +90,8 @@ jobs:
         build-args: |
           JQ_VERSION=${{ steps.versions.outputs.jq }}
           TF_VERSION=${{ steps.versions.outputs.tf }}
+          USER_UID=${{ steps.versions.outputs.HOST_UID }}
+          USER_GID=${{ steps.versions.outputs.$HOST_GID  }}
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
