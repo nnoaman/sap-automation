@@ -5,8 +5,6 @@ ARG YQ_VERSION=v4.42.1
 ARG NODE_VERSION=18.19.1
 ARG ANSIBLE_VERSION=2.16.5
 
-# Set proper locale for Ansible
-
 # Install core utilities and system tools
 RUN tdnf install -y \
   sshpass \
@@ -65,7 +63,7 @@ RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-li
   ln -s /usr/local/bin/node /usr/bin/node && \
   ln -s /usr/local/bin/npm /usr/bin/npm
 
-# Install yq, as there are two competing versions and Azure Linux uses the jq wrappers, which breaks the GitHub Workflows
+# Install yq
 RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz -o yq.tar.gz && \
   tar -xzf yq.tar.gz && \
   install -Dm755 yq_linux_amd64 /usr/bin/yq && \
@@ -75,7 +73,7 @@ RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/y
 RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
     echo "LANG=en_US.UTF-8" >> /etc/environment
 
-# Install Python dependencies and Ansible with required collections
+# Install Python dependencies and Ansible
 RUN pip3 install --no-cache-dir \
     ansible-core==${ANSIBLE_VERSION} \
     argcomplete \
@@ -87,13 +85,14 @@ RUN pip3 install --no-cache-dir \
     chmod \
     pyyaml
 
+# Copy files
 COPY SAP-automation-samples /source/SAP-automation-samples
-
 COPY . /source
 
 ENV SAP_AUTOMATION_REPO_PATH=/source
 ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
+# Create non-root user
 RUN useradd -m -s /bin/bash -u 1001 azureadm && \
     usermod -aG sudo azureadm && \
     passwd -d azureadm && \
@@ -109,10 +108,14 @@ RUN mkdir -p /root/.ssh /home/azureadm/.ssh && \
     chown -R azureadm:azureadm /home/azureadm/.ssh
 
 # Create directories needed by SDAF scripts and GitHub Actions
-RUN chown -R azureadm:azureadm /source && \
-    mkdir -p /__w/_temp/_runner_file_commands /opt/terraform/.terraform.d/plugin-cache && \
-    chown -R azureadm:azureadm /__w /opt/terraform && \
-    chmod -R 755 /__w /opt/terraform
+RUN mkdir -p \
+    /__w/_temp/_runner_file_commands \
+    /__w/_actions \
+    /github/home \
+    /github/workflow \
+    /opt/terraform/.terraform.d/plugin-cache && \
+    chown -R azureadm:azureadm /__w /github /opt/terraform /source && \
+    chmod -R 770 /__w /github /opt/terraform /source
 
 WORKDIR /source
 
