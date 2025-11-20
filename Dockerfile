@@ -112,7 +112,12 @@ RUN mkdir -p /root/.ssh /home/azureadm/.ssh && \
 RUN chown -R azureadm:azureadm /source && \
     mkdir -p /__w && \
     chown -R azureadm:azureadm /__w && \
-    chmod -R 777 /__w
+    chmod -R 755 /__w && \
+    mkdir -p /home/azureadm/.terraform.d/plugin-cache && \
+    chown -R azureadm:azureadm /home/azureadm/.terraform.d
+
+# Set Terraform plugin cache directory
+ENV TF_PLUGIN_CACHE_DIR=/home/azureadm/.terraform.d/plugin-cache
 
 WORKDIR /source
 
