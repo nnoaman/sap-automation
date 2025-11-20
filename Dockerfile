@@ -94,12 +94,11 @@ COPY . /source
 ENV SAP_AUTOMATION_REPO_PATH=/source
 ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
-RUN useradd -m -s /bin/bash azureadm && \
+RUN useradd -m -s /bin/bash -u 1001 azureadm && \
     usermod -aG sudo azureadm && \
     passwd -d azureadm && \
     echo "export LC_ALL=en_US.UTF-8" >> /home/azureadm/.bashrc && \
     echo "export LANG=en_US.UTF-8" >> /home/azureadm/.bashrc
-# Password for azureadm user is not set. Use SSH key-based authentication or set password securely at runtime.
 
 # Configure SSH for Ansible (both root and azureadm)
 RUN mkdir -p /root/.ssh /home/azureadm/.ssh && \
@@ -109,8 +108,11 @@ RUN mkdir -p /root/.ssh /home/azureadm/.ssh && \
     chmod 600 /root/.ssh/config /home/azureadm/.ssh/config && \
     chown -R azureadm:azureadm /home/azureadm/.ssh
 
-# Set ownership of source directory to azureadm
-RUN chown -R azureadm:azureadm /source
+# Set ownership and make directories writable for GitHub Actions
+RUN chown -R azureadm:azureadm /source && \
+    mkdir -p /__w && \
+    chown -R azureadm:azureadm /__w && \
+    chmod -R 777 /__w
 
 WORKDIR /source
 
