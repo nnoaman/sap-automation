@@ -115,7 +115,8 @@ RUN mkdir -p \
     /github/workflow \
     /opt/terraform/.terraform.d/plugin-cache && \
     chown -R azureadm:azureadm /__w /github /opt/terraform /source && \
-    chmod -R 770 /__w /github /opt/terraform /source
+    chmod -R 777 /__w /github && \
+    chmod -R 755 /opt/terraform /source
 
 WORKDIR /source
 
