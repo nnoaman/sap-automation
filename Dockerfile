@@ -4,8 +4,6 @@ ARG TF_VERSION=1.13.5
 ARG YQ_VERSION=v4.42.1
 ARG NODE_VERSION=18.19.1
 ARG ANSIBLE_VERSION=2.16.5
-ARG USER_UID=1000
-ARG USER_GID=1000
 
 # Install core utilities and system tools
 RUN tdnf install -y \
@@ -73,7 +71,9 @@ RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/y
 
 # Set locales in environment file
 RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
-    echo "LANG=en_US.UTF-8" >> /etc/environment
+    echo "LANG=en_US.UTF-8" >> /etc/environment && \
+    echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
+    echo "export LANG=en_US.UTF-8" >> /root/.bashrc
 
 # Install Python dependencies and Ansible
 RUN pip3 install --no-cache-dir \
@@ -94,39 +94,17 @@ COPY . /source
 ENV SAP_AUTOMATION_REPO_PATH=/source
 ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
-# Create non-root user
-# RUN useradd -m -s /bin/bash -u 1001 azureadm && \
-#    usermod -aG sudo azureadm && \
-#    passwd -d azureadm && \
-#    echo "export LC_ALL=en_US.UTF-8" >> /home/azureadm/.bashrc && \
-#    echo "export LANG=en_US.UTF-8" >> /home/azureadm/.bashrc
+RUN useradd -m -s /bin/bash azureadm && \
+    usermod -aG sudo azureadm && \
+    echo "azureadm ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/azureadm && \
+    chmod 0440 /etc/sudoers.d/azureadm
 
-RUN groupadd -g ${USER_GID} azureadm && \
-    useradd -m -u ${USER_UID} -g ${USER_GID} -s /bin/bash azureadm
-
-
-# Configure SSH for Ansible (both root and azureadm)
-RUN mkdir -p /root/.ssh /home/azureadm/.ssh && \
-    chmod 700 /root/.ssh /home/azureadm/.ssh && \
-    echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /root/.ssh/config && \
-    echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /home/azureadm/.ssh/config && \
-    chmod 600 /root/.ssh/config /home/azureadm/.ssh/config && \
-    chown -R azureadm:azureadm /home/azureadm/.ssh
-
-# Create directories needed by SDAF scripts and GitHub Actions
-RUN mkdir -p \
-    /__w/_temp/_runner_file_commands \
-    /__w/_actions \
-    /github/home \
-    /github/workflow \
-    /opt/terraform/.terraform.d/plugin-cache && \
-    chown -R azureadm:azureadm /__w /github /opt/terraform /source && \
-    chmod -R 777 /__w /github && \
-    chmod -R 755 /opt/terraform /source
+# Configure SSH for Ansible
+RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
+RUN echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /root/.ssh/config && \
+    chmod 600 /root/.ssh/config
 
 WORKDIR /source
-
-USER azureadm
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD terraform version && ansible --version && az version || exit 1
