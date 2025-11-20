@@ -93,8 +93,8 @@ ENV SAP_AUTOMATION_REPO_PATH=/source
 ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
 # Create non-root user
-RUN useradd -m -s /bin/bash -u 1000 azureadm && \
-    usermod -aG sudo azureadm && \
+RUN useradd -m -s /bin/bash azureadm && \
+    usermod -aG sudo azureadm && passwd -d azureadm && \
     passwd -d azureadm && \
     echo "export LC_ALL=en_US.UTF-8" >> /home/azureadm/.bashrc && \
     echo "export LANG=en_US.UTF-8" >> /home/azureadm/.bashrc
@@ -117,9 +117,15 @@ RUN mkdir -p \
     chown -R azureadm:azureadm /__w /github /opt/terraform /source && \
     chmod -R 770 /__w /github /opt/terraform /source
 
-WORKDIR /source
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 USER azureadm
+
+WORKDIR /source
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD terraform version && ansible --version && az version || exit 1
