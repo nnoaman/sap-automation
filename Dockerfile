@@ -93,7 +93,7 @@ ENV SAP_AUTOMATION_REPO_PATH=/source
 ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
 # Create non-root user
-RUN useradd -m -s /bin/bash -u 1000 azureadm && \
+RUN useradd -m -s /bin/bash -u 1001 azureadm && \
     usermod -aG sudo azureadm && \
     passwd -d azureadm && \
     echo "export LC_ALL=en_US.UTF-8" >> /home/azureadm/.bashrc && \
