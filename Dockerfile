@@ -4,6 +4,8 @@ ARG TF_VERSION=1.13.5
 ARG YQ_VERSION=v4.42.1
 ARG NODE_VERSION=18.19.1
 ARG ANSIBLE_VERSION=2.16.5
+ARG USER_UID=1000
+ARG USER_GID=1000
 
 # Install core utilities and system tools
 RUN tdnf install -y \
@@ -93,11 +95,15 @@ ENV SAP_AUTOMATION_REPO_PATH=/source
 ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
 # Create non-root user
-RUN useradd -m -s /bin/bash -u 1001 azureadm && \
-    usermod -aG sudo azureadm && \
-    passwd -d azureadm && \
-    echo "export LC_ALL=en_US.UTF-8" >> /home/azureadm/.bashrc && \
-    echo "export LANG=en_US.UTF-8" >> /home/azureadm/.bashrc
+# RUN useradd -m -s /bin/bash -u 1001 azureadm && \
+#    usermod -aG sudo azureadm && \
+#    passwd -d azureadm && \
+#    echo "export LC_ALL=en_US.UTF-8" >> /home/azureadm/.bashrc && \
+#    echo "export LANG=en_US.UTF-8" >> /home/azureadm/.bashrc
+
+RUN groupadd -g ${USER_GID} azureadm && \
+    useradd -m -u ${USER_UID} -g ${USER_GID} -s /bin/bash azureadm
+
 
 # Configure SSH for Ansible (both root and azureadm)
 RUN mkdir -p /root/.ssh /home/azureadm/.ssh && \
