@@ -66,9 +66,10 @@ RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-li
   ln -s /usr/local/bin/npm /usr/bin/npm
 
 # Install yq, as there are two competing versions and Azure Linux uses the jq wrappers, which breaks the GitHub Workflows
-RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz | tar zx && \
+RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz -o yq.tar.gz && \
+  tar -xzf yq.tar.gz && \
   install -Dm755 yq_linux_amd64 /usr/bin/yq && \
-  rm -rf yq_linux_amd64.tar.gz yq_linux_amd64 install-man-page.sh yq.1
+  rm -rf yq.tar.gz yq_linux_amd64 install-man-page.sh yq.1
 
 # Set locales in environment file
 RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
