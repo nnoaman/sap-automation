@@ -47,8 +47,8 @@ RUN tdnf install -y \
 
 # Install Terraform
 RUN curl -fsSo terraform.zip \
- https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
- unzip terraform.zip && \
+  https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
+  unzip terraform.zip && \
   install -Dm755 terraform /usr/bin/terraform && \
   rm -f terraform terraform.zip
 
@@ -87,7 +87,7 @@ RUN pip3 install --no-cache-dir \
     chmod \
     pyyaml
 
-# Copy files
+# Copy BOM files
 COPY SAP-automation-samples /source/SAP-automation-samples
 COPY . /source
 
@@ -100,9 +100,10 @@ RUN useradd -m -s /bin/bash azureadm && \
     chmod 0440 /etc/sudoers.d/azureadm
 
 # Configure SSH for Ansible
-RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
-RUN echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /root/.ssh/config && \
-    chmod 600 /root/.ssh/config
+RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh && \
+    echo "Host *\n  StrictHostKeyChecking accept-new\n  UserKnownHostsFile=/root/.ssh/known_hosts" > /root/.ssh/config && \
+    chmod 600 /root/.ssh/config && \
+    touch /root/.ssh/known_hosts
 
 WORKDIR /source
 
