@@ -237,6 +237,8 @@ echo -e "$green--- Control Plane deployment---$reset_formatting"
 # Platform-specific flags
 if [ "$PLATFORM" == "devops" ]; then
 	platform_flag="--ado"
+	TF_VAR_devops_platform="ADO"
+	export TF_VAR_devops_platform
 elif [ "$PLATFORM" == "github" ]; then
 	# Set required environment variables for GitHub
 	export USER=${GITHUB_ACTOR:-githubuser}
@@ -253,7 +255,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	TF_VAR_github_repository=${GITHUB_REPOSITORY}
 	export TF_VAR_github_repository
 
-	TF_VAR_devops_platform="github"
+	TF_VAR_devops_platform="GITHUB"
 	export TF_VAR_devops_platform
 else
 	platform_flag=""

@@ -117,6 +117,14 @@ resource "azurerm_windows_web_app" "webapp" {
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access)): (
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
                                                  )
+    "GITHUB_PAT"                                      = var.use_private_endpoint ? (
+                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/GH_PAT/)", local.keyvault_names.user_access)): (
+                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/GH_PAT/)", local.keyvault_names.user_access)
+                                                 )
+    "DEVOPS_PLATFORM"                         = var.infrastructure.devops.platform
+    "GITHUB_SERVER_URL"                           = var.infrastructure.devops.github_server_url
+    "GITHUB_API_URL"                          = var.infrastructure.devops.github_api_url
+    "GITHUB_REPOSITORY"                       = var.infrastructure.devops.github_repository
     "CONTROLPLANE_ENV"                        = var.infrastructure.environment
     "CONTROLPLANE_LOC"                        = var.naming_new.location_short
     "CONTROL_PLANE_NAME"                      = upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name))

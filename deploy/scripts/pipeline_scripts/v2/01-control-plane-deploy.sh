@@ -108,6 +108,10 @@ if [ "$PLATFORM" == "devops" ]; then
 	else
 		echo "##vso[task.logissue type=warning]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
 	fi
+	TF_VAR_devops_platform="ADO"
+	export TF_VAR_devops_platform
+
+
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
@@ -128,7 +132,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	TF_VAR_github_repository=${GITHUB_REPOSITORY}
 	export TF_VAR_github_repository
 
-	TF_VAR_devops_platform="github"
+	TF_VAR_devops_platform="GITHUB"
 	export TF_VAR_devops_platform
 else
 	platform_flag=""
