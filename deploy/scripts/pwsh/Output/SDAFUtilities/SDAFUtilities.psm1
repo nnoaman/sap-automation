@@ -1917,9 +1917,6 @@ function New-SDAFADOWorkloadZone {
     Write-Verbose "  CreateConnections: $CreateConnections"
     Write-Verbose "  ServiceManagementReference: $ServiceManagementReference"
 
-    Write-Verbose "Setting Azure DevOps defaults: organization=$AdoOrganization project=$AdoProject"
-    az devops configure --defaults organization=$AdoOrganization project="$AdoProject"
-
     # Initialize error tracking
     $ErrorActionPreference = 'Stop'
     $script:DeploymentErrors = @()
@@ -2183,6 +2180,9 @@ function New-SDAFADOWorkloadZone {
         throw "Project not found"
       }
 
+      Write-Verbose "Setting Azure DevOps defaults: organization=$AdoOrganization project=$AdoProject"
+      az devops configure --defaults organization=$AdoOrganization project="$AdoProject"
+
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
       if ($ControlPlaneVariableGroupId.Length -ne 0) {
@@ -2334,11 +2334,19 @@ function New-SDAFADOWorkloadZone {
           Write-Host "Service connection '$ServiceConnectionName' created successfully." -ForegroundColor Green
           $ServiceConnectionId = az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].id" -o tsv
           az devops service-endpoint update --id $ServiceConnectionId --enable-for-all true --output none --only-show-errors
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to enable service connection '$ServiceConnectionName' for all pipelines"
+            throw "Service connection update failed"
+          }
         }
         else {
           Write-Host "Service Endpoint already exists, recreating it with the updated credentials" -ForegroundColor Green
           $ServiceConnectionId = az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].id" -o tsv
           az devops service-endpoint delete --id $ServiceConnectionId --yes
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to delete existing service connection '$ServiceConnectionName'"
+            throw "Service connection deletion failed"
+          }
           az devops service-endpoint azurerm create --azure-rm-service-principal-id $WorkloadZoneClientId --azure-rm-subscription-id $WorkloadZoneSubscriptionId --azure-rm-subscription-name $WorkloadZoneSubscriptionName --azure-rm-tenant-id $WorkloadZoneTenantId --name $ServiceConnectionName --output none --only-show-errors
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to recreate service connection '$ServiceConnectionName'"
@@ -2347,6 +2355,10 @@ function New-SDAFADOWorkloadZone {
           Write-Host "Service connection '$ServiceConnectionName' recreated successfully." -ForegroundColor Green
           $ServiceConnectionId = az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].id" -o tsv
           az devops service-endpoint update --id $ServiceConnectionId --enable-for-all true --output none --only-show-errors
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to enable service connection '$ServiceConnectionName' for all pipelines"
+            throw "Service connection update failed"
+          }
         }
       }
 
