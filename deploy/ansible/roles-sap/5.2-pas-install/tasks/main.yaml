@@ -150,6 +150,20 @@
         pas_virtual_hostname:          "{{ custom_pas_virtual_hostname | default(virtual_host, true) }}"
         pas_bom_id:                    "{{ bom.product_ids.pas }}"
 
+    - name:                            "5.2 Primary Application Server Installation - Check ASCS message server port is reachable"
+      ansible.builtin.wait_for:
+        host:                          "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
+        port:                          "36{{ sid_to_be_deployed.ascs_inst_no }}"
+        state:                         started
+        timeout:                       300
+      register:                        ms_port_check
+      ignore_errors:                   true
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0028:PAS Install failed, ASCS message server is not running on {{ custom_scs_virtual_hostname | default(scs_server, true) }}:36{{ sid_to_be_deployed.ascs_inst_no }}. Ensure the ASCS instance is started before running PAS installation."
+      when:                            ms_port_check is failed
+
     - name:                            "5.2 Primary Application Server Installation - Check installation media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
@@ -227,7 +241,7 @@
       when:
         - database_high_availability
         - platform == 'HANA'
-        - hdbuserstore_file.files | length > 0
+        - hdbuserstore_file | length > 0
 
     - name:                            "5.2 Primary Application Server Installation - Show hdbuserstore path"
       ansible.builtin.debug:
