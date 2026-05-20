@@ -89,8 +89,8 @@ RUN pip3 install --no-cache-dir \
 
 # Copy BOM files
 # COPY SAP-automation-samples /source/SAP-automation-samples
-# COPY . /source
 
+COPY . /source
 ENV SAP_AUTOMATION_REPO_PATH=/source
 # ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
